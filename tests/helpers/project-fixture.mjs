@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 
 const MODES_TEXT = 'delivery feat fix knowhow review validate evolve';
@@ -54,7 +53,9 @@ const TEST_FILES = [
 ];
 
 export function makeProjectFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-flow-project-'));
+  const workspaceRoot = path.join(process.cwd(), '.tmp');
+  fs.mkdirSync(workspaceRoot, { recursive: true });
+  const root = fs.mkdtempSync(path.join(workspaceRoot, 'jj-flow-project-'));
 
   writeJson(path.join(root, 'package.json'), {
     name: '@shendu-sdt/jj-flow',
