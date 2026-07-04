@@ -1,0 +1,19 @@
+[
+  {
+    "id": "arms-goods-detail-500",
+    "source": "$arms-fix",
+    "artifact_type": "arms_sls",
+    "path": "sls://project/logstore/query",
+    "summary": "ARMS/SLS 已聚合 goods-detail 500 指纹。",
+    "guards": ["arms-fingerprint-ready"],
+    "evidence": {
+      "app_id": "example-app",
+      "url": "/goods-detail",
+      "fingerprint": "TypeError: Cannot read properties of undefined"
+    },
+    "guard_results": [
+      { "id": "arms-fingerprint-ready", "status": "PASS" }
+    ],
+    "next_steps": ["定位根因代码并补充复现路径。"]
+  }
+]

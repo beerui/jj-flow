@@ -1,0 +1,19 @@
+[
+  {
+    "id": "zentao-task-123",
+    "source": "$sd-zentao-cli",
+    "artifact_type": "zentao_task",
+    "path": "zentao://task/123",
+    "summary": "禅道任务和交付记录已确认。",
+    "guards": ["delivery-recorded"],
+    "evidence": {
+      "task_id": 123,
+      "title": "开发列表页",
+      "status": "doing"
+    },
+    "guard_results": [
+      { "id": "delivery-recorded", "status": "PASS" }
+    ],
+    "next_steps": ["交付后同步工时和完成说明。"]
+  }
+]

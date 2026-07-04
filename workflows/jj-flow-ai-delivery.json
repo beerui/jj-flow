@@ -1,0 +1,38 @@
+{
+  "name": "jj-flow-ai-delivery",
+  "version": "0.1.0",
+  "description": "jj-flow project-level AI delivery recipes.",
+  "entrypoint": "jj delivery",
+  "recipes": {
+    "delivery": {
+      "title": "少参数端到端交付",
+      "requiredEvidence": ["user_intent", "project_context", "decision_gate", "maestro_chain", "test_result"],
+      "optionalEvidence": ["prd_doc", "api_contract", "design_reference", "codex_thread", "delivery_record"],
+      "maestroSkills": ["$maestro-analyze", "$maestro-blueprint", "$maestro-roadmap", "$maestro-plan", "$yapi", "$maestro-execute", "$quality-review", "$quality-auto-test", "$quality-test", "$maestro-impeccable"]
+    },
+    "feat": {
+      "title": "真实项目功能交付",
+      "requiredEvidence": ["project_scope", "acceptance", "test_plan", "test_result"],
+      "optionalEvidence": ["yapi_contract", "zentao_task"],
+      "maestroSkills": ["$maestro-plan", "$yapi", "$maestro-execute", "$quality-review", "$quality-test"]
+    },
+    "fix": {
+      "title": "线上问题定位与修复",
+      "requiredEvidence": ["arms_sls", "error_fingerprint", "root_cause", "test_result"],
+      "optionalEvidence": ["resolution", "reuse_rule"],
+      "maestroSkills": ["$arms-fix", "$maestro-plan", "$maestro-execute", "$quality-test"]
+    },
+    "knowhow": {
+      "title": "项目经验沉淀",
+      "requiredEvidence": ["dialogue_summary", "problem_solution", "knowledge_target"],
+      "optionalEvidence": ["commit_diff", "reuse_rule"],
+      "maestroSkills": ["$maestro-learn", "$codify-to-knowhow", "$manage-knowhow-capture"]
+    },
+    "review": {
+      "title": "交付前质量审查",
+      "requiredEvidence": ["diff", "test_result", "risk_list"],
+      "optionalEvidence": ["release_note"],
+      "maestroSkills": ["$quality-review", "$quality-test", "$team-review"]
+    }
+  }
+}

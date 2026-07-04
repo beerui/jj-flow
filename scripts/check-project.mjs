@@ -1,0 +1,56 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+
+const requiredFiles = [
+  'README.md',
+  'CHANGELOG.md',
+  'release-please-config.json',
+  '.release-please-manifest.json',
+  '.github/workflows/ci.yml',
+  '.github/workflows/pages.yml',
+  '.github/workflows/release-please.yml',
+  'bin/jj.mjs',
+  'src/cli.mjs',
+  'src/dispatch.mjs',
+  'src/recipes.mjs',
+  'src/guards.mjs',
+  'src/evidence.mjs',
+  'src/evidenceProviders.mjs',
+  'src/installSkill.mjs',
+  'src/knowledgeLoop.mjs',
+  'src/maestroCompatibility.mjs',
+  'src/maestroExecution.mjs',
+  'src/projectEvolution.mjs',
+  'src/projectValidation.mjs',
+  'scripts/build-docs.mjs',
+  'tests/dispatch.test.mjs',
+  'tests/evidence.test.mjs',
+  'tests/guards.test.mjs',
+  'tests/install-skill.test.mjs',
+  'tests/knowledge-loop.test.mjs',
+  'tests/maestro-compatibility.test.mjs',
+  'tests/maestro-execution.test.mjs',
+  'tests/evidence-providers.test.mjs',
+  'tests/fixtures/evidence-providers.json',
+  'tests/project-evolution.test.mjs',
+  'tests/project-validation.test.mjs',
+  'skills/jj/SKILL.md',
+  'workflows/jj-flow-ai-delivery.json',
+  'docs/index.md',
+  'docs/installation.md',
+  'docs/project-plan.md',
+  'docs/architecture.md',
+  'docs/commands.md',
+  'docs/usage.md',
+  'docs/deployment.md',
+  'docs/maintenance.md'
+];
+
+const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(process.cwd(), file)));
+if (missing.length) {
+  console.error(`Missing required files:\n${missing.map((file) => `- ${file}`).join('\n')}`);
+  process.exit(1);
+}
+
+console.log('project check passed');

@@ -1,0 +1,94 @@
+{
+  "yapi": {
+    "success": {
+      "ok": true,
+      "data": {
+        "endpoint": "/api/customers",
+        "method": "GET",
+        "request": {
+          "query": ["page", "pageSize"]
+        },
+        "response": {
+          "items": [],
+          "total": 0
+        }
+      }
+    },
+    "missingFields": {
+      "ok": true,
+      "data": {
+        "endpoint": "/api/customers",
+        "method": "GET",
+        "request": {}
+      }
+    },
+    "partial": {
+      "ok": true,
+      "data": {
+        "endpoint": "/api/customers",
+        "method": "GET",
+        "response": {
+          "items": []
+        }
+      }
+    },
+    "failure": {
+      "ok": false,
+      "error": "YApi token expired"
+    }
+  },
+  "arms": {
+    "success": {
+      "ok": true,
+      "data": {
+        "fingerprint": "TypeError:getGoodsDetail",
+        "time_window": "2026-07-04T09:00:00+08:00/2026-07-04T10:00:00+08:00",
+        "root_cause": "SSR detail API returned malformed payload"
+      }
+    },
+    "missingFields": {
+      "ok": true,
+      "data": {
+        "fingerprint": "TypeError:getGoodsDetail",
+        "time_window": "2026-07-04T09:00:00+08:00/2026-07-04T10:00:00+08:00"
+      }
+    },
+    "partial": {
+      "ok": true,
+      "data": {
+        "fingerprint": "TypeError:getGoodsDetail"
+      }
+    },
+    "failure": {
+      "ok": false,
+      "error": "SLS query failed"
+    }
+  },
+  "zentao": {
+    "success": {
+      "ok": true,
+      "data": {
+        "task_id": "ZT-1024",
+        "title": "Implement customer list",
+        "status": "done"
+      }
+    },
+    "missingFields": {
+      "ok": true,
+      "data": {
+        "task_id": "ZT-1024",
+        "title": "Implement customer list"
+      }
+    },
+    "partial": {
+      "ok": true,
+      "data": {
+        "task_id": "ZT-1024"
+      }
+    },
+    "failure": {
+      "ok": false,
+      "error": "ZenTao session expired"
+    }
+  }
+}

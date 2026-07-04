@@ -1,0 +1,9 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "@shendu-sdt/jj-flow",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

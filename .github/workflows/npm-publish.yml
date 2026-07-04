@@ -1,0 +1,50 @@
+name: NPM Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag, usually beta for prereleases"
+        required: true
+        default: beta
+      dry_run:
+        description: "Run npm publish --dry-run without uploading"
+        required: true
+        type: boolean
+        default: false
+      run_verify:
+        description: "Run npm run verify before publishing"
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - if: ${{ inputs.run_verify }}
+        run: npm run verify
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ inputs.tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=(--access public --tag "$NPM_TAG")
+          if [ "$DRY_RUN" = "true" ]; then
+            args+=(--dry-run)
+          else
+            args+=(--provenance)
+          fi
+          npm publish "${args[@]}"

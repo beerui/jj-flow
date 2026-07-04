@@ -1,0 +1,20 @@
+[
+  {
+    "id": "yapi-list-api",
+    "source": "$yapi",
+    "artifact_type": "yapi_contract",
+    "path": "https://yapi.example.com/project/1/interface/api/1",
+    "summary": "列表接口请求参数和返回值已拉取。",
+    "guards": ["yapi-contract-ready"],
+    "evidence": {
+      "method": "GET",
+      "path": "/api/list",
+      "request": { "pageNum": "number", "pageSize": "number" },
+      "response": { "total": "number", "records": "array" }
+    },
+    "guard_results": [
+      { "id": "yapi-contract-ready", "status": "PASS" }
+    ],
+    "next_steps": ["按字段生成 API 类型和页面验收条件。"]
+  }
+]
