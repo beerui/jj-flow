@@ -22,7 +22,7 @@ npm run verify
 
 `verify` 会运行：
 
-- `node --test --experimental-test-isolation=none tests/*.test.mjs`
+- `node --test tests/*.test.mjs`
 - `scripts/check-project.mjs`
 - `scripts/build-docs.mjs --check`
 
@@ -36,6 +36,12 @@ GitHub Actions 包含两个工作流：
 - `npm-publish.yml`：手动触发 npm 发布，默认用于 beta 发布。
 
 ### npm beta 发布
+
+仓库设置需要满足：
+
+- Actions workflow permissions 使用 `Read and write permissions`。
+- 勾选 `Allow GitHub Actions to create and approve pull requests`，否则 Release Please 不能创建 release PR。
+- GitHub Pages 使用 GitHub Actions 部署；`pages.yml` 会在首次部署时尝试自动启用 Pages。
 
 发布前在 GitHub 仓库 secrets 中配置 `NPM_TOKEN`。该 token 必须有 `@shendu-sdt/jj-flow` 的 publish 权限；如果 npm 账号开启了 2FA，需要使用允许 publish bypass 的 granular access token。
 
