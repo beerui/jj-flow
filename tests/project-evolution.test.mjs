@@ -1,16 +1,14 @@
 import assert from 'node:assert/strict';
-import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 import { runCli } from '../src/cli.mjs';
 import { buildDispatch } from '../src/dispatch.mjs';
 import { buildProjectEvolutionEvidence } from '../src/projectEvolution.mjs';
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+import { makeProjectFixture } from './helpers/project-fixture.mjs';
 
 test('project evolution evidence turns validation into an upgrade plan', () => {
+  const cwd = makeProjectFixture();
   const evidence = buildProjectEvolutionEvidence({
-    cwd: ROOT,
+    cwd,
     intent: '基于当前自检结果推进下一项项目管理能力'
   });
   const types = evidence.map((item) => item.artifact_type);
@@ -24,16 +22,18 @@ test('project evolution evidence turns validation into an upgrade plan', () => {
 });
 
 test('project evolution evidence passes evolve guards', () => {
-  const evidence = buildProjectEvolutionEvidence({ cwd: ROOT });
-  const dispatch = buildDispatch({ mode: 'evolve', intent: '推进项目自身迭代', evidence, cwd: ROOT });
+  const cwd = makeProjectFixture();
+  const evidence = buildProjectEvolutionEvidence({ cwd });
+  const dispatch = buildDispatch({ mode: 'evolve', intent: '推进项目自身迭代', evidence, cwd });
 
   assert.equal(dispatch.mode, 'evolve');
   assert.equal(dispatch.guard_report.status, 'PASS');
 });
 
 test('CLI evolve attaches project evolution evidence', () => {
+  const cwd = makeProjectFixture();
   const stdout = createStdout();
-  const status = runCli(['evolve', '基于当前自检结果推进下一项项目管理能力', '--json'], { cwd: ROOT, stdout });
+  const status = runCli(['evolve', '基于当前自检结果推进下一项项目管理能力', '--json'], { cwd, stdout });
   const parsed = JSON.parse(stdout.output);
 
   assert.equal(status, 0);

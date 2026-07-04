@@ -1,15 +1,13 @@
 import assert from 'node:assert/strict';
-import path from 'node:path';
 import test from 'node:test';
-import { fileURLToPath } from 'node:url';
 import { runCli } from '../src/cli.mjs';
 import { buildDispatch } from '../src/dispatch.mjs';
 import { buildProjectValidationEvidence } from '../src/projectValidation.mjs';
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+import { makeProjectFixture } from './helpers/project-fixture.mjs';
 
 test('project validation evidence reflects current repository state', () => {
-  const evidence = buildProjectValidationEvidence({ cwd: ROOT });
+  const cwd = makeProjectFixture();
+  const evidence = buildProjectValidationEvidence({ cwd });
   const types = evidence.map((item) => item.artifact_type);
 
   assert.ok(types.includes('project_state'));
@@ -25,16 +23,18 @@ test('project validation evidence reflects current repository state', () => {
 });
 
 test('validation evidence can pass validate dispatch guards', () => {
-  const evidence = buildProjectValidationEvidence({ cwd: ROOT });
-  const dispatch = buildDispatch({ mode: 'validate', intent: '检查当前项目状态', evidence, cwd: ROOT });
+  const cwd = makeProjectFixture();
+  const evidence = buildProjectValidationEvidence({ cwd });
+  const dispatch = buildDispatch({ mode: 'validate', intent: '检查当前项目状态', evidence, cwd });
 
   assert.equal(dispatch.mode, 'validate');
   assert.equal(dispatch.guard_report.status, 'PASS');
 });
 
 test('CLI validate attaches project validation evidence', () => {
+  const cwd = makeProjectFixture();
   const stdout = createStdout();
-  const status = runCli(['validate', '检查当前项目状态', '--json'], { cwd: ROOT, stdout });
+  const status = runCli(['validate', '检查当前项目状态', '--json'], { cwd, stdout });
   const parsed = JSON.parse(stdout.output);
 
   assert.equal(status, 0);
