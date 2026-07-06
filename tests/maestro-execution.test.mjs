@@ -57,7 +57,7 @@ test('dispatch exposes execution decision without executing Maestro', () => {
     evidence: [
       { id: 'diff', source: 'git', artifact_type: 'diff', summary: 'diff 已审查。' },
       { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '测试通过。' },
-      { id: 'maestro', source: '$jj validate', artifact_type: 'maestro_compatibility', summary: '兼容。', evidence: { status: 'compatible', compatible: true } }
+      { id: 'maestro', source: '$jj-validate', artifact_type: 'maestro_compatibility', summary: '兼容。', evidence: { status: 'compatible', compatible: true } }
     ]
   });
 

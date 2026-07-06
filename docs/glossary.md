@@ -1,24 +1,26 @@
 # 术语与缩写
 
-这页解释文档里常见的命令名、缩写和项目术语。第一次使用只需要知道 `$jj` 和 `delivery`。
+这页解释文档里常见的命令名、缩写和项目术语。第一次使用只需要知道 `$jj-delivery` 或 `/jj-delivery`。
 
 ## 项目标识
 
 - `jj`：简单命令标识，不代表组织或业务品牌。
-- `jj-flow`：给 Codex 用的交付入口，负责先整理需求、资料、边界和验证要求，再推进实现。
-- `$jj`：Codex 内触发 `skills/jj/SKILL.md` 的 skill 入口。
-- `jj` CLI：仓库内维护、安装和调试命令，不是普通交付主入口。
+- `jj-flow`：给 Codex 和 Claude Code 用的交付入口，负责先整理需求、资料、边界和验证要求，再推进实现。
+- `$jj-*`：Codex 内触发 `.codex/skills/jj-*/SKILL.md` 的缩写命令前缀，主推连字符写法。
+- `/jj-*`：Claude Code 内触发 `.claude/commands/jj-*.md` 的 slash command 前缀，主推连字符写法。
+- `$jj` / `/jj`：兼容旧写法的入口，不再作为文档主推命令。
+- `jj` CLI：仓库内安装、维护和调试命令，不是普通交付主入口。
 
-## `$jj` 命令
+## `jj-*` 缩写命令
 
-- `delivery`：端到端交付入口。用于需求需要跨分析、计划、实现、审查、测试和精修的场景。
-- `validate`：项目管理者自检入口。用于检查文档、规则、测试、workflow 和路线图漂移。
-- `evolve`：项目自身迭代入口。用于把自检结果转换成修正清单和升级计划。
-- `feat`：feature 的缩写。用于边界明确的新功能交付。
-- `fix`：修复入口。用于线上问题、异常、回归或错误指纹定位与修复。
-- `review`：交付前审查入口。用于检查 diff、计划、测试证据和发布风险。
-- `knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
-- `auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
+- `$jj-delivery` / `/jj-delivery`：端到端交付入口。用于需求需要跨分析、计划、实现、审查、测试和精修的场景。
+- `$jj-validate` / `/jj-validate`：项目管理者自检入口。用于检查文档、规则、测试、workflow 和路线图漂移。
+- `$jj-evolve` / `/jj-evolve`：项目自身迭代入口。用于把自检结果转换成修正清单和升级计划。
+- `$jj-feat` / `/jj-feat`：feature 的缩写。用于边界明确的新功能交付。
+- `$jj-fix` / `/jj-fix`：修复入口。用于线上问题、异常、回归或错误指纹定位与修复。
+- `$jj-review` / `/jj-review`：交付前审查入口。用于检查 diff、计划、测试证据和发布风险。
+- `$jj-knowhow` / `/jj-knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
+- `$jj-auto` / `/jj-auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
 
 ## 交付协议术语
 
@@ -35,7 +37,8 @@
 ## 外部工具和资料
 
 - `Maestro`：底层工作流体系，`jj-flow` 只在它前面组织交付上下文。
-- `Codex`：运行 `$jj`、Maestro skill 和代码修改的对话环境。
+- `Codex`：运行 `$jj-*`、Maestro skill 和代码修改的对话环境。
+- `Claude Code`：运行 `/jj-*` slash command、Maestro skill 和代码修改的对话环境。
 - `PRD`：Product Requirements Document，产品需求文档。
 - `YApi`：接口文档和契约来源。
 - `ARMS`：前端或应用监控系统，用于线上错误和性能证据。

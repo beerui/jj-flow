@@ -15,7 +15,24 @@ const DOC_FILES = [
   'docs/maintenance.md',
   'docs/deployment.md',
   'docs/adr/0001-thin-maestro-adapter.md',
-  'skills/jj/SKILL.md'
+  '.codex/skills/jj/SKILL.md',
+  '.codex/skills/jj-auto/SKILL.md',
+  '.codex/skills/jj-delivery/SKILL.md',
+  '.codex/skills/jj-validate/SKILL.md',
+  '.codex/skills/jj-evolve/SKILL.md',
+  '.codex/skills/jj-feat/SKILL.md',
+  '.codex/skills/jj-fix/SKILL.md',
+  '.codex/skills/jj-knowhow/SKILL.md',
+  '.codex/skills/jj-review/SKILL.md',
+  '.claude/commands/jj.md',
+  '.claude/commands/jj-auto.md',
+  '.claude/commands/jj-delivery.md',
+  '.claude/commands/jj-validate.md',
+  '.claude/commands/jj-evolve.md',
+  '.claude/commands/jj-feat.md',
+  '.claude/commands/jj-fix.md',
+  '.claude/commands/jj-knowhow.md',
+  '.claude/commands/jj-review.md'
 ];
 
 const SOURCE_FILES = [
@@ -90,15 +107,15 @@ export function makeProjectFixture() {
   });
 
   for (const file of DOC_FILES) {
-    writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj 做成重型编排引擎\n不重复\n上层协议\n安装 你需要给什么 使用方案 你会得到什么\n`);
+    writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj-* 做成重型编排引擎\n不重复\n上层协议\n安装 你需要给什么 使用方案 你会得到什么\n`);
   }
 
   for (const file of SOURCE_FILES) {
-    writeText(path.join(root, file), `${MODES_TEXT}\nverify check docs:check pages release-please release-please-config.json\n`);
+    writeText(path.join(root, file), `${MODES_TEXT}\nverify check docs:check pages release-please release-please-config.json command assets\n`);
   }
 
   for (const file of TEST_FILES) {
-    writeText(path.join(root, file), 'project validation CLI\n');
+    writeText(path.join(root, file), 'project validation command assets\n');
   }
 
   return root;

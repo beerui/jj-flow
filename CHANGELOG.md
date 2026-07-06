@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1-beta.1
+
+- 调整安装资产结构，发布包内同时提供 Codex skills 与 Claude slash commands。
+- 增加 `jj install-skill --platform codex|claude|all`，支持用户级和项目级安装。
+- 更新文档站内容，突出真实入口、安装方式和维护边界。
+
 ## 0.1.1-beta.0
 
 - 增加 npm beta 发布准备：版本号、`npx` 安装入口和 GitHub Actions 发布流程。

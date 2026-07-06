@@ -69,7 +69,8 @@ run_verify: true
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill
-npx @shendu-sdt/jj-flow@beta install-skill --project
+npx @shendu-sdt/jj-flow@beta install-skill --platform claude
+npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 ```
 
 ## 新增文档页面

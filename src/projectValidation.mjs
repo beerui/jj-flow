@@ -29,7 +29,24 @@ const REQUIRED_SOURCE = [
   'src/maestroExecution.mjs',
   'src/projectEvolution.mjs',
   'src/projectValidation.mjs',
-  'skills/jj/SKILL.md'
+  '.codex/skills/jj/SKILL.md',
+  '.codex/skills/jj-auto/SKILL.md',
+  '.codex/skills/jj-delivery/SKILL.md',
+  '.codex/skills/jj-validate/SKILL.md',
+  '.codex/skills/jj-evolve/SKILL.md',
+  '.codex/skills/jj-feat/SKILL.md',
+  '.codex/skills/jj-fix/SKILL.md',
+  '.codex/skills/jj-knowhow/SKILL.md',
+  '.codex/skills/jj-review/SKILL.md',
+  '.claude/commands/jj.md',
+  '.claude/commands/jj-auto.md',
+  '.claude/commands/jj-delivery.md',
+  '.claude/commands/jj-validate.md',
+  '.claude/commands/jj-evolve.md',
+  '.claude/commands/jj-feat.md',
+  '.claude/commands/jj-fix.md',
+  '.claude/commands/jj-knowhow.md',
+  '.claude/commands/jj-review.md'
 ];
 
 const REQUIRED_TESTS = [
@@ -48,7 +65,8 @@ const REQUIRED_MODES = ['delivery', 'feat', 'fix', 'knowhow', 'review', 'validat
 const COMMAND_REFERENCE_FILES = [
   'docs/architecture.md',
   'docs/commands.md',
-  'skills/jj/SKILL.md'
+  '.codex/skills/jj/SKILL.md',
+  '.claude/commands/jj.md'
 ];
 
 export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
@@ -86,7 +104,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
   const evidence = [
     {
       id: 'project-state',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: 'project_state',
       path: '.',
       summary: packageJson
@@ -100,7 +118,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'workflow-state',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: workflowState ? 'workflow_state' : 'validation_failure',
       path: '.workflow/state.json',
       summary: workflowState
@@ -114,7 +132,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'docs-reference',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: missingDocs.length || docsWithoutModes.length ? 'validation_failure' : 'docs_reference',
       path: 'docs/',
       summary: missingDocs.length
@@ -130,7 +148,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'recipe-registry',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: missingRecipes.length || missingSource.length ? 'validation_failure' : 'recipe_registry',
       path: 'src/recipes.mjs',
       summary: missingRecipes.length
@@ -144,7 +162,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'test-coverage',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: missingTests.length ? 'validation_failure' : 'test_coverage',
       path: 'tests/',
       summary: missingTests.length
@@ -157,7 +175,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'verification-command',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: missingScripts.length ? 'validation_failure' : 'verification_command',
       path: 'package.json',
       summary: missingScripts.length
@@ -170,7 +188,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'phase-readiness',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: 'phase_readiness',
       path: '.workflow/state.json',
       summary: phaseReadiness
@@ -183,7 +201,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     maestroCompatibility,
     {
       id: 'next-recommendation',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: nextPhase || roadmapComplete ? 'next_recommendation' : 'validation_failure',
       path: '.workflow/state.json',
       summary: nextPhase
@@ -206,7 +224,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
   if (failures.length) {
     evidence.push({
       id: 'validation-failures',
-      source: '$jj validate',
+      source: '$jj-validate',
       artifact_type: 'validation_failure',
       summary: `发现 ${failures.length} 个项目自检失败项。`,
       evidence: { failures }
@@ -300,7 +318,7 @@ function auditCriterion(cwd, criterion) {
     return auditFilesContain(cwd, [
       'docs/architecture.md',
       'docs/adr/0001-thin-maestro-adapter.md'
-    ], ['Maestro 上层', '不 fork Maestro core', '不把 /jj 做成重型编排引擎']);
+    ], ['Maestro 上层', '不 fork Maestro core', '不把 /jj-* 做成重型编排引擎']);
   }
 
   if (criterion.includes('CLI 模式') && criterion.includes('recipe 契约')) {
@@ -343,7 +361,7 @@ function auditCriterion(cwd, criterion) {
       'scripts/check-project.mjs',
       'tests/project-validation.test.mjs',
       'tests/project-evolution.test.mjs'
-    ], ['verify', 'check', 'docs:check', 'project validation', 'CLI']);
+    ], ['verify', 'check', 'docs:check', 'project validation', 'command assets']);
   }
 
   if (criterion.includes('npm run verify') && criterion.includes('文档站构建检查')) {
@@ -377,14 +395,14 @@ function auditCriterion(cwd, criterion) {
       'bin/jj.mjs',
       'docs/installation.md',
       'tests/install-skill.test.mjs'
-    ], ['installSkill', 'install-skill', '--force', 'skills/jj']);
+    ], ['installSkill', 'install-skill', '--force', '.codex/skills', '.claude/commands']);
   }
 
   if (criterion.includes('npm 包内容') && criterion.includes('files 声明')) {
     return auditFilesContain(cwd, [
       'package.json',
       'tests/install-skill.test.mjs'
-    ], ['files', 'bin/', 'src/', 'skills/', 'docs/']);
+    ], ['files', 'bin/', 'src/', '.codex/skills/', '.claude/commands/', 'docs/']);
   }
 
   if (criterion.includes('安装错误可诊断') && criterion.includes('测试覆盖')) {

@@ -1,6 +1,6 @@
 {
   "name": "@shendu-sdt/jj-flow",
-  "version": "0.1.1-beta.0",
+  "version": "0.1.1-beta.1",
   "description": "jj-flow project-level AI delivery workflow adapter for Maestro.",
   "type": "module",
   "repository": {
@@ -13,9 +13,10 @@
     "jj-flow": "bin/jj.mjs"
   },
   "files": [
+    ".claude/commands/",
+    ".codex/skills/",
     "bin/",
     "src/",
-    "skills/",
     "workflows/",
     "examples/",
     "docs/",

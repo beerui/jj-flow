@@ -81,7 +81,7 @@ test('delivery does not require fixed input parameters', () => {
 test('validation failure evidence makes project self-check fail', () => {
   const report = buildGuardReport(getRecipe('validate'), [{
     id: 'docs-reference',
-    source: '$jj validate',
+    source: '$jj-validate',
     artifact_type: 'validation_failure',
     summary: '命令文档缺少 validate。'
   }]);
@@ -92,15 +92,15 @@ test('validation failure evidence makes project self-check fail', () => {
 
 test('complete validation evidence passes project self-check guards', () => {
   const report = buildGuardReport(getRecipe('validate'), [
-    { id: 'project-state', source: '$jj validate', artifact_type: 'project_state', summary: 'package.json 已读取。' },
-    { id: 'workflow-state', source: '$jj validate', artifact_type: 'workflow_state', summary: '.workflow/state.json 已读取。' },
-    { id: 'docs-reference', source: '$jj validate', artifact_type: 'docs_reference', summary: '命令文档齐备。' },
-    { id: 'recipe-registry', source: '$jj validate', artifact_type: 'recipe_registry', summary: 'recipe 已注册。' },
-    { id: 'phase-readiness', source: '$jj validate', artifact_type: 'phase_readiness', summary: '当前 phase 已审计。' },
-    { id: 'maestro-compatibility', source: '$jj validate', artifact_type: 'maestro_compatibility', summary: 'Maestro 兼容性已报告。' },
-    { id: 'test-coverage', source: '$jj validate', artifact_type: 'test_coverage', summary: '测试文件齐备。' },
-    { id: 'verification-command', source: '$jj validate', artifact_type: 'verification_command', summary: 'verify 可用。' },
-    { id: 'next-recommendation', source: '$jj validate', artifact_type: 'next_recommendation', summary: '下一步已推导。' }
+    { id: 'project-state', source: '$jj-validate', artifact_type: 'project_state', summary: 'package.json 已读取。' },
+    { id: 'workflow-state', source: '$jj-validate', artifact_type: 'workflow_state', summary: '.workflow/state.json 已读取。' },
+    { id: 'docs-reference', source: '$jj-validate', artifact_type: 'docs_reference', summary: '命令文档齐备。' },
+    { id: 'recipe-registry', source: '$jj-validate', artifact_type: 'recipe_registry', summary: 'recipe 已注册。' },
+    { id: 'phase-readiness', source: '$jj-validate', artifact_type: 'phase_readiness', summary: '当前 phase 已审计。' },
+    { id: 'maestro-compatibility', source: '$jj-validate', artifact_type: 'maestro_compatibility', summary: 'Maestro 兼容性已报告。' },
+    { id: 'test-coverage', source: '$jj-validate', artifact_type: 'test_coverage', summary: '测试文件齐备。' },
+    { id: 'verification-command', source: '$jj-validate', artifact_type: 'verification_command', summary: 'verify 可用。' },
+    { id: 'next-recommendation', source: '$jj-validate', artifact_type: 'next_recommendation', summary: '下一步已推导。' }
   ]);
 
   assert.equal(report.status, 'PASS');
@@ -108,12 +108,12 @@ test('complete validation evidence passes project self-check guards', () => {
 
 test('complete evolution evidence passes project evolution guards', () => {
   const report = buildGuardReport(getRecipe('evolve'), [
-    { id: 'validation-summary', source: '$jj evolve', artifact_type: 'validation_summary', summary: '已复用 validate evidence。' },
-    { id: 'correction-backlog', source: '$jj evolve', artifact_type: 'correction_backlog', summary: '已生成 correction backlog。' },
-    { id: 'roadmap-alignment', source: '$jj evolve', artifact_type: 'roadmap_alignment', summary: '已对齐 roadmap。' },
-    { id: 'evolution-plan', source: '$jj evolve', artifact_type: 'evolution_plan', summary: '已形成升级计划。' },
-    { id: 'manager-boundary', source: '$jj evolve', artifact_type: 'manager_boundary', summary: '保持 Maestro 上层协议边界。' },
-    { id: 'evolution-test-plan', source: '$jj evolve', artifact_type: 'test_plan', summary: '验证命令已明确。' }
+    { id: 'validation-summary', source: '$jj-evolve', artifact_type: 'validation_summary', summary: '已复用 validate evidence。' },
+    { id: 'correction-backlog', source: '$jj-evolve', artifact_type: 'correction_backlog', summary: '已生成 correction backlog。' },
+    { id: 'roadmap-alignment', source: '$jj-evolve', artifact_type: 'roadmap_alignment', summary: '已对齐 roadmap。' },
+    { id: 'evolution-plan', source: '$jj-evolve', artifact_type: 'evolution_plan', summary: '已形成升级计划。' },
+    { id: 'manager-boundary', source: '$jj-evolve', artifact_type: 'manager_boundary', summary: '保持 Maestro 上层协议边界。' },
+    { id: 'evolution-test-plan', source: '$jj-evolve', artifact_type: 'test_plan', summary: '验证命令已明确。' }
   ]);
 
   assert.equal(report.status, 'PASS');

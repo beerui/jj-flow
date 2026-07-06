@@ -90,7 +90,7 @@ export function buildMaestroPrompt({ recipe, intent, guardReport, evidence, cwd 
     ? evidence.map((item) => `- ${item.id} | ${item.source} | ${item.artifact_type} | ${item.summary}`).join('\n')
     : '- 暂无证据，所有关键结论保持 PENDING。';
 
-  return `【/jj ${recipe.mode}】${recipe.title}\n\n原始需求：\n${intent || '(空)'}\n\n当前目录：\n${cwd}\n${inputPolicy}\n执行重点：\n${focus}\n\n建议 Maestro 调用链：\n${calls}\n\n必须补齐的证据：\n${checklist}\n\n已有证据：\n${evidenceSummary}\n\n证据门禁状态：\n${guards}\n\n要求：先说明边界和证据，再执行；没有证据的结论不能写成 PASS。`;
+  return `【/jj-${recipe.mode}】${recipe.title}\n\n原始需求：\n${intent || '(空)'}\n\n当前目录：\n${cwd}\n${inputPolicy}\n执行重点：\n${focus}\n\n建议 Maestro 调用链：\n${calls}\n\n必须补齐的证据：\n${checklist}\n\n已有证据：\n${evidenceSummary}\n\n证据门禁状态：\n${guards}\n\n要求：先说明边界和证据，再执行；没有证据的结论不能写成 PASS。`;
 }
 
 export function renderMarkdown(dispatch) {
@@ -107,5 +107,5 @@ export function renderMarkdown(dispatch) {
     ? `- ${dispatch.knowledge_loop.status}：${dispatch.knowledge_loop.team_context.next_actions.join('；')}`
     : '- pending：缺少知识闭环包。';
 
-  return `# /jj ${dispatch.mode}\n\n${dispatch.recipe.title}：${dispatch.recipe.summary}\n\n## Maestro 调用\n\n${calls}\n\n## 证据门禁\n\n${guards}\n\n## 执行决策\n\n${execution}\n\n## 知识闭环\n\n${knowledgeLoop}\n\n## Maestro 提示词\n\n\`\`\`text\n${dispatch.maestro_prompt}\n\`\`\`\n`;
+  return `# /jj-${dispatch.mode}\n\n${dispatch.recipe.title}：${dispatch.recipe.summary}\n\n## Maestro 调用\n\n${calls}\n\n## 证据门禁\n\n${guards}\n\n## 执行决策\n\n${execution}\n\n## 知识闭环\n\n${knowledgeLoop}\n\n## Maestro 提示词\n\n\`\`\`text\n${dispatch.maestro_prompt}\n\`\`\`\n`;
 }

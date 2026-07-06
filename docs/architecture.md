@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart LR
-  A[用户输入 /jj] --> B[jj-flow 路由]
+  A[Codex $jj-delivery / Claude Code /jj-delivery] --> B[jj-flow 原生命令资产]
   B --> C[Recipe]
   B --> D[Evidence]
   C --> E[Guard]
@@ -19,8 +19,10 @@ flowchart LR
 
 ## 核心模块
 
-- `bin/jj.mjs`：CLI 入口。
-- `src/cli.mjs`：命令参数解析和内部 CLI 调度，供入口和测试复用。
+- `.codex/skills/jj-*/SKILL.md`：Codex skill 入口，正式命令使用 `$jj-delivery` 这类连字符缩写。
+- `.claude/commands/jj-*.md`：Claude Code slash command 入口，正式命令使用 `/jj-delivery` 这类连字符缩写。
+- `bin/jj.mjs`：安装和维护调试入口，不是普通交付入口。
+- `src/cli.mjs`：安装参数解析和内部调度，供入口和测试复用。
 - `src/dispatch.mjs`：模式识别、prompt 生成、Markdown/JSON 输出。
 - `src/recipes.mjs`：`delivery`、`validate`、`evolve`、`feat`、`fix`、`knowhow`、`review` 的流程定义。
 - `src/evidence.mjs`：证据结构。
@@ -29,16 +31,16 @@ flowchart LR
 - `src/maestroCompatibility.mjs`：检查 Maestro CLI 是否可用、版本是否兼容，并把缺失或不兼容状态输出为 evidence。
 - `src/maestroExecution.mjs`：基于 intent、evidence、guard 和 Maestro 兼容性生成可选执行决策。
 - `src/knowledgeLoop.mjs`：把完成的交付整理成 knowhow、spec 或 workflow recipe 捕获计划，并生成团队协作上下文。
-- `src/projectValidation.mjs`：读取项目文件、`.workflow`、文档、recipe 和测试状态，生成 `$jj validate` 证据。
+- `src/projectValidation.mjs`：读取项目文件、`.workflow`、文档、recipe 和测试状态，生成 `$jj-validate` 证据。
 - `src/projectEvolution.mjs`：把自检证据转换成 correction backlog、升级计划和边界证据。
 - `scripts/build-docs.mjs`：把 `docs/*.md` 生成 GitHub Pages 可部署的静态站点。
-- `skills/jj/SKILL.md`：Codex skill 草案。
+- `src/installSkill.mjs`：把包内 `.codex/skills` 和 `.claude/commands` 复制到本机或项目级目录。
 
 ## 关键决策
 
 ### 保持薄入口
 
-原因：`catlog22/maestro-flow` 已经提供 intent routing、workflow orchestration、knowledge system 和 multi-agent dispatch。`jj-flow` 不重复这些能力，只把项目级真实证据和交付边界注入进去。边界是明确的：不 fork Maestro core，不把 `/jj` 做成重型编排引擎。
+原因：`catlog22/maestro-flow` 已经提供 intent routing、workflow orchestration、knowledge system 和 multi-agent dispatch，并把 `.claude/commands`、`.codex/skills` 作为 AI coding agent 的原生入口随 npm 包分发。`jj-flow` 不重复这些能力，只把项目级真实证据和交付边界注入进去。边界是明确的：不 fork Maestro core，不把 `/jj-*` 或 `$jj-*` 做成重型编排引擎。
 
 ### 证据优先于结论
 
@@ -54,15 +56,15 @@ Recipe 的 guard 会把证据要求落到具体类型：功能交付要求接口
 
 ### 先输出 prompt，后续再执行
 
-第一版默认不直接调用外部工具，先让输出稳定、可读、可测试。等 recipe 稳定后，再接真实 `maestro` CLI 和 npm 工具。
+第一版默认不直接调用外部工具，先让输出稳定、可读、可测试。等 recipe 稳定后，再让 Codex/Claude Code 原生命令按需调用 Maestro skills 和真实项目工具。
 
 ### 自检后再迭代
 
-`$jj validate` 先读取当前项目状态、文档、recipe、guard、测试和 `.workflow`；`$jj evolve` 再把 validate evidence 转换成 correction backlog 和下一轮升级计划。这样项目管理入口的默认动作是自我验证、自我纠正，再进入下一项功能升级。这个管理入口仍是 Maestro 上层协议，不依赖未文档化的 Maestro core 行为。
+`$jj-validate` 先读取当前项目状态、文档、recipe、guard、测试和 `.workflow`；`$jj-evolve` 再把 validate evidence 转换成 correction backlog 和下一轮升级计划。这样项目管理入口的默认动作是自我验证、自我纠正，再进入下一项功能升级。这个管理入口仍是 Maestro 上层协议，不依赖未文档化的 Maestro core 行为。
 
 ### Maestro 兼容性先报告
 
-`jj-flow` 不假设 Maestro 一定可用。`$jj validate` 会报告 Maestro 兼容性：CLI 缺失、不兼容或无法解析版本时都作为 evidence 输出，后续 `$jj evolve` 再决定是修正环境、延后执行，还是继续只生成 Maestro prompt。
+`jj-flow` 不假设 Maestro 一定可用。`$jj-validate` 会报告 Maestro 兼容性：CLI 缺失、不兼容或无法解析版本时都作为 evidence 输出，后续 `$jj-evolve` 再决定是修正环境、延后执行，还是继续只生成 Maestro prompt。
 
 ### 执行决策不是执行引擎
 
@@ -74,10 +76,10 @@ Recipe 的 guard 会把证据要求落到具体类型：功能交付要求接口
 
 ### 少参数 delivery
 
-`$jj delivery` 是 Codex 内的端到端入口，不要求用户先传固定的 PRD、接口或设计参数。它先把当前项目、`.workflow`、用户消息、Codex 线程链接和已有资料整理成 Maestro 可消费上下文；只有阻塞交付边界、方案取舍或上线风险时才要求用户决策。
+`$jj-delivery` / `/jj-delivery` 是 Codex/Claude Code 内的端到端入口，不要求用户先传固定的 PRD、接口或设计参数。它先把当前项目、`.workflow`、用户消息、历史线程链接和已有资料整理成 Maestro 可消费上下文；只有阻塞交付边界、方案取舍或上线风险时才要求用户决策。
 
 ### 文档站是长期表面
 
-GitHub Pages 文档站从 `docs/` 生成，和 CLI、recipe、guard 一样纳入 `npm run verify`。原因是 `jj-flow` 会长期维护，README 只负责快速入口，完整使用、架构、规划、维护和部署说明必须能稳定发布、可链接、可回归检查。
+GitHub Pages 文档站从 `docs/` 生成，和命令资产、recipe、guard 一样纳入 `npm run verify`。原因是 `jj-flow` 会长期维护，README 只负责快速入口，完整使用、架构、规划、维护和部署说明必须能稳定发布、可链接、可回归检查。
 
 文档站的主体内容必须解释安装方式、每个 `$jj` 命令什么时候用、要给什么、使用方案和会得到什么。首页可以提供导航，但不能替代命令参考和安装说明。

@@ -61,7 +61,7 @@ export function buildMaestroCompatibilityEvidence({ runCommand = defaultRunComma
 function compatibilityEvidence({ status, compatible, version = null, summary, output = '', error = '' }) {
   return {
     id: 'maestro-compatibility',
-    source: '$jj validate',
+    source: '$jj-validate',
     artifact_type: 'maestro_compatibility',
     path: null,
     summary,
@@ -73,7 +73,7 @@ function compatibilityEvidence({ status, compatible, version = null, summary, ou
       output,
       error
     },
-    next_steps: compatible ? [] : ['安装或升级 Maestro CLI 后重新运行 $jj validate。']
+    next_steps: compatible ? [] : ['安装或升级 Maestro CLI 后重新运行 $jj-validate。']
   };
 }
 

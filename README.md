@@ -1,6 +1,6 @@
 # jj-flow
 
-`jj-flow` 让你在 Codex 里用一句 `$jj delivery ...` 启动一次真实交付：把需求、PRD、接口文档、设计图、日志和必须拍板的决定放进对话，Codex 会按“先找资料、再计划、再实现、再验证”的顺序推进。
+`jj-flow` 让你在 Codex 或 Claude Code 里用一句 `$jj-delivery ...` / `/jj-delivery ...` 启动一次真实交付：把需求、PRD、接口文档、设计图、日志和必须拍板的决定放进对话，AI coding agent 会按“先找资料、再计划、再实现、再验证”的顺序推进。
 
 它适合这种场景：
 
@@ -8,32 +8,44 @@
 - 你手上有 PRD、YApi、MasterGo、ARMS/SLS、Codex 历史线程等资料，希望 Codex 先整理清楚再动代码。
 - 你希望证据不足时先停下来问，而不是让模型猜。
 
-它不是一个新的开发框架，也不是让你在终端里跑完整流水线的工具。普通使用入口是 Codex 对话里的 `$jj`。
+它不是一个新的开发框架，也不是让你在终端里跑完整流水线的工具。`npx` 只负责把原生命令资产安装到 `.codex/skills` 或 `.claude/commands`，真实使用入口在 Codex/Claude Code 对话里。
 
 ## 快速使用
 
-先安装：
+安装 Codex skills：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill
 ```
 
-只想给当前项目安装：
+安装 Claude Code slash commands：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --project
+npx @shendu-sdt/jj-flow@beta install-skill --platform claude
+```
+
+只想给当前项目同时安装两端资产：
+
+```bash
+npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 ```
 
 然后打开你的项目，在 Codex 里直接发：
 
 ```text
-$jj delivery 按 PRD、接口文档和设计图完成这个需求
+$jj-delivery 按 PRD、接口文档和设计图完成这个需求
+```
+
+在 Claude Code 里直接发：
+
+```text
+/jj-delivery 按 PRD、接口文档和设计图完成这个需求
 ```
 
 也可以把资料和边界直接写进去：
 
 ```text
-$jj delivery
+$jj-delivery
 需求：实现 AI 获客列表和详情。
 资料：PRD 在 docs/v17.1，接口看 YApi 链接，设计图是 MasterGo 链接。
 范围：本期不做导出。

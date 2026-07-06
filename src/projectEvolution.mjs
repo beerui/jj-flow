@@ -16,7 +16,7 @@ export function buildProjectEvolutionEvidence({
   return [
     {
       id: 'validation-summary',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: 'validation_summary',
       path: '.',
       summary: validationFailures.length
@@ -31,7 +31,7 @@ export function buildProjectEvolutionEvidence({
     },
     {
       id: 'correction-backlog',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: 'correction_backlog',
       path: '.',
       summary: validationFailures.length
@@ -45,7 +45,7 @@ export function buildProjectEvolutionEvidence({
     },
     {
       id: 'roadmap-alignment',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: nextPhase || phaseReadiness?.complete ? 'roadmap_alignment' : 'validation_failure',
       path: '.workflow/state.json',
       summary: nextPhase
@@ -60,7 +60,7 @@ export function buildProjectEvolutionEvidence({
     },
     {
       id: 'evolution-plan',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: 'evolution_plan',
       path: '.',
       summary: intent
@@ -75,7 +75,7 @@ export function buildProjectEvolutionEvidence({
     },
     {
       id: 'manager-boundary',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: 'manager_boundary',
       path: 'docs/project-plan.md',
       summary: '升级仍保持 jj-flow 是 Maestro 上层协议，不替代 Maestro core 或重写通用执行引擎。',
@@ -84,27 +84,27 @@ export function buildProjectEvolutionEvidence({
         forbidden_scope: [
           '不 fork Maestro core',
           '不把所有工具重新实现一遍',
-          '不把 /jj 做成重型编排引擎'
+          '不把 /jj-* 做成重型编排引擎'
         ]
       }
     },
     {
       id: 'evolution-test-plan',
-      source: '$jj evolve',
+      source: '$jj-evolve',
       artifact_type: 'test_plan',
       path: 'package.json',
-      summary: '升级完成后需要运行 npm run verify、docs build 和对应 CLI smoke test。',
+      summary: '升级完成后需要运行 npm run verify、docs build 和命令资产安装 smoke test。',
       evidence: {
         commands: [
           'npm run verify',
           'npm run docs:build',
-          'node bin/jj.mjs evolve "基于当前自检结果推进下一项项目管理能力" --json'
+          'npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run --json'
         ]
       },
       next_steps: [
         '运行 npm run verify',
         '运行 npm run docs:build',
-        '运行 evolve CLI smoke test'
+        '运行命令资产安装 smoke test'
       ]
     }
   ];
@@ -145,9 +145,9 @@ function buildPlanItems({ validationFailures, phaseReadiness, nextPhase }) {
   if (validationFailures.length) return validationFailures.map((item) => `修正：${item}`);
   if (phaseReadiness?.incomplete?.length) return phaseReadiness.incomplete.map((item) => `完成：${item}`);
   if (phaseReadiness?.status === 'PASS' && phaseReadiness.phase) {
-    return [`完成：将 ${phaseReadiness.phase.milestone_id}/${phaseReadiness.phase.id} ${phaseReadiness.phase.name} 标记为完成，并重新运行 $jj validate。`];
+    return [`完成：将 ${phaseReadiness.phase.milestone_id}/${phaseReadiness.phase.id} ${phaseReadiness.phase.name} 标记为完成，并重新运行 $jj-validate。`];
   }
-  if (phaseReadiness?.complete) return ['维护：用真实项目运行 $jj delivery、$jj validate 和 $jj evolve，收集下一轮改进证据。'];
+  if (phaseReadiness?.complete) return ['维护：用真实项目运行 $jj-delivery、$jj-validate 和 $jj-evolve，收集下一轮改进证据。'];
   if (nextPhase?.success_criteria?.length) return nextPhase.success_criteria.map((item) => `完成：${item}`);
 
   return ['补齐可证明的下一步路线图或人工决策。'];
