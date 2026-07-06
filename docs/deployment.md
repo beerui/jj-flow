@@ -4,6 +4,12 @@
 
 `jj-flow` 是长期维护项目，文档必须可以被自动构建、自动检查、自动部署到 GitHub Pages。仓库中的 Markdown 是唯一文档源，部署产物由脚本生成，不手工维护。
 
+公开文档地址固定使用：
+
+```text
+https://beerui.github.io/jj-flow/index.html
+```
+
 ## 目录约定
 
 ```text

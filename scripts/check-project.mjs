@@ -42,6 +42,7 @@ const requiredFiles = [
   'docs/project-plan.md',
   'docs/architecture.md',
   'docs/commands.md',
+  'docs/glossary.md',
   'docs/usage.md',
   'docs/deployment.md',
   'docs/maintenance.md'

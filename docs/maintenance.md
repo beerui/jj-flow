@@ -82,10 +82,14 @@ npx @shendu-sdt/jj-flow@beta install-skill --project
 
 长期维护原则：文档站是交付协议的正式表面，不能只靠 README 承载完整说明。
 
+README 只保留项目定位、安装入口和文档链接。命令细节、缩写、术语、使用方案和维护规则都放在文档站源码里维护，避免多处重复更新。
+
+新增或调整缩写、命令名、工具名时，同步更新 `docs/glossary.md`。不要把缩写说明再复制到 README。
+
 ## 增加新模式
 
 1. 先更新 `docs/usage.md`，写清用户怎么用、默认会自动发现什么、哪些信息才需要用户决策。
-2. 同步更新 `docs/commands.md`，写清命令参数、适用场景、输入示例和输出期望。
+2. 同步更新 `docs/commands.md`，写清什么时候用、要给什么、使用示例和会得到什么。
 3. 再在 `src/recipes.mjs` 增加 recipe。
 4. 在 `src/dispatch.mjs` 确认路由关键词。
 5. 在 `src/guards.mjs` 增加必要 guard。

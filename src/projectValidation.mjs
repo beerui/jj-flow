@@ -8,6 +8,7 @@ const REQUIRED_DOCS = [
   'docs/installation.md',
   'docs/usage.md',
   'docs/commands.md',
+  'docs/glossary.md',
   'docs/architecture.md',
   'docs/project-plan.md',
   'docs/maintenance.md',
@@ -45,8 +46,6 @@ const REQUIRED_TESTS = [
 
 const REQUIRED_MODES = ['delivery', 'feat', 'fix', 'knowhow', 'review', 'validate', 'evolve'];
 const COMMAND_REFERENCE_FILES = [
-  'README.md',
-  'docs/index.md',
   'docs/architecture.md',
   'docs/commands.md',
   'skills/jj/SKILL.md'
@@ -122,7 +121,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
         ? `文档缺失 ${missingDocs.length} 个必需文件。`
         : docsWithoutModes.length
           ? `文档存在但有 ${docsWithoutModes.length} 个页面未覆盖全部核心命令。`
-          : '文档入口、安装、使用、命令参考、架构、规划、维护和部署说明齐备。',
+          : '文档入口、安装、使用、命令参考、术语、架构、规划、维护和部署说明齐备。',
       evidence: {
         required: REQUIRED_DOCS,
         missing: missingDocs,
@@ -327,7 +326,7 @@ function auditCriterion(cwd, criterion) {
       'docs/commands.md',
       'docs/usage.md',
       'docs/maintenance.md'
-    ], ['安装', '输入参数', '使用方案', '输出期望']);
+    ], ['安装', '你需要给什么', '使用方案', '你会得到什么']);
   }
 
   if (criterion.includes('未文档化的 Maestro core 行为')) {

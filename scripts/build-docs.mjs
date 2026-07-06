@@ -7,12 +7,14 @@ const ROOT = process.cwd();
 const CHECK_MODE = process.argv.includes('--check');
 const CHECK_OUT_DIR = `docs-site-check-${process.pid}`;
 const OUT_DIR = path.join(ROOT, CHECK_MODE ? path.join('.tmp', CHECK_OUT_DIR) : 'site');
+const SITE_URL = 'https://beerui.github.io/jj-flow/';
 
 const PAGES = [
   { title: '首页', source: 'docs/index.md', output: 'index.html' },
   { title: '安装', source: 'docs/installation.md', output: 'installation.html' },
   { title: '使用说明', source: 'docs/usage.md', output: 'usage.html' },
   { title: '命令参考', source: 'docs/commands.md', output: 'commands.html' },
+  { title: '术语与缩写', source: 'docs/glossary.md', output: 'glossary.html' },
   { title: '架构', source: 'docs/architecture.md', output: 'architecture.html' },
   { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
   { title: '维护说明', source: 'docs/maintenance.md', output: 'maintenance.html' },
@@ -64,6 +66,7 @@ function renderPage(page, body) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(page.title)} - jj-flow</title>
+  <link rel="canonical" href="${escapeAttribute(new URL(page.output, SITE_URL).href)}">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -194,7 +197,7 @@ function renderInline(text) {
 function buildSitemap() {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${PAGES.map((page) => `  <url><loc>./${page.output}</loc></url>`).join('\n')}
+${PAGES.map((page) => `  <url><loc>${escapeHtml(new URL(page.output, SITE_URL).href)}</loc></url>`).join('\n')}
 </urlset>
 `;
 }

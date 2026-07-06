@@ -9,6 +9,7 @@ const DOC_FILES = [
   'docs/installation.md',
   'docs/usage.md',
   'docs/commands.md',
+  'docs/glossary.md',
   'docs/architecture.md',
   'docs/project-plan.md',
   'docs/maintenance.md',
@@ -89,7 +90,7 @@ export function makeProjectFixture() {
   });
 
   for (const file of DOC_FILES) {
-    writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj 做成重型编排引擎\n不重复\n上层协议\n安装 输入参数 使用方案 输出期望\n`);
+    writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj 做成重型编排引擎\n不重复\n上层协议\n安装 你需要给什么 使用方案 你会得到什么\n`);
   }
 
   for (const file of SOURCE_FILES) {
