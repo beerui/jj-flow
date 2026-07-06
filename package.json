@@ -3,6 +3,10 @@
   "version": "0.1.1-beta.0",
   "description": "jj-flow project-level AI delivery workflow adapter for Maestro.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beerui/jj-flow"
+  },
   "bin": {
     "jj": "bin/jj.mjs",
     "jj-flow": "bin/jj.mjs"
