@@ -104,6 +104,15 @@ $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=
 
 它适合 `承接 / 兑接 / 承载` 前台或后管之间的改动迁移。输入可以是 Codex 会话 ID、需求文档、功能分支、commit 或 diff；输出必须先还原最终需求，再按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 做迁移矩阵和最窄实现。
 
+`$jj-same` 产生的中间文档遵循 Maestro 的产物规范，不创建 `.workflow/jj-same/` 之类的私有目录：
+
+1. 会话或分支总结由 `maestro-analyze` 生成，保存到 `.workflow/.csv-wave/{日期}-analyze-{主题}/`，并在 `.workflow/state.json` 注册 `ANL-*`。
+2. AI 可执行需求由 `maestro-blueprint` 生成，保存到 `.workflow/blueprint/BLP-{主题}-{日期}/`；正式需求位于 `requirements/REQ-*.md`，同时保留 readiness 与 traceability 产物。
+3. 目标项目评审再次使用 `maestro-analyze --from blueprint:BLP-*`，形成独立的目标差异分析和迁移决策。
+4. 评审通过后才由 `maestro-plan --from analyze:ANL-*` 生成 `.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，再进入 `maestro-execute` 与 `quality-review`。
+
+`.workflow/.maestro/*/status.json` 只保存 Maestro 编排状态，不承载需求正文；`.workflow/specs/` 只用于交付后沉淀的跨任务稳定规则，不存放单次迁移文档。目标项目尚未初始化 `.workflow/` 时，应先执行 `maestro-init`，再生成上述正式产物。
+
 如果你在维护 `jj-flow` 项目本身，再使用 `$jj-validate` 和 `$jj-evolve`：
 
 ```text

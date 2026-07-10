@@ -15,7 +15,7 @@ allowed-tools:
 
 用户输入：$ARGUMENTS
 
-迁移需求不变量，不复制源项目文件。先把会话、需求、分支、commit 或 diff 还原成可验证变更包，再按目标项目真实能力做最窄适配。
+迁移需求不变量，不复制源项目文件。先把会话、需求、分支、commit 或 diff 还原成 Maestro 可追踪产物，再按目标项目真实能力做最窄适配。
 
 ## 五项门禁
 
@@ -32,11 +32,23 @@ allowed-tools:
 1. 确认源项目、目标项目、证据入口和操作类型：分析、新功能迁移、修复、增需、删需或产品调整。
 2. 当前用户需求优先于历史会话；历史会话和 assistant 交付摘要只作为线索，必须用 Git 和当前源码验证。
 3. 分支或 commit 证据用 `merge-base..feature-ref` 按时间看提交，区分新增、修复、回退和产品反转。
-4. 建立需求账本：`MUST`、`TARGET-ONLY`、`DO-NOT-PORT`、`UNRESOLVED`。
-5. 建立目标能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
-6. 只改用户明确授权的目标项目；用户只要求分析时，不写业务代码。
-7. 每一行改动都要追溯到 `MUST` 或目标专有的 `TARGET-ONLY`。
-8. 多个目标分别实施、分别验证、分别提交；不要整分支 cherry-pick，不整文件覆盖。
+4. 用 `maestro-analyze` 生成源分析 `ANL-SOURCE`，建立需求账本、源变更地图和剃刀清单。
+5. 用 `maestro-blueprint` 消费源分析，在 `.workflow/blueprint/BLP-*/requirements/REQ-*.md` 生成正式需求；保留 `UNRESOLVED`，不得把推断写成产品事实。
+6. 每个目标用 `maestro-analyze --from blueprint:BLP-*` 生成独立 `ANL-TARGET`，建立能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
+7. 仅在 blueprint readiness 通过且目标无阻塞时，用 `maestro-plan --from analyze:ANL-*` 生成 `PLN`，再调用 `maestro-execute` 和 `quality-review`。
+8. 只改用户明确授权的目标项目；用户只要求分析时，不写业务代码。
+9. 每一行改动都要追溯到 `REQ-*`、`MUST` 或目标专有的 `TARGET-ONLY`。
+10. 多个目标分别实施、分别验证、分别提交；不要整分支 cherry-pick，不整文件覆盖。
+
+## Maestro 产物规范
+
+- 不创建 `.workflow/jj-same/`。目标项目没有 `.workflow/` 时先调用 `maestro-init`。
+- 源总结和目标评审保存到各自 `.workflow/.csv-wave/{日期}-analyze-{主题}/`，并注册 `ANL-*`。
+- 正式需求保存到 `.workflow/blueprint/BLP-{主题}-{日期}/`，并注册 `BLP-*`。
+- 实施计划保存到 `.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 与 `.task/TASK-*.json`，并注册 `PLN-*`。
+- 实施、验证和评审由对应 skill 注册 `EXC-*`、`VRF-*`、`REV-*`。
+- `.workflow/.maestro/*/status.json` 只保存编排状态；`.workflow/specs/` 只保存交付后沉淀的跨任务稳定规则。
+- 多目标迁移只共享一份源分析和 blueprint；每个目标分别生成自己的目标分析、计划、实施与评审产物。跨仓库引用使用直接 path，不假设 artifact ID 能跨仓库解析。
 
 ## 项目族规则
 
@@ -48,4 +60,4 @@ allowed-tools:
 
 每个目标至少执行 `git diff --check`、目标文件 lint/test、必要 build 或契约测试，并覆盖目标专有入口和未迁移场景。无法运行的验证说明原因，不把静态检查描述成运行时验证。
 
-最终用中文按项目报告：证据入口、最终需求账本、项目范围、迁移决策、关键差异、修改文件、剃刀排除项、五项门禁、验证结果、残余风险和提交/推送状态。
+最终用中文按项目报告：证据入口、Maestro 产物链、最终需求账本、项目范围、迁移决策、关键差异、修改文件、剃刀排除项、五项门禁、验证结果、残余风险和提交/推送状态。

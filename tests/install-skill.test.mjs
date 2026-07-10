@@ -55,9 +55,14 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
+  assert.match(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md'), 'utf8'),
+    /\.workflow\/blueprint\/BLP-/
+  );
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /jj-delivery\s+"/);
 
   const blocked = installSkill({ targetDir: target });

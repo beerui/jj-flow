@@ -262,11 +262,21 @@ Claude Code 中使用：
 
 ### 你会得到什么
 
-- 先还原最终需求账本，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
-- 生成源变更地图、目标能力矩阵和剃刀排除清单。
+- 先用 `maestro-analyze` 生成源证据总结 `ANL-SOURCE`，还原最终需求账本，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
+- 再用 `maestro-blueprint` 生成正式 `BLP-*`，把确认需求写入 `requirements/REQ-*.md`，保留 readiness 和 traceability。
+- 每个目标单独生成 `ANL-TARGET`，形成源变更地图、目标能力矩阵和剃刀排除清单。
 - 每个目标给出 `DIRECT / ADAPT / EXTEND / BLOCKED / N/A` 决策。
 - 按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 五项门禁复审修改范围。
-- 用户只要求分析时不写业务代码；要求迁移时按目标项目原生架构最小实现并验证。
+- 只有需求 readiness 和目标评审通过后才生成 `PLN-*` 并进入实现；用户只要求分析时不写业务代码。
+
+### 文档放在哪里
+
+- 源总结和目标评审：`.workflow/.csv-wave/{日期}-analyze-{主题}/`，注册 `ANL-*`。
+- 正式需求：`.workflow/blueprint/BLP-{主题}-{日期}/`，注册 `BLP-*`。
+- 实施计划：`.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，注册 `PLN-*`。
+- 实施、验证和评审：由 `maestro-execute`、`quality-review` 生成并注册 `EXC-*`、`VRF-*`、`REV-*`。
+
+不创建 `.workflow/jj-same/`。`.workflow/.maestro/*/status.json` 只保存编排状态，`.workflow/specs/` 只保存交付后沉淀的稳定规则。多目标迁移共享一份源分析和 blueprint，但每个目标分别保存自己的目标分析、计划、实施和评审产物。
 
 ## `$jj-auto`
 

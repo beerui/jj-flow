@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1-beta.3
+
+- 将 `jj-same` 固化为源证据总结、正式需求、目标项目评审、实施计划和实现复审的顺序门禁。
+- 按 Maestro canonical artifact 规范保存并注册 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*`，禁止创建私有迁移文档目录。
+- 增加 Maestro 产物路由参考、安装资产检查和回归测试。
+
 ## 0.1.1-beta.2
 
 - 增加 `jj-same` Codex skill 与 Claude slash command，用于基于会话、需求、分支、commit 或 diff 在同源分叉项目之间迁移功能、修复和需求变更。

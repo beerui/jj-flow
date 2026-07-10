@@ -46,6 +46,7 @@ const requiredFiles = [
   '.codex/skills/jj-review/SKILL.md',
   '.codex/skills/jj-same/SKILL.md',
   '.codex/skills/jj-same/agents/openai.yaml',
+  '.codex/skills/jj-same/references/maestro-artifact-routing.md',
   '.codex/skills/jj-same/references/project-family.md',
   '.codex/skills/jj-same/references/silence-account-case.md',
   '.codex/skills/jj-same/scripts/collect-port-evidence.ps1',
