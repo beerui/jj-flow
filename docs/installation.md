@@ -5,7 +5,9 @@
 安装完成后：
 
 - Codex 识别 `$jj-delivery`、`$jj-fix`、`$jj-review` 等 skills。
+- Codex 识别 `$jj-same`，用于同源项目间迁移功能、修复和需求变更。
 - Claude Code 识别 `/jj-delivery`、`/jj-fix`、`/jj-review` 等 slash commands。
+- Claude Code 识别 `/jj-same`。
 
 `jj-flow` 参考 Maestro 的包结构：npm 包携带 `.codex/skills` 和 `.claude/commands` 原生命令资产；`npx` 只负责复制这些资产，不承担真实交付执行。
 
@@ -90,9 +92,13 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run
 ```text
 Codex 源目录：.codex/skills/jj-delivery
 Codex 目标目录：~/.codex/skills/jj-delivery
+Codex 迁移源目录：.codex/skills/jj-same
+Codex 迁移目标目录：~/.codex/skills/jj-same
 
 Claude 源文件：.claude/commands/jj-delivery.md
 Claude 目标文件：~/.claude/commands/jj-delivery.md
+Claude 迁移源文件：.claude/commands/jj-same.md
+Claude 迁移目标文件：~/.claude/commands/jj-same.md
 ```
 
 手动安装只作为排障备选；正常路径优先使用 `npx @shendu-sdt/jj-flow@beta install-skill`。
@@ -109,6 +115,13 @@ $jj-delivery 测试安装是否生效
 
 ```text
 /jj-delivery 测试安装是否生效
+```
+
+测试跨项目迁移入口：
+
+```text
+$jj-same 会话=019f... 只分析迁移矩阵
+/jj-same 会话=019f... 只分析迁移矩阵
 ```
 
 期望行为：

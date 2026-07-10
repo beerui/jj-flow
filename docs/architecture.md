@@ -20,7 +20,9 @@ flowchart LR
 ## 核心模块
 
 - `.codex/skills/jj-*/SKILL.md`：Codex skill 入口，正式命令使用 `$jj-delivery` 这类连字符缩写。
+- `.codex/skills/jj-same/`：Codex 跨同源项目迁移入口，包含项目族参考、真实案例和只读证据脚本。
 - `.claude/commands/jj-*.md`：Claude Code slash command 入口，正式命令使用 `/jj-delivery` 这类连字符缩写。
+- `.claude/commands/jj-same.md`：Claude Code 跨同源项目迁移入口。
 - `bin/jj.mjs`：安装和维护调试入口，不是普通交付入口。
 - `src/cli.mjs`：安装参数解析和内部调度，供入口和测试复用。
 - `src/dispatch.mjs`：模式识别、prompt 生成、Markdown/JSON 输出。

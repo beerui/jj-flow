@@ -38,6 +38,7 @@ test('installSkill dry run does not write files', () => {
   assert.equal(result.ok, true);
   assert.equal(result.status, 'dry-run');
   assert.ok(result.skills.includes('jj-delivery'));
+  assert.ok(result.skills.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery')), false);
 });
 
@@ -50,9 +51,13 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(installed.status, 'installed');
   assert.ok(installed.skills.includes('jj'));
   assert.ok(installed.skills.includes('jj-delivery'));
+  assert.ok(installed.skills.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /^---\nname: jj-delivery/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /jj-delivery\s+"/);
 
   const blocked = installSkill({ targetDir: target });
@@ -78,8 +83,11 @@ test('installSkill can install Claude slash commands', () => {
   assert.equal(installed.ok, true);
   assert.equal(installed.platform, 'claude');
   assert.ok(installed.commands.includes('jj-delivery'));
+  assert.ok(installed.commands.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /^---\nname: jj-delivery/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /jj-delivery\s+"/);
 });
 
@@ -97,7 +105,9 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   assert.equal(installed.ok, true);
   assert.equal(installed.platform, 'all');
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-delivery', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-delivery.md')), true);
+  assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
 });
 
 test('CLI install-skill returns structured output', () => {
@@ -111,6 +121,7 @@ test('CLI install-skill returns structured output', () => {
   assert.equal(parsed.ok, true);
   assert.equal(parsed.status, 'installed');
   assert.ok(parsed.skills.includes('jj-delivery'));
+  assert.ok(parsed.skills.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
 });
 
@@ -124,6 +135,7 @@ test('CLI install-skill can install Claude command assets', () => {
   assert.equal(status, 0);
   assert.equal(parsed.ok, true);
   assert.ok(parsed.commands.includes('jj-delivery'));
+  assert.ok(parsed.commands.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery.md')), true);
 });
 

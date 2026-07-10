@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1-beta.2
+
+- 增加 `jj-same` Codex skill 与 Claude slash command，用于基于会话、需求、分支、commit 或 diff 在同源分叉项目之间迁移功能、修复和需求变更。
+- 增加跨项目迁移的项目族参考、沉默账户真实案例和只读证据采集脚本。
+
 ## 0.1.1-beta.1
 
 - 调整安装资产结构，发布包内同时提供 Codex skills 与 Claude slash commands。
