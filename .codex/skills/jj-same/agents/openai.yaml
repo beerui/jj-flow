@@ -1,4 +1,4 @@
 interface:
-  display_name: "稳健跨项目迁移"
-  short_description: "基于会话 ID、需求或分支，稳健精准迁移同源项目功能与修复"
-  default_prompt: "Use $jj-same to analyze the given session ID, requirement, or branch and migrate the verified change across the named project family with 稳健、剃刀、精准、最小化、复用."
+  display_name: "跨项目迁移与同步"
+  short_description: "首次迁移功能，并持续同步后续更新、修复与需求变化内容"
+  default_prompt: "Use $jj-same to confirm the source project and branch, list syncable targets, and ask whether each change should sync now, be deferred, or be marked not applicable."

@@ -1,11 +1,11 @@
 {
   "name": "@shendu-sdt/jj-flow",
-  "version": "0.1.1-beta.3",
+  "version": "0.1.1-beta.4",
   "description": "jj-flow project-level AI delivery workflow adapter for Maestro.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/beerui/jj-flow"
+    "url": "git+https://github.com/beerui/jj-flow.git"
   },
   "homepage": "https://beerui.github.io/jj-flow/index.html",
   "bin": {

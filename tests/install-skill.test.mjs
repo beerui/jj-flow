@@ -55,10 +55,18 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
+  for (const skill of ['jj-delivery', 'jj-feat', 'jj-fix']) {
+    assert.match(fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8'), /\$jj-same/);
+  }
+  assert.match(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md'), 'utf8'),
+    /last_source_head\.\.current_source_head/
+  );
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md'), 'utf8'),
     /\.workflow\/blueprint\/BLP-/
@@ -93,6 +101,9 @@ test('installSkill can install Claude slash commands', () => {
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
+  for (const command of ['jj-delivery.md', 'jj-feat.md', 'jj-fix.md']) {
+    assert.match(fs.readFileSync(path.join(target, command), 'utf8'), /\/jj-same/);
+  }
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /jj-delivery\s+"/);
 });
 

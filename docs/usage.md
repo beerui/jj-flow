@@ -113,6 +113,30 @@ $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=
 
 `.workflow/.maestro/*/status.json` 只保存 Maestro 编排状态，不承载需求正文；`.workflow/specs/` 只用于交付后沉淀的跨任务稳定规则，不存放单次迁移文档。目标项目尚未初始化 `.workflow/` 时，应先执行 `maestro-init`，再生成上述正式产物。
 
+如果目标不是只迁移一次，而是让 A 项目的同一功能后续持续同步到 B，首次迁移成功后还要建立 `sync_key`：
+
+```text
+$jj-same 建立持续同步：功能=沉默账户登录 源=A 目标=B，首次迁移并记录同步基线
+$jj-same 同步 SYNC-silence-login，检查 A 从上次成功基线到 HEAD 的更新和 bug 修复，并同步到 B
+```
+
+稳定的同步范围、源/目标仓库、目标专有差异和排除规则通过 `maestro spec add arch` 写入两端：A 的 `.workflow/specs/architecture-constraints.md` 保存 outgoing 目标索引，B 保存 incoming 同步契约。当前游标不手工写进 spec，而是从 B 最近一次成功产物链反查；只有 B 实施完成、验证通过且评审无阻塞，或目标分析有证据证明本轮全部增量无需修改时，才把本次 A 的 `source_head` 视为新的同步基线。
+
+后续每次同步只检查 `last_source_head..current_source_head`：产品行为变化时生成新的 blueprint 需求增量；不改变产品契约的 bug 修复复用原 blueprint，但仍重新分析 B 是否存在相同根因。B 已有本地修改时做三方比较并按 B 的原生架构适配，不覆盖目标专有逻辑。A 中与该功能无关的重构、格式化和其它模块改动继续进入剃刀排除项。
+
+`$jj-same` 是同步执行入口，不是后台常驻监听器。需要“A 一修改就通知 B”时，在 A 的 CI 中发送包含 `sync_key`、`before_sha`、`after_sha` 和变更路径的同步事件，再由 Codex/Claude Code 执行 `$jj-same` 并创建 B 的 PR；默认不静默修改或自动合并 B。
+
+源项目修改和验证完成后，`$jj-same` 不能直接开始同步。它必须先展示并核对：项目根目录、`origin`、项目角色、当前分支、`HEAD`、工作区状态和源验证结果；当前仓库或分支与同步契约不一致、处于 detached HEAD，或变更尚未形成稳定 commit 时，只能报告候选项目，不能推进同步。
+
+核对通过后，列出所有可同步项目及状态：已有同步关系且存在增量的目标标记 `READY`；没有新增量的标记 `ALREADY_SYNCED`；同项目族但尚未建立关系的标记 `ELIGIBLE`；延期中的标记 `DEFERRED`；分支、工作区、权限或依赖不满足的标记 `BLOCKED`；业务场景不适用的标记 `N/A`。随后按目标项目询问用户选择：
+
+- `SYNC_NOW`：立即分析并同步。
+- `DEFER`：本次延期，不修改目标，也不推进同步基线。
+- `NOT_APPLICABLE`：用户明确确认本次变化不适用于该目标，记录原因并形成零改动检查点。
+- `PAUSE_RELATION`：暂停后续提示；通过新的 Maestro arch decision 保留审计记录，不直接删除旧同步契约。
+
+延期同步通过 `manage-issue` 在目标项目 `.workflow/issues/issues.jsonl` 创建或更新一个 open issue，tag 包含 `jj-same`、`sync-deferred` 和 `sync_key`。issue 记录源/目标项目与分支、成功检查点、`before_sha`、`after_sha`、延期原因和恢复条件。相同 `sync_key + target` 再次延期时不重复建 issue，而是保留最早未同步起点、更新最新源 HEAD。恢复同步时仍从最近成功检查点重新计算完整范围；只有同步成功或形成有证据的零改动检查点后才关闭 issue。
+
 如果你在维护 `jj-flow` 项目本身，再使用 `$jj-validate` 和 `$jj-evolve`：
 
 ```text

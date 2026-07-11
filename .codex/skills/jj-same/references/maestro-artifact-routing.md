@@ -14,6 +14,7 @@
 | 阶段 | 负责 skill | canonical 产物 | 状态注册 |
 |---|---|---|---|
 | 初始化 | `maestro-init` | `.workflow/project.md`、`.workflow/state.json` | init artifact |
+| 持续同步契约 | `maestro spec add arch` | 源项目 outgoing 索引与目标项目 incoming 契约，均位于各自 `.workflow/specs/architecture-constraints.md` | spec entry |
 | 源证据总结 | `maestro-analyze` | `.workflow/.csv-wave/{YYYYMMDD}-analyze-{slug}/context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | `ANL-*` |
 | 正式需求 | `maestro-blueprint` | `.workflow/blueprint/BLP-{slug}-{date}/product-brief.md`、`requirements/REQ-*.md`、`requirements/NFR-*.md`、`architecture/ADR-*.md`、`epics/EPIC-*.md`、`readiness-report.md`、`context-package.json` | `BLP-*` |
 | 目标项目评审 | `maestro-analyze --from blueprint:BLP-*`；跨仓库使用 blueprint path | 目标仓库自己的 analyze session，包含 `context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | 目标仓库的 `ANL-*` |
@@ -58,6 +59,8 @@
 ## 状态边界
 
 - `.workflow/.maestro/{session-id}/status.json` 只保存编排步骤、目标和完成证据，不保存需求正文。
-- `.workflow/specs/` 只保存经过交付验证、可跨任务复用的稳定规则。单次迁移的需求、分析和计划不得写入这里。
+- `.workflow/specs/` 只保存经过交付验证、可跨任务复用的稳定规则。持续同步的 `sync_key`、范围与排除策略可以进入 arch spec；不断变化的 commit 游标以及单次迁移的需求、分析和计划不得写入这里。
 - 原始提取报告应被 source analyze session 引用或吸收，不另建长期目录。
 - 实现前必须能从 `PLN-* -> ANL-TARGET -> BLP-* -> ANL-SOURCE` 追溯；实现后继续注册 `EXC-*`、`VRF-*` 和 `REV-*`。
+
+持续同步时读取 [continuous-sync.md](continuous-sync.md)。后续 bug fix 未改变产品契约时复用原 `BLP-*`；产品行为变化时生成新的 blueprint 增量。同步检查点从最近成功的 `VRF-* / REV-*` 产物链反查，不能因分析完成或源分支已前进而提前更新。

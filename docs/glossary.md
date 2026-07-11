@@ -21,7 +21,7 @@
 - `$jj-review` / `/jj-review`：交付前审查入口。用于检查 diff、计划、测试证据和发布风险。
 - `$jj-knowhow` / `/jj-knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
 - `$jj-auto` / `/jj-auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
-- `$jj-same` / `/jj-same`：跨同源分叉项目迁移入口。用于基于会话、需求、分支、commit 或 diff，在承接/兑接/承载前台或后管项目之间稳健迁移功能、修复和需求变更。
+- `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit 或 diff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
 
 ## 交付协议术语
 
@@ -36,6 +36,9 @@
 - `Knowhow`：可复用经验，重点记录触发条件、证据、决策和复用方式。
 - `Sibling project`：同源但已分叉演进的项目。迁移时只能复用需求语义和目标项目模式，不能默认复制源文件。
 - `Migration ledger`：迁移需求账本，通常包含 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
+- `Sync contract`：A/B 项目间某项功能的稳定同步关系，包含 `sync_key`、源/目标、功能范围、目标专有差异、排除项和触发策略；源项目保存 outgoing 索引，目标项目保存 incoming Maestro arch spec。
+- `Sync checkpoint`：目标项目最近一次验证通过且评审无阻塞的同步点；它记录对应的源 commit，只有目标交付成功后才能推进。
+- `Deferred sync`：用户选择暂不把当前源增量同步到某个目标。它以目标项目 open Maestro issue 保存，保持同步基线不变，恢复时从最近成功检查点重新计算累计范围。
 
 ## 外部工具和资料
 

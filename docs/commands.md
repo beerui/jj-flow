@@ -235,13 +235,14 @@ $jj-knowhow 总结这三个 Codex 线程的完整交付流程，沉淀成后续 
 
 ### 什么时候用
 
-同源但已分叉的项目之间迁移功能、修复问题、增加需求、删除需求或同步后续产品调整。典型场景是 `承接 / 兑接 / 承载` 的前台或后管项目里，用户给出 Codex 会话 ID、当前需求、功能分支、commit 或 Git diff，要求把已经做过的改动稳健迁到其它项目。
+同源但已分叉的项目之间首次迁移功能，或让同一功能后续持续同步修复、需求增删、产品调整和回退。典型场景是 A 项目已经完成某项功能，需要先稳健迁到 B，再在 A 后续更新或修复 bug 时按上次成功基线增量同步到 B。
 
 ### 你需要给什么
 
 - `源证据`：Codex 会话 ID、需求文档、功能分支、commit 或 diff，至少提供一种。
 - `当前需求`：推荐提供，历史会话中的旧要求会被当前明确要求覆盖。
 - `源项目和目标项目`：推荐写业务角色或路径，例如承接前台、兑接前台、承载后管。
+- `同步关系`：后续同步推荐提供首次迁移生成的 `sync_key`；没有时先从源项目 outgoing Maestro spec 发现目标，再从目标 incoming spec 和成功产物链查找检查点。
 - `范围`：说明只分析、要迁移、要修复、要增删需求，或是否需要提交推送。
 
 ### 使用方案
@@ -252,6 +253,18 @@ $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=
 
 ```text
 $jj-same 源仓库=D:\codeup\chengjie\cj-frontend-web 源分支=feat/cj-silence-0710 分析并迁移到同一行另外两个项目
+```
+
+首次迁移并建立持续同步：
+
+```text
+$jj-same 建立持续同步：功能=沉默账户登录 源=A 目标=B，首次迁移并记录同步基线
+```
+
+同步后续更新和 bug 修复：
+
+```text
+$jj-same 同步 SYNC-silence-login，检查 A 从上次成功基线到 HEAD 的增量并同步到 B
 ```
 
 Claude Code 中使用：
@@ -268,6 +281,9 @@ Claude Code 中使用：
 - 每个目标给出 `DIRECT / ADAPT / EXTEND / BLOCKED / N/A` 决策。
 - 按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 五项门禁复审修改范围。
 - 只有需求 readiness 和目标评审通过后才生成 `PLN-*` 并进入实现；用户只要求分析时不写业务代码。
+- 首次成功后在 B 的 arch spec 中建立 `sync_key`；后续从最近成功的 `VRF-* / REV-*` 交付链或 `NO_CHANGE_REQUIRED` 目标分析反查源 commit 检查点。
+- 同步失败不推进检查点，下一次继续累计未同步的 A 项目变更。
+- 全部增量都是 `N/A / NOISE / DO-NOT-PORT` 时记录有证据的 `NO_CHANGE_REQUIRED` 检查点，不伪造代码和验证产物。
 
 ### 文档放在哪里
 
@@ -275,8 +291,15 @@ Claude Code 中使用：
 - 正式需求：`.workflow/blueprint/BLP-{主题}-{日期}/`，注册 `BLP-*`。
 - 实施计划：`.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，注册 `PLN-*`。
 - 实施、验证和评审：由 `maestro-execute`、`quality-review` 生成并注册 `EXC-*`、`VRF-*`、`REV-*`。
+- 持续同步契约：通过 `maestro spec add arch` 在源项目保存 outgoing 索引、在目标项目保存 incoming 契约；可变 commit 游标仍由目标交付产物链承载。
 
-不创建 `.workflow/jj-same/`。`.workflow/.maestro/*/status.json` 只保存编排状态，`.workflow/specs/` 只保存交付后沉淀的稳定规则。多目标迁移共享一份源分析和 blueprint，但每个目标分别保存自己的目标分析、计划、实施和评审产物。
+不创建 `.workflow/jj-same/`。`.workflow/.maestro/*/status.json` 只保存编排状态。多目标迁移共享一份源分析和 blueprint，但每个目标分别保存自己的同步契约、目标分析、计划、实施和评审产物。
+
+### 修改完成后怎么确认
+
+`$jj-delivery`、`$jj-feat` 和 `$jj-fix` 修改并验证代码后，会把当前仓库交给 `$jj-same` 做轻量 discovery。它先确认项目根目录、origin、业务角色、当前分支、HEAD、工作区和验证结果，再列出目标项目及 `READY / ALREADY_SYNCED / ELIGIBLE / DEFERRED / PREVIEW_ONLY / BLOCKED / N/A` 状态。
+
+只有 `READY / ELIGIBLE / DEFERRED` 会询问用户选择 `SYNC_NOW / DEFER / NOT_APPLICABLE / PAUSE_RELATION`。延期使用目标项目的 Maestro open issue，保持最早未同步起点并更新最新源 HEAD；同步成功或形成 `NO_CHANGE_REQUIRED` 后才关闭 issue。仓库或分支不正确时只报告解除条件，不自动 checkout。
 
 ## `$jj-auto`
 
