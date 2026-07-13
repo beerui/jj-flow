@@ -62,7 +62,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /feat\/cj-0717-1 -> feat\/dj-0717-1/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /grill-me.*最后兜底/);
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
+    /grill-me|grill-with-doc|maestro-grill/
+  );
   for (const skill of ['jj-delivery', 'jj-feat', 'jj-fix']) {
     const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
     assert.match(content, /\$jj-same/);
@@ -79,6 +82,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
     /feat\/cj-0717-1 -> feat\/dj-0717-1 -> feat\/cz-0717-1/
+  );
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
+    /grill-me|grill-with-doc|maestro-grill/
   );
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /jj-delivery\s+"/);
 
@@ -111,7 +118,10 @@ test('installSkill can install Claude slash commands', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /cj -> dj -> cz/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /grill-me.*最后兜底/);
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'),
+    /grill-me|grill-with-doc|maestro-grill/
+  );
   for (const command of ['jj-delivery.md', 'jj-feat.md', 'jj-fix.md']) {
     const content = fs.readFileSync(path.join(target, command), 'utf8');
     assert.match(content, /\/jj-same/);
