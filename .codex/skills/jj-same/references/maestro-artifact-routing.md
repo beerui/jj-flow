@@ -6,6 +6,7 @@
 
 - 单目标迁移：目标仓库拥有完整的 `ANL -> BLP -> ANL -> PLN -> EXC/VRF -> REV` 链。
 - 多目标迁移：在当前已授权目标仓库中生成一次共享源分析和 blueprint；每个目标仓库分别生成自己的目标分析、计划、执行与评审产物。
+- 家族交付计划：由领头项目持有一份跨项目协调 `PLN`，只记录项目顺序、状态、分支映射、会话交接、artifact refs 和解锁门禁；不替代各目标仓库自己的实施 `PLN`。
 - 当前仓库不是目标仓库时，在开始前明确共享 blueprint 的归属仓库。其它目标通过 `@file` 或直接 path 消费该 blueprint，不复制一套无法追溯的需求文档。
 - 每个仓库的 artifact ID 只在自己的 `.workflow/state.json` 中解析；跨仓库时不要假设 `blueprint:BLP-*` 或 `analyze:ANL-*` 能自动跨仓库解析。
 
@@ -17,6 +18,7 @@
 | 持续同步契约 | `maestro spec add arch` | 源项目 outgoing 索引与目标项目 incoming 契约，均位于各自 `.workflow/specs/architecture-constraints.md` | spec entry |
 | 源证据总结 | `maestro-analyze` | `.workflow/.csv-wave/{YYYYMMDD}-analyze-{slug}/context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | `ANL-*` |
 | 正式需求 | `maestro-blueprint` | `.workflow/blueprint/BLP-{slug}-{date}/product-brief.md`、`requirements/REQ-*.md`、`requirements/NFR-*.md`、`architecture/ADR-*.md`、`epics/EPIC-*.md`、`readiness-report.md`、`context-package.json` | `BLP-*` |
+| 家族协调计划 | `maestro-plan` | 领头项目 `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`，记录项目顺序、状态、分支与交接门禁 | `PLN-*` |
 | 目标项目评审 | `maestro-analyze --from blueprint:BLP-*`；跨仓库使用 blueprint path | 目标仓库自己的 analyze session，包含 `context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | 目标仓库的 `ANL-*` |
 | 实施计划 | `maestro-plan --from analyze:ANL-*` | `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`、`.task/TASK-*.json` | `PLN-*` |
 | 实施与验证 | `maestro-execute` | execute session、计划目录下的 `.summaries/TASK-*-summary.md` 与 `verification.json` | `EXC-*`、`VRF-*` |
@@ -62,5 +64,7 @@
 - `.workflow/specs/` 只保存经过交付验证、可跨任务复用的稳定规则。持续同步的 `sync_key`、范围与排除策略可以进入 arch spec；不断变化的 commit 游标以及单次迁移的需求、分析和计划不得写入这里。
 - 原始提取报告应被 source analyze session 引用或吸收，不另建长期目录。
 - 实现前必须能从 `PLN-* -> ANL-TARGET -> BLP-* -> ANL-SOURCE` 追溯；实现后继续注册 `EXC-*`、`VRF-*` 和 `REV-*`。
+
+家族协调 `PLN` 从领头项目分析阶段开始维护。blueprint readiness 前只能记录协调草案和阻塞项，不得生成目标可执行任务；readiness 通过后注册为正式 `PLN`。未来项目仅保留高层占位，直到用户在新会话中主动触发并完成该目标的 `ANL-TARGET`，再在目标仓库生成独立实施 `PLN`。
 
 持续同步时读取 [continuous-sync.md](continuous-sync.md)。后续 bug fix 未改变产品契约时复用原 `BLP-*`；产品行为变化时生成新的 blueprint 增量。同步检查点从最近成功的 `VRF-* / REV-*` 产物链反查，不能因分析完成或源分支已前进而提前更新。

@@ -17,6 +17,16 @@ allowed-tools:
 
 同步需求不变量，不复制源项目文件。首次迁移建立可验证基线；后续只处理源项目自上次成功同步后的有效增量，再按目标项目真实能力做最窄适配。
 
+## 交付生命周期
+
+- 从领头项目的需求分析阶段进入 `/jj-same`，立即建立家族交付计划，不等源项目开发完成后才发现目标。
+- 承接项目领头时默认按 `cj -> dj -> cz` 串行；用户指定其它领头项目、顺序或子集时，以当前要求为准。
+- 领头分支由用户创建。后续项目仅在前置项目完整开发、验证和评审通过，且用户在新会话中引用前一会话 ID 主动触发后，才从该项目本地 `master` 创建分支。
+- 后续分支只替换项目角色前缀，保留类型、日期和任务序号：`feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1`。
+- 只为当前项目生成可执行任务；未来项目只记录高层范围、待验证差异和解锁门禁，不能预复制实现。
+- 开发、修复、需求纠正、验证、评审、提交或阻塞变化后，同步更新家族交付计划。
+- 影响范围或验收的歧义，有文档调用 `grill-with-doc`，没有足够文档调用 `grill-me`；仅有 Maestro 原生命令时调用 `maestro-grill`。
+
 ## 五项门禁
 
 每次迁移都必须逐项回答：
@@ -34,11 +44,12 @@ allowed-tools:
 3. 分支或 commit 证据用 `merge-base..feature-ref` 按时间看提交，区分新增、修复、回退和产品反转。
 4. 用 `maestro-analyze` 生成源分析 `ANL-SOURCE`，建立需求账本、源变更地图和剃刀清单。
 5. 用 `maestro-blueprint` 消费源分析，在 `.workflow/blueprint/BLP-*/requirements/REQ-*.md` 生成正式需求；保留 `UNRESOLVED`，不得把推断写成产品事实。
-6. 每个目标用 `maestro-analyze --from blueprint:BLP-*` 生成独立 `ANL-TARGET`，建立能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
-7. 仅在 blueprint readiness 通过且目标无阻塞时，用 `maestro-plan --from analyze:ANL-*` 生成 `PLN`，再调用 `maestro-execute` 和 `quality-review`。
-8. 只改用户明确授权的目标项目；用户只要求分析时，不写业务代码。
-9. 每一行改动都要追溯到 `REQ-*`、`MUST` 或目标专有的 `TARGET-ONLY`。
-10. 多个目标分别实施、分别验证、分别提交；不要整分支 cherry-pick，不整文件覆盖。
+6. 从源分析阶段维护家族协调计划；blueprint readiness 前只记录草案和阻塞项，通过后在领头项目注册协调 `PLN`。
+7. 每个目标用 `maestro-analyze --from blueprint:BLP-*` 生成独立 `ANL-TARGET`，建立能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
+8. 仅在 blueprint readiness 通过且目标无阻塞时，用 `maestro-plan --from analyze:ANL-*` 生成该目标的 `PLN`，再调用 `maestro-execute` 和 `quality-review`。
+9. 只改用户明确授权的当前项目；用户只要求分析时，不写业务代码。
+10. 每一行改动都要追溯到 `REQ-*`、`MUST` 或目标专有的 `TARGET-ONLY`。
+11. 多个目标按计划顺序分别实施、验证和提交；不要整分支 cherry-pick，不整文件覆盖。
 
 ## 持续同步
 
@@ -68,6 +79,7 @@ allowed-tools:
 - 实施、验证和评审由对应 skill 注册 `EXC-*`、`VRF-*`、`REV-*`。
 - `.workflow/.maestro/*/status.json` 只保存编排状态；`.workflow/specs/` 保存交付后沉淀的稳定规则和持续同步契约，不保存可变 commit 游标。
 - 多目标迁移只共享一份源分析和 blueprint；每个目标分别生成自己的目标分析、计划、实施与评审产物。跨仓库引用使用直接 path，不假设 artifact ID 能跨仓库解析。
+- 家族协调 `PLN` 由领头项目持有，只记录顺序、状态、分支、会话交接和门禁；不替代目标仓库的实施 `PLN`。
 
 ## 项目族规则
 
@@ -80,3 +92,5 @@ allowed-tools:
 每个目标至少执行 `git diff --check`、目标文件 lint/test、必要 build 或契约测试，并覆盖目标专有入口和未迁移场景。无法运行的验证说明原因，不把静态检查描述成运行时验证。
 
 最终用中文按项目报告：证据入口、源项目/分支确认、候选项目状态、用户同步决策、延期 issue、`sync_key`、源 commit range、检查点状态、Maestro 产物链、需求账本、迁移决策、验证结果、残余风险和提交/推送状态。
+
+当前项目完成时还要输出跨会话交接包：前一会话 ID、领头/当前/下一项目路径与角色、分支、HEAD、验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族计划位置、派生分支、未解决项及 `TARGET-ONLY / DO-NOT-PORT`。新会话必须重新验证 Git 和目标源码事实。

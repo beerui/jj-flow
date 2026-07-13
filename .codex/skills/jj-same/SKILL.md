@@ -24,6 +24,20 @@ description: 基于用户给出的 Codex 会话 ID、需求文档、功能分支
 
 用户要求 A 后续更新、修复或回退继续同步到 B 时，读取 [references/continuous-sync.md](references/continuous-sync.md)，建立或恢复 `sync_key` 与最近成功检查点。不要把“源分支已更新”误判为“目标已同步”。
 
+## 交付生命周期
+
+`jj-same` 从领头项目的需求分析阶段进入，不等领头项目开发完成后才做同步 discovery。识别到同源项目族后立即：
+
+1. 登记本轮项目族、授权范围、领头项目和交付顺序。
+2. 在领头项目建立家族交付计划，持续记录分支映射、会话 ID、artifact refs、验证证据、差异和下一个项目门禁。
+3. 承接项目领头时默认按 `cj -> dj -> cz` 串行；用户指定其它领头项目、顺序或子集时以当前要求为准。
+4. 只为当前项目生成可执行实施任务；未来项目只保留高层范围和待验证差异。
+5. 开发、修复、需求纠正、验证、评审、提交或阻塞状态变化后，先同步更新家族交付计划。
+
+领头分支由用户创建。后续项目必须等前置项目完整开发、验证和评审通过，并由用户在新会话中引用前一会话 ID 主动触发后，才从该项目本地 `master` 创建开发分支。分支名沿用领头分支的类型、日期和任务序号，只替换项目角色前缀，例如 `feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1`。不得自动更新本地 `master`，不得提前进入或修改后续仓库。
+
+需求文档、业务边界、项目顺序或分支映射存在会改变范围或验收的歧义时，有文档调用 `grill-with-doc`，没有足够文档调用 `grill-me`；环境只提供 Maestro 原生命令时调用 `maestro-grill`。非阻塞细节不应中断流程。
+
 ## 五项门禁
 
 每次迁移都必须逐项回答：
@@ -91,6 +105,8 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 4. **实施计划 `PLN`**：仅在 blueprint readiness 通过且目标分析无阻塞后，用 `maestro-plan --from analyze:ANL-*` 生成 `plan.json` 和 `.task/TASK-*.json`。
 5. **实施与复审 `EXC/VRF/REV`**：用 `maestro-execute` 实施，用 `quality-review` 复审；由各 skill 写入 canonical 产物并注册到目标仓库 `.workflow/state.json`。
 
+多项目任务从 `ANL-SOURCE` 阶段就维护家族协调计划。blueprint readiness 前只记录计划草案和阻塞项；readiness 通过后由 `maestro-plan` 在领头项目注册家族协调 `PLN`。它只管理项目顺序、状态、分支、会话交接和解锁门禁，不替代每个目标自己的 `ANL-TARGET -> PLN`。
+
 单目标迁移由目标仓库拥有整条产物链。多目标迁移只生成一份共享源分析和 blueprint，但每个目标必须分别拥有 `ANL-TARGET`、`PLN`、`EXC/VRF` 和 `REV`。目标仓库没有 `.workflow/` 时先运行 `maestro-init`。
 
 后续同步走增量链：
@@ -146,9 +162,11 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 
 - 确认操作类型：首次迁移、建立持续同步、继续同步、问题修复、需求新增、需求删除或产品调整。
 - 确认源项目、目标项目、共享 blueprint 的产物归属仓库、证据入口和是否要求提交/推送。
+- 确认领头项目、默认或用户指定的交付顺序、领头分支、目标派生分支和家族交付计划归属；承接领头时默认 `cj -> dj -> cz`。
 - 持续同步时确认 `sync_key`、源 ref、触发模式和上一次成功检查点；缺失检查点且无法验证初始基线时保持 `BLOCKED`。
 - 用户只要求分析时，完成并交付对应的 `ANL-SOURCE`、`BLP` 与 `ANL-TARGET`，不写业务代码。
 - 用户要求迁移或修改时，完成分析后继续实施；未明确时不擅自提交或推送。
+- 后续项目只有在前置项目存在稳定 commit、验证通过、评审不阻塞、计划已更新且用户在新会话主动触发时才解锁。
 
 ### 2. 建立仓库事实
 
@@ -211,6 +229,8 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 
 发现用户已有改动时与其协作，不覆盖、不回退、不格式化无关内容。多个目标分别实施、分别验证、分别提交。
 
+每次状态变化后更新家族交付计划。当前项目完成后生成跨会话交接包，至少包含前一会话 ID、项目路径和角色、分支、HEAD、验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、计划位置、下一目标和派生分支、未解决项及 `TARGET-ONLY / DO-NOT-PORT`。新会话先验证 Git 和目标源码事实，再消费旧会话证据。
+
 持续同步完成后，在目标交付报告中记录 `sync_key`、`last_source_head`、`current_source_head`、目标 commit 和产物链。只有第 7 步验证满足已实施检查点，或目标分析满足 `NO_CHANGE_REQUIRED` 零改动检查点，才能把 `current_source_head` 标记为新的已同步基线。
 
 ### 7. 分层验证
@@ -233,6 +253,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 证据入口：使用了哪些会话、需求、分支和提交。
 - 同步关系：`sync_key`、源/目标、分析 commit range、旧检查点与新检查点状态。
 - 同步决策：源项目/分支确认结果、候选项目状态、用户对每个目标的选择和延期 issue ID。
+- 家族交付计划：领头项目、`cj/dj/cz` 顺序、各项目状态与分支、会话交接和下一项目门禁。
 - Maestro 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
 - 最终需求账本及后续要求覆盖关系。
 - 六项目中哪些被分析、哪些被修改、哪些不适用及原因。

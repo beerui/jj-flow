@@ -1,4 +1,4 @@
 interface:
   display_name: "跨项目迁移与同步"
   short_description: "首次迁移功能，并持续同步后续更新、修复与需求变化内容"
-  default_prompt: "Use $jj-same to confirm the source project and branch, list syncable targets, and ask whether each change should sync now, be deferred, or be marked not applicable."
+  default_prompt: "Use $jj-same from the lead project's analysis stage, maintain the cj-to-dj-to-cz family delivery plan, verify each handoff gate, and adapt each target from its own code and business facts."

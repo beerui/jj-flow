@@ -275,6 +275,10 @@ Claude Code 中使用：
 
 ### 你会得到什么
 
+- 从当前领头项目的分析阶段建立家族交付计划，而不是等源项目结束后才开始同步。
+- 承接领头时默认按 `cj -> dj -> cz` 串行；每个项目开发、验证和评审完成后，才由用户在新会话中引用前一会话 ID 触发下一个项目。
+- 领头分支由用户创建；后续项目从各自本地 `master` 建分支，只替换角色前缀并保留日期与任务序号，例如 `feat/cj-0717-1 -> feat/dj-0717-1`。
+- 家族计划持续记录项目状态、分支映射、artifact refs、验证证据、差异和交接门禁，但每个目标仍重新生成自己的目标分析与实施计划。
 - 先用 `maestro-analyze` 生成源证据总结 `ANL-SOURCE`，还原最终需求账本，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
 - 再用 `maestro-blueprint` 生成正式 `BLP-*`，把确认需求写入 `requirements/REQ-*.md`，保留 readiness 和 traceability。
 - 每个目标单独生成 `ANL-TARGET`，形成源变更地图、目标能力矩阵和剃刀排除清单。
