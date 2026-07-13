@@ -42,7 +42,7 @@
 - 项目族登记与本轮授权范围。
 - 默认或用户确认的交付顺序。
 - 领头分支、目标派生分支和本地 `master` 基线。
-- 每个项目的 `NOT_STARTED / ANALYZING / IMPLEMENTING / VERIFYING / READY_FOR_HANDOFF / COMPLETED / BLOCKED / N/A` 状态。
+- 每个项目的 `NOT_STARTED / ANALYZING / IMPLEMENTING / VERIFYING / READY_FOR_USER_TEST / READY_FOR_HANDOFF / COMPLETED / BLOCKED / N/A` 状态。
 - 会话 ID、`sync_key`、artifact refs、验证证据、未解决项、`TARGET-ONLY` 和 `DO-NOT-PORT`。
 - 下一个项目的解锁条件与用户触发状态。
 
@@ -55,7 +55,8 @@
 承接项目领头时默认按 `cj -> dj -> cz` 串行。下一个项目仅在以下条件全部满足后成为 `READY_FOR_HANDOFF`：
 
 - 前置项目有稳定 commit，工作区边界已核对。
-- 该项目的必要测试、build 或契约验证通过。
+- 代理侧非浏览器静态与聚焦检查通过。
+- 目标分析判定运行时验证必要时，用户已手动完成对应的编译、build、浏览器、E2E 或页面交互测试并明确确认通过；不必要时有证据记录 `N/A` 理由。只有用户主动要求时才由代理执行这些测试。
 - `REV` 不阻塞，且没有影响 `MUST` 的未解决项。
 - 家族交付计划已经记录最终 HEAD、验证证据、差异和下一目标。
 
@@ -79,7 +80,7 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
 **已实施检查点**必须同时满足：
 
 - B 有实际目标 commit。
-- `VRF-*` 的 `overall_pass` 为 true。
+- `VRF-*` 的 `overall_pass` 为 true，并记录必要的用户手动运行时验收确认，或记录该类验证为 `N/A` 的证据；只有用户主动要求时才使用代理执行结果替代对应人工证据。
 - `REV-*` 不是 `BLOCK`。
 - 没有影响 `MUST` 的 deferred、blocked 或未解决冲突。
 

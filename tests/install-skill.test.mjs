@@ -66,6 +66,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
     fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
     /grill-me|grill-with-doc|maestro-grill/
   );
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /READY_FOR_USER_TEST/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /默认跳过编译、build、浏览器/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /必要时提示用户下一步手动测试/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
   for (const skill of ['jj-delivery', 'jj-feat', 'jj-fix']) {
     const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
     assert.match(content, /\$jj-same/);
@@ -74,6 +78,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md'), 'utf8'),
     /last_source_head\.\.current_source_head/
+  );
+  assert.match(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md'), 'utf8'),
+    /READY_FOR_USER_TEST/
   );
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md'), 'utf8'),
@@ -122,6 +130,10 @@ test('installSkill can install Claude slash commands', () => {
     fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'),
     /grill-me|grill-with-doc|maestro-grill/
   );
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /READY_FOR_USER_TEST/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /默认跳过编译、build、浏览器/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /提示用户下一步手动测试/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
   for (const command of ['jj-delivery.md', 'jj-feat.md', 'jj-fix.md']) {
     const content = fs.readFileSync(path.join(target, command), 'utf8');
     assert.match(content, /\/jj-same/);
