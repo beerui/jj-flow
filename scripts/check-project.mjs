@@ -47,6 +47,8 @@ const requiredFiles = [
   '.codex/skills/jj-same/SKILL.md',
   '.codex/skills/jj-same/agents/openai.yaml',
   '.codex/skills/jj-same/references/continuous-sync.md',
+  '.codex/skills/jj-same/references/handoff-snapshot.md',
+  '.codex/skills/jj-same/references/handoff-snapshot.schema.json',
   '.codex/skills/jj-same/references/maestro-artifact-routing.md',
   '.codex/skills/jj-same/references/project-family.md',
   '.codex/skills/jj-same/references/silence-account-case.md',

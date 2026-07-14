@@ -244,12 +244,41 @@ $jj-knowhow 总结这三个 Codex 线程的完整交付流程，沉淀成后续 
 - `源项目和目标项目`：推荐写业务角色或路径，例如承接前台、兑接前台、承载后管。
 - `同步关系`：后续同步推荐提供首次迁移生成的 `sync_key`；没有时先从源项目 outgoing Maestro spec 发现目标，再从目标 incoming spec 和成功产物链查找检查点。
 - `范围`：说明只分析、要迁移、要修复、要增删需求，或是否需要提交推送。
+- `交接快照`：源项目已经准备过 handoff 时，优先提供 `handoff_ref`；目标不再重复传完整源会话和需求文档。
 
 ### 使用方案
 
 ```text
 $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
 ```
+
+源项目准备共享交接快照：
+
+```text
+$jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
+```
+
+目标项目消费交接快照：
+
+```text
+$jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=兑接 开始迁移
+```
+
+源需求、源实现或验证状态变化后更新交接：
+
+```text
+$jj-same 更新交接 交接=@D:\path\to\HOF-feature-001\handoff-snapshot.yaml 会话=019f... 源提交=<new-commit> 变更=<需求纠正或 bug fix>
+```
+
+### Handoff 标准步骤
+
+1. 源会话执行 `准备交接`，得到 `PARTIAL_HANDOFF` 或 `READY_FOR_HANDOFF` 以及唯一 `handoff_ref`。
+2. 目标会话传入 `handoff_ref`，先做 freshness gate，只能输出 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED` 之一。
+3. `REUSE + execution_readiness=READY` 时，目标复用共享 `ANL-SOURCE / BLP/REQ`，进入自己的 `ANL-TARGET` 和后续交付链；源评审或 UAT 待补只作为 caveat。
+4. `PARTIAL_HANDOFF` 只有在 `execution_readiness=BLOCKED` 时才限制为高层差异分析；`STALE/BROKEN` 必须先回源刷新或 rebaseline。
+5. 第二、第三个目标继续使用同一个 snapshot；不得重新读取完整源材料或复制前一目标实现。
+6. 源发生变化时执行 `更新交接`，生成带 `parent_snapshot` 的 successor；已迁移目标按 delta 对账。
+7. 各目标分别满足成功检查点后，才更新自己的同步基线。
 
 ```text
 $jj-same 源仓库=D:\codeup\chengjie\cj-frontend-web 源分支=feat/cj-silence-0710 分析并迁移到同一行另外两个项目
@@ -276,15 +305,17 @@ Claude Code 中使用：
 ### 你会得到什么
 
 - 从当前领头项目的分析阶段建立家族交付计划，而不是等源项目结束后才开始同步。
-- 承接领头时默认按 `cj -> dj -> cz` 串行；每个项目开发、验证和评审完成后，才由用户在新会话中引用前一会话 ID 触发下一个项目。
+- 承接领头时默认按 `cj -> dj -> cz` 推荐下一目标；用户当前明确指定目标并要求迁移/实施时，以该目标 `EXECUTION_READY` 为准，不等待其它 sibling 完成。
 - 领头分支由用户创建；后续项目从各自本地 `master` 建分支，只替换角色前缀并保留日期与任务序号，例如 `feat/cj-0717-1 -> feat/dj-0717-1`。
 - 家族计划持续记录项目状态、分支映射、artifact refs、验证证据、差异和交接门禁，但每个目标仍重新生成自己的目标分析与实施计划。
+- 源项目达到 `PARTIAL_HANDOFF` 或 `READY_FOR_HANDOFF` 时生成唯一 handoff snapshot；后续目标复用它，不各自重建源分析和 blueprint。
+- handoff snapshot 的 `FRESH / PARTIAL / STALE / BROKEN` freshness 决定 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED`，但缓存命中不能跳过目标分析与验证。
 - 先用 `maestro-analyze` 生成源证据总结 `ANL-SOURCE`，还原最终需求账本，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
 - 再用 `maestro-blueprint` 生成正式 `BLP-*`，把确认需求写入 `requirements/REQ-*.md`，保留 readiness 和 traceability。
 - 每个目标单独生成 `ANL-TARGET`，形成源变更地图、目标能力矩阵和剃刀排除清单。
 - 每个目标给出 `DIRECT / ADAPT / EXTEND / BLOCKED / N/A` 决策。
 - 按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 五项门禁复审修改范围。
-- 只有需求 readiness 和目标评审通过后才生成 `PLN-*` 并进入实现；用户只要求分析时不写业务代码。
+- `EXECUTION_READY` 只要求实施授权、稳定源行为、最终需求、目标调用链和无影响 `MUST` 的冲突；满足后生成最小 `PLN-*` 并在同一轮进入业务实现。`HANDOFF_READY` 才要求目标验证、评审和必要 UAT 完整。
 - 首次成功后在 B 的 arch spec 中建立 `sync_key`；后续从最近成功的 `VRF-* / REV-*` 交付链或 `NO_CHANGE_REQUIRED` 目标分析反查源 commit 检查点。
 - 同步失败不推进检查点，下一次继续累计未同步的 A 项目变更。
 - 全部增量都是 `N/A / NOISE / DO-NOT-PORT` 时记录有证据的 `NO_CHANGE_REQUIRED` 检查点，不伪造代码和验证产物。
@@ -292,6 +323,7 @@ Claude Code 中使用：
 ### 文档放在哪里
 
 - 源总结和目标评审：`.workflow/.csv-wave/{日期}-analyze-{主题}/`，注册 `ANL-*`。
+- 迁移交接快照：源 `ANL-SOURCE` 下的 `requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`；`context-package.json` 只保存 `handoff_ref`。
 - 正式需求：`.workflow/blueprint/BLP-{主题}-{日期}/`，注册 `BLP-*`。
 - 实施计划：`.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，注册 `PLN-*`。
 - 实施、验证和评审：由 `maestro-execute`、`quality-review` 生成并注册 `EXC-*`、`VRF-*`、`REV-*`。

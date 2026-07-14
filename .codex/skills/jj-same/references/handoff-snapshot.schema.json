@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/jj-same-handoff-snapshot.json",
+  "title": "jj-same handoff snapshot",
+  "type": "object",
+  "required": ["schema_version", "snapshot_id", "feature", "created_at", "handoff_status", "execution_readiness", "seal_freshness", "source", "canonical", "source_inventory", "requirement_ledger", "verification", "target_candidates"],
+  "properties": {
+    "schema_version": { "const": "jj-same/handoff-snapshot/1.0" },
+    "snapshot_id": { "type": "string", "pattern": "^HOF-[A-Za-z0-9._-]+$" },
+    "parent_snapshot": { "type": ["string", "null"] },
+    "feature": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "handoff_status": { "enum": ["PARTIAL_HANDOFF", "READY_FOR_HANDOFF"] },
+    "execution_readiness": { "enum": ["READY", "BLOCKED"] },
+    "seal_freshness": { "enum": ["FRESH", "PARTIAL"] },
+    "source": {
+      "type": "object",
+      "required": ["repo", "role", "ref", "head", "thread_id"],
+      "properties": {
+        "repo": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "ref": { "type": "string", "minLength": 1 },
+        "head": { "type": "string", "minLength": 7 },
+        "thread_id": { "type": "string", "minLength": 1 },
+        "thread_cursor": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "canonical": {
+      "type": "object",
+      "required": ["anl_source_ref", "blueprint_ref", "requirement_refs", "family_plan_ref"],
+      "properties": {
+        "anl_source_ref": { "type": "string", "minLength": 1 },
+        "blueprint_ref": { "type": "string", "minLength": 1 },
+        "requirement_refs": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "family_plan_ref": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "source_inventory": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "type", "locator", "fingerprint", "status"],
+        "properties": {
+          "source_id": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["thread", "document", "git", "artifact", "current_request", "other"] },
+          "locator": { "type": "string", "minLength": 1 },
+          "fingerprint": { "type": ["string", "null"] },
+          "status": { "enum": ["AVAILABLE", "MISSING", "UNRESOLVED"] },
+          "last_consumed_cursor": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "requirement_ledger": {
+      "type": "object",
+      "required": ["must", "do_not_port", "unresolved"],
+      "properties": {
+        "must": { "type": "array", "items": { "$ref": "#/$defs/ledgerItem" } },
+        "do_not_port": { "type": "array", "items": { "$ref": "#/$defs/ledgerItem" } },
+        "unresolved": { "type": "array", "items": { "$ref": "#/$defs/ledgerItem" } }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["commit_stable", "static_checks", "review", "user_test"],
+      "properties": {
+        "commit_stable": { "type": "boolean" },
+        "static_checks": { "enum": ["PASS", "FAIL", "PENDING", "N/A"] },
+        "review": { "enum": ["PASS", "BLOCK", "PENDING", "N/A"] },
+        "user_test": { "enum": ["PASS", "FAIL", "PENDING", "N/A"] }
+      },
+      "additionalProperties": true
+    },
+    "target_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "repo", "status"],
+        "properties": {
+          "role": { "type": "string" },
+          "repo": { "type": "string" },
+          "status": { "enum": ["NOT_STARTED", "ANALYZING", "READY", "BLOCKED", "N/A"] },
+          "known_differences": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "$defs": {
+    "ledgerItem": {
+      "type": "object",
+      "required": ["id", "requirement_ref", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "requirement_ref": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["CONFIRMED", "SUPERSEDED", "UNRESOLVED"] },
+        "source_refs": { "type": "array", "items": { "type": "string" } },
+        "supersedes": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "execution_readiness": { "const": "READY" } },
+        "required": ["execution_readiness"]
+      },
+      "then": {
+        "properties": {
+          "source_inventory": {
+            "items": {
+              "properties": { "status": { "const": "AVAILABLE" } },
+              "required": ["status"]
+            }
+          },
+          "requirement_ledger": {
+            "properties": { "unresolved": { "maxItems": 0 } }
+          },
+          "verification": {
+            "properties": {
+              "commit_stable": { "const": true },
+              "static_checks": { "const": "PASS" },
+              "review": { "enum": ["PASS", "PENDING", "N/A"] },
+              "user_test": { "enum": ["PASS", "PENDING", "N/A"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "handoff_status": { "const": "READY_FOR_HANDOFF" } },
+        "required": ["handoff_status"]
+      },
+      "then": {
+        "properties": {
+          "execution_readiness": { "const": "READY" },
+          "seal_freshness": { "const": "FRESH" },
+          "source_inventory": {
+            "items": {
+              "properties": { "status": { "const": "AVAILABLE" } },
+              "required": ["status"]
+            }
+          },
+          "requirement_ledger": {
+            "properties": { "unresolved": { "maxItems": 0 } }
+          },
+          "verification": {
+            "properties": {
+              "commit_stable": { "const": true },
+              "static_checks": { "const": "PASS" },
+              "review": { "const": "PASS" },
+              "user_test": { "enum": ["PASS", "N/A"] }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}

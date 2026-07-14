@@ -17,6 +17,18 @@ import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs'
 const packageVersion = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 const currentReleaseLog = loadCurrentReleaseLog();
 
+test('jj-same docs describe the complete handoff lifecycle', () => {
+  const usage = fs.readFileSync(new URL('../docs/usage.md', import.meta.url), 'utf8');
+  const commands = fs.readFileSync(new URL('../docs/commands.md', import.meta.url), 'utf8');
+
+  for (const marker of ['Handoff 标准调用流程', '准备交接', '开始迁移', '更新交接', 'parent_snapshot']) {
+    assert.match(usage, new RegExp(marker));
+  }
+  for (const marker of ['Handoff 标准步骤', 'REUSE', 'REFRESH_SOURCES', 'REBASELINE', 'BLOCKED']) {
+    assert.match(commands, new RegExp(marker));
+  }
+});
+
 test('release log parser supports Release Please headings', () => {
   const changelog = [
     '# Changelog',
@@ -76,11 +88,16 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery', 'SKILL.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /handoff_ref/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /更新交接/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /REUSE \/ REFRESH_SOURCES \/ REBASELINE \/ BLOCKED/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /feat\/cj-0717-1 -> feat\/dj-0717-1/);
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
@@ -90,6 +107,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /默认跳过编译、build、浏览器/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /必要时提示用户下一步手动测试/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /EXECUTION_READY/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /HANDOFF_READY/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /EXECUTE_NOW/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不得继续用补齐 `.workflow`/);
   for (const skill of ['jj-delivery', 'jj-feat', 'jj-fix']) {
     const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
     assert.match(content, /\$jj-same/);
@@ -107,6 +128,19 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md'), 'utf8'),
     /家族协调计划/
   );
+  assert.match(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md'), 'utf8'),
+    /PARTIAL_HANDOFF/
+  );
+  const handoffSchema = JSON.parse(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json'), 'utf8')
+  );
+  assert.equal(handoffSchema.properties.schema_version.const, 'jj-same/handoff-snapshot/1.0');
+  assert.ok(handoffSchema.required.includes('created_at'));
+  assert.ok(handoffSchema.required.includes('execution_readiness'));
+  assert.deepEqual(handoffSchema.properties.execution_readiness.enum, ['READY', 'BLOCKED']);
+  assert.equal(handoffSchema.allOf[0].then.properties.verification.properties.review.enum.includes('PENDING'), true);
+  assert.equal(handoffSchema.allOf[1].then.properties.seal_freshness.const, 'FRESH');
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
     /feat\/cj-0717-1 -> feat\/dj-0717-1 -> feat\/cz-0717-1/
@@ -146,6 +180,9 @@ test('installSkill can install Claude slash commands', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /^---\nname: jj-delivery/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /cj -> dj -> cz/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /handoff_ref/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /更新交接/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /PARTIAL_HANDOFF/);
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'),
     /grill-me|grill-with-doc|maestro-grill/
@@ -154,6 +191,9 @@ test('installSkill can install Claude slash commands', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /默认跳过编译、build、浏览器/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /提示用户下一步手动测试/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTION_READY/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /HANDOFF_READY/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTE_NOW/);
   for (const command of ['jj-delivery.md', 'jj-feat.md', 'jj-fix.md']) {
     const content = fs.readFileSync(path.join(target, command), 'utf8');
     assert.match(content, /\/jj-same/);

@@ -1,4 +1,4 @@
 interface:
   display_name: "跨项目迁移与同步"
   short_description: "首次迁移功能，并持续同步后续更新、修复与需求变化内容"
-  default_prompt: "Use $jj-same from the lead project's analysis stage, maintain the cj-to-dj-to-cz family delivery plan, verify each handoff gate, and adapt each target from its own code and business facts."
+  default_prompt: "Use $jj-same to adapt the explicitly requested target from its own code and business facts. Separate EXECUTION_READY from HANDOFF_READY: when the user says start migration or implement and the source behavior, final requirements, and target mapping are sufficient, choose EXECUTE_NOW and edit business code in the same turn. Treat pending source review, UAT, or workflow artifacts as handoff caveats unless they reveal a real MUST blocker."

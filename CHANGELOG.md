@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1-beta.10
+
+- 为 `jj-same` 增加可版本化 handoff snapshot，多个目标复用共享 `ANL-SOURCE / BLP/REQ`，避免重复读取完整源需求。
+- 增加 `准备交接 / 交接 / 更新交接` 标准调用流程、freshness 动作、`execution_readiness` 与 successor delta 契约。
+- 新增 handoff JSON Schema、Codex/Claude 安装资产、用户文档和回归测试。
+
 ## 0.1.1-beta.9
 
 - 首次安装或 `--force` 更新成功后，输出当前包版本对应的最新版本日志。

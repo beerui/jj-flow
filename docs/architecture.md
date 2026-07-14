@@ -20,7 +20,7 @@ flowchart LR
 ## 核心模块
 
 - `.codex/skills/jj-*/SKILL.md`：Codex skill 入口，正式命令使用 `$jj-delivery` 这类连字符缩写。
-- `.codex/skills/jj-same/`：Codex 跨同源项目迁移入口，包含项目族参考、真实案例和只读证据脚本。
+- `.codex/skills/jj-same/`：Codex 跨同源项目迁移入口，包含项目族参考、handoff snapshot 契约、真实案例和只读证据脚本。Snapshot 附着源 `ANL-SOURCE` 并只引用 `BLP/REQ`；目标复用共享语义但仍独立分析与实施。
 - `.claude/commands/jj-*.md`：Claude Code slash command 入口，正式命令使用 `/jj-delivery` 这类连字符缩写。
 - `.claude/commands/jj-same.md`：Claude Code 跨同源项目迁移入口。
 - `bin/jj.mjs`：安装和维护调试入口，不是普通交付入口。

@@ -22,6 +22,7 @@
 - `$jj-knowhow` / `/jj-knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
 - `$jj-auto` / `/jj-auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit 或 diff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
+- `Handoff snapshot`：源 `ANL-SOURCE` 内的不可变迁移交接清单。它引用正式 `BLP/REQ`，记录来源指纹、源 commit、coverage、未解决项和验证门禁；多个目标复用同一 snapshot，但仍分别验证目标源码并生成 `ANL-TARGET`。
 
 ## 交付协议术语
 

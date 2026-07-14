@@ -102,20 +102,69 @@ $jj-knowhow 把这次真实工作对话沉淀成可复用流程
 $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
 ```
 
+源项目形成稳定 commit、共享 `BLP/REQ` 和明确未解决项后，先生成一次迁移交接快照：
+
+```text
+$jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
+```
+
+后续目标只消费同一份 `handoff_ref`，不再分别重读完整源会话和需求文档：
+
+```text
+$jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=兑接 开始迁移
+$jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=承载 开始迁移
+```
+
+交接快照只引用正式 `BLP-* / REQ-*`，不复制需求正文。它保存来源指纹、源 commit、用户纠正顺序、覆盖范围、验证状态、`UNRESOLVED` 和目标待验证差异。源需求变化时生成 successor snapshot 或 delta；目标项目仍必须重新验证当前 Git、源码和业务入口，并独立生成 `ANL-TARGET -> PLN -> EXC/VRF -> REV`。
+
+### Handoff 标准调用流程
+
+1. **源项目准备交接**：在源项目会话中调用：
+
+   ```text
+   $jj-same 准备交接 会话=<源需求会话 ID> 源提交=<稳定 commit> 功能=<功能名>
+   ```
+
+   输出 `handoff_ref`。源验证或必要 UAT 未完成时生成 `PARTIAL_HANDOFF`；全部门禁通过后生成 `READY_FOR_HANDOFF`。
+
+2. **第一个目标消费交接**：在目标项目的新会话中调用：
+
+   ```text
+   $jj-same 交接=@<handoff-snapshot.yaml 绝对路径> 当前项目=<目标角色> 开始迁移
+   ```
+
+   目标先输出 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED`，并单独判断 `execution_readiness`。`REUSE + execution_readiness=READY` 可进入 `ANL-TARGET -> PLN -> EXC/VRF -> REV`；源评审或 UAT 待补只作为 caveat。
+
+3. **后续目标复用同一交接**：按家族计划顺序，在各目标新会话中继续传同一个 `handoff_ref`。目标不得重新生成源 `ANL-SOURCE / BLP`，也不得把前一个目标的实现复制成自己的计划。
+
+4. **源需求或实现发生变化**：回到源 artifact 归属仓库调用：
+
+   ```text
+   $jj-same 更新交接 交接=@<旧 handoff-snapshot.yaml 绝对路径> 会话=<源需求会话 ID> 源提交=<新 commit> 变更=<需求纠正或 bug fix>
+   ```
+
+   输出新的 `snapshot_id` 和 `handoff_ref`，通过 `parent_snapshot` 指向旧版本。旧 snapshot 不覆盖；已经消费旧版本的目标按 successor delta 重新判断 `DIRECT / ADAPT / N/A`。
+
+5. **目标完成后**：目标写入自己消费的 `snapshot_id`、snapshot hash、source HEAD、`VRF/REV` 和目标 commit。Snapshot 更新本身不推进 `last_source_head`，只有目标成功检查点或 `NO_CHANGE_REQUIRED` 才推进同步基线。
+
 它适合 `承接 / 兑接 / 承载` 前台或后管之间的改动迁移。输入可以是 Codex 会话 ID、需求文档、功能分支、commit 或 diff；输出必须先还原最终需求，再按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 做迁移矩阵和最窄实现。
 
-`$jj-same` 不是等承接项目开发完成后才进入。只要当前需求已明确属于同源项目族，就从当前领头项目的分析阶段建立家族交付计划，并持续更新项目顺序、分支映射、产物状态、验证结果和下一项目门禁。默认顺序为 `cj -> dj -> cz`：承接项目完整开发并验证后，才允许进入兑接项目；兑接项目完整开发并验证后，才允许进入承载项目。用户明确指定其它领头项目或顺序时，以当前要求和项目事实为准，不倒推补做不在范围内的项目。
+`$jj-same` 不是等承接项目开发完成后才进入。默认 `cj -> dj -> cz` 只用于 agent 推荐下一目标；用户当前明确指定“当前项目 + 开始迁移/实施/开干”时，以该目标 `EXECUTION_READY` 为准，不倒推补做其它 sibling，也不等待它们补齐 QA、UAT 或评审。
 
-领头项目的开发分支由用户创建。后续项目只在前置项目通过门禁、且用户在新会话中主动引用前一会话 ID 后，才从该项目本地 `master` 创建分支；`$jj-same` 不自动切换或提前创建后续分支。分支名只替换项目角色前缀，保留类型、发布日期和任务序号：
+领头项目的开发分支由用户创建。agent 自动推进时才要求前置项目达到 `HANDOFF_READY`；用户已明确指定当前目标并要求实施时，检查该目标 `EXECUTION_READY` 后即可从本地 `master` 创建分支。`$jj-same` 不修改未授权项目。分支名只替换项目角色前缀，保留类型、发布日期和任务序号：
 
 ```text
 feat/cj-0717   -> feat/dj-0717   -> feat/cz-0717
 feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1
 ```
 
-本地 `master` 不存在、工作区不干净、分支名无法按规则解析，或前置项目没有稳定 commit、验证与评审证据时，后续项目保持 `BLOCKED`。命名中的任务序号标识同一发布日期下的第几个任务，跨项目同步同一任务时必须保持一致，不能把项目顺序误写成任务序号。
+本地 `master` 不存在、目标工作区无法安全保护、源 commit/diff 不稳定、最终需求无法收敛、目标调用链不可验证，或存在影响 `MUST` 的冲突时，当前目标保持 `BLOCKED`。源评审、UAT、家族计划或 canonical 产物待补不单独阻塞编码。命名中的任务序号标识同一发布日期下的第几个任务，跨项目同步同一任务时必须保持一致。
 
 家族交付计划只负责跨项目协调，记录 `cj / dj / cz` 的顺序、状态、分支、会话 ID、artifact refs、验证证据、差异假设和下一门禁。每个目标项目仍必须重新执行 `ANL-TARGET -> PLN -> EXC/VRF -> REV`，不能因为计划中已有占位任务就复制领头项目实现。开发或修复过程中发现需求变化、目标差异、阻塞或验证结果时，必须先更新家族交付计划，再决定是否继续当前项目或解锁下一个项目。
+
+源项目进入交接门禁时，家族计划记录唯一 `handoff_ref` 和 snapshot ID。后续目标复用该 snapshot 的共享需求语义，不能在各目标仓库重新生成一套 `ANL-SOURCE / BLP`。snapshot 为 `PARTIAL` 时读取 `execution_readiness`：`READY` 可带 caveat 实施，`BLOCKED` 才限制为分析；`STALE` 或 `BROKEN` 时先刷新来源或重新建立基线。
+
+执行采用双门禁：`EXECUTION_READY` 决定是否开始编码，`HANDOFF_READY` 决定是否可以宣称完成并推进检查点。用户明确要求实施且 `EXECUTION_READY` 后，生成最小目标分析与计划并在同一轮修改业务代码；不得只生成 `.workflow`、blueprint 或任务状态后结束。
 
 跨会话交接至少携带：前一会话 ID、领头项目与当前项目路径、业务角色、分支、HEAD、已验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族交付计划位置、下一目标及派生分支名、未解决项和 `TARGET-ONLY / DO-NOT-PORT`。新会话必须重新验证 Git 和目标源码事实，不能把旧会话摘要当作当前事实。
 
@@ -126,6 +175,7 @@ feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1
 `$jj-same` 产生的中间文档遵循 Maestro 的产物规范，不创建 `.workflow/jj-same/` 之类的私有目录：
 
 1. 会话或分支总结由 `maestro-analyze` 生成，保存到 `.workflow/.csv-wave/{日期}-analyze-{主题}/`，并在 `.workflow/state.json` 注册 `ANL-*`。
+   - 迁移交接快照保存在该 `ANL-SOURCE` 的 `requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`，`context-package.json` 只保存 `handoff_ref`，不复制 snapshot 或 Source Inventory。
 2. AI 可执行需求由 `maestro-blueprint` 生成，保存到 `.workflow/blueprint/BLP-{主题}-{日期}/`；正式需求位于 `requirements/REQ-*.md`，同时保留 readiness 与 traceability 产物。
 3. 目标项目评审再次使用 `maestro-analyze --from blueprint:BLP-*`，形成独立的目标差异分析和迁移决策。
 4. 评审通过后才由 `maestro-plan --from analyze:ANL-*` 生成 `.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，再进入 `maestro-execute` 与 `quality-review`。

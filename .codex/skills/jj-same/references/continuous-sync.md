@@ -44,15 +44,16 @@
 - 领头分支、目标派生分支和本地 `master` 基线。
 - 每个项目的 `NOT_STARTED / ANALYZING / IMPLEMENTING / VERIFYING / READY_FOR_USER_TEST / READY_FOR_HANDOFF / COMPLETED / BLOCKED / N/A` 状态。
 - 会话 ID、`sync_key`、artifact refs、验证证据、未解决项、`TARGET-ONLY` 和 `DO-NOT-PORT`。
+- 当前 `snapshot_id`、`handoff_ref`、source HEAD、freshness 和 successor 关系。
 - 下一个项目的解锁条件与用户触发状态。
 
 分析阶段只为未来项目记录高层范围、风险与待验证差异，不把领头项目文件或实现步骤预填为目标任务。blueprint readiness 通过后，使用 `maestro-plan` 生成或更新家族协调 `PLN`；每个目标进入开发前仍须在自己的仓库完成 `ANL-TARGET` 并生成独立实施 `PLN`。
 
 开发、bug 修复、需求纠正、验证、评审、提交和交接任一状态变化后，都要同步更新家族交付计划。计划状态不能替代 Git、`VRF` 或 `REV` 证据。
 
-### 串行解锁门禁
+### 自动推进与显式目标
 
-承接项目领头时默认按 `cj -> dj -> cz` 串行。下一个项目仅在以下条件全部满足后成为 `READY_FOR_HANDOFF`：
+承接项目领头时默认按 `cj -> dj -> cz` 推荐下一个目标。agent 自动推进前，前置项目仅在以下条件全部满足后成为 `READY_FOR_HANDOFF`：
 
 - 前置项目有稳定 commit，工作区边界已核对。
 - 代理侧非浏览器静态与聚焦检查通过。
@@ -60,11 +61,11 @@
 - `REV` 不阻塞，且没有影响 `MUST` 的未解决项。
 - 家族交付计划已经记录最终 HEAD、验证证据、差异和下一目标。
 
-满足上述证据门禁后，下一个项目进入 `READY_FOR_HANDOFF`。缺少用户触发时保持该状态，不得自动创建目标分支或修改目标仓库。用户在另一个会话中引用前一会话 ID 并明确触发后，才从目标项目本地 `master` 创建派生分支；只替换领头分支中的项目角色前缀，保留类型、日期和任务序号。
+满足上述证据门禁后，agent 才能推荐下一个项目。缺少用户触发时不得自动创建目标分支或修改目标仓库。用户在当前请求已明确指定目标并要求迁移/实施时，不再反向要求其它 sibling 补齐交付证据；改为检查当前目标 `EXECUTION_READY`，满足后从本地 `master` 创建派生分支并直接实施。分支只替换领头分支中的项目角色前缀，保留类型、日期和任务序号。
 
 ### 跨会话交接
 
-交接包至少包含：前一会话 ID、领头/当前/下一项目身份与路径、分支、HEAD、验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族计划位置、派生分支名、未解决项和目标专有边界。新会话先验证这些事实，再读取旧会话解释需求演变；旧会话摘要不能代替当前 Git 和源码证据。
+交接包至少包含：前一会话 ID、`snapshot_id`、`handoff_ref`、snapshot hash、领头/当前/下一项目身份与路径、分支、HEAD、验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族计划位置、派生分支名、未解决项和目标专有边界。新会话先验证 snapshot freshness、Git 和目标源码事实；只有 snapshot 变化、缺失或关联 `UNRESOLVED` 时才重读对应源材料。
 
 ## 成功检查点
 
@@ -98,6 +99,8 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
 4. 验证成功后，通过 `maestro spec add arch` 在 A 建立 outgoing 索引，并在 B 建立 incoming 契约。
 5. 把首次迁移的 `source_head` 作为首个成功检查点。
 
+多目标首次迁移在源项目形成可交接状态后先生成一次 handoff snapshot。各目标复用同一共享 `ANL-SOURCE / BLP/REQ`，不得分别重建；目标成功检查点仍分别维护。
+
 ## 后续同步
 
 1. 从源项目 outgoing spec 定位目标，再从目标 incoming spec 和最近成功产物链解析 `last_source_head`。
@@ -115,10 +118,11 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
    - 只有 `BUG_FIX`：复用原 `BLP-* / REQ-*`，源 delta analysis 记录根因与修复验收，不重建完整 blueprint。
    - 只有 `REFACTOR` 或 `NOISE`：除非 B 为实现同一需求确实需要，否则不迁移。
    - `REVERT`：先证明是产品反转还是偶然回退；证据不足时保持 `UNRESOLVED`。
-7. 在 B 做目标分析。比较“上次成功目标状态、B 当前状态、A 新增量”三方，保护 B 在同步后产生的本地改动。
-8. 仅迁移 `DIRECT / ADAPT / EXTEND`，同根因不存在的 bug fix 标记 `N/A`。
-9. 通过 `maestro-plan -> maestro-execute -> quality-review` 实施和验证。
-10. 满足已实施检查点或零改动检查点条件后，才把 `current_source_head` 作为下一次基线。
+7. 有共享需求或 source HEAD 变化时生成 successor handoff snapshot；只补验证证据时可生成 evidence-only successor。Snapshot 更新本身不得推进目标同步检查点。
+8. 在 B 做目标分析。比较“上次成功目标状态、B 当前状态、A 新增量”三方，保护 B 在同步后产生的本地改动。
+9. 仅迁移 `DIRECT / ADAPT / EXTEND`，同根因不存在的 bug fix 标记 `N/A`。
+10. 通过 `maestro-plan -> maestro-execute -> quality-review` 实施和验证。
+11. 满足已实施检查点或零改动检查点条件后，才把 `current_source_head` 作为下一次基线。
 
 ## 修改完成决策门禁
 
