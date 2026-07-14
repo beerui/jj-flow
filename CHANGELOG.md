@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1-beta.9
+
+- 首次安装或 `--force` 更新成功后，输出当前包版本对应的最新版本日志。
+- `--json` 安装结果增加 `version` 和 `release_notes` 字段。
+- 安装失败或 `--dry-run` 预览时不输出版本日志，并兼容 Release Please 的版本标题格式。
+
 ## 0.1.1-beta.8
 
 - 默认跳过代理侧编译、build、浏览器、E2E 和页面交互自测。

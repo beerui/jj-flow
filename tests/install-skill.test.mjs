@@ -12,6 +12,26 @@ import {
   projectCodexTarget,
   projectSkillTarget
 } from '../src/installSkill.mjs';
+import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs';
+
+const packageVersion = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
+const currentReleaseLog = loadCurrentReleaseLog();
+
+test('release log parser supports Release Please headings', () => {
+  const changelog = [
+    '# Changelog',
+    '',
+    '## [1.2.3](https://example.test/releases/tag/v1.2.3) (2026-07-13)',
+    '',
+    '- 新增安装后版本日志。',
+    '',
+    '## 1.2.2',
+    '',
+    '- 上一版本。'
+  ].join('\n');
+
+  assert.equal(extractVersionLog(changelog, '1.2.3'), '- 新增安装后版本日志。');
+});
 
 test('default skill target points to Codex skill directory', () => {
   const target = defaultSkillTarget({ homeDir: '/home/example', codexHome: '' });
@@ -171,9 +191,40 @@ test('CLI install-skill returns structured output', () => {
   assert.equal(status, 0);
   assert.equal(parsed.ok, true);
   assert.equal(parsed.status, 'installed');
+  assert.equal(parsed.version, packageVersion);
+  assert.equal(parsed.release_notes, currentReleaseLog.release_notes);
   assert.ok(parsed.skills.includes('jj-delivery'));
   assert.ok(parsed.skills.includes('jj-same'));
   assert.equal(fs.existsSync(path.join(target, 'jj-delivery', 'SKILL.md')), true);
+});
+
+test('CLI install-skill prints latest version log after install and update', () => {
+  const workspace = makeWorkspace('jj-flow-install-log-');
+  const target = path.join(workspace, 'skills');
+  const installStdout = createStdout();
+  const updateStdout = createStdout();
+
+  assert.equal(runCli(['install-skill', '--target', target], { stdout: installStdout }), 0);
+  assert.ok(installStdout.output.includes(`版本日志（${packageVersion}）`));
+  assert.ok(installStdout.output.includes(currentReleaseLog.release_notes));
+
+  assert.equal(runCli(['install-skill', '--target', target, '--force'], { stdout: updateStdout }), 0);
+  assert.match(updateStdout.output, /Updated jj assets/);
+  assert.ok(updateStdout.output.includes(`版本日志（${packageVersion}）`));
+});
+
+test('CLI install-skill omits version log for dry run and failed install', () => {
+  const workspace = makeWorkspace('jj-flow-install-no-log-');
+  const target = path.join(workspace, 'skills');
+  const previewStdout = createStdout();
+  const failedStdout = createStdout();
+
+  assert.equal(runCli(['install-skill', '--target', target, '--dry-run'], { stdout: previewStdout }), 0);
+  assert.doesNotMatch(previewStdout.output, /版本日志/);
+
+  installSkill({ targetDir: target });
+  assert.equal(runCli(['install-skill', '--target', target], { stdout: failedStdout }), 1);
+  assert.doesNotMatch(failedStdout.output, /版本日志/);
 });
 
 test('CLI install-skill can install Claude command assets', () => {

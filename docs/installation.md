@@ -79,6 +79,8 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 npx @shendu-sdt/jj-flow@beta install-skill --force
 ```
 
+首次安装或更新成功后，命令会紧接着输出当前版本及其最新版本日志。使用 `--json` 时读取 `version` 和 `release_notes` 字段。`--dry-run` 只预览写入位置，不输出版本日志。
+
 预览安装位置：
 
 ```bash

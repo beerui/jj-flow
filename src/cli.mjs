@@ -4,6 +4,7 @@ import { buildDispatch, MODE_CHOICES, renderMarkdown } from './dispatch.mjs';
 import { installSkill, projectClaudeTarget, projectCodexTarget } from './installSkill.mjs';
 import { buildProjectEvolutionEvidence } from './projectEvolution.mjs';
 import { buildProjectValidationEvidence } from './projectValidation.mjs';
+import { loadCurrentReleaseLog } from './releaseLog.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -99,11 +100,17 @@ function runInstallSkill(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 
   const options = parseInstallArgs(rawArgs, cwd);
   const result = installSkill(options);
+  if (result.ok && ['installed', 'updated'].includes(result.status)) {
+    Object.assign(result, loadCurrentReleaseLog());
+  }
 
   if (options.json) {
     stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   } else {
     stdout.write(`${result.message}\n`);
+    if (result.release_notes) {
+      stdout.write(`\n版本日志（${result.version}）\n${result.release_notes}\n`);
+    }
   }
 
   return result.ok ? 0 : 1;

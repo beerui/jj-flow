@@ -374,8 +374,9 @@ npx @shendu-sdt/jj-flow@beta install-skill --dry-run
 
 - 安装成功时，`~/.codex/skills/jj-delivery/SKILL.md`、`~/.codex/skills/jj-fix/SKILL.md` 等文件存在。
 - 安装 Claude Code 时，`~/.claude/commands/jj-delivery.md`、`~/.claude/commands/jj-fix.md` 等文件存在。
+- 首次安装或 `--force` 更新成功后，输出当前版本对应的最新版本日志；`--dry-run` 和失败结果不输出。
 - 目标资产已存在且未传 `--force` 时，命令失败并提示如何覆盖。
-- `--json` 输出包含 `ok`、`status`、`source`、`target` 和 `message`。
+- `--json` 输出包含 `ok`、`status`、`source`、`target` 和 `message`；安装或更新成功时还包含 `version` 和 `release_notes`。
 
 ## 选择建议
 
