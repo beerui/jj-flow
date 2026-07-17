@@ -1,19 +1,22 @@
 # 安装
 
+把 **项目族编排工作流** 的对话入口装到本机或当前项目：主能力是 **same（迁移）** 与 **dispatch（调度）**。`npx` 只复制资产，不在终端里替你改业务代码。
+
 ## 安装目标
 
-安装完成后：
+完成后应能：
 
-- Codex 识别 `$jj-same`，用于同源项目间迁移功能、修复和需求变更。
-- Codex 识别 `$jj-dispatch`，用于独立控制项目中的多项目任务调度。
-- Codex 识别兼容入口 `$jj`。
-- Claude Code 识别 `/jj-same` 与兼容入口 `/jj`。
+- Codex：`$jj-same`、`$jj-dispatch`、兼容入口 `$jj`
+- Claude Code：`/jj-same`、兼容入口 `/jj`
 
-`$jj-dispatch` 首版只提供 Codex skill，不安装对应的 Claude `/jj-dispatch`。它需要 Codex App host 提供 project、thread 和 worktree capability；缺少能力时只输出预览或阻塞状态。
+`$jj-dispatch` 目前仅 Codex；需要 project / thread / worktree 等 host 能力，缺失时停在预览或阻塞。
 
-项目级 Reviewer / Developer 配置位于 `.codex/agents/`。首次使用或更新配置后，需要将项目标记为 trusted，完全重启 Codex 或新建任务，并确认 `jj-workflow-reviewer`、`jj-workflow-developer` 与 `openaiDeveloperDocs` MCP 已实际加载。未加载、未取得 runtime effective sandbox attestation，或目标 worktree 不在实际 writable roots 时，不得执行 `BIND_THREAD`。项目配置不保存 provider、认证信息或其他 machine-local secret。
+`.codex/agents/` 提供 Reviewer / Developer 角色期望。首次使用后请将项目标为 trusted，重启或新建任务，并确认角色与 sandbox attestation 可用后再 `BIND_THREAD`。
 
-`jj-flow` 参考 Maestro 的包结构：npm 包携带 `.codex/skills`、`.codex/agents` 和 `.claude/commands` 原生资产；`npx` 只负责复制这些资产，不承担真实交付执行。选择 Codex 时，skills 与配套 agent profiles 始终作为一组安装。
+## 安装后下一步
+
+1. [使用说明](usage.html)  
+2. 第一件事优先 [$jj-same](command-jj-same.html) 或 [$jj-dispatch](command-jj-dispatch.html)
 
 ## 前置条件
 

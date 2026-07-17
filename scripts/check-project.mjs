@@ -72,7 +72,9 @@ const requiredFiles = [
   'docs/glossary.md',
   'docs/usage.md',
   'docs/deployment.md',
-  'docs/maintenance.md'
+  'docs/maintenance.md',
+  'docs/milestones/m6-acceptance.md',
+  'tests/docs-site.test.mjs'
 ];
 
 const forbiddenFiles = [

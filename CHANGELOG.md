@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- 文档站：嵌套页相对路径修复、表格/粗体渲染、导航与样式可读性增强、首页 3 步路径；维护说明写清文档所有权；`tests/docs-site.test.mjs` 覆盖主路径与 docs:check。
+
 ## 0.1.1-beta.15
 
 - 产品定位调整：`jj-flow` 定位为 **项目族编排工作流**（same / dispatch），不再以「Maestro 适配层」为对外简介；Maestro 为可选执行工具。同步 README、架构、规划、AGENTS、package 描述与文档站标语。

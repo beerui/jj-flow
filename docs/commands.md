@@ -1,33 +1,26 @@
 # 命令总览
 
-这页帮你在 30 秒内选到正确入口。每个命令的完整输入、示例、执行过程和完成标准已经拆到独立页面；需要细节时直接打开对应命令。全部流程禁止调用 `maestro explore`。
+30 秒选对入口。细节在各命令页。`jj-flow` = **项目族编排**（same + dispatch）。禁止 `maestro explore`。
 
-## 不确定用哪个
+## 主入口（优先）
 
-默认使用 [$jj-same](command-jj-same.html)。它覆盖同源迁移、handoff 交接与持续同步。
+| 入口 | 何时用 | 平台 |
+|------|--------|------|
+| [$jj-same](command-jj-same.html) | 同源迁移、handoff、持续同步 | Codex `$` / Claude `/` |
+| [$jj-dispatch](command-jj-dispatch.html) | 控制项目上多项目预览、批准、绑定、恢复 | **仅 Codex** |
 
-如果你希望使用兼容入口，也可以使用 [$jj](command-jj.html)。它只负责把需求路由到合适的原生命令。
-
-## 协作与迁移
-
-- [$jj-same](command-jj-same.html)：把同一个功能、修复或需求调整迁移到同源项目，或按 `sync_key` 持续同步增量。
-- [$jj-dispatch](command-jj-dispatch.html)：在独立控制项目中预览、批准、绑定和恢复多项目任务；首版仅支持 Codex。
+**不确定就用 same。** 兼容路由见 [$jj](command-jj.html)。
 
 ## 维护与自动化
 
-- [CLI 调度与自动化](command-cli.html)：通过 `jj` 或 `jj-flow` 安装资产，以及 `dispatch-tick` 做一次可恢复调度预览/写回。
-- 维护 jj-flow 自身：直接改仓库并运行 `npm run verify`；已移除 `$jj-validate` / `$jj-evolve` 对话入口。
+- [CLI](command-cli.html)：`install-skill`、`dispatch-tick`
+- 维护本仓：`npm run verify`（无 `$jj-validate` / `$jj-evolve` 对话入口）
 
-## 已移除入口
+## 已移除（非活入口）
 
-以下入口不再提供，请勿安装或调用：
+勿再安装或当作主 CTA：`$jj-delivery`、`$jj-validate`、`$jj-evolve`，以及更早的 feat/fix/knowhow/auto/review。
 
-- `$jj-delivery` / `/jj-delivery`
-- `$jj-validate` / `/jj-validate`
-- `$jj-evolve` / `/jj-evolve`
-- 以及更早的 `$jj-feat` / `$jj-fix` / `$jj-knowhow` / `$jj-auto` / `$jj-review`
-
-控制平面里的 `delivery_id` **不是** `$jj-delivery` 入口，而是多项目调度任务的稳定身份。
+控制面 **`delivery_id`** = 调度任务身份，不是对话命令。
 
 ## 通用输入模板
 
