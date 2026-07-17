@@ -1,14 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.1.1-beta.15
 
 - 产品定位调整：`jj-flow` 定位为 **项目族编排工作流**（same / dispatch），不再以「Maestro 适配层」为对外简介；Maestro 为可选执行工具。同步 README、架构、规划、AGENTS、package 描述与文档站标语。
+- 一并发布尚未上架的 beta.14 能力：dispatch 可恢复 tick/CAS、目标独立差异门禁、M6 验收文档。
 
 ## 0.1.1-beta.14
 
 - 加固 `$jj-dispatch` 运行时：resume 重放 `PENDING_THREAD` 的 `CREATE_THREAD` actions；目标差异决策按项目独立门禁；receipt `attempt` 与 `task_key`/intent 绑定；`persistPlaneCas` 真 CAS 写回。
 - 移除 `dispatch-tick --no-target-analysis`；目标 ANL-TARGET 不可绕过。
 - 关闭 M6（P11/P12）：验收报告 `docs/milestones/m6-acceptance.md`；下一里程碑 M7 为真实控制项目试跑。
+
 
 ## 0.1.1-beta.13
 
