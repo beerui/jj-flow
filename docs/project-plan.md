@@ -47,6 +47,14 @@
 - 提供 Codex `$jj-dispatch` 控制项目 MVP：动态区分 origin、requirement owner、lead、reference 和 targets，支持只读预览、显式批准、幂等派发和中断恢复。
 - 控制项目只保存协调状态和 artifact 引用，不在 `jj-flow` 内实现 daemon、数据库、自动 merge/push/release 或完整多智能体执行引擎。
 
+## 里程碑状态（协议层）
+
+| 里程碑 | 状态 | 说明 |
+|--------|------|------|
+| M5 项目族控制平面与审查闭环 | completed | P9/P10 |
+| M6 主调度运行时与目标差异决策 | **completed** | P11/P12；验收见 [m6-acceptance.md](milestones/m6-acceptance.html) |
+| M7 真实控制项目试跑与 host 闭环 | pending | P13：PREVIEW→tick→BIND→receipt→resume 与恢复演练 |
+
 ## 与 Maestro 的关系
 
 Maestro 是通用编排器，`jj-flow` 是项目交付协议的 adapter。这样 Maestro 升级时，优先维护 `jj-flow` 的 prompt、recipe 和 evidence schema，而不是反复改 Maestro core。

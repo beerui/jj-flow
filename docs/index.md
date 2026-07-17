@@ -38,6 +38,7 @@ $jj-same
 
 - 直接修改本仓库并运行 `npm run verify`；不再提供 `$jj-validate` / `$jj-evolve` 对话入口。
 - [CLI 调度与自动化](command-cli.html)：通过 `jj` / `jj-flow` 安装资产或执行 `dispatch-tick`。
+- [M6 验收](milestones/m6-acceptance.html)：主调度运行时与目标差异门禁已关闭；下一里程碑为 M7 真实控制项目试跑。
 
 ## 文档已经可以搜索
 

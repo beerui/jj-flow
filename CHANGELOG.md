@@ -4,6 +4,7 @@
 
 - 加固 `$jj-dispatch` 运行时：resume 重放 `PENDING_THREAD` 的 `CREATE_THREAD` actions；目标差异决策按项目独立门禁；receipt `attempt` 与 `task_key`/intent 绑定；`persistPlaneCas` 真 CAS 写回。
 - 移除 `dispatch-tick --no-target-analysis`；目标 ANL-TARGET 不可绕过。
+- 关闭 M6（P11/P12）：验收报告 `docs/milestones/m6-acceptance.md`；下一里程碑 M7 为真实控制项目试跑。
 
 ## 0.1.1-beta.13
 

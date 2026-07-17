@@ -41,6 +41,7 @@ const NAV_GROUPS = [
       { title: '术语与缩写', source: 'docs/glossary.md', output: 'glossary.html' },
       { title: '架构', source: 'docs/architecture.md', output: 'architecture.html' },
       { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
+      { title: 'M6 验收', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },
       { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' },
       { title: 'ADR 0002', source: 'docs/adr/0002-project-family-control-plane.md', output: 'adr-0002-project-family-control-plane.html' }
     ]
@@ -61,7 +62,9 @@ for (const page of PAGES) {
 
   const markdown = fs.readFileSync(sourcePath, 'utf8');
   const html = renderPage(page, renderMarkdown(markdown));
-  fs.writeFileSync(path.join(OUT_DIR, page.output), html);
+  const outputPath = path.join(OUT_DIR, page.output);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, html);
   searchIndex.push(buildSearchEntry(page, markdown));
 }
 
