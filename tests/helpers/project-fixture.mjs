@@ -14,6 +14,7 @@ const DOC_FILES = [
   'docs/project-plan.md',
   'docs/maintenance.md',
   'docs/deployment.md',
+  'docs/adr/0002-project-family-control-plane.md',
   'docs/adr/0001-thin-maestro-adapter.md',
   '.codex/skills/jj/SKILL.md',
   '.codex/skills/jj-auto/SKILL.md',
@@ -24,6 +25,12 @@ const DOC_FILES = [
   '.codex/skills/jj-fix/SKILL.md',
   '.codex/skills/jj-knowhow/SKILL.md',
   '.codex/skills/jj-review/SKILL.md',
+  '.codex/skills/jj-dispatch/SKILL.md',
+  '.codex/skills/jj-dispatch/agents/openai.yaml',
+  '.codex/agents/jj-workflow-reviewer.toml',
+  '.codex/agents/jj-workflow-developer.toml',
+  '.codex/skills/jj-dispatch/references/control-project.md',
+  '.codex/skills/jj-dispatch/references/control-plane.schema.json',
   '.claude/commands/jj.md',
   '.claude/commands/jj-auto.md',
   '.claude/commands/jj-delivery.md',
@@ -49,6 +56,7 @@ const SOURCE_FILES = [
   'src/maestroExecution.mjs',
   'src/projectEvolution.mjs',
   'src/projectValidation.mjs',
+  'src/dispatchControlPlane.mjs',
   'scripts/build-docs.mjs',
   'scripts/check-project.mjs',
   '.github/workflows/ci.yml',
@@ -67,7 +75,9 @@ const TEST_FILES = [
   'tests/maestro-compatibility.test.mjs',
   'tests/maestro-execution.test.mjs',
   'tests/project-evolution.test.mjs',
-  'tests/project-validation.test.mjs'
+  'tests/project-validation.test.mjs',
+  'tests/jj-dispatch-contract.test.mjs',
+  'tests/fixtures/jj-dispatch-control-plane.json'
 ];
 
 export function makeProjectFixture() {
@@ -99,12 +109,18 @@ export function makeProjectFixture() {
             slug: 'fixture-phase',
             name: 'fixture phase',
             status: 'completed',
+            requirements: ['REQ-A1'],
             success_criteria: []
           }
         ]
       }
     ]
   });
+  writeText(
+    path.join(root, '.workflow/roadmap.md'),
+    '## 需求映射\n| 需求 | 原始需求 | Phase |\n| --- | --- | --- |\n| REQ-A1 | fixture requirement | P1 |\n\n| 里程碑 | 阶段 | 状态 | 进度 |\n| --- | --- | --- | --- |\n| M1 | P1 fixture phase | completed | 100% |\n'
+  );
+  writeText(path.join(root, '.workflow/project.md'), '- REQ-A1：fixture requirement\n');
 
   for (const file of DOC_FILES) {
     writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj-* 做成重型编排引擎\n不重复\n上层协议\n安装 你需要给什么 使用方案 你会得到什么\n`);

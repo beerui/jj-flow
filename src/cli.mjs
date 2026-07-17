@@ -1,7 +1,12 @@
 import fs from 'node:fs';
 import process from 'node:process';
 import { buildDispatch, MODE_CHOICES, renderMarkdown } from './dispatch.mjs';
-import { installSkill, projectClaudeTarget, projectCodexTarget } from './installSkill.mjs';
+import {
+  installSkill,
+  projectClaudeTarget,
+  projectCodexAgentsTarget,
+  projectCodexTarget
+} from './installSkill.mjs';
 import { buildProjectEvolutionEvidence } from './projectEvolution.mjs';
 import { buildProjectValidationEvidence } from './projectValidation.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
@@ -153,6 +158,7 @@ function parseInstallArgs(rawArgs, cwd = process.cwd()) {
       if (options.targetDir) throw new Error('--project cannot be used with --target');
       options.project = true;
       options.codexTargetDir = projectCodexTarget({ cwd });
+      options.codexAgentsTargetDir = projectCodexAgentsTarget({ cwd });
       options.claudeTargetDir = projectClaudeTarget({ cwd });
       continue;
     }
@@ -175,9 +181,9 @@ function parseInstallArgs(rawArgs, cwd = process.cwd()) {
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。真实使用入口在 Codex 里是 $jj-delivery，在 Claude Code 里是 /jj-delivery。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口在 Codex 里是 $jj-delivery，在 Claude Code 里是 /jj-delivery。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 安装 .codex/skills，claude 安装 .claude/commands，all 同时安装两者。默认：codex\n  --project     安装到当前项目的 .codex/skills 或 .claude/commands。\n  --target dir  安装到自定义根目录；不能和 --platform all 一起使用。\n  --force       目标资产已存在时覆盖文件。\n  --dry-run     只显示将发生什么，不写文件。\n  --json        输出结构化结果。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents 或 .claude/commands。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n`);
 }

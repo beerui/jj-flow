@@ -45,6 +45,8 @@
 - `/jj-*` 和 `$jj-*` 根据 intent 选择 Maestro 链路并可选执行。
 - 每次真实交付都能沉淀成 knowhow、spec 或 workflow recipe。
 - 支持团队协作：一个人发起，多个模型/智能体按证据和 guard 分工推进。
+- 提供 Codex `$jj-dispatch` 控制项目 MVP：动态区分 origin、requirement owner、lead、reference 和 targets，支持只读预览、显式批准、幂等派发和中断恢复。
+- 控制项目只保存协调状态和 artifact 引用，不在 `jj-flow` 内实现 daemon、数据库、自动 merge/push/release 或完整多智能体执行引擎。
 
 ## 与 Maestro 的关系
 

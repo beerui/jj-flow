@@ -19,7 +19,8 @@ const PAGES = [
   { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
   { title: '维护说明', source: 'docs/maintenance.md', output: 'maintenance.html' },
   { title: 'GitHub Pages 部署', source: 'docs/deployment.md', output: 'deployment.html' },
-  { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' }
+  { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' },
+  { title: 'ADR 0002', source: 'docs/adr/0002-project-family-control-plane.md', output: 'adr-0002-project-family-control-plane.html' }
 ];
 
 fs.mkdirSync(path.join(OUT_DIR, 'assets'), { recursive: true });

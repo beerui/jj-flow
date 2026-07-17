@@ -1,0 +1,71 @@
+{
+  "schema_version": "jj-flow/control-plane/1.0",
+  "revision": 0,
+  "control_project": {
+    "id": "control",
+    "name": "项目族控制台",
+    "path": "D:/projects/project-family-control",
+    "role": "control"
+  },
+  "projects": [
+    {
+      "id": "project-a",
+      "name": "项目 A",
+      "path": "D:/projects/project-a",
+      "codex_project_id": null,
+      "status": "active"
+    },
+    {
+      "id": "project-b",
+      "name": "项目 B",
+      "path": "D:/projects/project-b",
+      "codex_project_id": null,
+      "status": "active"
+    },
+    {
+      "id": "project-c",
+      "name": "项目 C",
+      "path": "D:/projects/project-c",
+      "codex_project_id": null,
+      "status": "active"
+    }
+  ],
+  "deliveries": [
+    {
+      "delivery_id": "DEL-EXAMPLE-001",
+      "title": "示例跨项目需求",
+      "request_ref": "thread:replace-me",
+      "origin_project": "project-b",
+      "requirement_owner": "project-b",
+      "lead_project": "project-c",
+      "lead_responsibilities": [
+        { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] }
+      ],
+      "reference_implementation": null,
+      "targets": [
+        {
+          "project_id": "project-a",
+          "status": "PENDING",
+          "responsibilities": [
+            { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] },
+            { "name": "test", "access": "read", "phase": "verification", "status": "PENDING", "attempt": 1, "depends_on": ["DEL-EXAMPLE-001/project-a/development/1"] },
+            { "name": "review", "access": "read", "phase": "review", "status": "PENDING", "attempt": 1, "depends_on": ["DEL-EXAMPLE-001/project-a/test/1"] }
+          ]
+        },
+        {
+          "project_id": "project-b",
+          "status": "PENDING",
+          "responsibilities": [
+            { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] }
+          ]
+        }
+      ],
+      "status": "DRAFT",
+      "approval": { "status": "PENDING", "decision_ref": null, "approved_at": null, "task_keys": [], "tasks": [] },
+      "dispatch_intents": [],
+      "decisions": [],
+      "artifacts": []
+    }
+  ],
+  "events": []
+}

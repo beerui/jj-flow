@@ -8,7 +8,7 @@
 - 快速实施：用户明确授权实施，稳定源 commit/diff、最终需求来源和目标调用链足以形成 `EXECUTION_READY` 时，复用已有 canonical refs；缺失时先在 `ANL-TARGET` 保存带来源的最小 ledger，再生成最窄 `PLN -> EXC/VRF -> REV`。不得仅为形式完整在编码前重建全量源分析或 blueprint；交接所需 canonical 产物在 `HANDOFF_READY` 前补齐。
 - 准备交接模式：源 artifact 归属仓库拥有共享 `ANL-SOURCE`、`BLP/REQ` 和 handoff snapshot；一个或多个目标都只拥有各自的 `ANL-TARGET -> PLN -> EXC/VRF -> REV`。
 - 多目标迁移：准备交接模式默认由源 artifact 归属仓库生成一次共享源分析、blueprint 和 snapshot；未准备 handoff 时必须先明确一个已授权归属仓库。每个目标仓库只生成自己的目标分析、计划、执行与评审产物。
-- 家族交付计划：由领头项目持有一份跨项目协调 `PLN`，只记录项目顺序、状态、分支映射、会话交接、artifact refs 和解锁门禁；不替代各目标仓库自己的实施 `PLN`。
+- 家族交付计划：存在 `$jj-dispatch` 控制项目时，控制 manifest 持有跨项目任务、thread、状态、决策和 artifact 引用，领头项目只持有自己的 canonical `PLN`；没有控制项目时，继续由领头项目持有一份跨项目协调 `PLN`。两种方式都不替代各目标仓库自己的实施 `PLN`。
 - 迁移交接快照：由共享源分析的归属仓库持有，保存在 `ANL-SOURCE/requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`；多个目标通过直接 path 复用，不复制到目标仓库。
 - 当前仓库不是目标仓库时，在开始前明确共享 blueprint 的归属仓库。其它目标通过 `@file` 或直接 path 消费该 blueprint，不复制一套无法追溯的需求文档。
 - 每个仓库的 artifact ID 只在自己的 `.workflow/state.json` 中解析；跨仓库时不要假设 `blueprint:BLP-*` 或 `analyze:ANL-*` 能自动跨仓库解析。
@@ -22,7 +22,7 @@
 | 源证据总结 | `maestro-analyze` | `.workflow/.csv-wave/{YYYYMMDD}-analyze-{slug}/context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | `ANL-*` |
 | 迁移交接快照 | `jj-same` 在源分析 artifact 内生成 | `ANL-SOURCE/requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`，只引用 `BLP/REQ` 和来源证据 | 随所属 `ANL-*`；`context-package.json` 只登记 `handoff_ref` |
 | 正式需求 | `maestro-blueprint` | 标准发现或交接完成前生成 `.workflow/blueprint/BLP-{slug}-{date}/product-brief.md`、`requirements/REQ-*.md`、`readiness-report.md` 等实际需要的 canonical 文件 | `BLP-*` |
-| 家族协调计划 | `maestro-plan` | 领头项目 `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`，记录项目顺序、状态、分支与交接门禁 | `PLN-*` |
+| 家族协调计划 | `jj-dispatch` 控制 manifest；无控制项目时用 `maestro-plan` | 控制项目只保存协调状态和 artifact refs；无控制项目时使用领头项目 `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json` | 控制 `delivery_id`；无控制项目时为 `PLN-*` |
 | 目标项目评审 | `maestro-analyze --from blueprint:BLP-*`；跨仓库使用 blueprint path | 目标仓库自己的 analyze session，包含 `context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | 目标仓库的 `ANL-*` |
 | 实施计划 | `maestro-plan --from analyze:ANL-*` | `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`、`.task/TASK-*.json` | `PLN-*` |
 | 实施与验证 | `maestro-execute` | execute session、计划目录下的 `.summaries/TASK-*-summary.md` 与 `verification.json` | `EXC-*`、`VRF-*` |

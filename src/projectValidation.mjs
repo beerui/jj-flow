@@ -12,7 +12,8 @@ const REQUIRED_DOCS = [
   'docs/architecture.md',
   'docs/project-plan.md',
   'docs/maintenance.md',
-  'docs/deployment.md'
+  'docs/deployment.md',
+  'docs/adr/0002-project-family-control-plane.md'
 ];
 
 const REQUIRED_SOURCE = [
@@ -28,6 +29,7 @@ const REQUIRED_SOURCE = [
   'src/maestroCompatibility.mjs',
   'src/maestroExecution.mjs',
   'src/projectEvolution.mjs',
+  'src/dispatchControlPlane.mjs',
   'src/projectValidation.mjs',
   '.codex/skills/jj/SKILL.md',
   '.codex/skills/jj-auto/SKILL.md',
@@ -38,6 +40,12 @@ const REQUIRED_SOURCE = [
   '.codex/skills/jj-fix/SKILL.md',
   '.codex/skills/jj-knowhow/SKILL.md',
   '.codex/skills/jj-review/SKILL.md',
+  '.codex/skills/jj-dispatch/SKILL.md',
+  '.codex/skills/jj-dispatch/agents/openai.yaml',
+  '.codex/agents/jj-workflow-reviewer.toml',
+  '.codex/agents/jj-workflow-developer.toml',
+  '.codex/skills/jj-dispatch/references/control-project.md',
+  '.codex/skills/jj-dispatch/references/control-plane.schema.json',
   '.claude/commands/jj.md',
   '.claude/commands/jj-auto.md',
   '.claude/commands/jj-delivery.md',
@@ -58,7 +66,9 @@ const REQUIRED_TESTS = [
   'tests/maestro-compatibility.test.mjs',
   'tests/maestro-execution.test.mjs',
   'tests/project-evolution.test.mjs',
-  'tests/project-validation.test.mjs'
+  'tests/project-validation.test.mjs',
+  'tests/jj-dispatch-contract.test.mjs',
+  'tests/fixtures/jj-dispatch-control-plane.json'
 ];
 
 const REQUIRED_MODES = ['delivery', 'feat', 'fix', 'knowhow', 'review', 'validate', 'evolve'];
@@ -72,6 +82,7 @@ const COMMAND_REFERENCE_FILES = [
 export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
   const packageJson = readJson(path.join(cwd, 'package.json'));
   const workflowState = readJson(path.join(cwd, '.workflow', 'state.json'));
+  const roadmapState = auditRoadmapState(cwd, workflowState);
   const docs = collectFileSet(cwd, REQUIRED_DOCS);
   const source = collectFileSet(cwd, REQUIRED_SOURCE);
   const tests = collectFileSet(cwd, REQUIRED_TESTS);
@@ -95,10 +106,12 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     ...missingSource.map((file) => `缺少源码 ${file}`),
     ...missingTests.map((file) => `缺少测试 ${file}`),
     ...missingRecipes.map((mode) => `缺少 recipe ${mode}`),
-    ...missingScripts.map((name) => `缺少 npm script ${name}`)
+    ...missingScripts.map((name) => `缺少 npm script ${name}`),
+    ...roadmapState.errors
   ];
   const warnings = [
-    ...docsWithoutModes.map((file) => `文档未覆盖全部核心命令：${file}`)
+    ...docsWithoutModes.map((file) => `文档未覆盖全部核心命令：${file}`),
+    ...roadmapState.warnings
   ];
 
   const evidence = [
@@ -127,7 +140,8 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
       evidence: {
         status: workflowState?.status || null,
         current_milestone: workflowState?.current_milestone || null,
-        next_phase: nextPhase
+        next_phase: nextPhase,
+        roadmap_state: roadmapState
       }
     },
     {
@@ -313,7 +327,113 @@ function allPhasesCompleted(workflowState) {
     });
 }
 
+function auditRoadmapState(cwd, workflowState) {
+  const roadmapPath = path.join(cwd, '.workflow', 'roadmap.md');
+  const projectPath = path.join(cwd, '.workflow', 'project.md');
+  if (!workflowState || !fs.existsSync(roadmapPath) || !fs.existsSync(projectPath)) {
+    return { ok: false, errors: ['缺少 project、roadmap 或 workflow state，无法核对进度。'], warnings: [] };
+  }
+  const roadmap = fs.readFileSync(roadmapPath, 'utf8');
+  const project = fs.readFileSync(projectPath, 'utf8');
+  const rows = new Map();
+  const rowCounts = new Map();
+  for (const match of roadmap.matchAll(/^\|\s*M\d+\s*\|\s*P(\d+)[^|]*\|\s*([a-z_]+)\s*\|/gm)) {
+    rows.set(match[1], match[2]);
+    rowCounts.set(match[1], (rowCounts.get(match[1]) || 0) + 1);
+  }
+  const requirementRows = new Map();
+  for (const match of roadmap.matchAll(/^\|\s*(REQ-[A-Z0-9-]+)\s*\|[^|]*\|\s*P(\d+)\s*\|/gm)) {
+    const [, requirementId, phaseId] = match;
+    const existing = requirementRows.get(requirementId) || [];
+    existing.push(phaseId);
+    requirementRows.set(requirementId, existing);
+  }
+  const errors = [];
+  const warnings = [];
+  const stateRequirements = new Map();
+  for (const milestone of workflowState.milestones || []) {
+    for (const phase of milestone.phases || []) {
+      const phaseId = String(phase.id).replace(/^P/i, '');
+      for (const requirement of phase.requirements || []) {
+        const existing = stateRequirements.get(requirement) || [];
+        existing.push(phaseId);
+        stateRequirements.set(requirement, existing);
+      }
+      const roadmapStatus = rows.get(phaseId);
+      if (!roadmapStatus) {
+        errors.push('roadmap 缺少 P' + phaseId + ' 进度行。');
+        continue;
+      }
+      if ((rowCounts.get(phaseId) || 0) !== 1) {
+        errors.push('roadmap P' + phaseId + ' 进度行必须唯一。');
+      }
+      if (roadmapStatus !== phase.status) {
+        errors.push('roadmap P' + phaseId + '=' + roadmapStatus + ' 与 state=' + phase.status + ' 不一致。');
+      }
+    }
+  }
+  for (const [requirementId, phases] of stateRequirements) {
+    const mapped = requirementRows.get(requirementId) || [];
+    if (phases.length !== 1) errors.push(`state requirement ${requirementId} 必须只归属一个 phase。`);
+    if (mapped.length !== 1) errors.push(`roadmap requirement ${requirementId} 必须只映射一个 phase。`);
+    if (!project.includes(requirementId)) errors.push(`project.md 缺少 requirement ${requirementId}。`);
+    if (mapped.length === 1 && phases.length === 1 && mapped[0] !== phases[0]) {
+      errors.push(`requirement ${requirementId} 映射到 P${mapped[0]}，但 state 属于 P${phases[0]}。`);
+    }
+  }
+  for (const requirementId of requirementRows.keys()) {
+    if (!stateRequirements.has(requirementId)) errors.push(`roadmap 包含未知 requirement ${requirementId}。`);
+  }
+  return { ok: errors.length === 0, errors, warnings };
+}
+
 function auditCriterion(cwd, criterion) {
+  if (criterion.includes('控制项目可以独立') && criterion.includes('动态变化')) {
+    return auditFilesContain(cwd, [
+      'src/dispatchControlPlane.mjs',
+      '.codex/skills/jj-dispatch/SKILL.md',
+      'docs/adr/0002-project-family-control-plane.md'
+    ], ['control_project', 'origin_project', 'requirement_owner', 'lead_project', 'targets']);
+  }
+
+  if (criterion.includes('UNKNOWN') && criterion.includes('stale attempt')) {
+    return auditFilesContain(cwd, [
+      'src/dispatchControlPlane.mjs',
+      'tests/jj-dispatch-contract.test.mjs'
+    ], ['assertCurrentAttempt', 'host_id', 'sandbox_mode', 'stale UNKNOWN attempt']);
+  }
+
+  if (criterion.includes('同步 checkpoint') && criterion.includes('成功证据')) {
+    return auditFilesContain(cwd, [
+      'src/dispatchControlPlane.mjs',
+      '.codex/skills/jj-dispatch/references/control-plane.schema.json'
+    ], ['snapshot_ref', 'snapshot_hash', 'handoff_ref', 'freshness', 'source_branch', 'target_branch', 'difference_ref', 'checkpoint']);
+  }
+
+  if (criterion.includes('Reviewer 只读') && criterion.includes('NEEDS_CHANGES')) {
+    return auditFilesContain(cwd, [
+      '.codex/agents/jj-workflow-reviewer.toml',
+      '.codex/agents/jj-workflow-developer.toml',
+      'src/dispatchControlPlane.mjs',
+      'tests/jj-dispatch-contract.test.mjs'
+    ], ['read-only', 'PASS', 'NEEDS_CHANGES', 'recordReviewResult']);
+  }
+
+  if (criterion.includes('NEEDS_CHANGES') && criterion.includes('attempt')) {
+    return auditFilesContain(cwd, [
+      'src/dispatchControlPlane.mjs',
+      'tests/jj-dispatch-contract.test.mjs'
+    ], ['requestRework', 'attempt', 'REWORK_REQUESTED']);
+  }
+
+  if (criterion.includes('Review PASS') && criterion.includes('VERIFIED')) {
+    return auditFilesContain(cwd, [
+      'src/dispatchControlPlane.mjs',
+      '.codex/skills/jj-dispatch/SKILL.md',
+      'tests/jj-dispatch-contract.test.mjs'
+    ], ['assertReviewPassForTarget', 'PASS', 'VERIFIED']);
+  }
+
   if (criterion.includes('架构 spec') && criterion.includes('薄适配边界')) {
     return auditFilesContain(cwd, [
       'docs/architecture.md',
@@ -402,7 +522,7 @@ function auditCriterion(cwd, criterion) {
     return auditFilesContain(cwd, [
       'package.json',
       'tests/install-skill.test.mjs'
-    ], ['files', 'bin/', 'src/', '.codex/skills/', '.claude/commands/', 'docs/']);
+    ], ['files', 'bin/', 'src/', '.codex/skills/', '.codex/agents/', '.claude/commands/', 'docs/']);
   }
 
   if (criterion.includes('安装错误可诊断') && criterion.includes('测试覆盖')) {

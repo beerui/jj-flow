@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import { runCli } from '../src/cli.mjs';
 import { buildDispatch } from '../src/dispatch.mjs';
@@ -41,6 +43,27 @@ test('CLI validate attaches project validation evidence', () => {
   assert.equal(parsed.mode, 'validate');
   assert.equal(parsed.guard_report.status, 'PASS');
   assert.ok(parsed.evidence.some((item) => item.artifact_type === 'project_state'));
+});
+
+test('project validation detects roadmap and state progress drift', () => {
+  const cwd = makeProjectFixture();
+  const roadmapPath = path.join(cwd, '.workflow', 'roadmap.md');
+  fs.writeFileSync(roadmapPath, fs.readFileSync(roadmapPath, 'utf8').replace('completed', 'pending'));
+  const evidence = buildProjectValidationEvidence({ cwd });
+  const failures = evidence.find((item) => item.id === 'validation-failures');
+  assert.ok(failures);
+  assert.ok(failures.evidence.failures.some((failure) => failure.includes('roadmap P1=pending')));
+});
+
+test('project validation treats missing phase rows and requirement drift as failures', () => {
+  const cwd = makeProjectFixture();
+  const roadmapPath = path.join(cwd, '.workflow', 'roadmap.md');
+  fs.writeFileSync(roadmapPath, '## 需求映射\n| 需求 | 原始需求 | Phase |\n| --- | --- | --- |\n| REQ-UNKNOWN | unknown | P9 |\n');
+  const evidence = buildProjectValidationEvidence({ cwd });
+  const failures = evidence.find((item) => item.id === 'validation-failures');
+  assert.ok(failures);
+  assert.ok(failures.evidence.failures.some((failure) => failure.includes('roadmap 缺少 P1 进度行')));
+  assert.ok(failures.evidence.failures.some((failure) => failure.includes('roadmap 包含未知 requirement REQ-UNKNOWN')));
 });
 
 function createStdout() {

@@ -1,0 +1,4 @@
+interface:
+  display_name: "跨项目需求调度"
+  short_description: "在独立控制项目中预览、批准、派发并恢复多项目任务"
+  default_prompt: "Use $jj-dispatch in the control project. Keep origin_project, requirement_owner, lead_project, reference_implementation, and targets separate. Preview by default, require explicit approval before dispatch, persist a stable task_key before creating a thread, require host_id and sandbox metadata at binding, and fail closed when Codex App project, worktree, or sandbox capabilities are unavailable. Use jj-workflow-reviewer for read-only findings and jj-workflow-developer for approved fixes; delegate actual delivery, fixes, migration, testing, and review to the existing jj-flow skills."

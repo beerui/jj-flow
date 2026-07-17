@@ -22,6 +22,7 @@
 - `$jj-knowhow` / `/jj-knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
 - `$jj-auto` / `/jj-auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit 或 diff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
+- `$jj-dispatch`：Codex 控制项目中的多项目调度入口。用于预览、批准、派发、恢复和汇总多个固定项目任务；首版没有对应的 Claude `/jj-dispatch`。
 - `Handoff snapshot`：源 `ANL-SOURCE` 内的不可变迁移交接清单。它引用正式 `BLP/REQ`，记录来源指纹、源 commit、coverage、未解决项和验证门禁；多个目标复用同一 snapshot，但仍分别验证目标源码并生成 `ANL-TARGET`。
 
 ## 交付协议术语
@@ -36,6 +37,12 @@
 - `Spec`：可复用规范或约束，用于沉淀项目级规则。
 - `Knowhow`：可复用经验，重点记录触发条件、证据、决策和复用方式。
 - `Sibling project`：同源但已分叉演进的项目。迁移时只能复用需求语义和目标项目模式，不能默认复制源文件。
+- `Control project`：独立的项目族控制目录，只保存项目注册、delivery、thread、状态、决策和 artifact 引用，不承载业务需求正文或源码。
+- `Origin project`：需求或 bug 最先出现的项目，不等于永久基线，也不必是本轮领头项目。
+- `Requirement owner`：持有正式 `ANL-SOURCE / BLP/REQ / Handoff Snapshot` 的项目。
+- `Lead project`：本轮首先实施的项目，可以与 origin 或 requirement owner 不同。
+- `Reference implementation`：经过验证后可供其它目标参考的稳定 commit 和 snapshot；初始为空，不能因项目是基线就自动设置。
+- `Dispatch intent`：创建 Codex task 前先写入控制项目的派发意图，使用稳定 `task_key` 保证重试不会重复创建任务。
 - `Migration ledger`：迁移需求账本，通常包含 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
 - `Sync contract`：A/B 项目间某项功能的稳定同步关系，包含 `sync_key`、源/目标、功能范围、目标专有差异、排除项和触发策略；源项目保存 outgoing 索引，目标项目保存 incoming Maestro arch spec。
 - `Sync checkpoint`：目标项目最近一次验证通过且评审无阻塞的同步点；它记录对应的源 commit，只有目标交付成功后才能推进。

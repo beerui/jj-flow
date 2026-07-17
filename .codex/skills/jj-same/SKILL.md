@@ -20,6 +20,8 @@ description: 基于用户给出的 Codex 会话 ID、需求文档、handoff snap
 
 同一行是默认 sibling 范围；前台与后管之间不是自动同步关系。只分析用户要求或需求确实覆盖的项目，只修改明确授权的目标项目。
 
+若存在 `$jj-dispatch` 控制项目，以控制 manifest 中明确批准的 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation` 和 `targets` 为本轮协调事实；`jj-same` 仍只负责具体迁移、差异适配和同步检查点。没有控制项目时继续兼容原有 `源=A 目标=B,C` 调用，不强制升级旧 handoff snapshot。
+
 开始生成迁移文档前读取 [references/maestro-artifact-routing.md](references/maestro-artifact-routing.md)，按 Maestro canonical path 保存并注册产物。不得创建 `.workflow/jj-same/` 或把需求正文写入 `.workflow/.maestro/*/status.json`。
 
 用户要求准备源项目交接、更新交接或提供 `handoff_ref` 时，读取 [references/handoff-snapshot.md](references/handoff-snapshot.md)。源项目达到可验证交接状态时生成一次 snapshot；后续目标复用同一 snapshot，不得分别重建源 `ANL-SOURCE / BLP`。
@@ -293,7 +295,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 证据入口：使用了哪些会话、需求、分支和提交。
 - 同步关系：`sync_key`、源/目标、分析 commit range、旧检查点与新检查点状态。
 - 同步决策：源项目/分支确认结果、候选项目状态、用户对每个目标的选择和延期 issue ID。
-- 家族交付计划：领头项目、`cj/dj/cz` 顺序、各项目状态与分支、会话交接和下一项目门禁。
+- 家族交付计划：优先引用 `$jj-dispatch` 控制项目的 `delivery_id`、动态角色、任务和状态；没有控制项目时才由领头项目持有 `cj/dj/cz` 顺序、各项目状态与分支、会话交接和下一项目门禁。
 - Maestro 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
 - 交接快照：`snapshot_id`、`handoff_ref`、handoff status、freshness、启动动作、source HEAD 和 successor 关系。
 - 最终需求账本及后续要求覆盖关系。

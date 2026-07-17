@@ -21,6 +21,8 @@
 
 任意一个单元格都可能成为源项目。不要固定认为承接永远是源；以用户指定的会话、需求落地仓库或功能分支为源。
 
+存在 `$jj-dispatch` 控制项目时，不再用单一 `SOURCE` 同时表示所有角色。分别读取 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation` 和 `targets`；五者可以不同，reference 在验证前可以为空。没有控制项目时继续使用本文件的任务级登记兼容流程。
+
 ## 当前示例路径
 
 以下是本次上下文和本机目录能确认的示例，不是永久硬编码：

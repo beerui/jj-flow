@@ -6,20 +6,25 @@
 
 - Codex 识别 `$jj-delivery`、`$jj-fix`、`$jj-review` 等 skills。
 - Codex 识别 `$jj-same`，用于同源项目间迁移功能、修复和需求变更。
+- Codex 识别 `$jj-dispatch`，用于独立控制项目中的多项目任务调度。
 - Claude Code 识别 `/jj-delivery`、`/jj-fix`、`/jj-review` 等 slash commands。
 - Claude Code 识别 `/jj-same`。
 
-`jj-flow` 参考 Maestro 的包结构：npm 包携带 `.codex/skills` 和 `.claude/commands` 原生命令资产；`npx` 只负责复制这些资产，不承担真实交付执行。
+`$jj-dispatch` 首版只提供 Codex skill，不安装对应的 Claude `/jj-dispatch`。它需要 Codex App host 提供 project、thread 和 worktree capability；缺少能力时只输出预览或阻塞状态。
+
+项目级 Reviewer / Developer 配置位于 `.codex/agents/`。首次使用或更新配置后，需要将项目标记为 trusted，完全重启 Codex 或新建任务，并确认 `jj-workflow-reviewer`、`jj-workflow-developer` 与 `openaiDeveloperDocs` MCP 已实际加载。未加载、未取得 runtime effective sandbox attestation，或目标 worktree 不在实际 writable roots 时，不得执行 `BIND_THREAD`。项目配置不保存 provider、认证信息或其他 machine-local secret。
+
+`jj-flow` 参考 Maestro 的包结构：npm 包携带 `.codex/skills`、`.codex/agents` 和 `.claude/commands` 原生资产；`npx` 只负责复制这些资产，不承担真实交付执行。选择 Codex 时，skills 与配套 agent profiles 始终作为一组安装。
 
 ## 前置条件
 
-- 使用 Codex 时，需要 Codex 能读取本机 `~/.codex/skills/` 或项目内 `./.codex/skills/`。
+- 使用 Codex 时，需要 Codex 能读取本机 `~/.codex/skills/`、`~/.codex/agents/`，或项目内对应的 `./.codex/` 目录。
 - 使用 Claude Code 时，需要 Claude Code 能读取本机 `~/.claude/commands/` 或项目内 `./.claude/commands/`。
 - 已能通过 `npx` 运行 npm 包。
 
 ## 推荐安装
 
-默认安装 Codex skills：
+默认安装 Codex skills 和配套 agents：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill
@@ -29,6 +34,7 @@ npx @shendu-sdt/jj-flow@beta install-skill
 
 ```text
 ~/.codex/skills
+~/.codex/agents
 ```
 
 安装 Claude Code slash commands：
@@ -59,18 +65,19 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 
 ```text
 ./.codex/skills
+./.codex/agents
 ./.claude/commands
 ```
 
 ## 安装选项
 
-- `--platform codex`：安装 Codex skills，默认值。
+- `--platform codex`：同时安装 Codex skills 和配套 agents，默认值。
 - `--platform claude`：安装 Claude Code slash commands。
 - `--platform all`：同时安装 Codex 和 Claude Code 资产。
-- `--project`：安装到当前项目目录。
-- `--target <dir>`：安装到自定义目录；不能和 `--platform all` 一起使用。
-- `--force`：目标资产已存在时覆盖文件。
-- `--dry-run`：只预览写入位置，不复制文件。
+- `--project`：安装到当前项目的 `./.codex/skills`、`./.codex/agents` 或 `./.claude/commands`。
+- `--target <dir>`：自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 `agents` 目录。不能和 `--platform all` 一起使用。
+- `--force`：skills 或 agents 任一目标已存在时，覆盖整组安装文件。
+- `--dry-run`：预览 skills、agents、commands 的位置与冲突，不复制文件。
 - `--json`：输出结构化结果，便于脚本检查。
 
 升级已有安装：
@@ -96,6 +103,10 @@ Codex 源目录：.codex/skills/jj-delivery
 Codex 目标目录：~/.codex/skills/jj-delivery
 Codex 迁移源目录：.codex/skills/jj-same
 Codex 迁移目标目录：~/.codex/skills/jj-same
+Codex 调度源目录：.codex/skills/jj-dispatch
+Codex 调度目标目录：~/.codex/skills/jj-dispatch
+Codex agent 源目录：.codex/agents
+Codex agent 目标目录：~/.codex/agents
 
 Claude 源文件：.claude/commands/jj-delivery.md
 Claude 目标文件：~/.claude/commands/jj-delivery.md
@@ -126,6 +137,12 @@ $jj-same 会话=019f... 只分析迁移矩阵
 /jj-same 会话=019f... 只分析迁移矩阵
 ```
 
+测试 Codex 控制项目调度入口：
+
+```text
+$jj-dispatch PREVIEW origin=B lead=C targets=A,B
+```
+
 期望行为：
 
 1. Agent 识别对应的原生命令资产。
@@ -138,6 +155,10 @@ $jj-same 会话=019f... 只分析迁移矩阵
 ### Codex 没有识别 `$jj-delivery`
 
 检查 `~/.codex/skills/jj-delivery/SKILL.md` 是否存在，且文件开头包含 `name: jj-delivery` 的 frontmatter。若文件存在但仍无法识别，重新打开 Codex 对话，或确认当前 Codex 配置允许加载本地 skills。
+
+### Codex 调度任务没有使用配套角色
+
+检查 `~/.codex/agents/jj-workflow-reviewer.toml` 和 `jj-workflow-developer.toml` 是否存在。Reviewer 配置必须保留 `sandbox_mode = "read-only"`；使用 `--force` 可以把本地旧版本更新为包内版本。
 
 ### Claude Code 没有识别 `/jj-delivery`
 

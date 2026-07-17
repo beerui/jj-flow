@@ -8,11 +8,11 @@
 - 你手上有 PRD、YApi、MasterGo、ARMS/SLS、Codex 历史线程等资料，希望 Codex 先整理清楚再动代码。
 - 你希望证据不足时先停下来问，而不是让模型猜。
 
-它不是一个新的开发框架，也不是让你在终端里跑完整流水线的工具。`npx` 只负责把原生命令资产安装到 `.codex/skills` 或 `.claude/commands`，真实使用入口在 Codex/Claude Code 对话里。
+它不是一个新的开发框架，也不是让你在终端里跑完整流水线的工具。`npx` 只负责把原生命令资产安装到 `.codex/skills`、`.codex/agents` 或 `.claude/commands`，真实使用入口在 Codex/Claude Code 对话里。
 
 ## 快速使用
 
-安装 Codex skills：
+安装 Codex skills 和配套 agents：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill

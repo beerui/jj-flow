@@ -17,10 +17,26 @@ flowchart LR
   F --> G[Maestro Skills]
 ```
 
+跨项目调度使用独立控制平面，不改变上面的业务交付链：
+
+```mermaid
+flowchart LR
+  U[用户与调度任务] --> CP[控制项目 control-plane.json]
+  CP --> T1[项目 A Codex task/worktree]
+  CP --> T2[项目 B Codex task/worktree]
+  CP --> T3[项目 C Codex task/worktree]
+  T1 --> E[commit / snapshot / VRF / REV 引用]
+  T2 --> E
+  T3 --> E
+  E --> CP
+```
+
 ## 核心模块
 
 - `.codex/skills/jj-*/SKILL.md`：Codex skill 入口，正式命令使用 `$jj-delivery` 这类连字符缩写。
 - `.codex/skills/jj-same/`：Codex 跨同源项目迁移入口，包含项目族参考、handoff snapshot 契约、真实案例和只读证据脚本。Snapshot 附着源 `ANL-SOURCE` 并只引用 `BLP/REQ`；目标复用共享语义但仍独立分析与实施。
+- `.codex/skills/jj-dispatch/`：Codex 控制项目调度入口，负责 `PREVIEW / DISPATCH / RECONCILE / BIND_THREAD`，不替代实际开发 skill，也不提供 Claude command。
+- `.codex/agents/*.toml`：项目族调度的角色期望配置；Reviewer 默认只读，Developer 默认使用 workspace-write。由于子会话会继承 host 的实际 sandbox，TOML 不能替代运行时证明；BIND_THREAD 必须核对 host 返回的 `effective_sandbox_mode` 与 `sandbox_evidence_ref`，缺失时保持 fail-closed。
 - `.claude/commands/jj-*.md`：Claude Code slash command 入口，正式命令使用 `/jj-delivery` 这类连字符缩写。
 - `.claude/commands/jj-same.md`：Claude Code 跨同源项目迁移入口。
 - `bin/jj.mjs`：安装和维护调试入口，不是普通交付入口。
@@ -35,14 +51,29 @@ flowchart LR
 - `src/knowledgeLoop.mjs`：把完成的交付整理成 knowhow、spec 或 workflow recipe 捕获计划，并生成团队协作上下文。
 - `src/projectValidation.mjs`：读取项目文件、`.workflow`、文档、recipe 和测试状态，生成 `$jj-validate` 证据。
 - `src/projectEvolution.mjs`：把自检证据转换成 correction backlog、升级计划和边界证据。
+- `src/dispatchControlPlane.mjs`：纯控制平面状态协议，负责动态角色校验、稳定 task key、幂等派发意图、thread 恢复绑定和 reference/checkpoint 门禁；不直接调用 Codex App。
 - `scripts/build-docs.mjs`：把 `docs/*.md` 生成 GitHub Pages 可部署的静态站点。
-- `src/installSkill.mjs`：把包内 `.codex/skills` 和 `.claude/commands` 复制到本机或项目级目录。
+- `src/installSkill.mjs`：把包内 `.codex/skills` 与 `.codex/agents` 作为原子冲突检查的一组复制到本机或项目级 `.codex`，并独立支持 `.claude/commands`。
 
 ## 关键决策
 
 ### 保持薄入口
 
 原因：`catlog22/maestro-flow` 已经提供 intent routing、workflow orchestration、knowledge system 和 multi-agent dispatch，并把 `.claude/commands`、`.codex/skills` 作为 AI coding agent 的原生入口随 npm 包分发。`jj-flow` 不重复这些能力，只把项目级真实证据和交付边界注入进去。边界是明确的：不 fork Maestro core，不把 `/jj-*` 或 `$jj-*` 做成重型编排引擎。
+
+### 控制项目与业务产物分离
+
+项目族不再把某个基线仓库永久设为唯一源。控制项目只保存 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation`、`targets`、thread、状态和 artifact 引用；业务需求正文、源码、目标分析和验证仍归属实际项目。这样 B 或 C 都可以成为本轮需求来源或领头项目，控制平面不会污染业务仓库。
+
+Codex App 的 `create_thread`、project binding 和 worktree 是 host capability，不是 npm CLI 的稳定 API。`src/dispatchControlPlane.mjs` 只实现纯状态转换和内嵌审计事件；控制项目 host 负责把 manifest 写回文件，并可将事件镜像到 `events.ndjson`。能力缺失时保持 `PREVIEW_ONLY/BLOCKED`。
+
+用户可见的控制任务与临时 subagent 必须分层：控制任务拥有稳定 `task_key`、host/thread/worktree 绑定和可恢复状态，是控制面的持久身份；subagent 只是某个任务内部的临时执行单元，可用于代码探索、官方文档核对或并行只读审查，不能自行创建控制任务、修改批准快照，也不能作为 checkpoint 的 thread identity。主调度任务保留需求、关键决策、批准和最终汇总。
+
+Memory 仅用于回忆稳定决策索引、用户偏好和 artifact 引用，不是交付状态源。正式状态以 control-plane manifest、Git commit、Maestro artifact、verification/review evidence 和 runtime sandbox attestation 为准；memory、自然语言“完成”或 thread 停止均不能推进 checkpoint。Maestro 是分析、计划、执行、测试、审查和知识沉淀基建，但不能替代 Codex 的 sandbox、project trust、MCP、task identity 或控制面事实。
+
+上述边界对齐 Codex 官方的 [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)、[custom agents 与 subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)、[sandbox](https://learn.chatgpt.com/docs/sandboxing) 和 [memory](https://learn.chatgpt.com/docs/customization/memories) 约定。
+
+详细决策见 [ADR 0002](adr-0002-project-family-control-plane.html)。
 
 ### 证据优先于结论
 

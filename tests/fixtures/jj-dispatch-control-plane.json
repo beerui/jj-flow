@@ -1,0 +1,52 @@
+{
+  "schema_version": "jj-flow/control-plane/1.0",
+  "revision": 0,
+  "control_project": {
+    "id": "control",
+    "name": "控制项目",
+    "path": "D:/control",
+    "role": "control"
+  },
+  "projects": [
+    { "id": "A", "name": "项目 A", "path": "D:/A", "status": "active" },
+    { "id": "B", "name": "项目 B", "path": "D:/B", "status": "active" },
+    { "id": "C", "name": "项目 C", "path": "D:/C", "status": "active" }
+  ],
+  "deliveries": [
+    {
+      "delivery_id": "DEL-001",
+      "title": "动态来源示例",
+      "request_ref": "thread:example",
+      "origin_project": "B",
+      "requirement_owner": "B",
+      "lead_project": "C",
+      "lead_responsibilities": [
+        { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] }
+      ],
+      "reference_implementation": null,
+      "targets": [
+        {
+          "project_id": "A",
+          "status": "PENDING",
+          "responsibilities": [
+            { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] },
+            { "name": "test", "access": "read", "phase": "verification", "status": "PENDING", "attempt": 1, "depends_on": ["DEL-001/A/development/1"] }
+          ]
+        },
+        {
+          "project_id": "B",
+          "status": "PENDING",
+          "responsibilities": [
+            { "name": "development", "access": "write", "phase": "development", "status": "PENDING", "attempt": 1, "depends_on": [] }
+          ]
+        }
+      ],
+      "status": "DRAFT",
+      "approval": { "status": "PENDING", "decision_ref": null, "approved_at": null, "task_keys": [], "tasks": [] },
+      "dispatch_intents": [],
+      "decisions": [],
+      "artifacts": []
+    }
+  ],
+  "events": []
+}

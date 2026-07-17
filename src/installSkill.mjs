@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
 const DEFAULT_CODEX_SOURCE_DIR = path.join(PROJECT_ROOT, '.codex', 'skills');
+const DEFAULT_CODEX_AGENTS_SOURCE_DIR = path.join(PROJECT_ROOT, '.codex', 'agents');
 const DEFAULT_CLAUDE_SOURCE_DIR = path.join(PROJECT_ROOT, '.claude', 'commands');
 
 export function defaultSkillTarget({ homeDir = os.homedir(), codexHome = process.env.CODEX_HOME } = {}) {
@@ -21,8 +22,17 @@ export function defaultCodexTarget({ homeDir = os.homedir(), codexHome = process
   return path.join(root, 'skills');
 }
 
+export function defaultCodexAgentsTarget({ homeDir = os.homedir(), codexHome = process.env.CODEX_HOME } = {}) {
+  const root = codexHome || path.join(homeDir, '.codex');
+  return path.join(root, 'agents');
+}
+
 export function projectCodexTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.codex', 'skills');
+}
+
+export function projectCodexAgentsTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.codex', 'agents');
 }
 
 export function defaultClaudeTarget({ homeDir = os.homedir(), claudeHome = process.env.CLAUDE_HOME } = {}) {
@@ -39,43 +49,62 @@ export function installSkill({
   sourceDir,
   targetDir,
   codexSourceDir = sourceDir || DEFAULT_CODEX_SOURCE_DIR,
+  codexAgentsSourceDir = DEFAULT_CODEX_AGENTS_SOURCE_DIR,
   claudeSourceDir = sourceDir || DEFAULT_CLAUDE_SOURCE_DIR,
   codexTargetDir,
+  codexAgentsTargetDir,
   claudeTargetDir,
+  homeDir,
+  codexHome,
+  claudeHome,
   force = false,
   dryRun = false
 } = {}) {
   const platforms = normalizePlatforms(platform);
-  const jobs = platforms.map((name) => {
+  const jobs = platforms.flatMap((name) => {
     if (name === 'codex') {
-      return {
-        platform: 'codex',
-        source: path.resolve(codexSourceDir),
-        target: path.resolve(codexTargetDir || targetDir || defaultCodexTarget()),
-        entries: collectCodexSkillSources(path.resolve(codexSourceDir)),
-        label: 'Codex skills'
-      };
+      const skillSource = path.resolve(codexSourceDir);
+      const skillTarget = path.resolve(codexTargetDir || targetDir || defaultCodexTarget({ homeDir, codexHome }));
+      const agentSource = path.resolve(codexAgentsSourceDir);
+      const agentTarget = path.resolve(codexAgentsTargetDir || inferCodexAgentsTarget(skillTarget));
+      return [
+        {
+          platform: 'codex',
+          asset: 'skills',
+          source: skillSource,
+          target: skillTarget,
+          entries: collectCodexSkillSources(skillSource),
+          label: 'Codex skills'
+        },
+        {
+          platform: 'codex',
+          asset: 'agents',
+          source: agentSource,
+          target: agentTarget,
+          entries: collectCodexAgentSources(agentSource),
+          label: 'Codex agents'
+        }
+      ];
     }
 
-    return {
+    const commandSource = path.resolve(claudeSourceDir);
+    return [{
       platform: 'claude',
-      source: path.resolve(claudeSourceDir),
-      target: path.resolve(claudeTargetDir || targetDir || defaultClaudeTarget()),
-      entries: collectClaudeCommandSources(path.resolve(claudeSourceDir)),
+      asset: 'commands',
+      source: commandSource,
+      target: path.resolve(claudeTargetDir || targetDir || defaultClaudeTarget({ homeDir, claudeHome })),
+      entries: collectClaudeCommandSources(commandSource),
       label: 'Claude commands'
-    };
+    }];
   });
+  const summary = summarizeInstallJobs(jobs, platforms);
 
   const missingJobs = jobs.filter((job) => !job.entries.length);
   if (missingJobs.length) {
     return {
+      ...summary,
       ok: false,
       status: 'missing-source',
-      platform: platforms.length === 1 ? platforms[0] : 'all',
-      source: missingJobs.map((job) => job.source),
-      target: jobs.map((job) => job.target),
-      skills: jobs.flatMap((job) => job.platform === 'codex' ? job.entries.map((entry) => entry.name) : []),
-      commands: jobs.flatMap((job) => job.platform === 'claude' ? job.entries.map((entry) => entry.name) : []),
       message: `Missing install assets: ${missingJobs.map((job) => job.source).join(', ')}`
     };
   }
@@ -86,13 +115,9 @@ export function installSkill({
 
   if (conflicts.length && !force && !dryRun) {
     return {
+      ...summary,
       ok: false,
       status: 'target-exists',
-      platform: platforms.length === 1 ? platforms[0] : 'all',
-      source: jobs.map((job) => job.source),
-      target: jobs.map((job) => job.target),
-      skills: jobs.flatMap((job) => job.platform === 'codex' ? job.entries.map((entry) => entry.name) : []),
-      commands: jobs.flatMap((job) => job.platform === 'claude' ? job.entries.map((entry) => entry.name) : []),
       conflicts,
       message: `Target jj asset already exists: ${conflicts.join(', ')}. Re-run with --force to overwrite files.`
     };
@@ -112,23 +137,44 @@ export function installSkill({
   }
 
   const action = dryRun ? 'Would install' : conflicts.length ? 'Updated' : 'Installed';
-  const skills = jobs.flatMap((job) => job.platform === 'codex' ? job.entries.map((entry) => entry.name) : []);
-  const commands = jobs.flatMap((job) => job.platform === 'claude' ? job.entries.map((entry) => entry.name) : []);
   const details = jobs.map((job) => {
     const names = job.entries.map((entry) => entry.targetName).join(', ');
     return `${job.label} at ${job.target}: ${names}`;
   }).join('; ');
 
   return {
+    ...summary,
     ok: true,
     status: dryRun ? 'dry-run' : conflicts.length ? 'updated' : 'installed',
-    platform: platforms.length === 1 ? platforms[0] : 'all',
-    source: jobs.length === 1 ? jobs[0].source : jobs.map((job) => job.source),
-    target: jobs.length === 1 ? jobs[0].target : jobs.map((job) => job.target),
-    skills,
-    commands,
     conflicts,
     message: `${action} jj assets: ${details}`
+  };
+}
+
+function inferCodexAgentsTarget(skillTarget) {
+  return path.join(path.dirname(skillTarget), 'agents');
+}
+
+function summarizeInstallJobs(jobs, platforms) {
+  const primaryJobs = jobs.filter((job) => job.asset !== 'agents');
+  const agentJob = jobs.find((job) => job.asset === 'agents');
+  return {
+    platform: platforms.length === 1 ? platforms[0] : 'all',
+    source: primaryJobs.length === 1 ? primaryJobs[0].source : primaryJobs.map((job) => job.source),
+    target: primaryJobs.length === 1 ? primaryJobs[0].target : primaryJobs.map((job) => job.target),
+    agent_source: agentJob?.source || null,
+    agent_target: agentJob?.target || null,
+    asset_sources: jobs.map((job) => job.source),
+    asset_targets: jobs.map((job) => job.target),
+    skills: jobs
+      .filter((job) => job.asset === 'skills')
+      .flatMap((job) => job.entries.map((entry) => entry.name)),
+    agents: jobs
+      .filter((job) => job.asset === 'agents')
+      .flatMap((job) => job.entries.map((entry) => entry.name)),
+    commands: jobs
+      .filter((job) => job.asset === 'commands')
+      .flatMap((job) => job.entries.map((entry) => entry.name))
   };
 }
 
@@ -160,6 +206,20 @@ function collectCodexSkillSources(sourceDir) {
       source: path.join(sourceDir, entry.name)
     }))
     .filter((entry) => fs.existsSync(path.join(entry.source, 'SKILL.md')))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function collectCodexAgentSources(sourceDir) {
+  if (!fs.existsSync(sourceDir)) return [];
+
+  return fs.readdirSync(sourceDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.toml'))
+    .map((entry) => ({
+      kind: 'file',
+      name: path.basename(entry.name, '.toml'),
+      targetName: entry.name,
+      source: path.join(sourceDir, entry.name)
+    }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 

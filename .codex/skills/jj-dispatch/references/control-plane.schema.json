@@ -1,0 +1,546 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/jj-flow-control-plane.json",
+  "title": "jj-flow project family control plane",
+  "type": "object",
+  "required": ["schema_version", "revision", "control_project", "projects", "deliveries"],
+  "properties": {
+    "schema_version": { "const": "jj-flow/control-plane/1.0" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "control_project": { "$ref": "#/$defs/project" },
+    "projects": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/project" } },
+    "deliveries": { "type": "array", "items": { "$ref": "#/$defs/delivery" } },
+    "events": { "type": "array", "items": { "type": "object" } }
+  },
+  "$defs": {
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "path"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[^/]+$" },
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "codex_project_id": { "type": ["string", "null"] },
+        "status": { "enum": ["active", "paused", "retired"] },
+        "role": { "const": "control" }
+      },
+      "additionalProperties": true
+    },
+    "target": {
+      "type": "object",
+      "required": ["project_id", "responsibilities", "status"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "responsibilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/responsibility" }
+        },
+        "status": { "enum": ["PENDING", "DISPATCHING", "RUNNING", "VERIFIED", "NO_CHANGE_REQUIRED", "FAILED", "BLOCKED"] },
+        "last_result": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/target_result" }] },
+        "checkpoint": {
+          "type": ["object", "null"],
+          "properties": {
+            "source_head": { "type": "string", "minLength": 1 },
+            "source_branch": { "type": ["string", "null"] },
+            "target_head": { "type": ["string", "null"] },
+            "target_branch": { "type": ["string", "null"] },
+            "commit": { "type": ["string", "null"], "minLength": 7 },
+            "evidence_ref": { "type": "string", "minLength": 1 },
+            "snapshot_ref": { "type": ["string", "null"] },
+            "snapshot_hash": { "type": ["string", "null"] },
+            "handoff_ref": { "type": ["string", "null"] },
+            "freshness": { "type": ["string", "null"] },
+            "difference_ref": { "type": ["string", "null"] },
+            "reviewed_commit": { "type": ["string", "null"], "minLength": 7 },
+            "recorded_at": { "type": "string", "format": "date-time" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "enum": ["VERIFIED", "NO_CHANGE_REQUIRED"] } }, "required": ["status"] },
+          "then": { "required": ["checkpoint", "last_result"] }
+        },
+        {
+          "if": { "properties": { "status": { "const": "VERIFIED" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "last_result": {
+                "type": "object",
+                "required": ["status", "evidence_ref", "commit", "reviewed_commit", "source_head", "target_head", "recorded_at", "unresolved"],
+                "properties": {
+                  "status": { "const": "VERIFIED" },
+                  "commit": { "type": "string", "minLength": 7 },
+                  "reviewed_commit": { "type": "string", "minLength": 7 },
+                  "unresolved": { "type": "array" }
+                }
+              },
+              "checkpoint": {
+                "type": "object",
+                "required": ["source_head", "evidence_ref", "recorded_at", "commit", "reviewed_commit"],
+                "properties": {
+                  "commit": { "type": "string", "minLength": 7 },
+                  "reviewed_commit": { "type": "string", "minLength": 7 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "NO_CHANGE_REQUIRED" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "last_result": {
+                "type": "object",
+                "required": ["status", "evidence_ref", "analysis_ref", "commit", "reviewed_commit", "difference_ref", "source_head", "target_head", "recorded_at", "unresolved"],
+                "properties": {
+                  "status": { "const": "NO_CHANGE_REQUIRED" },
+                  "analysis_ref": { "type": "string", "pattern": "^ANL-TARGET(?:-|:|$)" },
+                  "commit": { "type": "null" },
+                  "reviewed_commit": { "type": "null" },
+                  "difference_ref": { "type": "string", "minLength": 1 },
+                  "target_head": { "type": "string", "minLength": 1 },
+                  "unresolved": { "type": "array", "maxItems": 0 }
+                }
+              },
+              "checkpoint": {
+                "type": "object",
+                "required": ["source_head", "evidence_ref", "recorded_at", "commit", "reviewed_commit", "difference_ref", "target_head"],
+                "properties": {
+                  "commit": { "type": "null" },
+                  "reviewed_commit": { "type": "null" }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "responsibility": {
+      "type": "object",
+      "required": ["name", "access", "phase", "status", "attempt", "depends_on"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[^/]+$" },
+        "access": { "enum": ["read", "write"] },
+        "phase": { "enum": ["planning", "development", "verification", "review"] },
+        "status": { "enum": ["PENDING", "RUNNING", "COMPLETED", "BLOCKED", "SKIPPED", "NOT_APPLICABLE"] },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "thread_id": { "type": ["string", "null"] },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "skip_reason": { "type": ["string", "null"] },
+        "skip_evidence_ref": { "type": ["string", "null"] },
+        "skipped_at": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "enum": ["SKIPPED", "NOT_APPLICABLE"] } }, "required": ["status"] },
+          "then": {
+            "required": ["skip_reason", "skip_evidence_ref"],
+            "properties": {
+              "skip_reason": { "type": "string", "minLength": 1 },
+              "skip_evidence_ref": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "reference": {
+      "type": "object",
+      "required": ["project_id", "commit", "snapshot_ref", "snapshot_hash", "verified_at", "verification_ref"],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 7 },
+        "snapshot_ref": { "type": "string", "minLength": 1 },
+        "snapshot_hash": { "type": "string", "minLength": 1 },
+        "source_head": { "type": ["string", "null"] },
+        "handoff_ref": { "type": ["string", "null"] },
+        "freshness": { "type": ["string", "null"] },
+        "verified_at": { "type": "string", "format": "date-time" },
+        "verification_ref": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "target_result": {
+      "type": "object",
+      "required": ["status", "evidence_ref", "recorded_at"],
+      "properties": {
+        "status": { "enum": ["VERIFIED", "NO_CHANGE_REQUIRED", "FAILED", "BLOCKED"] },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "analysis_ref": { "type": ["string", "null"] },
+        "commit": { "type": ["string", "null"] },
+        "reviewed_commit": { "type": ["string", "null"] },
+        "source_head": { "type": ["string", "null"] },
+        "target_head": { "type": ["string", "null"] },
+        "difference_ref": { "type": ["string", "null"] },
+        "unresolved": { "type": ["array", "null"], "items": {} },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "intent": {
+      "type": "object",
+      "required": ["task_key", "delivery_id", "project_id", "responsibility", "access", "phase", "attempt", "depends_on", "status", "created_at"],
+      "properties": {
+        "task_key": { "type": "string", "pattern": "^[^/]+/[^/]+/[^/]+/[1-9][0-9]*$" },
+        "delivery_id": { "type": "string", "minLength": 1 },
+        "project_id": { "type": "string", "minLength": 1 },
+        "responsibility": { "type": "string", "minLength": 1 },
+        "access": { "enum": ["read", "write"] },
+        "phase": { "enum": ["planning", "development", "verification", "review"] },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["PENDING_THREAD", "BOUND", "UNKNOWN", "COMPLETED", "BLOCKED", "SKIPPED"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "thread_id": { "type": ["string", "null"] },
+        "host_id": { "type": ["string", "null"] },
+        "agent_name": { "type": ["string", "null"] },
+        "sandbox_mode": { "enum": ["read-only", "workspace-write"] },
+        "effective_sandbox_mode": { "enum": ["read-only", "workspace-write", null] },
+        "sandbox_evidence_ref": { "type": ["string", "null"] },
+        "environment": { "type": ["string", "null"] },
+        "worktree": { "type": ["string", "null"] },
+        "bound_at": { "type": ["string", "null"], "format": "date-time" },
+        "result": {
+          "type": ["object", "null"],
+          "properties": {
+            "status": { "enum": ["COMPLETED", "BLOCKED", "SKIPPED"] },
+            "reason": { "type": ["string", "null"] },
+            "evidence_ref": { "type": ["string", "null"] },
+            "commit": { "type": ["string", "null"] },
+            "produced_commit": { "type": ["string", "null"], "minLength": 7 },
+            "consumed_commit": { "type": ["string", "null"], "minLength": 7 },
+            "recorded_at": { "type": "string", "format": "date-time" },
+            "review": {
+              "type": ["object", "null"],
+              "properties": {
+                "review_id": { "type": "string", "minLength": 1 },
+                "outcome": { "enum": ["PASS", "NEEDS_CHANGES"] },
+                "findings": { "type": "array", "items": { "$ref": "#/$defs/review_finding" } },
+                "reviewed_commit": { "type": "string", "minLength": 7 },
+                "evidence_ref": { "type": "string", "minLength": 1 },
+                "recorded_at": { "type": "string", "format": "date-time" },
+                "resolved_finding_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+              },
+              "allOf": [
+                {
+                  "if": { "properties": { "outcome": { "const": "PASS" } }, "required": ["outcome"] },
+                  "then": {
+                    "properties": {
+                      "findings": {
+                        "items": {
+                          "allOf": [
+                            { "$ref": "#/$defs/review_finding" },
+                            { "properties": { "status": { "enum": ["RESOLVED", "WAIVED"] } } }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": { "properties": { "outcome": { "const": "NEEDS_CHANGES" } }, "required": ["outcome"] },
+                  "then": {
+                    "properties": {
+                      "findings": { "contains": { "properties": { "status": { "const": "OPEN" } }, "required": ["status"] }, "minContains": 1 }
+                    }
+                  }
+                }
+              ],
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "COMPLETED" } }, "required": ["status"] },
+          "then": {
+            "required": ["result"],
+            "properties": { "result": { "type": "object", "required": ["status", "evidence_ref", "recorded_at"] } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "COMPLETED" }, "access": { "const": "write" } },
+            "required": ["status", "access"]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "type": "object",
+                "required": ["produced_commit"],
+                "properties": {
+                  "produced_commit": { "type": "string", "minLength": 7 },
+                  "consumed_commit": { "type": "null" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "COMPLETED" },
+              "access": { "const": "read" },
+              "phase": { "enum": ["verification", "review"] }
+            },
+            "required": ["status", "access", "phase"]
+          },
+          "then": {
+            "properties": {
+              "result": {
+                "type": "object",
+                "required": ["consumed_commit"],
+                "properties": {
+                  "produced_commit": { "type": "null" },
+                  "consumed_commit": { "type": "string", "minLength": 7 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "COMPLETED" }, "phase": { "const": "review" } },
+            "required": ["status", "phase"]
+          },
+          "then": { "properties": { "result": { "type": "object", "required": ["review"] } } }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["BOUND", "COMPLETED"] } },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["thread_id", "host_id", "bound_at", "effective_sandbox_mode", "sandbox_evidence_ref"],
+            "properties": {
+              "thread_id": { "type": "string", "minLength": 1 },
+              "host_id": { "type": "string", "minLength": 1 },
+              "bound_at": { "type": "string", "format": "date-time" },
+              "effective_sandbox_mode": { "enum": ["read-only", "workspace-write"] },
+              "sandbox_evidence_ref": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["BOUND", "COMPLETED"] }, "access": { "const": "write" } },
+            "required": ["status", "access"]
+          },
+          "then": { "required": ["worktree"], "properties": { "worktree": { "type": "string", "minLength": 1 } } }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["BOUND", "COMPLETED"] }, "access": { "const": "read" } },
+            "required": ["status", "access"]
+          },
+          "then": { "properties": { "worktree": { "type": "null" } } }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["BOUND", "COMPLETED"] }, "access": { "const": "read" } },
+            "required": ["status", "access"]
+          },
+          "then": {
+            "required": ["agent_name", "sandbox_mode", "environment"],
+            "properties": {
+              "agent_name": { "const": "jj-workflow-reviewer" },
+              "sandbox_mode": { "const": "read-only" },
+              "effective_sandbox_mode": { "const": "read-only" },
+              "environment": { "const": "project-read" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "enum": ["BOUND", "COMPLETED"] }, "access": { "const": "write" } },
+            "required": ["status", "access"]
+          },
+          "then": {
+            "required": ["agent_name", "sandbox_mode", "environment"],
+            "properties": {
+              "agent_name": { "const": "jj-workflow-developer" },
+              "sandbox_mode": { "const": "workspace-write" },
+              "effective_sandbox_mode": { "const": "workspace-write" },
+              "environment": { "const": "exclusive-worktree" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "COMPLETED" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "result": {
+                "type": "object",
+                "properties": { "status": { "const": "COMPLETED" }, "evidence_ref": { "type": "string", "minLength": 1 } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "SKIPPED" } }, "required": ["status"] },
+          "then": {
+            "required": ["result", "thread_id", "host_id", "worktree", "bound_at", "effective_sandbox_mode", "sandbox_evidence_ref"],
+            "properties": {
+              "thread_id": { "type": "null" },
+              "host_id": { "type": "null" },
+              "worktree": { "type": "null" },
+              "bound_at": { "type": "null" },
+              "effective_sandbox_mode": { "type": "null" },
+              "sandbox_evidence_ref": { "type": "null" },
+              "result": {
+                "type": "object",
+                "required": ["status", "reason", "evidence_ref", "recorded_at"],
+                "properties": {
+                  "status": { "const": "SKIPPED" },
+                  "reason": { "type": "string", "minLength": 1 },
+                  "evidence_ref": { "type": "string", "minLength": 1 },
+                  "recorded_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "approval_task": {
+      "type": "object",
+      "required": ["task_key", "project_id", "responsibility", "access", "phase", "attempt", "depends_on"],
+      "properties": {
+        "task_key": { "type": "string", "minLength": 1 },
+        "project_id": { "type": "string", "minLength": 1 },
+        "responsibility": { "type": "string", "minLength": 1 },
+        "access": { "enum": ["read", "write"] },
+        "phase": { "enum": ["planning", "development", "verification", "review"] },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "attempt": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "review_finding": {
+      "type": "object",
+      "required": ["id", "severity", "file", "line", "description", "status", "acceptance"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+        "file": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["OPEN", "RESOLVED", "WAIVED"] },
+        "acceptance": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "review": {
+      "type": "object",
+      "required": ["review_id", "task_key", "outcome", "findings", "reviewed_commit", "evidence_ref", "recorded_at"],
+      "properties": {
+        "review_id": { "type": "string", "minLength": 1 },
+        "task_key": { "type": "string", "minLength": 1 },
+        "outcome": { "enum": ["PASS", "NEEDS_CHANGES"] },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/review_finding" } },
+        "reviewed_commit": { "type": "string", "minLength": 7 },
+        "evidence_ref": { "type": "string", "minLength": 1 },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "previous_review_id": { "type": ["string", "null"] },
+        "resolved_finding_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "rework_of": { "type": "string" },
+        "rework_task_key": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "outcome": { "const": "PASS" } }, "required": ["outcome"] },
+          "then": {
+            "properties": {
+              "findings": {
+                "items": {
+                  "allOf": [
+                    { "$ref": "#/$defs/review_finding" },
+                    { "properties": { "status": { "enum": ["RESOLVED", "WAIVED"] } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "outcome": { "const": "NEEDS_CHANGES" } }, "required": ["outcome"] },
+          "then": {
+            "properties": {
+              "findings": { "contains": { "properties": { "status": { "const": "OPEN" } }, "required": ["status"] }, "minContains": 1 }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "delivery": {
+      "type": "object",
+      "required": ["delivery_id", "origin_project", "requirement_owner", "lead_project", "lead_responsibilities", "reference_implementation", "targets", "status", "dispatch_intents"],
+      "properties": {
+        "delivery_id": { "type": "string", "pattern": "^[^/]+$" },
+        "title": { "type": "string" },
+        "request_ref": { "type": ["string", "null"] },
+        "origin_project": { "type": "string", "minLength": 1 },
+        "requirement_owner": { "type": "string", "minLength": 1 },
+        "lead_project": { "type": "string", "minLength": 1 },
+        "lead_responsibilities": { "type": "array", "minItems": 0, "items": { "$ref": "#/$defs/responsibility" } },
+        "reference_implementation": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/reference" }] },
+        "targets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/target" } },
+        "status": { "enum": ["DRAFT", "PREVIEW_ONLY", "APPROVED", "DISPATCHING", "RUNNING", "EVIDENCE_READY", "VERIFIED", "BLOCKED", "UNKNOWN"] },
+        "approval": {
+          "type": "object",
+          "required": ["status", "task_keys"],
+          "properties": {
+            "status": { "enum": ["PENDING", "APPROVED"] },
+            "decision_ref": { "type": ["string", "null"] },
+            "approved_at": { "type": ["string", "null"], "format": "date-time" },
+            "task_keys": { "type": "array", "items": { "type": "string" } },
+            "tasks": { "type": "array", "items": { "$ref": "#/$defs/approval_task" } }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": { "properties": { "status": { "const": "APPROVED" } }, "required": ["status"] },
+              "then": {
+                "required": ["decision_ref", "approved_at"],
+                "properties": {
+                  "decision_ref": { "type": "string", "minLength": 1 },
+                  "approved_at": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          ]
+        },
+        "dispatch_intents": { "type": "array", "items": { "$ref": "#/$defs/intent" } },
+        "reviews": { "type": "array", "items": { "$ref": "#/$defs/review" } },
+        "decisions": { "type": "array", "items": { "type": "object" } },
+        "artifacts": { "type": "array", "items": { "type": "object" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "VERIFIED" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "targets": {
+                "items": {
+                  "allOf": [
+                    { "$ref": "#/$defs/target" },
+                    { "properties": { "status": { "enum": ["VERIFIED", "NO_CHANGE_REQUIRED"] } }, "required": ["status"] }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}

@@ -231,6 +231,54 @@ $jj-knowhow 总结这三个 Codex 线程的完整交付流程，沉淀成后续 
 - 区分一次性事实和可复用规则。
 - 可沉淀为 knowhow、spec 或工作流模板。
 
+## `$jj-dispatch`
+
+### 什么时候用
+
+多个同源项目需要由一个主任务统一拆解、派发和监控，而且需求可能先出现在 B 或 C、领头项目也会变化时，在独立控制项目中使用。首版只支持 Codex `$jj-dispatch`，不提供 Claude `/jj-dispatch`。
+
+### 你需要给什么
+
+- `需求引用`：需求文档、Codex thread 或正式 artifact 的引用，不复制正文。
+- `origin_project`：需求或 bug 最先出现的项目。
+- `requirement_owner`：持有正式 `ANL-SOURCE / BLP/REQ / Handoff Snapshot` 的项目。
+- `lead_project`：本轮首先实施的项目。
+- `lead_responsibilities`：当 lead 不在 `targets` 中时要先派发的责任，默认是 development 写任务。
+- `targets`：本轮明确授权的项目；每个项目用 `responsibilities` 列出 development、product、test、review 等责任。同一项目允许多个写责任，但必须通过 `depends_on` 形成单一串行链；运行时同一项目最多一个 active write，其余责任通常为只读。
+- `批准`：只有用户明确批准预览中的任务集合后才能派发。
+
+`reference_implementation` 初始可以是 `null`。只有 lead 或已授权目标有稳定 commit、snapshot 和 PASS 验证证据后才能设置，不要求等于 origin。
+
+### 使用方案
+
+先预览：
+
+```text
+$jj-dispatch PREVIEW 需求=支付状态优化 origin=B requirement_owner=B lead=C targets=A,B
+```
+
+确认任务清单后派发：
+
+```text
+$jj-dispatch DISPATCH 批准上面的任务集合
+```
+
+恢复创建成功但未绑定的任务：
+
+```text
+$jj-dispatch RECONCILE task_key=DEL-001/A/development/1
+```
+
+### 你会得到什么
+
+- `PREVIEW`：动态角色、目标、依赖、稳定 `task_key` 和阻塞项，不创建 Codex task。
+- `DISPATCH`：批准记录冻结完整 task key 清单；任务集合变化后必须重新预览和批准。派发时先持久化 `dispatch_intent`，再在目标 project 中创建独占 worktree task；重复 key 不创建第二个任务。
+- `RECONCILE`：只有唯一候选 thread 才恢复绑定，否则保持 `BLOCKED`。
+- `BIND_THREAD`：人工把已知 thread 与 task key 绑定。
+- 状态汇总：只消费 commit、snapshot、测试和 Review 等结构化证据；thread 停止或文字回复“完成”不推进检查点。
+
+实际需求交付、bug 修复和同源迁移仍分别委派给 `$jj-delivery`、`$jj-fix` 和 `$jj-same`。首版不自动 merge、push 或 release。
+
 ## `$jj-same`
 
 ### 什么时候用
@@ -304,7 +352,7 @@ Claude Code 中使用：
 
 ### 你会得到什么
 
-- 从当前领头项目的分析阶段建立家族交付计划，而不是等源项目结束后才开始同步。
+- 从当前分析阶段建立家族交付计划；存在 `$jj-dispatch` 控制项目时由 control manifest 持有跨项目状态，没有控制项目时由领头项目持有协调 `PLN`。
 - 承接领头时默认按 `cj -> dj -> cz` 推荐下一目标；用户当前明确指定目标并要求迁移/实施时，以该目标 `EXECUTION_READY` 为准，不等待其它 sibling 完成。
 - 领头分支由用户创建；后续项目从各自本地 `master` 建分支，只替换角色前缀并保留日期与任务序号，例如 `feat/cj-0717-1 -> feat/dj-0717-1`。
 - 家族计划持续记录项目状态、分支映射、artifact refs、验证证据、差异和交接门禁，但每个目标仍重新生成自己的目标分析与实施计划。
@@ -359,15 +407,15 @@ $jj-auto 帮我判断这件事应该走交付、修复、审查还是沉淀
 
 ### 什么时候用
 
-把 npm 包里的 `.codex/skills` 或 `.claude/commands` 安装到本机，让 Codex 能识别 `$jj-delivery`、Claude Code 能识别 `/jj-delivery`。这是安装命令，不是对话里的交付命令。
+把 npm 包里的 `.codex/skills`、`.codex/agents` 或 `.claude/commands` 安装到本机。Codex skills 与 agent profiles 作为一组安装，让 Codex 能识别 `$jj-delivery`、`$jj-dispatch` 并加载受控 Reviewer/Developer；Claude Code 能识别 `/jj-delivery`。这是安装命令，不是对话里的交付命令。`$jj-dispatch` 没有对应的 Claude command。
 
 ### 参数
 
-- `--platform codex|claude|all`：安装 Codex skills、Claude commands 或两者。默认是 `codex`。
-- `--project`：安装到当前项目的 `./.codex/skills` 或 `./.claude/commands`。
-- `--target <dir>`：安装到指定根目录；不能和 `--platform all` 一起使用。
-- `--force`：目标资产已存在时覆盖文件。
-- `--dry-run`：只显示将要安装的位置，不写文件。
+- `--platform codex|claude|all`：安装 Codex skills + agents、Claude commands 或全部资产。默认是 `codex`。
+- `--project`：安装到当前项目的 `./.codex/skills`、`./.codex/agents` 或 `./.claude/commands`。
+- `--target <dir>`：自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 `agents` 目录。不能和 `--platform all` 一起使用。
+- `--force`：任一 Codex skill/agent 冲突时覆盖整组安装文件。
+- `--dry-run`：显示所有目标和冲突，不写文件。
 - `--json`：输出结构化结果，便于脚本检查。
 
 ### 使用方案
@@ -405,10 +453,11 @@ npx @shendu-sdt/jj-flow@beta install-skill --dry-run
 ### 你会得到什么
 
 - 安装成功时，`~/.codex/skills/jj-delivery/SKILL.md`、`~/.codex/skills/jj-fix/SKILL.md` 等文件存在。
+- 安装 Codex 时，`~/.codex/agents/jj-workflow-reviewer.toml` 与 `jj-workflow-developer.toml` 同时存在。
 - 安装 Claude Code 时，`~/.claude/commands/jj-delivery.md`、`~/.claude/commands/jj-fix.md` 等文件存在。
 - 首次安装或 `--force` 更新成功后，输出当前版本对应的最新版本日志；`--dry-run` 和失败结果不输出。
 - 目标资产已存在且未传 `--force` 时，命令失败并提示如何覆盖。
-- `--json` 输出包含 `ok`、`status`、`source`、`target` 和 `message`；安装或更新成功时还包含 `version` 和 `release_notes`。
+- `--json` 输出包含 `ok`、`status`、`source`、`target`、`message`；Codex 还包含 `agents`、`agent_source`、`agent_target`，安装或更新成功时还包含 `version` 和 `release_notes`。
 
 ## 选择建议
 
@@ -420,4 +469,5 @@ npx @shendu-sdt/jj-flow@beta install-skill --dry-run
 - 交付前把关：用 `$jj-review`。
 - 总结和沉淀：用 `$jj-knowhow`。
 - 同源分叉项目之间迁移功能、修复或需求变更：用 `$jj-same`。
+- 独立控制项目中统一预览、派发和恢复多个项目任务：用 `$jj-dispatch`。
 - 不确定分类：用 `$jj-auto`，但不要把它当长期主入口。
