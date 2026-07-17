@@ -10,7 +10,7 @@ Accepted
 
 ## 决策
 
-`$jj-*` / `/jj-*` 不 fork Maestro core。它只负责识别意图、整理证据、选择 `jj-flow` recipe，并生成 Maestro prompt 和调用链。正式命令使用 `$jj-delivery`、`/jj-delivery`、`$jj-fix`、`/jj-fix` 这类连字符缩写，`$jj` / `/jj` 只作为兼容入口。
+`$jj-*` / `/jj-*` 不 fork Maestro core。它只负责识别意图、整理证据、选择 `jj-flow` recipe，并生成 Maestro prompt 和调用链。正式命令以 `$jj-delivery` / `/jj-delivery` 为主入口，`$jj` / `/jj` 只作为兼容入口。全部流程禁止调用 `maestro explore`。
 
 ## 后果
 

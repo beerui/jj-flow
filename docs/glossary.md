@@ -13,14 +13,9 @@
 
 ## `jj-*` 缩写命令
 
-- `$jj-delivery` / `/jj-delivery`：端到端交付入口。用于需求需要跨分析、计划、实现、审查、测试和精修的场景。
+- `$jj-delivery` / `/jj-delivery`：端到端交付入口。覆盖完整交付、边界明确的功能开发、线上问题最小修复、交付前 diff/风险审查，以及类型尚不清晰的默认推进。
 - `$jj-validate` / `/jj-validate`：项目管理者自检入口。用于检查文档、规则、测试、workflow 和路线图漂移。
 - `$jj-evolve` / `/jj-evolve`：项目自身迭代入口。用于把自检结果转换成修正清单和升级计划。
-- `$jj-feat` / `/jj-feat`：feature 的缩写。用于边界明确的新功能交付。
-- `$jj-fix` / `/jj-fix`：修复入口。用于线上问题、异常、回归或错误指纹定位与修复。
-- `$jj-review` / `/jj-review`：交付前审查入口。用于检查 diff、计划、测试证据和发布风险。
-- `$jj-knowhow` / `/jj-knowhow`：知识沉淀入口。用于把真实项目经验转成可复用规则、模板或 spec。
-- `$jj-auto` / `/jj-auto`：自动分类入口。当前只作为辅助判断，不推荐作为长期主入口。
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit 或 diff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
 - `$jj-dispatch`：Codex 控制项目中的多项目调度入口。用于预览、批准、派发、恢复和汇总多个固定项目任务；首版没有对应的 Claude `/jj-dispatch`。
 - `Handoff snapshot`：源 `ANL-SOURCE` 内的不可变迁移交接清单。它引用正式 `BLP/REQ`，记录来源指纹、源 commit、coverage、未解决项和验证门禁；多个目标复用同一 snapshot，但仍分别验证目标源码并生成 `ANL-TARGET`。
@@ -50,7 +45,7 @@
 
 ## 外部工具和资料
 
-- `Maestro`：底层工作流体系，`jj-flow` 只在它前面组织交付上下文。
+- `Maestro`：底层工作流体系，`jj-flow` 只在它前面组织交付上下文。全部流程禁止调用 `maestro explore`。
 - `Codex`：运行 `$jj-*`、Maestro skill 和代码修改的对话环境。
 - `Claude Code`：运行 `/jj-*` slash command、Maestro skill 和代码修改的对话环境。
 - `PRD`：Product Requirements Document，产品需求文档。

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const MODES_TEXT = 'delivery feat fix knowhow review validate evolve';
+const MODES_TEXT = 'delivery validate evolve';
 
 const DOC_FILES = [
   'README.md',
@@ -9,6 +9,13 @@ const DOC_FILES = [
   'docs/installation.md',
   'docs/usage.md',
   'docs/commands.md',
+  'docs/commands/jj.md',
+  'docs/commands/jj-delivery.md',
+  'docs/commands/jj-same.md',
+  'docs/commands/jj-dispatch.md',
+  'docs/commands/jj-validate.md',
+  'docs/commands/jj-evolve.md',
+  'docs/commands/cli.md',
   'docs/glossary.md',
   'docs/architecture.md',
   'docs/project-plan.md',
@@ -17,14 +24,9 @@ const DOC_FILES = [
   'docs/adr/0002-project-family-control-plane.md',
   'docs/adr/0001-thin-maestro-adapter.md',
   '.codex/skills/jj/SKILL.md',
-  '.codex/skills/jj-auto/SKILL.md',
   '.codex/skills/jj-delivery/SKILL.md',
   '.codex/skills/jj-validate/SKILL.md',
   '.codex/skills/jj-evolve/SKILL.md',
-  '.codex/skills/jj-feat/SKILL.md',
-  '.codex/skills/jj-fix/SKILL.md',
-  '.codex/skills/jj-knowhow/SKILL.md',
-  '.codex/skills/jj-review/SKILL.md',
   '.codex/skills/jj-dispatch/SKILL.md',
   '.codex/skills/jj-dispatch/agents/openai.yaml',
   '.codex/agents/jj-workflow-reviewer.toml',
@@ -32,14 +34,9 @@ const DOC_FILES = [
   '.codex/skills/jj-dispatch/references/control-project.md',
   '.codex/skills/jj-dispatch/references/control-plane.schema.json',
   '.claude/commands/jj.md',
-  '.claude/commands/jj-auto.md',
   '.claude/commands/jj-delivery.md',
   '.claude/commands/jj-validate.md',
-  '.claude/commands/jj-evolve.md',
-  '.claude/commands/jj-feat.md',
-  '.claude/commands/jj-fix.md',
-  '.claude/commands/jj-knowhow.md',
-  '.claude/commands/jj-review.md'
+  '.claude/commands/jj-evolve.md'
 ];
 
 const SOURCE_FILES = [

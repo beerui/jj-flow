@@ -9,7 +9,7 @@
 ## v0.1 必须做
 
 - 独立项目，不放在文档站里。
-- 提供 Codex 内 `$jj-delivery | $jj-feat | $jj-fix | $jj-knowhow | $jj-review`，以及 Claude Code 内 `/jj-delivery | /jj-feat | /jj-fix | /jj-knowhow | /jj-review`，其中 delivery 是少参数端到端交付入口。
+- 提供 Codex 内 `$jj-delivery`，以及 Claude Code 内 `/jj-delivery`，其中 delivery 是少参数端到端交付入口，并覆盖明确功能、线上最小修复、交付前审查与不确定意图。
 - 提供 `$jj-validate` 作为项目管理者自检入口，检查状态漂移并给出下一步升级建议。
 - 提供 `$jj-evolve` 作为项目自身迭代入口，把自检结果转换成 correction backlog、升级计划和 Maestro 调用链。
 - 文档站必须包含安装方式、命令参数、使用方案和维护说明，而不只是入口菜单。

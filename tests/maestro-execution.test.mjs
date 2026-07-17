@@ -5,9 +5,9 @@ import { buildExecutionDecision } from '../src/maestroExecution.mjs';
 import { getRecipe } from '../src/recipes.mjs';
 
 test('execution decision is ready when guard and Maestro compatibility pass', () => {
-  const recipe = getRecipe('review');
+  const recipe = getRecipe('delivery');
   const decision = buildExecutionDecision({
-    mode: 'review',
+    mode: 'delivery',
     guardReport: { status: 'PASS' },
     evidence: [{ artifact_type: 'maestro_compatibility', evidence: { status: 'compatible', compatible: true } }],
     maestroCalls: recipe.maestroCalls
@@ -19,7 +19,7 @@ test('execution decision is ready when guard and Maestro compatibility pass', ()
 
 test('execution decision is disabled when evidence is pending', () => {
   const decision = buildExecutionDecision({
-    mode: 'feat',
+    mode: 'delivery',
     guardReport: { status: 'PENDING' },
     evidence: [{ artifact_type: 'maestro_compatibility', evidence: { status: 'compatible', compatible: true } }],
     maestroCalls: []
@@ -52,10 +52,13 @@ test('execution decision is blocked when Maestro is unavailable', () => {
 
 test('dispatch exposes execution decision without executing Maestro', () => {
   const dispatch = buildDispatch({
-    mode: 'review',
-    intent: '审查变更',
+    mode: 'delivery',
+    intent: '审查变更并完成交付',
     evidence: [
-      { id: 'diff', source: 'git', artifact_type: 'diff', summary: 'diff 已审查。' },
+      { id: 'ctx', source: 'manual', artifact_type: 'project_context', summary: '项目上下文已发现。' },
+      { id: 'design', source: 'manual', artifact_type: 'design_reference', summary: '设计证据已确认。' },
+      { id: 'decision', source: 'manual', artifact_type: 'decision_gate', summary: '阻塞决策已隔离。' },
+      { id: 'chain', source: 'manual', artifact_type: 'maestro_chain', summary: '调用链已形成。' },
       { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '测试通过。' },
       { id: 'maestro', source: '$jj-validate', artifact_type: 'maestro_compatibility', summary: '兼容。', evidence: { status: 'compatible', compatible: true } }
     ]

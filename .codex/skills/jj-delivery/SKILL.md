@@ -1,23 +1,25 @@
 ---
 name: jj-delivery
-description: 少参数端到端交付入口；把需求、资料、关键决策和验收整理成可执行的 Maestro/Codex 工作流。
+description: 少参数端到端交付入口；把需求、资料、关键决策和验收整理成可执行的 Maestro/Codex 工作流。覆盖完整交付、明确功能与线上问题最小修复。
 ---
 
 # jj-delivery
 
 ## 适用场景
 
-一个真实需求需要经历理解资料、拆计划、改代码、验证、审查或 UI 精修时使用。用户可以只给自然语言需求，也可以附 PRD、YApi、MasterGo、日志、截图或历史线程。
+一个真实需求需要经历理解资料、拆计划、改代码、验证、审查或 UI 精修时使用。也覆盖边界明确的小到中型功能、有真实日志/指纹的线上问题最小修复，以及交付前 diff/风险审查。用户可以只给自然语言需求，也可以附 PRD、YApi、MasterGo、ARMS/SLS、日志、截图、diff 或历史线程。
 
 ## 执行步骤
 
 1. 从用户输入还原原始目标、范围、不做范围和验收标准。
-2. 自动查找项目上下文、`.workflow` 状态、相关文档、接口、设计和现有实现。
+2. 自动查找项目上下文、`.workflow` 状态、相关文档、接口、设计和现有实现；代码定位使用 Read、Glob、Grep、Bash 或已批准的 Maestro skill，**禁止调用 `maestro explore`**。
 3. 先给出证据清单和缺口，再给计划；证据不足的结论保持 `PENDING`。若需求属于承接/兑接/承载同源项目族，从当前领头项目的分析阶段进入 `$jj-same`。若当前任务运行在独立控制项目并已由 `$jj-dispatch` 派发，只处理该 task key 授权的项目和责任，把结构化 commit、snapshot、验证与 Review 证据返回控制项目。
-4. 按需要调用 Maestro/Codex skills：分析、计划、执行、验证、审查、测试和知识沉淀。
+4. 按需要调用 Maestro/Codex skills：分析、计划、执行、验证、审查、测试和知识沉淀。线上异常时可用 `$arms-fix` 等证据工具；**全流程不得使用 `maestro explore`**。
 5. 完成后报告修改内容、验证命令、未验证风险和需要用户确认的事项。
 6. 实际修改代码且源项目验证通过后，由 `$jj-same` 更新家族交付计划并做 post-change discovery；后续项目只在前置门禁通过且用户在新会话主动触发后进入。
 
 ## 边界
 
-不要通过 shell 执行 `jj-delivery`。`jj-flow` 的价值是给 Codex/Claude Code 提供原生工作流入口，CLI 只负责安装和维护调试。
+- 不要通过 shell 执行 `jj-delivery`。`jj-flow` 的价值是给 Codex/Claude Code 提供原生工作流入口，CLI 只负责安装和维护调试。
+- 已移除 `$jj-feat` / `$jj-fix` / `$jj-review`；功能开发、问题修复与交付前审查统一走本入口。
+- 全部流程禁止 `maestro explore`。

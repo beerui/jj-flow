@@ -10,6 +10,7 @@
     "control_project": { "$ref": "#/$defs/project" },
     "projects": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/project" } },
     "deliveries": { "type": "array", "items": { "$ref": "#/$defs/delivery" } },
+    "runtime": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/runtime" }] },
     "events": { "type": "array", "items": { "type": "object" } }
   },
   "$defs": {
@@ -38,6 +39,7 @@
         },
         "status": { "enum": ["PENDING", "DISPATCHING", "RUNNING", "VERIFIED", "NO_CHANGE_REQUIRED", "FAILED", "BLOCKED"] },
         "last_result": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/target_result" }] },
+        "analysis": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/target_analysis" }] },
         "checkpoint": {
           "type": ["object", "null"],
           "properties": {
@@ -118,6 +120,30 @@
         }
       ],
       "additionalProperties": true
+    },
+    "target_analysis": {
+      "type": "object",
+      "required": ["analysis_ref", "difference_ref", "knowledge_refs", "decision", "decision_status", "evidence_ref"],
+      "properties": {
+        "analysis_ref": { "type": "string", "pattern": "^ANL-TARGET(?:-|:|$)" },
+        "difference_ref": { "type": "string", "minLength": 1 },
+        "knowledge_refs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "decision": { "enum": ["DIRECT", "ADAPT", "SYNC", "NO_CHANGE_REQUIRED", "BLOCKED"] },
+        "decision_status": { "enum": ["PENDING", "APPROVED"] },
+        "evidence_ref": { "type": "string", "pattern": "^ANL-TARGET(?:-|:|$)" }
+      },
+      "additionalProperties": true
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "run_id": { "type": ["string", "null"] },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" },
+        "resume_cursor": { "type": ["string", "null"] },
+        "last_tick_revision": { "type": ["integer", "null"], "minimum": 0 },
+        "processed_receipt_ids": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
     },
     "responsibility": {
       "type": "object",

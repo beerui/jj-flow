@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1-beta.12
+
+- 移除 `jj-feat` / `jj-fix` / `jj-knowhow` / `jj-auto` / `jj-review` 原生命令与 recipe；明确功能、线上修复、交付前审查与不确定意图统一走 `jj-delivery`。
+- 知识沉淀与独立 review 入口不再提供；审查走 delivery 内 `$quality-review`，沉淀可按需调用 `$manage-knowhow-capture`。
+- 全部流程禁止调用 `maestro explore`；代码定位改用定点读取与搜索工具。
+- 同步更新 Codex skills、Claude commands、文档、安装校验与回归测试。
+
 ## 0.1.1-beta.11
 
 - 新增独立项目族控制平面，支持动态 `origin_project`、`requirement_owner`、`lead_project` 和多个目标项目的可恢复派发。

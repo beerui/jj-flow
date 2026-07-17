@@ -4,10 +4,10 @@
 
 安装完成后：
 
-- Codex 识别 `$jj-delivery`、`$jj-fix`、`$jj-review` 等 skills。
+- Codex 识别 `$jj-delivery`、`$jj-validate`、`$jj-evolve` 等 skills。
 - Codex 识别 `$jj-same`，用于同源项目间迁移功能、修复和需求变更。
 - Codex 识别 `$jj-dispatch`，用于独立控制项目中的多项目任务调度。
-- Claude Code 识别 `/jj-delivery`、`/jj-fix`、`/jj-review` 等 slash commands。
+- Claude Code 识别 `/jj-delivery`、`/jj-validate`、`/jj-evolve` 等 slash commands。
 - Claude Code 识别 `/jj-same`。
 
 `$jj-dispatch` 首版只提供 Codex skill，不安装对应的 Claude `/jj-dispatch`。它需要 Codex App host 提供 project、thread 和 worktree capability；缺少能力时只输出预览或阻塞状态。

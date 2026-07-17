@@ -33,9 +33,11 @@ export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence 
 function inferCaptureTargets(mode, evidence) {
   const targets = new Set();
 
-  if (['delivery', 'feat', 'fix'].includes(mode)) targets.add('knowhow');
-  if (['delivery', 'feat', 'review'].includes(mode)) targets.add('spec');
-  if (['delivery', 'knowhow', 'evolve'].includes(mode)) targets.add('workflow_recipe');
+  if (['delivery'].includes(mode)) {
+    targets.add('knowhow');
+    targets.add('spec');
+  }
+  if (['delivery', 'evolve'].includes(mode)) targets.add('workflow_recipe');
   if (evidence.some((item) => item.artifact_type === 'problem_solution')) targets.add('knowhow');
   if (evidence.some((item) => item.artifact_type === 'recipe_registry')) targets.add('workflow_recipe');
 

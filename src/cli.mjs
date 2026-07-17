@@ -10,12 +10,17 @@ import {
 import { buildProjectEvolutionEvidence } from './projectEvolution.mjs';
 import { buildProjectValidationEvidence } from './projectValidation.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
+import { tickDispatch } from './dispatchRuntime.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
 
   if (args[0] === 'install-skill') {
     return runInstallSkill(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'dispatch-tick') {
+    return runDispatchTick(args.slice(1), { cwd, stdout });
   }
 
   if (args.includes('--help') || args.includes('-h')) {
@@ -121,6 +126,67 @@ function runInstallSkill(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   return result.ok ? 0 : 1;
 }
 
+function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  const options = parseDispatchTickArgs(rawArgs, cwd);
+  const plane = JSON.parse(fs.readFileSync(options.manifest, 'utf8'));
+  const receipts = options.receipts.flatMap((file) => {
+    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return Array.isArray(value) ? value : [value];
+  });
+  const result = tickDispatch(plane, {
+    deliveryId: options.deliveryId,
+    expectedRevision: options.expectedRevision === null ? plane.revision : options.expectedRevision,
+    receipts,
+    capabilities: options.capabilities,
+    enforceTargetAnalysis: options.enforceTargetAnalysis
+  });
+  if (options.write && result.ok && result.plane.revision !== plane.revision) {
+    const current = JSON.parse(fs.readFileSync(options.manifest, 'utf8'));
+    if (current.revision !== plane.revision) {
+      throw new Error(`manifest revision changed during tick: expected ${plane.revision}, got ${current.revision}`);
+    }
+    const temp = `${options.manifest}.tmp-${process.pid}`;
+    fs.writeFileSync(temp, `${JSON.stringify(result.plane, null, 2)}\n`, 'utf8');
+    fs.renameSync(temp, options.manifest);
+    result.persisted = true;
+  } else {
+    result.persisted = false;
+  }
+  if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(`${result.status}${result.persisted ? '（已写回）' : '（预览）'}\n`);
+  return result.ok ? 0 : 1;
+}
+
+function parseDispatchTickArgs(rawArgs, cwd) {
+  const rest = [...rawArgs];
+  const options = {
+    manifest: null,
+    deliveryId: null,
+    expectedRevision: null,
+    receipts: [],
+    capabilities: [],
+    enforceTargetAnalysis: true,
+    write: false,
+    json: false
+  };
+  while (rest.length) {
+    const arg = rest.shift();
+    if (arg === '--manifest') options.manifest = rest.shift();
+    else if (arg === '--delivery') options.deliveryId = rest.shift();
+    else if (arg === '--expected-revision') options.expectedRevision = Number(rest.shift());
+    else if (arg === '--receipt') options.receipts.push(rest.shift());
+    else if (arg === '--capabilities') options.capabilities = (rest.shift() || '').split(',').filter(Boolean);
+    else if (arg === '--no-target-analysis') options.enforceTargetAnalysis = false;
+    else if (arg === '--write') options.write = true;
+    else if (arg === '--json') options.json = true;
+    else throw new Error(`Unknown dispatch-tick option: ${arg}`);
+  }
+  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path');
+  if (!options.deliveryId) throw new Error('--delivery requires a delivery_id');
+  options.manifest = fs.realpathSync(options.manifest);
+  return options;
+}
+
 function parseInstallArgs(rawArgs, cwd = process.cwd()) {
   const rest = [...rawArgs];
   const options = {
@@ -181,7 +247,7 @@ function parseInstallArgs(rawArgs, cwd = process.cwd()) {
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口在 Codex 里是 $jj-delivery，在 Claude Code 里是 /jj-delivery。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口在 Codex 里是 $jj-delivery，在 Claude Code 里是 /jj-delivery。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
 }
 
 function printInstallHelp(stdout) {

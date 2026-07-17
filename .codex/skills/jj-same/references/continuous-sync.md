@@ -126,7 +126,7 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
 
 ## 修改完成决策门禁
 
-`jj-delivery`、`jj-feat`、`jj-fix` 或普通开发任务完成源码修改和源项目验证后，先进入 post-change discovery，不直接修改任何目标项目。
+`jj-delivery` 或普通开发任务完成源码修改和源项目验证后，先进入 post-change discovery，不直接修改任何目标项目。
 
 ### 1. 确认源项目和分支
 

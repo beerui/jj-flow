@@ -5,4 +5,6 @@
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目独占 worktree 中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。
 - 同一项目的多个 writer 必须形成单一依赖链，运行时最多一个 active writer；交付必须由 terminal writer 的当前 commit 通过 Review。
+- 全部流程禁止调用 `maestro explore`；代码与资料定位使用 Read、Glob、Grep、Bash、`rg` 或已批准的 Maestro skill。
+- 已移除 `jj-feat` / `jj-fix` / `jj-knowhow` / `jj-auto` / `jj-review`；功能开发、线上修复、交付前审查与不确定意图统一走 `jj-delivery`；知识沉淀在交付结束后按需调用 Maestro skill，不设独立入口。
 - 修改调度协议后至少运行 `node --test tests/jj-dispatch-contract.test.mjs`、`npm run verify` 和 `git diff --check`。

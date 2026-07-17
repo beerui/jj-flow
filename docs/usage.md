@@ -1,249 +1,114 @@
 # 使用说明
 
-这页只讲真实使用：你该怎么向 Codex 发 `$jj-*` skill，或向 Claude Code 发 `/jj-*` slash command，该给哪些资料，以及什么时候需要补充决策。安装看 [安装](installation.html)，所有命令看 [命令参考](commands.html)。
+这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。全部流程禁止调用 `maestro explore`。
 
-## 默认从 `$jj-delivery` 开始
+## 第一次使用
 
-```text
-$jj-delivery 实现 AI 获客列表、详情和精修验收
-/jj-delivery 实现 AI 获客列表、详情和精修验收
-```
-
-只要这件事需要跨过需求理解、实现、审查和验收，优先用 `$jj-delivery` 或 `/jj-delivery`。你不需要先准备 `--prd`、`--api`、`--design` 这类固定参数。
-
-常用缩写直接按任务类型写：
-
-```text
-$jj-delivery <完整交付需求>
-$jj-fix <线上问题和错误指纹>
-$jj-review <审查目标和风险关注点>
-$jj-knowhow <要沉淀的交付或问题>
-$jj-same <会话、需求、分支和目标项目>
-$jj-dispatch <控制项目中的多项目需求调度>
-```
-
-除 `$jj-dispatch` 外，在 Claude Code 中把 `$` 换成 `/`，例如 `/jj-fix`。`$jj-dispatch` 首版依赖 Codex App 的项目任务和 worktree 能力，只提供 Codex skill。
-
-好的输入通常包含 4 件事：
-
-- 要完成什么。
-- 资料在哪里，例如 PRD、YApi、MasterGo、截图、日志、历史线程。
-- 本次边界是什么，特别是不做什么。
-- 什么结果算完成。
-
-示例：
+需求需要从理解资料一路推进到实现和验收时，直接用 `$jj-delivery`：
 
 ```text
 $jj-delivery
-需求：实现 AI 获客列表和详情。
-资料：PRD 在 docs/v17.1，接口看 YApi 链接，设计图是 MasterGo 链接。
+目标：实现 AI 获客列表和详情。
+资料：PRD 在 docs/v17.1，接口看 YApi 链接，设计图来自 MasterGo。
 范围：本期不做导出。
-验收：页面还原设计，接口字段真实，测试通过。
+验收：页面还原设计，接口字段真实，测试和 quality-review 通过。
 ```
 
-如果资料还没整理好，也可以先给线索：
+Claude Code 中把 `$` 换成 `/`：
 
 ```text
-$jj-delivery 按 PRD、接口文档和设计图完成页面交付
-$jj-delivery 参考 codex://threads/019f2ba4-2c09-7750-8a77-a2e9b3b9093b 总结流程并完成后续交付
+/jj-delivery 按 PRD、接口文档和设计图完成 AI 获客页面，本期不做导出
 ```
 
-## 你会看到的过程
-
-`$jj-delivery` / `/jj-delivery` 会先做和交付有关的事情，而不是直接写代码：
-
-1. 说明它找到了哪些资料，还缺哪些关键证据。
-2. 确认本次范围和不做范围。
-3. 给出实现和验证计划。
-4. 进入代码修改、审查、测试或 UI 精修。
-5. 对不能自动验证的部分标出待确认。
-
-它只会在答案会改变结果时问你，例如：
-
-- 需求边界不清楚。
-- 有多个实现方案会影响后续维护。
-- 权限、登录态、后端环境或线上风险需要你确认。
-- 资料缺失会导致只能猜。
-
-## 提供资料的方式
-
-直接把资料写进 Codex 对话即可：
-
-- PRD 或需求文档路径。
-- YApi、接口文档或真实请求记录。
-- MasterGo、截图或设计图链接。
-- Codex 历史线程，例如 `codex://threads/...`。
-- 必须由用户拍板的业务决策。
-
-缺少资料时，`jj-*` 命令应该把相关项标成待确认，而不是把猜测写成已完成。
-
-## 其它常用入口
-
-线上问题用 `$jj-fix`：
+如果你暂时不确定是功能、修复、审查还是完整交付，仍然使用 `$jj-delivery`：
 
 ```text
-$jj-fix 线上 ARMS 在 09:30 到 10:00 出现 TypeError，需要定位根因并最小修复
+$jj-delivery
+线上反馈登录偶发重复提示，已有 ARMS 时间窗和截图，希望定位后直接处理。
 ```
 
-交付前检查用 `$jj-review`：
+## 一份好输入包含什么
+
+不需要准备固定参数，但最好说明下面 4 件事：
+
+- `目标`：你最终要得到什么。
+- `资料`：PRD、接口、设计、日志、diff、截图、线程或文件路径在哪里。
+- `范围`：本次明确做什么、不做什么。
+- `验收`：什么证据能证明完成。
+
+资料不完整也可以先给线索：
 
 ```text
-$jj-review 审查这次 AI 获客页面改动，重点看接口字段、设计还原、权限和测试缺口
+$jj-delivery 参考 codex://threads/019f... 和当前仓库文档，完成后续交付
 ```
 
-沉淀经验用 `$jj-knowhow`：
+Agent 应该先寻找已有上下文。只有缺失信息会改变范围、方案、权限或上线风险时，才需要你补充决策。
+
+## 怎么选择命令
+
+- 完整交付 / 明确功能 / 线上修复 / 交付前审查 / 不确定类型：[$jj-delivery](command-jj-delivery.html)
+- 同源迁移或持续同步：[$jj-same](command-jj-same.html)
+- 多项目任务调度：[$jj-dispatch](command-jj-dispatch.html)
+- jj-flow 项目自检：[$jj-validate](command-jj-validate.html)
+- jj-flow 项目演进：[$jj-evolve](command-jj-evolve.html)
+
+更完整的选择说明见 [命令总览](commands.html)。
+
+## 你会看到的执行过程
+
+不同命令细节不同，但一个可靠的交付通常按这个顺序推进：
+
+1. 确认真实目标、已有资料和不做范围。
+2. 从仓库、文档、接口、日志或历史线程核对证据（**不使用 `maestro explore`**）。
+3. 说明缺口、风险和需要用户拍板的决策。
+4. 给出最小可执行计划。
+5. 在批准边界内实现或审查。
+6. 运行与改动风险匹配的验证。
+7. 区分已验证、待确认和阻塞项。
+
+如果 Agent 还没核对资料就直接写代码，或者把无法验证的内容写成已经完成，说明流程没有正确执行。
+
+## 3 个完整场景
+
+### 场景一：边界清楚的功能
 
 ```text
-$jj-knowhow 把这次真实工作对话沉淀成可复用流程
+$jj-delivery
+目标：在账号安全页增加修改密码弹框。
+资料：接口见 YApi /account/password，交互沿用当前页面的验证码弹框。
+范围：只在当前页面弹出，不新增路由，不改旧登录逻辑。
+验收：验证码优先，密码入口保留，目标单测通过。
 ```
 
-需要由一个主任务统一管理动态来源和多个固定项目时，在独立控制项目中用 `$jj-dispatch`：
+### 场景二：线上问题
 
 ```text
-$jj-dispatch PREVIEW 需求=支付状态优化 origin=B requirement_owner=B lead=C targets=A,B
+$jj-delivery
+现象：09:30 到 10:00 登录页出现 TypeError，并且同一个错误提示重复弹出。
+资料：ARMS 指纹为 login-1027，相关截图和请求 ID 已附在对话中。
+范围：只修根因和重复提示，不调整登录交互。
+验收：能解释引入点，最小修复，聚焦回归测试通过。
 ```
 
-它先展示 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation`、`targets` 和将创建的稳定 `task_key`，不会创建任务。确认清单后再明确发起：
+### 场景三：同源项目迁移
 
 ```text
-$jj-dispatch DISPATCH 批准上面的任务集合
+$jj-same
+会话：019f...
+源项目：承接前台
+目标项目：兑接前台
+当前需求：保留密码入口，并在当前页面弹出修改密码弹框。
+源提交：c0c360f9d
+验收：先判断 REUSE / ADAPT / N/A，再做最窄迁移和目标验证。
 ```
 
-控制项目可以是一个新建的空项目，也可以是本轮不承担开发的现有项目。它只保存任务、Codex thread、状态、决策和 artifact 引用；需求正文、源码和验证正文仍留在实际项目。同一项目的多个写任务（例如 frontend/backend）必须用 `depends_on` 串成单链，运行时同一项目只允许一个 active writer；每个写任务独占目标项目 worktree，产品、测试和 Review 只消费已提交 commit。当前 MVP 的 read responsibility 仍加载 Reviewer profile，责任专属产品/测试 profile 尚未实现。
+如果已有 handoff snapshot，直接传 `handoff_ref`。详情见 [$jj-same](command-jj-same.html)。
 
-创建任务后如果控制状态未成功绑定，任务进入 `UNKNOWN`。此时用 `$jj-dispatch RECONCILE task_key=<...>` 查找唯一候选；零个或多个候选时本次操作返回 `BLOCKED`，持久化 intent 仍是 `UNKNOWN`，不能重复创建。Codex App 缺少 project/thread/worktree capability 时同样停在 `PREVIEW_ONLY/BLOCKED`。
+## 如何判断完成
 
-责任任务必须声明 `phase`、`attempt` 和 `depends_on`。`depends_on` 是完整 `task_key` 数组；前置任务未完成时 `DISPATCH` 返回 `WAITING_DEPENDENCY`，任务留在 `deferred`，前置任务完成后再次执行同一批准即可派发下一波。重试只能递增 `attempt` 并重新预览、批准；旧 attempt 的迟到回执会被拒绝。
+不要只看“代码已经改了”。可靠完成至少要回答：
 
-若 `UNKNOWN` 的 thread 已确认无法找回，先记录原因并显式转为 `BLOCKED`，再递增 `attempt` 生成新的 `task_key`；不要直接重复创建原任务。
-
-目标完成回执可用 `VERIFIED` 或 `NO_CHANGE_REQUIRED`：`VERIFIED` 需要 terminal writer 的新 commit、当前 Review PASS、source head 和验证证据；`NO_CHANGE_REQUIRED` 是分析路径，要求 planning/analysis responsibility 产出 `ANL-TARGET`、`difference_ref`、目标 HEAD 和 `unresolved=[]`，并把未派发的开发/测试/Review responsibility 标记为 `SKIPPED`，不需要或伪造 Developer commit、VRF、Review。同步目标两种状态都必须补齐 `FRESH` handoff、snapshot ref/hash、source/target branch 与 HEAD 和差异证据。
-
-同源项目之间迁移功能、修复或产品调整，用 `$jj-same`：
-
-```text
-$jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
-```
-
-源项目形成稳定 commit、共享 `BLP/REQ` 和明确未解决项后，先生成一次迁移交接快照：
-
-```text
-$jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
-```
-
-后续目标只消费同一份 `handoff_ref`，不再分别重读完整源会话和需求文档：
-
-```text
-$jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=兑接 开始迁移
-$jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=承载 开始迁移
-```
-
-交接快照只引用正式 `BLP-* / REQ-*`，不复制需求正文。它保存来源指纹、源 commit、用户纠正顺序、覆盖范围、验证状态、`UNRESOLVED` 和目标待验证差异。源需求变化时生成 successor snapshot 或 delta；目标项目仍必须重新验证当前 Git、源码和业务入口，并独立生成 `ANL-TARGET -> PLN -> EXC/VRF -> REV`。
-
-### Handoff 标准调用流程
-
-1. **源项目准备交接**：在源项目会话中调用：
-
-   ```text
-   $jj-same 准备交接 会话=<源需求会话 ID> 源提交=<稳定 commit> 功能=<功能名>
-   ```
-
-   输出 `handoff_ref`。源验证或必要 UAT 未完成时生成 `PARTIAL_HANDOFF`；全部门禁通过后生成 `READY_FOR_HANDOFF`。
-
-2. **第一个目标消费交接**：在目标项目的新会话中调用：
-
-   ```text
-   $jj-same 交接=@<handoff-snapshot.yaml 绝对路径> 当前项目=<目标角色> 开始迁移
-   ```
-
-   目标先输出 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED`，并单独判断 `execution_readiness`。`REUSE + execution_readiness=READY` 可进入 `ANL-TARGET -> PLN -> EXC/VRF -> REV`；源评审或 UAT 待补只作为 caveat。
-
-3. **后续目标复用同一交接**：按家族计划顺序，在各目标新会话中继续传同一个 `handoff_ref`。目标不得重新生成源 `ANL-SOURCE / BLP`，也不得把前一个目标的实现复制成自己的计划。
-
-4. **源需求或实现发生变化**：回到源 artifact 归属仓库调用：
-
-   ```text
-   $jj-same 更新交接 交接=@<旧 handoff-snapshot.yaml 绝对路径> 会话=<源需求会话 ID> 源提交=<新 commit> 变更=<需求纠正或 bug fix>
-   ```
-
-   输出新的 `snapshot_id` 和 `handoff_ref`，通过 `parent_snapshot` 指向旧版本。旧 snapshot 不覆盖；已经消费旧版本的目标按 successor delta 重新判断 `DIRECT / ADAPT / N/A`。
-
-5. **目标完成后**：目标写入自己消费的 `snapshot_id`、snapshot hash、source HEAD、`VRF/REV` 和目标 commit。Snapshot 更新本身不推进 `last_source_head`，只有目标成功检查点或 `NO_CHANGE_REQUIRED` 才推进同步基线。
-
-它适合 `承接 / 兑接 / 承载` 前台或后管之间的改动迁移。输入可以是 Codex 会话 ID、需求文档、功能分支、commit 或 diff；输出必须先还原最终需求，再按 `稳健 / 剃刀 / 精准 / 最小化 / 复用` 做迁移矩阵和最窄实现。
-
-`$jj-same` 不是等承接项目开发完成后才进入。默认 `cj -> dj -> cz` 只用于 agent 推荐下一目标；用户当前明确指定“当前项目 + 开始迁移/实施/开干”时，以该目标 `EXECUTION_READY` 为准，不倒推补做其它 sibling，也不等待它们补齐 QA、UAT 或评审。
-
-领头项目的开发分支由用户创建。agent 自动推进时才要求前置项目达到 `HANDOFF_READY`；用户已明确指定当前目标并要求实施时，检查该目标 `EXECUTION_READY` 后即可从本地 `master` 创建分支。`$jj-same` 不修改未授权项目。分支名只替换项目角色前缀，保留类型、发布日期和任务序号：
-
-```text
-feat/cj-0717   -> feat/dj-0717   -> feat/cz-0717
-feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1
-```
-
-本地 `master` 不存在、目标工作区无法安全保护、源 commit/diff 不稳定、最终需求无法收敛、目标调用链不可验证，或存在影响 `MUST` 的冲突时，当前目标保持 `BLOCKED`。源评审、UAT、家族计划或 canonical 产物待补不单独阻塞编码。命名中的任务序号标识同一发布日期下的第几个任务，跨项目同步同一任务时必须保持一致。
-
-家族交付计划只负责跨项目协调。存在 `$jj-dispatch` 控制项目时，由 control manifest 记录动态角色、任务、状态、thread 和 artifact refs；没有控制项目时继续由领头项目计划记录 `cj / dj / cz` 顺序、分支、会话和下一门禁。每个目标项目仍必须重新执行 `ANL-TARGET -> PLN -> EXC/VRF -> REV`，不能因为计划中已有占位任务就复制领头项目实现。开发或修复过程中发现需求变化、目标差异、阻塞或验证结果时，必须先更新协调状态，再决定是否继续当前项目或解锁下一个项目。
-
-源项目进入交接门禁时，家族计划记录唯一 `handoff_ref` 和 snapshot ID。后续目标复用该 snapshot 的共享需求语义，不能在各目标仓库重新生成一套 `ANL-SOURCE / BLP`。snapshot 为 `PARTIAL` 时读取 `execution_readiness`：`READY` 可带 caveat 实施，`BLOCKED` 才限制为分析；`STALE` 或 `BROKEN` 时先刷新来源或重新建立基线。
-
-执行采用双门禁：`EXECUTION_READY` 决定是否开始编码，`HANDOFF_READY` 决定是否可以宣称完成并推进检查点。用户明确要求实施且 `EXECUTION_READY` 后，生成最小目标分析与计划并在同一轮修改业务代码；不得只生成 `.workflow`、blueprint 或任务状态后结束。
-
-跨会话交接至少携带：前一会话 ID、领头项目与当前项目路径、业务角色、分支、HEAD、已验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族交付计划位置、下一目标及派生分支名、未解决项和 `TARGET-ONLY / DO-NOT-PORT`。新会话必须重新验证 Git 和目标源码事实，不能把旧会话摘要当作当前事实。
-
-遇到信息缺口时，先从当前需求、会话、Git、项目文档和源码验证；仍不明确时，只采用不扩大项目范围、不新增产品行为且可回退的最窄默认值，并在计划中记录假设。无法安全推断且会影响 `MUST`、验收标准、目标项目集合或不可逆实现时，直接记录为 `BLOCKED`，说明缺失证据和解除条件，不启动额外的需求拷问流程。
-
-正常迁移流程中，Codex/Claude 默认不执行编译、build、浏览器、E2E 或页面交互自测。代理只运行 `git diff --check`、目标文件 lint、聚焦单元测试或契约测试等非浏览器检查，并根据本次改动和验收条件判断是否需要运行时验证。只有改动涉及构建配置、运行时入口、用户交互、路由、异步状态、权限或跨页面流程，且静态证据不足以覆盖风险时，才提示用户下一步手动执行必要的编译、build、浏览器、E2E 或页面交互测试，给出最小测试清单并标记 `READY_FOR_USER_TEST`。用户确认通过后再进入 `READY_FOR_HANDOFF`；不需要时记录 `N/A` 理由并继续，不额外打扰用户。只有用户主动要求代理执行时，代理才运行具体 build 或浏览器测试命令。
-
-`$jj-same` 产生的中间文档遵循 Maestro 的产物规范，不创建 `.workflow/jj-same/` 之类的私有目录：
-
-1. 会话或分支总结由 `maestro-analyze` 生成，保存到 `.workflow/.csv-wave/{日期}-analyze-{主题}/`，并在 `.workflow/state.json` 注册 `ANL-*`。
-   - 迁移交接快照保存在该 `ANL-SOURCE` 的 `requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`，`context-package.json` 只保存 `handoff_ref`，不复制 snapshot 或 Source Inventory。
-2. AI 可执行需求由 `maestro-blueprint` 生成，保存到 `.workflow/blueprint/BLP-{主题}-{日期}/`；正式需求位于 `requirements/REQ-*.md`，同时保留 readiness 与 traceability 产物。
-3. 目标项目评审再次使用 `maestro-analyze --from blueprint:BLP-*`，形成独立的目标差异分析和迁移决策。
-4. 评审通过后才由 `maestro-plan --from analyze:ANL-*` 生成 `.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 和 `.task/TASK-*.json`，再进入 `maestro-execute` 与 `quality-review`。
-
-`.workflow/.maestro/*/status.json` 只保存 Maestro 编排状态，不承载需求正文；`.workflow/specs/` 只用于交付后沉淀的跨任务稳定规则，不存放单次迁移文档。目标项目尚未初始化 `.workflow/` 时，应先执行 `maestro-init`，再生成上述正式产物。
-
-如果目标不是只迁移一次，而是让 A 项目的同一功能后续持续同步到 B，首次迁移成功后还要建立 `sync_key`：
-
-```text
-$jj-same 建立持续同步：功能=沉默账户登录 源=A 目标=B，首次迁移并记录同步基线
-$jj-same 同步 SYNC-silence-login，检查 A 从上次成功基线到 HEAD 的更新和 bug 修复，并同步到 B
-```
-
-稳定的同步范围、源/目标仓库、目标专有差异和排除规则通过 `maestro spec add arch` 写入两端：A 的 `.workflow/specs/architecture-constraints.md` 保存 outgoing 目标索引，B 保存 incoming 同步契约。当前游标不手工写进 spec，而是从 B 最近一次成功产物链反查；只有 B 实施完成、验证通过且评审无阻塞，或目标分析有证据证明本轮全部增量无需修改时，才把本次 A 的 `source_head` 视为新的同步基线。
-
-后续每次同步只检查 `last_source_head..current_source_head`：产品行为变化时生成新的 blueprint 需求增量；不改变产品契约的 bug 修复复用原 blueprint，但仍重新分析 B 是否存在相同根因。B 已有本地修改时做三方比较并按 B 的原生架构适配，不覆盖目标专有逻辑。A 中与该功能无关的重构、格式化和其它模块改动继续进入剃刀排除项。
-
-`$jj-same` 是同步执行入口，不是后台常驻监听器。需要“A 一修改就通知 B”时，在 A 的 CI 中发送包含 `sync_key`、`before_sha`、`after_sha` 和变更路径的同步事件，再由 Codex/Claude Code 执行 `$jj-same` 并创建 B 的 PR；默认不静默修改或自动合并 B。
-
-源项目修改和验证完成后，`$jj-same` 不能直接开始同步。它必须先展示并核对：项目根目录、`origin`、项目角色、当前分支、`HEAD`、工作区状态和源验证结果；当前仓库或分支与同步契约不一致、处于 detached HEAD，或变更尚未形成稳定 commit 时，只能报告候选项目，不能推进同步。
-
-核对通过后，列出所有可同步项目及状态：已有同步关系且存在增量的目标标记 `READY`；没有新增量的标记 `ALREADY_SYNCED`；同项目族但尚未建立关系的标记 `ELIGIBLE`；延期中的标记 `DEFERRED`；分支、工作区、权限或依赖不满足的标记 `BLOCKED`；业务场景不适用的标记 `N/A`。随后按目标项目询问用户选择：
-
-- `SYNC_NOW`：立即分析并同步。
-- `DEFER`：本次延期，不修改目标，也不推进同步基线。
-- `NOT_APPLICABLE`：用户明确确认本次变化不适用于该目标，记录原因并形成零改动检查点。
-- `PAUSE_RELATION`：暂停后续提示；通过新的 Maestro arch decision 保留审计记录，不直接删除旧同步契约。
-
-延期同步通过 `manage-issue` 在目标项目 `.workflow/issues/issues.jsonl` 创建或更新一个 open issue，tag 包含 `jj-same`、`sync-deferred` 和 `sync_key`。issue 记录源/目标项目与分支、成功检查点、`before_sha`、`after_sha`、延期原因和恢复条件。相同 `sync_key + target` 再次延期时不重复建 issue，而是保留最早未同步起点、更新最新源 HEAD。恢复同步时仍从最近成功检查点重新计算完整范围；只有同步成功或形成有证据的零改动检查点后才关闭 issue。
-
-如果你在维护 `jj-flow` 项目本身，再使用 `$jj-validate` 和 `$jj-evolve`：
-
-```text
-$jj-validate 检查当前项目状态，给出下一步升级建议
-$jj-evolve 基于当前自检结果推进下一项项目管理能力
-```
-
-## 安装后的版本日志
-
-`install-skill` 首次安装成功或使用 `--force` 更新成功后，会在安装结果后输出当前包版本对应的最新一段 `CHANGELOG.md`。使用 `--json` 时，同一信息通过 `version` 和 `release_notes` 字段返回。安装失败或 `--dry-run` 预览不会输出版本日志，避免把未完成的操作误报为已安装或已更新。
-
-### Reviewer / Developer 闭环
-
-控制项目内置两个持久角色：.codex/agents/jj-workflow-reviewer.toml 固定 read-only，只消费已提交 commit 和 evidence；.codex/agents/jj-workflow-developer.toml 使用独占 worktree 修复批准的 findings。TOML 是期望配置，不是运行时 sandbox 证明；BIND_THREAD 必须由 host 提供 `effective_sandbox_mode` 和 `sandbox_evidence_ref`，否则保持 UNKNOWN/BLOCKED。Review 回执必须是 PASS 或 NEEDS_CHANGES，每条 finding 带稳定 id、严重级别、文件、行号、描述、状态和验收标准。
-
-NEEDS_CHANGES 不直接覆盖旧结果。调度器先完成或阻塞仍 active 的旧下游任务，再调用 requestRework，为开发、下游验证和下一次 Review 统一递增 attempt，清空旧批准快照，再次 PREVIEW/批准/派发。下一轮 PASS 必须把上一轮 OPEN finding 标为 RESOLVED 或 WAIVED。目标只有在 terminal writer 的持久 Review PASS、当前 terminal writer produced_commit 和目标 commit 三者一致时才能 VERIFIED；若多个 review 覆盖不同 writer，必须补一个 integration writer 形成唯一 terminal commit。
-
-同步目标推进 checkpoint 时，必须同时提交 `FRESH` handoff、snapshot ref/hash、source/target branch 与 HEAD、差异决策 ref、验证 evidence 和 reviewed commit；不能用旧 checkpoint 补齐本轮缺失字段，也不能让 `STALE` snapshot 推进基线。
+- 目标与验收是否可追溯。
+- 关键证据是否齐全，缺口是否标为 `PENDING`。
+- 验证命令与结果是否明确。
+- 残余风险与人工确认项是否列出。

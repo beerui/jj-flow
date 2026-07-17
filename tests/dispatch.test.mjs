@@ -2,18 +2,23 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildDispatch, renderMarkdown, routeIntent } from '../src/dispatch.mjs';
 
-test('auto routes online ARMS errors to fix', () => {
+test('auto routes online ARMS errors to delivery', () => {
   const routed = routeIntent('线上 ARMS goods-detail 500 报错，需要修复');
-  assert.equal(routed.mode, 'fix');
+  assert.equal(routed.mode, 'delivery');
 });
 
-test('auto routes project experience to knowhow', () => {
+test('auto routes knowledge keywords to delivery by default when no stronger mode matches', () => {
   const routed = routeIntent('把这次真实项目经验总结沉淀成规范');
-  assert.equal(routed.mode, 'knowhow');
+  assert.equal(routed.mode, 'delivery');
 });
 
 test('auto routes full delivery requests to delivery', () => {
   const routed = routeIntent('按 PRD、接口文档和设计图端到端交付这个需求');
+  assert.equal(routed.mode, 'delivery');
+});
+
+test('auto defaults to delivery when no keywords match', () => {
+  const routed = routeIntent('随便做一点东西');
   assert.equal(routed.mode, 'delivery');
 });
 
@@ -33,13 +38,30 @@ test('delivery dispatch keeps input parameters minimal', () => {
   assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$maestro-analyze'));
   assert.match(dispatch.maestro_prompt, /不要要求用户先传 --prd、--api、--design/);
   assert.match(dispatch.maestro_prompt, /只在交付边界、方案取舍、上线风险或外部权限真正阻塞时询问用户/);
+  assert.match(dispatch.maestro_prompt, /禁止使用 maestro explore|禁止调用 maestro explore/);
 });
 
-test('feat dispatch includes yapi integration point', () => {
-  const dispatch = buildDispatch({ mode: 'feat', intent: '根据 YApi 接口开发列表页' });
-  assert.equal(dispatch.mode, 'feat');
+test('delivery dispatch includes yapi and arms optional integration points', () => {
+  const dispatch = buildDispatch({ mode: 'delivery', intent: '根据 YApi 接口开发列表页，并处理线上 SLS 异常' });
+  assert.equal(dispatch.mode, 'delivery');
   assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$yapi'));
-  assert.match(dispatch.maestro_prompt, /YApi/);
+  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$arms-fix'));
+  assert.match(dispatch.maestro_prompt, /YApi|接口/);
+});
+
+test('delivery dispatch can capture knowledge after delivery', () => {
+  const dispatch = buildDispatch({ mode: 'delivery', intent: '完成交付并沉淀经验' });
+  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$manage-knowhow-capture'));
+});
+
+test('auto routes review keywords to delivery', () => {
+  const routed = routeIntent('审查当前 diff 的发布风险和质量问题');
+  assert.equal(routed.mode, 'delivery');
+});
+
+test('delivery dispatch includes quality-review for review work', () => {
+  const dispatch = buildDispatch({ mode: 'delivery', intent: '审查 diff 并补齐测试缺口' });
+  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$quality-review'));
 });
 
 test('validate dispatch includes project self-check chain', () => {
@@ -69,15 +91,4 @@ test('rendered dispatch uses Chinese user-facing section titles', () => {
   assert.doesNotMatch(markdown, /## Knowledge Loop/);
   assert.doesNotMatch(markdown, /## Maestro Prompt/);
   assert.doesNotMatch(markdown, /\[optional\]/);
-});
-
-test('fix dispatch includes arms-fix integration point', () => {
-  const dispatch = buildDispatch({ mode: 'fix', intent: '线上 SLS 日志显示异常' });
-  assert.equal(dispatch.mode, 'fix');
-  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$arms-fix'));
-});
-
-test('knowhow dispatch includes knowledge capture', () => {
-  const dispatch = buildDispatch({ mode: 'knowhow', intent: '沉淀问题和解决方案' });
-  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$manage-knowhow-capture'));
 });

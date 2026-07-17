@@ -55,6 +55,17 @@ test('project validation detects roadmap and state progress drift', () => {
   assert.ok(failures.evidence.failures.some((failure) => failure.includes('roadmap P1=pending')));
 });
 
+test('project validation requires every command reference page', () => {
+  const cwd = makeProjectFixture();
+  fs.rmSync(path.join(cwd, 'docs', 'commands', 'jj-delivery.md'));
+
+  const evidence = buildProjectValidationEvidence({ cwd });
+  const docsEvidence = evidence.find((item) => item.id === 'docs-reference');
+
+  assert.equal(docsEvidence.artifact_type, 'validation_failure');
+  assert.ok(docsEvidence.evidence.missing.includes('docs/commands/jj-delivery.md'));
+});
+
 test('project validation treats missing phase rows and requirement drift as failures', () => {
   const cwd = makeProjectFixture();
   const roadmapPath = path.join(cwd, '.workflow', 'roadmap.md');

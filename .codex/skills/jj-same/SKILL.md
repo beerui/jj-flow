@@ -217,7 +217,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 目标专有入口、feature flag、租户差异、权限和 legacy 条件。
 - 目标已有测试、lint、build 和提交 hook。
 
-仓库要求使用 Maestro 时先执行 `maestro search` 与 `maestro load`，定位代码先尝试 `maestro explore`。若 endpoint 未配置或调用失败，记录后回退到 `rg`、Git 和定点读取。
+仓库要求使用 Maestro 时先执行 `maestro search` 与 `maestro load`。定位代码时**禁止调用 `maestro explore`**，直接使用 `rg`/Grep、Git 和定点读取。
 
 ### 3. 生成正式需求
 

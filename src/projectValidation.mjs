@@ -8,6 +8,13 @@ const REQUIRED_DOCS = [
   'docs/installation.md',
   'docs/usage.md',
   'docs/commands.md',
+  'docs/commands/jj.md',
+  'docs/commands/jj-delivery.md',
+  'docs/commands/jj-same.md',
+  'docs/commands/jj-dispatch.md',
+  'docs/commands/jj-validate.md',
+  'docs/commands/jj-evolve.md',
+  'docs/commands/cli.md',
   'docs/glossary.md',
   'docs/architecture.md',
   'docs/project-plan.md',
@@ -32,14 +39,9 @@ const REQUIRED_SOURCE = [
   'src/dispatchControlPlane.mjs',
   'src/projectValidation.mjs',
   '.codex/skills/jj/SKILL.md',
-  '.codex/skills/jj-auto/SKILL.md',
   '.codex/skills/jj-delivery/SKILL.md',
   '.codex/skills/jj-validate/SKILL.md',
   '.codex/skills/jj-evolve/SKILL.md',
-  '.codex/skills/jj-feat/SKILL.md',
-  '.codex/skills/jj-fix/SKILL.md',
-  '.codex/skills/jj-knowhow/SKILL.md',
-  '.codex/skills/jj-review/SKILL.md',
   '.codex/skills/jj-dispatch/SKILL.md',
   '.codex/skills/jj-dispatch/agents/openai.yaml',
   '.codex/agents/jj-workflow-reviewer.toml',
@@ -47,14 +49,9 @@ const REQUIRED_SOURCE = [
   '.codex/skills/jj-dispatch/references/control-project.md',
   '.codex/skills/jj-dispatch/references/control-plane.schema.json',
   '.claude/commands/jj.md',
-  '.claude/commands/jj-auto.md',
   '.claude/commands/jj-delivery.md',
   '.claude/commands/jj-validate.md',
-  '.claude/commands/jj-evolve.md',
-  '.claude/commands/jj-feat.md',
-  '.claude/commands/jj-fix.md',
-  '.claude/commands/jj-knowhow.md',
-  '.claude/commands/jj-review.md'
+  '.claude/commands/jj-evolve.md'
 ];
 
 const REQUIRED_TESTS = [
@@ -71,7 +68,7 @@ const REQUIRED_TESTS = [
   'tests/fixtures/jj-dispatch-control-plane.json'
 ];
 
-const REQUIRED_MODES = ['delivery', 'feat', 'fix', 'knowhow', 'review', 'validate', 'evolve'];
+const REQUIRED_MODES = ['delivery', 'validate', 'evolve'];
 const COMMAND_REFERENCE_FILES = [
   'docs/architecture.md',
   'docs/commands.md',
@@ -153,7 +150,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
         ? `文档缺失 ${missingDocs.length} 个必需文件。`
         : docsWithoutModes.length
           ? `文档存在但有 ${docsWithoutModes.length} 个页面未覆盖全部核心命令。`
-          : '文档入口、安装、使用、命令参考、术语、架构、规划、维护和部署说明齐备。',
+          : '文档入口、安装、使用、命令总览、独立命令页、术语、架构、规划、维护和部署说明齐备。',
       evidence: {
         required: REQUIRED_DOCS,
         missing: missingDocs,
@@ -447,7 +444,7 @@ function auditCriterion(cwd, criterion) {
       'docs/architecture.md',
       'src/recipes.mjs',
       'src/dispatch.mjs'
-    ], ['delivery', 'validate', 'evolve', 'feat', 'fix', 'knowhow', 'review']);
+    ], ['delivery', 'validate', 'evolve']);
   }
 
   if (criterion.includes('GitHub Pages') && criterion.includes('docs/')) {

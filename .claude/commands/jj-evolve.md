@@ -15,4 +15,4 @@ allowed-tools:
 
 用户输入：$ARGUMENTS
 
-读取 `.workflow/project.md`、`.workflow/roadmap.md`、`.workflow/state.json` 和最近自检证据。先修正自检失败和用户反馈指出的方向错误，再推进路线图能力。保持 `jj-flow` 是 Maestro 上层协议，不重写 Maestro core。
+读取 `.workflow/project.md`、`.workflow/roadmap.md`、`.workflow/state.json` 和最近自检证据。先修正自检失败和用户反馈指出的方向错误，再推进路线图能力。保持 `jj-flow` 是 Maestro 上层协议，不重写 Maestro core。**禁止调用 `maestro explore`**。

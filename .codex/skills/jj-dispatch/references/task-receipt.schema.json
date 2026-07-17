@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/jj-flow-task-receipt.json",
+  "title": "jj-flow task receipt",
+  "type": "object",
+  "required": ["receipt_id", "task_key", "attempt", "kind", "status", "evidence_ref", "recorded_at"],
+  "properties": {
+    "receipt_id": { "type": "string", "minLength": 1 },
+    "task_key": { "type": "string", "minLength": 1 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "kind": { "enum": ["TASK_RESULT", "REVIEW_RESULT"] },
+    "status": { "enum": ["COMPLETED", "BLOCKED"] },
+    "evidence_ref": { "type": "string", "minLength": 1 },
+    "produced_commit": { "type": ["string", "null"], "minLength": 7 },
+    "consumed_commit": { "type": ["string", "null"], "minLength": 7 },
+    "reviewed_commit": { "type": ["string", "null"], "minLength": 7 },
+    "outcome": { "enum": ["PASS", "NEEDS_CHANGES"] },
+    "findings": { "type": "array", "items": { "$ref": "control-plane.schema.json#/$defs/review_finding" } },
+    "resolved_finding_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "recorded_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

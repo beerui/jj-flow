@@ -42,7 +42,9 @@ flowchart LR
 - `bin/jj.mjs`：安装和维护调试入口，不是普通交付入口。
 - `src/cli.mjs`：安装参数解析和内部调度，供入口和测试复用。
 - `src/dispatch.mjs`：模式识别、prompt 生成、Markdown/JSON 输出。
-- `src/recipes.mjs`：`delivery`、`validate`、`evolve`、`feat`、`fix`、`knowhow`、`review` 的流程定义。
+- `src/recipes.mjs`：`delivery`、`validate`、`evolve` 的流程定义；功能开发、线上修复、交付前审查与不确定意图统一归入 `delivery`。
+- 全部流程禁止调用 `maestro explore`；定位代码使用定点读取与搜索工具，不经 explore 代理。
+- 已移除独立的 `jj-knowhow` / `jj-auto` / `jj-review` 入口；审查与知识沉淀分别通过 delivery 内 `$quality-review` 与可选 Maestro skill 完成。
 - `src/evidence.mjs`：证据结构。
 - `src/evidenceProviders.mjs`：把 YApi、ARMS/SLS、禅道等工具输出转换成标准 evidence JSON。
 - `src/guards.mjs`：判断证据是否足够，不足时保持 `PENDING`。
@@ -66,6 +68,8 @@ flowchart LR
 项目族不再把某个基线仓库永久设为唯一源。控制项目只保存 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation`、`targets`、thread、状态和 artifact 引用；业务需求正文、源码、目标分析和验证仍归属实际项目。这样 B 或 C 都可以成为本轮需求来源或领头项目，控制平面不会污染业务仓库。
 
 Codex App 的 `create_thread`、project binding 和 worktree 是 host capability，不是 npm CLI 的稳定 API。`src/dispatchControlPlane.mjs` 只实现纯状态转换和内嵌审计事件；控制项目 host 负责把 manifest 写回文件，并可将事件镜像到 `events.ndjson`。能力缺失时保持 `PREVIEW_ONLY/BLOCKED`。
+
+状态回传在当前 Beta 中采用单写者模型：业务子任务只生成结构化回执，主调度器是唯一允许推进 intent、target、Review、reference 和 checkpoint 的角色。主调度任务在线时，host 的任务完成通知可以唤醒调度器消费回执；主调度任务关闭后，通过持久化 thread/task 绑定恢复，而不是让子任务越权写控制项目。当前不提供常驻 daemon、跨任务后台监听或无人值守自动写回。
 
 用户可见的控制任务与临时 subagent 必须分层：控制任务拥有稳定 `task_key`、host/thread/worktree 绑定和可恢复状态，是控制面的持久身份；subagent 只是某个任务内部的临时执行单元，可用于代码探索、官方文档核对或并行只读审查，不能自行创建控制任务、修改批准快照，也不能作为 checkpoint 的 thread identity。主调度任务保留需求、关键决策、批准和最终汇总。
 

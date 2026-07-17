@@ -1,66 +1,70 @@
 # jj-flow 文档
 
-`jj-flow` 是给 Codex 和 Claude Code 用的交付入口。你把需求、资料和必须拍板的决定写进对话，`$jj-delivery` 或 `/jj-delivery` 帮你把一次工作按“找资料、定范围、实现、审查、验证、沉淀”的顺序推进。
+`jj-flow` 是给 Codex 和 Claude Code 用的项目交付入口。它先整理需求、资料、证据和边界，再把工作交给合适的 Maestro 流程，避免在真实项目里漏接口、漏场景、漏验证。全部流程禁止调用 `maestro explore`。
 
-它解决的是一个很具体的问题：真实项目里资料通常散在 PRD、YApi、MasterGo、日志、截图和历史线程里。直接让模型写代码容易漏边界、漏接口、漏验证。`jj-*` 系列缩写命令的作用是先把这些东西整理清楚，再进入实现。
+## 现在要做什么
 
-## 先从这里开始
+- 第一次使用：先看 [安装](installation.html) 和 [使用说明](usage.html)。
+- 要完整交付、明确功能、线上修复、交付前审查，或暂时不确定类型：用 [$jj-delivery](command-jj-delivery.html)。
+- 要迁移同源项目：用 [$jj-same](command-jj-same.html)。
+- 要统一调度多个项目：用 [$jj-dispatch](command-jj-dispatch.html)。
+- 想浏览全部入口：打开 [命令总览](commands.html)。
 
-第一次使用先看 [安装](installation.html)。确认 `jj-*` 命令生效后，打开你的项目，在 Codex 或 Claude Code 对话里直接发：
-
-```text
-$jj-delivery 按 PRD、接口文档和设计图完成这个需求
-/jj-delivery 按 PRD、接口文档和设计图完成这个需求
-```
-
-如果资料比较多，可以这样写：
+## 先跑一个完整示例
 
 ```text
 $jj-delivery
-需求：实现 AI 获客列表和详情。
-资料：PRD 在 docs/v17.1，接口看 YApi 链接，设计图是 MasterGo 链接。
+目标：完成 AI 获客列表和详情。
+资料：PRD 在 docs/v17.1，接口看 YApi，设计图来自 MasterGo。
 范围：本期不做导出。
-验收：页面还原设计，接口字段真实，测试通过。
+关键决策：列表沿用现有分页交互，详情不新增编辑能力。
+验收：页面还原设计，接口字段真实，目标测试和 review 通过。
 ```
 
-你不需要先把资料整理成固定参数。把线索放进对话即可。
+你会看到 Agent：
 
-## 你会得到什么
+1. 先说明找到了哪些资料，还缺哪些关键证据。
+2. 收敛本次范围和不做范围。
+3. 给出实现、审查和验证计划。
+4. 在批准边界内完成改动。
+5. 区分已验证、待确认和阻塞项。
 
-1. Agent 先确认它找到了哪些资料，还缺什么证据。
-2. 任务边界清楚后，再给出执行计划。
-3. 涉及接口、设计、日志或历史线程时，优先引用真实资料。
-4. 能自动验证的地方会跑验证；不能自动确认的地方会明确标成待确认。
-5. 只有范围、方案、权限或上线风险会改变结果时，才回头问你。
+## 按任务选择
 
-## 常用入口
+### 交付与开发
+
+- [$jj-delivery](command-jj-delivery.html)：从需求到验证的完整交付；也覆盖明确功能、线上最小修复、交付前审查与不确定意图。
+
+### 协作与迁移
+
+- [$jj-same](command-jj-same.html)：首次迁移、handoff 和持续同步。
+- [$jj-dispatch](command-jj-dispatch.html)：多项目任务预览、批准、绑定和恢复。
+
+### 维护 jj-flow
+
+- [$jj-validate](command-jj-validate.html)：项目状态和漂移自检。
+- [$jj-evolve](command-jj-evolve.html)：根据自检和反馈推进下一轮升级。
+- [CLI 调度与自动化](command-cli.html)：通过 `jj` / `jj-flow` 生成 Markdown 或 JSON dispatch。
+
+## 文档已经可以搜索
+
+左侧搜索框会搜索所有命令页、指南和维护文档。可以输入命令、场景或状态词：
 
 ```text
-$jj-delivery <完整需求、资料和验收要求>
-$jj-fix <线上现象、时间窗、日志或错误指纹>
-$jj-review <要审查的 diff、计划或交付物>
-$jj-knowhow <要沉淀的一次交付、问题或对话>
-$jj-same <首次迁移或 sync_key、会话、需求、分支和目标项目>
-$jj-dispatch <在独立控制项目中预览或开始多项目调度>
+验证码 登录
+handoff
+PENDING
+quality-review
 ```
 
-当一个功能、修复或需求调整需要从同源项目迁移到承接/兑接/承载的前台或后管项目时，使用 `$jj-same` 或 `/jj-same`。源项目达到交接门禁时生成一次可版本化 handoff snapshot，多个目标共享它并分别完成目标分析；首次迁移成功后建立可验证同步基线，后续再用同一 `sync_key` 对账 A 自上次成功同步后的有效增量。
-
-当需求来源、领头项目和目标项目会动态变化，并且需要一个主任务统一派发和监控多个 Codex 任务时，在独立控制项目中使用 Codex 专用 `$jj-dispatch`。它默认只做 `PREVIEW`，用户明确批准后才创建项目任务；实际开发、修复和迁移仍分别交给 `$jj-delivery`、`$jj-fix` 和 `$jj-same`。
-
-如果你在维护 `jj-flow` 这个项目本身，再使用：
-
-```text
-$jj-validate <检查项目状态或文档代码漂移>
-$jj-evolve <基于自检结果推进项目升级>
-```
+按 `/` 快速进入搜索，按 `Esc` 清空。
 
 ## 文档结构
 
-- [安装](installation.html)：如何把 `jj-*` 命令安装到 Codex skills 或 Claude commands 目录，以及如何确认生效。
-- [使用说明](usage.html)：第一次怎么写需求、怎么提供资料、怎么处理追问。
-- [命令参考](commands.html)：每个 `jj-*` 缩写命令什么时候用、要给什么、会得到什么。
-- [术语与缩写](glossary.html)：不懂 `PRD`、`ARMS`、`YApi` 等缩写时查这里。
-- [架构](architecture.html)：想了解它和 Maestro、Codex 的关系时再看。
-- [项目规划](project-plan.html)：项目维护者查看长期路线图。
-- [维护说明](maintenance.html)：项目维护者查看验证、发布和文档站规则。
+- [安装](installation.html)：安装 Codex skills、Claude commands 和 agent profiles。
+- [使用说明](usage.html)：第一次怎么写需求、怎么提供资料、怎么判断完成。
+- [命令总览](commands.html)：按目标快速选择命令。
+- 独立命令页：每个命令的输入模板、完整示例、过程和完成标准。
+- [术语与缩写](glossary.html)：查询 `PRD`、`ARMS`、`YApi`、`PENDING` 等概念。
+- [架构](architecture.html)：理解 jj-flow、Maestro 和 Codex 的边界。
+- [维护说明](maintenance.html)：项目维护者使用的验证和发布规则。

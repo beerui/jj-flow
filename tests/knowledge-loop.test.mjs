@@ -23,8 +23,8 @@ test('completed delivery can be captured as knowhow spec and workflow recipe', (
 
 test('team context exposes evidence guard status and next actions', () => {
   const pkg = buildKnowledgeLoopPackage({
-    mode: 'feat',
-    recipe: getRecipe('feat'),
+    mode: 'delivery',
+    recipe: getRecipe('delivery'),
     intent: '开发功能',
     evidence: [{ id: 'api', source: '$yapi', artifact_type: 'yapi_contract', summary: '接口已确认。' }],
     guardReport: {
@@ -42,8 +42,8 @@ test('team context exposes evidence guard status and next actions', () => {
 
 test('knowledge loop does not modify Maestro core', () => {
   const pkg = buildKnowledgeLoopPackage({
-    mode: 'knowhow',
-    recipe: getRecipe('knowhow'),
+    mode: 'delivery',
+    recipe: getRecipe('delivery'),
     guardReport: { status: 'PASS', results: [] },
     executionDecision: { status: 'disabled' }
   });
@@ -53,10 +53,13 @@ test('knowledge loop does not modify Maestro core', () => {
 
 test('dispatch exposes knowledge loop package', () => {
   const dispatch = buildDispatch({
-    mode: 'review',
-    intent: '审查交付',
+    mode: 'delivery',
+    intent: '完成交付',
     evidence: [
-      { id: 'diff', source: 'git', artifact_type: 'diff', summary: 'diff 已审查。' },
+      { id: 'ctx', source: 'manual', artifact_type: 'project_context', summary: '项目上下文已发现。' },
+      { id: 'design', source: 'manual', artifact_type: 'design_reference', summary: '设计证据已确认。' },
+      { id: 'decision', source: 'manual', artifact_type: 'decision_gate', summary: '阻塞决策已隔离。' },
+      { id: 'chain', source: 'manual', artifact_type: 'maestro_chain', summary: '调用链已形成。' },
       { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '测试通过。' }
     ]
   });

@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildGuardReport } from '../src/guards.mjs';
+import { buildGuardReport, evaluateGuard } from '../src/guards.mjs';
 import { getRecipe } from '../src/recipes.mjs';
 
-test('missing evidence keeps required guards pending', () => {
-  const report = buildGuardReport(getRecipe('feat'), []);
+test('missing evidence keeps required delivery guards pending', () => {
+  const report = buildGuardReport(getRecipe('delivery'), []);
   assert.equal(report.status, 'PENDING');
-  assert.ok(report.results.some((item) => item.id === 'yapi-contract-ready' && item.status === 'PENDING'));
+  assert.ok(report.results.some((item) => item.id === 'source-materials-discovered' && item.status === 'PENDING'));
 });
 
 test('pending evidence is never converted into pass by label alone', () => {
-  const report = buildGuardReport(getRecipe('fix'), [{
+  const result = evaluateGuard('arms-fingerprint-ready', [{
     id: 'rum-1',
     source: 'manual',
     artifact_type: 'note',
@@ -18,56 +18,74 @@ test('pending evidence is never converted into pass by label alone', () => {
     guard_results: [{ id: 'arms-fingerprint-ready', status: 'PENDING' }]
   }]);
 
-  assert.ok(report.results.some((item) => item.id === 'arms-fingerprint-ready' && item.status === 'PENDING'));
+  assert.equal(result.status, 'PENDING');
 });
 
-test('real yapi evidence passes yapi guard but not all feature guards', () => {
-  const report = buildGuardReport(getRecipe('feat'), [{
+test('real yapi evidence passes yapi guard', () => {
+  const result = evaluateGuard('yapi-contract-ready', [{
     id: 'api-1',
     source: '$yapi',
     artifact_type: 'yapi_contract',
     summary: '列表接口字段已拉取'
   }]);
 
-  assert.ok(report.results.some((item) => item.id === 'yapi-contract-ready' && item.status === 'PASS'));
-  assert.equal(report.status, 'PENDING');
+  assert.equal(result.status, 'PASS');
 });
 
-test('feature evidence can require api design and tests together', () => {
-  const report = buildGuardReport(getRecipe('feat'), [
-    { id: 'scope', source: 'manual', artifact_type: 'project_scope', summary: '列表页范围已确认。' },
-    { id: 'api', source: '$yapi', artifact_type: 'yapi_contract', summary: '接口字段已拉取。' },
-    { id: 'design', source: 'mastergo', artifact_type: 'design_reference', summary: '设计稿已确认。' },
-    { id: 'test', source: 'manual', artifact_type: 'test_plan', summary: '验证方式已明确。' },
+test('feature evidence can require api design and tests together via shared guards', () => {
+  const scope = evaluateGuard('scope-confirmed', [
+    { id: 'scope', source: 'manual', artifact_type: 'project_scope', summary: '列表页范围已确认。' }
+  ]);
+  const design = evaluateGuard('design-reference-ready', [
+    { id: 'design', source: 'mastergo', artifact_type: 'design_reference', summary: '设计稿已确认。' }
+  ]);
+  const tests = evaluateGuard('tests-planned', [
+    { id: 'test', source: 'manual', artifact_type: 'test_plan', summary: '验证方式已明确。' }
+  ]);
+  const delivery = evaluateGuard('delivery-recorded', [
     { id: 'record', source: '$sd-zentao-cli', artifact_type: 'delivery_record', summary: '交付记录已同步。' }
   ]);
 
-  assert.ok(report.results.some((item) => item.id === 'design-reference-ready' && item.status === 'PASS'));
-  assert.equal(report.status, 'PASS');
+  assert.equal(scope.status, 'PASS');
+  assert.equal(design.status, 'PASS');
+  assert.equal(tests.status, 'PASS');
+  assert.equal(delivery.status, 'PASS');
 });
 
-test('fix evidence requires arms root cause and tests', () => {
-  const report = buildGuardReport(getRecipe('fix'), [
-    { id: 'arms', source: '$arms-fix', artifact_type: 'arms_sls', summary: 'ARMS 指纹已确认。' },
-    { id: 'root', source: 'manual', artifact_type: 'root_cause', summary: '根因已定位。' },
+test('fix evidence requires arms root cause and tests via shared guards', () => {
+  const arms = evaluateGuard('arms-fingerprint-ready', [
+    { id: 'arms', source: '$arms-fix', artifact_type: 'arms_sls', summary: 'ARMS 指纹已确认。' }
+  ]);
+  const root = evaluateGuard('root-cause-localized', [
+    { id: 'root', source: 'manual', artifact_type: 'root_cause', summary: '根因已定位。' }
+  ]);
+  const tests = evaluateGuard('tests-planned', [
     { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '复现路径已验证。' }
   ]);
 
-  assert.equal(report.status, 'PASS');
+  assert.equal(arms.status, 'PASS');
+  assert.equal(root.status, 'PASS');
+  assert.equal(tests.status, 'PASS');
 });
 
 test('knowledge and review evidence keep source traceability', () => {
-  const knowhow = buildGuardReport(getRecipe('knowhow'), [
-    { id: 'target', source: 'manual', artifact_type: 'knowledge_target', summary: '沉淀目标明确。' },
+  const knowledge = evaluateGuard('knowledge-target-clear', [
+    { id: 'target', source: 'manual', artifact_type: 'knowledge_target', summary: '沉淀目标明确。' }
+  ]);
+  const trace = evaluateGuard('traceability-ready', [
     { id: 'dialogue', source: 'codex', artifact_type: 'dialogue_summary', summary: '对话来源已记录。' }
   ]);
-  const review = buildGuardReport(getRecipe('review'), [
-    { id: 'diff', source: 'git', artifact_type: 'diff', summary: 'diff 已审查。' },
+  const diff = evaluateGuard('diff-reviewed', [
+    { id: 'diff', source: 'git', artifact_type: 'diff', summary: 'diff 已审查。' }
+  ]);
+  const tests = evaluateGuard('tests-planned', [
     { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '验证结果已记录。' }
   ]);
 
-  assert.equal(knowhow.status, 'PASS');
-  assert.equal(review.status, 'PASS');
+  assert.equal(knowledge.status, 'PASS');
+  assert.equal(trace.status, 'PASS');
+  assert.equal(diff.status, 'PASS');
+  assert.equal(tests.status, 'PASS');
 });
 
 test('delivery does not require fixed input parameters', () => {

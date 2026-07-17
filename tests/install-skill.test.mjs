@@ -26,14 +26,19 @@ test('published package includes Codex skills and agent profiles', () => {
 });
 
 test('jj-same docs describe the complete handoff lifecycle', () => {
-  const usage = fs.readFileSync(new URL('../docs/usage.md', import.meta.url), 'utf8');
-  const commands = fs.readFileSync(new URL('../docs/commands.md', import.meta.url), 'utf8');
+  const sameDocs = fs.readFileSync(new URL('../docs/commands/jj-same.md', import.meta.url), 'utf8');
 
-  for (const marker of ['Handoff 标准调用流程', '准备交接', '开始迁移', '更新交接', 'parent_snapshot']) {
-    assert.match(usage, new RegExp(marker));
-  }
-  for (const marker of ['Handoff 标准步骤', 'REUSE', 'REFRESH_SOURCES', 'REBASELINE', 'BLOCKED']) {
-    assert.match(commands, new RegExp(marker));
+  for (const marker of [
+    '准备交接',
+    '开始迁移',
+    '更新交接',
+    'parent_snapshot',
+    'REUSE',
+    'REFRESH_SOURCES',
+    'REBASELINE',
+    'BLOCKED'
+  ]) {
+    assert.match(sameDocs, new RegExp(marker));
   }
 });
 
@@ -153,10 +158,13 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /origin_project/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /reference_implementation/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不得继续用补齐 `.workflow`/);
-  for (const skill of ['jj-delivery', 'jj-feat', 'jj-fix']) {
+  for (const skill of ['jj-delivery']) {
     const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
     assert.match(content, /\$jj-same/);
     assert.match(content, /分析阶段/);
+    assert.match(content, /maestro explore/);
+    assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);
+    assert.equal(fs.existsSync(path.join(target, 'jj-fix', 'SKILL.md')), false);
   }
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md'), 'utf8'),
@@ -265,10 +273,13 @@ test('installSkill can install Claude slash commands', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTION_READY/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /HANDOFF_READY/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTE_NOW/);
-  for (const command of ['jj-delivery.md', 'jj-feat.md', 'jj-fix.md']) {
+  for (const command of ['jj-delivery.md']) {
     const content = fs.readFileSync(path.join(target, command), 'utf8');
     assert.match(content, /\/jj-same/);
     assert.match(content, /分析阶段/);
+    assert.match(content, /maestro explore/);
+    assert.equal(fs.existsSync(path.join(target, 'jj-feat.md')), false);
+    assert.equal(fs.existsSync(path.join(target, 'jj-fix.md')), false);
   }
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-delivery.md'), 'utf8'), /jj-delivery\s+"/);
 });

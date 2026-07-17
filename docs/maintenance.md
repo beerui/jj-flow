@@ -90,7 +90,7 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 
 长期维护原则：文档站是交付协议的正式表面，不能只靠 README 承载完整说明。
 
-README 只保留项目定位、安装入口和文档链接。命令细节、缩写、术语、使用方案和维护规则都放在文档站源码里维护，避免多处重复更新。
+README 只保留项目定位、安装入口和文档链接。`docs/commands.md` 只负责命令选择；每个命令的参数、完整示例、输出和误区放在 `docs/commands/` 的独立页面中维护。缩写、术语、使用方案和维护规则继续放在文档站源码里，避免多处重复更新。
 
 新增或调整缩写、命令名、工具名时，同步更新 `docs/glossary.md`。不要把缩写说明再复制到 README。
 

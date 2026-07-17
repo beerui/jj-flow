@@ -2,7 +2,7 @@
 
 ## 状态
 
-Accepted for MVP
+Accepted for Beta
 
 ## 背景
 
@@ -21,7 +21,7 @@ Accepted for MVP
 
 控制项目可以是空项目，也可以是一个不承担本轮开发的项目。业务需求正文、源码和目标验证正文继续留在它们的归属项目中，控制平面只保存稳定引用。
 
-首版只做可恢复协议和 Codex App host 适配边界，不把 App thread API 写进 npm CLI，不实现 daemon、数据库、自动 merge/push/release，也不新增 Claude `/jj-dispatch`。`$jj-delivery`、`$jj-fix`、`$jj-same` 继续负责实际交付、修复和同源迁移。
+Beta 只做可恢复协议和 Codex App host 适配边界，不把 App thread API 写进 npm CLI，不实现 daemon、数据库、自动 merge/push/release，也不新增 Claude `/jj-dispatch`。子任务只回报结构化结果，控制项目由主调度器单写；主调度任务关闭后需要显式恢复 delivery。`$jj-delivery`、`$jj-same` 继续负责实际交付、修复和同源迁移。
 
 ## 关键约束
 
