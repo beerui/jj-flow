@@ -67,7 +67,7 @@ export const RECIPES = {
       '复用共享 handoff / BLP/REQ，目标独立做 ANL-TARGET 与实施。',
       '五项门禁：稳健、剃刀、精准、最小化、复用。',
       '禁止使用 maestro explore；没有证据的结论保持 PENDING。',
-      '保持 jj-flow 是 Maestro 上层协议：生成上下文、guard 和调用链，不重写 Maestro 执行引擎。'
+      'jj-flow 是项目族编排工作流：本入口负责迁移协议与证据门禁；可调用 Maestro skill，但不重写其执行引擎。'
     ]
   }
 };

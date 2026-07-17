@@ -1,6 +1,6 @@
 # 使用说明
 
-这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。全部流程禁止调用 `maestro explore`。
+这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 调度），不是 Maestro 适配层。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。全部流程禁止调用 `maestro explore`。
 
 ## 第一次使用
 

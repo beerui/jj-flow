@@ -4,7 +4,7 @@
 
 我们不是缺一个更复杂的 AI 工具，而是缺一套能在真实项目里交付的入口：同一套做法可以让不同模型、不同工具、不同项目尽量产出稳定结果。
 
-所以 `jj-flow` 的核心不是替代 Maestro，而是作为 Maestro 上层的交付编排协议，把项目边界、证据习惯、验收方式放在 Maestro 前面。`jj` 只是一个简单标识，不代表组织或业务品牌。
+所以 `jj-flow` 的核心是 **项目族编排工作流**：把同源迁移、持续同步与多项目调度做成可恢复、有证据门禁的协议。Maestro 等工具可以参与分析与执行，但产品不是「Maestro 适配层」。`jj` 只是命令标识，不代表组织或业务品牌。
 
 ## v0.1 必须做
 
@@ -55,6 +55,9 @@
 | M6 主调度运行时与目标差异决策 | **completed** | P11/P12；验收见 [m6-acceptance.md](milestones/m6-acceptance.html) |
 | M7 真实控制项目试跑与 host 闭环 | pending | P13：PREVIEW→tick→BIND→receipt→resume 与恢复演练 |
 
-## 与 Maestro 的关系
+## 与外部工具的关系
 
-Maestro 是通用编排器，`jj-flow` 是项目交付协议的 adapter。这样 Maestro 升级时，优先维护 `jj-flow` 的 prompt、recipe 和 evidence schema，而不是反复改 Maestro core。
+- **jj-flow**：定义项目族怎么拆任务、怎么 handoff、怎么调度与验收。
+- **Codex / Claude Code**：对话与执行宿主。
+- **Maestro（可选）**：分析、计划、审查等 skill 可被调用；不 fork、不重写其 core。
+- **控制面事实**：manifest、Git、VRF/REV、sandbox attestation，优先于聊天「完成」。

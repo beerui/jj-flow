@@ -1,7 +1,7 @@
 {
   "name": "@shendu-sdt/jj-flow",
   "version": "0.1.1-beta.14",
-  "description": "jj-flow project-family migration and dispatch adapter for Maestro.",
+  "description": "Project-family orchestration workflow: cross-repo migration (same) and multi-project dispatch.",
   "type": "module",
   "repository": {
     "type": "git",
@@ -32,10 +32,12 @@
     "verify": "npm test && npm run check && npm run docs:check"
   },
   "keywords": [
-    "maestro",
-    "codex",
+    "project-family",
+    "orchestration",
     "workflow",
-    "ai-delivery"
+    "codex",
+    "dispatch",
+    "migration"
   ],
   "author": "jj-flow",
   "license": "MIT",

@@ -129,7 +129,7 @@ ${links}
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="index.html">jj-flow</a>
-      <p>Maestro 上层的交付编排协议</p>
+      <p>项目族编排工作流 · same / dispatch</p>
     </div>
   </header>
   <main class="page-shell">

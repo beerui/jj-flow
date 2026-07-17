@@ -1,6 +1,6 @@
 ---
 name: jj
-description: 兼容入口；当用户使用 $jj、/jj 或泛称 jj-flow 时触发，并路由到 jj-same、jj-dispatch 等原生命令。
+description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $jj / /jj 转到 jj-same 或 jj-dispatch。
 ---
 
 # jj

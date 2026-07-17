@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- 产品定位调整：`jj-flow` 定位为 **项目族编排工作流**（same / dispatch），不再以「Maestro 适配层」为对外简介；Maestro 为可选执行工具。同步 README、架构、规划、AGENTS、package 描述与文档站标语。
+
 ## 0.1.1-beta.14
 
 - 加固 `$jj-dispatch` 运行时：resume 重放 `PENDING_THREAD` 的 `CREATE_THREAD` actions；目标差异决策按项目独立门禁；receipt `attempt` 与 `task_key`/intent 绑定；`persistPlaneCas` 真 CAS 写回。

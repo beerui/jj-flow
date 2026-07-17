@@ -5,7 +5,7 @@
 ## 项目标识
 
 - `jj`：简单命令标识，不代表组织或业务品牌。
-- `jj-flow`：给 Codex 和 Claude Code 用的项目族入口，负责同源迁移与多项目调度边界。
+- `jj-flow`：项目族编排工作流。在 Codex / Claude Code 中提供同源迁移（same）与多项目调度（dispatch）；Maestro 等是可选执行工具，不是产品定义中心。
 - `$jj-*`：Codex 内触发 `.codex/skills/jj-*/SKILL.md` 的缩写命令前缀，主推连字符写法。
 - `/jj-*`：Claude Code 内触发 `.claude/commands/jj-*.md` 的 slash command 前缀，主推连字符写法。
 - `$jj` / `/jj`：兼容入口，默认路由到 same。

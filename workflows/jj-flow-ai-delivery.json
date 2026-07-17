@@ -1,7 +1,7 @@
 {
   "name": "jj-flow-ai-delivery",
   "version": "0.2.0",
-  "description": "jj-flow project-family recipes: same migration and dispatch control plane.",
+  "description": "jj-flow project-family orchestration workflow: same migration and dispatch control plane.",
   "entrypoint": "jj same",
   "modes": {
     "same": {

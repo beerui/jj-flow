@@ -111,7 +111,7 @@ export function makeProjectFixture() {
   writeText(path.join(root, '.workflow/project.md'), '- REQ-A1：fixture requirement\n');
 
   for (const file of DOC_FILES) {
-    writeText(path.join(root, file), `${MODES_TEXT}\nMaestro 上层\n不 fork Maestro core\n不把 /jj-* 做成重型编排引擎\n不重复\n上层协议\n安装 你需要给什么 使用方案 你会得到什么\n`);
+    writeText(path.join(root, file), `${MODES_TEXT}\n项目族编排\n不 fork Maestro core\n不把 /jj-* 做成重型编排引擎\n可选\n安装 你需要给什么 使用方案 你会得到什么\n`);
   }
 
   for (const file of SOURCE_FILES) {

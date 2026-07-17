@@ -426,7 +426,7 @@ function auditCriterion(cwd, criterion) {
     return auditFilesContain(cwd, [
       'docs/architecture.md',
       'docs/adr/0001-thin-maestro-adapter.md'
-    ], ['Maestro 上层', '不 fork Maestro core', '不把 /jj-* 做成重型编排引擎']);
+    ], ['项目族编排', '不 fork Maestro core', '不把 /jj-* 做成重型编排引擎']);
   }
 
   if (criterion.includes('CLI 模式') && criterion.includes('recipe 契约')) {
@@ -460,7 +460,7 @@ function auditCriterion(cwd, criterion) {
       'docs/architecture.md',
       'docs/project-plan.md',
       'docs/adr/0001-thin-maestro-adapter.md'
-    ], ['不 fork Maestro core', '不重复', '上层协议']);
+    ], ['不 fork Maestro core', '项目族编排', '可选']);
   }
 
   if (criterion.includes('npm run verify') && criterion.includes('schema 检查')) {
@@ -608,7 +608,7 @@ function auditCriterion(cwd, criterion) {
     return auditFilesContain(cwd, [
       'docs/architecture.md',
       'src/maestroExecution.mjs'
-    ], ['执行决策不是执行引擎', '不在 jj-flow 内重写 Maestro 编排', 'maestro_calls']);
+    ], ['项目族编排', '不 fork Maestro core', 'maestro_calls']);
   }
 
   if (criterion.includes('完成的交付') && criterion.includes('knowhow、spec 或 workflow recipe')) {
