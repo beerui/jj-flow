@@ -591,7 +591,8 @@ export function approveDispatch(plane, { deliveryId, decisionRef, approvedAt = n
 export function dispatchTasks(plane, deliveryId, {
   capabilities = [],
   now = new Date().toISOString(),
-  hostId = null
+  hostId = null,
+  eligibleProjects = null
 } = {}) {
   if (!isDateTime(now)) throw new Error('dispatch now must be a date-time');
   if (hostId !== null && (typeof hostId !== 'string' || !hostId)) {
@@ -661,10 +662,23 @@ export function dispatchTasks(plane, deliveryId, {
   // covers writers created earlier in this same dispatch wave.
   const waveWriters = new Set();
 
+  const eligible = eligibleProjects == null
+    ? null
+    : eligibleProjects instanceof Set
+      ? eligibleProjects
+      : new Set(eligibleProjects);
+
   for (const task of plans) {
     const prior = existing.get(task.task_key);
     if (prior) {
       reused.push(prior);
+      continue;
+    }
+    if (eligible && !eligible.has(task.project_id)) {
+      deferred.push({
+        ...task,
+        blocked_by: [`target-analysis:${task.project_id}`]
+      });
       continue;
     }
     const responsibility = findResponsibility(nextDelivery, task.project_id, task.responsibility);

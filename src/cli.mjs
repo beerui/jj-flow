@@ -8,7 +8,7 @@ import {
   projectCodexTarget
 } from './installSkill.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
-import { tickDispatch } from './dispatchRuntime.mjs';
+import { persistPlaneCas, tickDispatch } from './dispatchRuntime.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -109,22 +109,31 @@ function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
     const value = JSON.parse(fs.readFileSync(file, 'utf8'));
     return Array.isArray(value) ? value : [value];
   });
-  const result = tickDispatch(plane, {
+  const expectedRevision = options.expectedRevision === null ? plane.revision : options.expectedRevision;
+  let result = tickDispatch(plane, {
     deliveryId: options.deliveryId,
-    expectedRevision: options.expectedRevision === null ? plane.revision : options.expectedRevision,
+    expectedRevision,
     receipts,
-    capabilities: options.capabilities,
-    enforceTargetAnalysis: options.enforceTargetAnalysis
+    capabilities: options.capabilities
   });
   if (options.write && result.ok && result.plane.revision !== plane.revision) {
-    const current = JSON.parse(fs.readFileSync(options.manifest, 'utf8'));
-    if (current.revision !== plane.revision) {
-      throw new Error(`manifest revision changed during tick: expected ${plane.revision}, got ${current.revision}`);
+    const cas = persistPlaneCas({
+      manifestPath: options.manifest,
+      expectedRevision,
+      nextPlane: result.plane
+    });
+    if (!cas.ok) {
+      result = {
+        ...result,
+        ok: false,
+        status: cas.status,
+        plane: cas.plane || result.plane,
+        decision_required: cas.decision_required || result.decision_required,
+        persisted: false
+      };
+    } else {
+      result.persisted = Boolean(cas.persisted);
     }
-    const temp = `${options.manifest}.tmp-${process.pid}`;
-    fs.writeFileSync(temp, `${JSON.stringify(result.plane, null, 2)}\n`, 'utf8');
-    fs.renameSync(temp, options.manifest);
-    result.persisted = true;
   } else {
     result.persisted = false;
   }
@@ -141,7 +150,6 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     expectedRevision: null,
     receipts: [],
     capabilities: [],
-    enforceTargetAnalysis: true,
     write: false,
     json: false
   };
@@ -152,7 +160,9 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     else if (arg === '--expected-revision') options.expectedRevision = Number(rest.shift());
     else if (arg === '--receipt') options.receipts.push(rest.shift());
     else if (arg === '--capabilities') options.capabilities = (rest.shift() || '').split(',').filter(Boolean);
-    else if (arg === '--no-target-analysis') options.enforceTargetAnalysis = false;
+    else if (arg === '--no-target-analysis') {
+      throw new Error('--no-target-analysis 已移除：目标 ANL-TARGET 差异决策不可绕过');
+    }
     else if (arg === '--write') options.write = true;
     else if (arg === '--json') options.json = true;
     else throw new Error(`Unknown dispatch-tick option: ${arg}`);

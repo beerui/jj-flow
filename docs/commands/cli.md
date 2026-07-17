@@ -37,10 +37,18 @@ jj-flow [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
 
 ```text
 jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
-jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]
+jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
+  [--expected-revision N] [--receipt receipt.json] [--capabilities a,b,c] [--write] [--json]
 ```
 
-注意：`--delivery` 是控制面 `delivery_id`，不是已移除的 `$jj-delivery` 入口。
+注意：
+
+- `--delivery` 是控制面 `delivery_id`，不是已移除的 `$jj-delivery` 入口。
+- `dispatch-tick` 是单次 tick/resume：消费结构化 receipt、按 `expected_revision` 做 revision CAS，输出 `actions` / `decision_required` / `next_wait`。
+- `--write` 使用文件级 CAS 写回；若磁盘 revision 已变化，返回 `REVISION_CONFLICT` 且不覆盖。
+- 目标 `ANL-TARGET` 差异决策不可绕过（已移除 `--no-target-analysis`）。
+- 未批准差异的目标会进入 `decision_required`，但**不会**阻塞其它已就绪目标的派发。
+- 恢复时会对仍为 `PENDING_THREAD` 的 intent 重新输出 `CREATE_THREAD` actions，避免中断后丢动作。
 
 ## 参数
 

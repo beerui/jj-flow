@@ -159,6 +159,22 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 - 把 `$jj-dispatch` 当成同步实现器或常驻 daemon。具体迁移交给 `$jj-same`，主调度关闭后需要显式恢复。
 - 在 Claude Code 中尝试 `/jj-dispatch`。首版只支持 Codex `$jj-dispatch`。
 
+## 单次 tick / resume
+
+主调度关闭后不靠 daemon 自动推进，只做可恢复单次 tick：
+
+```text
+jj dispatch-tick --manifest control-plane.json --delivery DEL-001 \
+  --expected-revision <current> --receipt receipt.json --write --json
+```
+
+行为约定：
+
+- `expected_revision` 与磁盘 revision 不一致时返回 `REVISION_CONFLICT`，不写回。
+- 仍为 `PENDING_THREAD` 的 intent 会再次输出 `CREATE_THREAD`，避免恢复丢 action。
+- receipt 的 `attempt` 必须匹配 `task_key` 与 intent。
+- 某目标缺 `ANL-TARGET` 时只阻塞该目标，其它已批准就绪目标可继续派发。
+
 ## 相关命令
 
 - [`jj-same`](command-jj-same.html)：执行具体同源迁移、差异适配和同步检查点。

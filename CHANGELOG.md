@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- 加固 `$jj-dispatch` 运行时：resume 重放 `PENDING_THREAD` 的 `CREATE_THREAD` actions；目标差异决策按项目独立门禁；receipt `attempt` 与 `task_key`/intent 绑定；`persistPlaneCas` 真 CAS 写回。
+- 移除 `dispatch-tick --no-target-analysis`；目标 ANL-TARGET 不可绕过。
+
 ## 0.1.1-beta.13
 
 - **Breaking**：移除 `jj-delivery` / `jj-validate` / `jj-evolve` 原生命令、recipe 与文档入口。
