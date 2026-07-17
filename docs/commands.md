@@ -4,24 +4,30 @@
 
 ## 不确定用哪个
 
-默认使用 [$jj-delivery](command-jj-delivery.html)。它覆盖完整交付、明确功能、线上最小修复、交付前审查，以及类型尚不清晰但需要推进的请求。
+默认使用 [$jj-same](command-jj-same.html)。它覆盖同源迁移、handoff 交接与持续同步。
 
 如果你希望使用兼容入口，也可以使用 [$jj](command-jj.html)。它只负责把需求路由到合适的原生命令。
-
-## 交付与开发
-
-- [$jj-delivery](command-jj-delivery.html)：默认的完整交付入口，覆盖端到端交付、边界明确的功能开发、线上问题最小修复，以及 diff/风险审查。
 
 ## 协作与迁移
 
 - [$jj-same](command-jj-same.html)：把同一个功能、修复或需求调整迁移到同源项目，或按 `sync_key` 持续同步增量。
 - [$jj-dispatch](command-jj-dispatch.html)：在独立控制项目中预览、批准、绑定和恢复多项目任务；首版仅支持 Codex。
 
-## 维护 jj-flow
+## 维护与自动化
 
-- [$jj-validate](command-jj-validate.html)：检查项目状态、文档与代码漂移、测试、路线图和证据门禁。
-- [$jj-evolve](command-jj-evolve.html)：把 validate 结果和用户反馈转成 correction backlog、升级计划和验证要求。
-- [CLI 调度与自动化](command-cli.html)：通过 `jj` 或 `jj-flow` 生成 Markdown/JSON dispatch，适合维护、调试和自动化脚本。
+- [CLI 调度与自动化](command-cli.html)：通过 `jj` 或 `jj-flow` 安装资产，以及 `dispatch-tick` 做一次可恢复调度预览/写回。
+- 维护 jj-flow 自身：直接改仓库并运行 `npm run verify`；已移除 `$jj-validate` / `$jj-evolve` 对话入口。
+
+## 已移除入口
+
+以下入口不再提供，请勿安装或调用：
+
+- `$jj-delivery` / `/jj-delivery`
+- `$jj-validate` / `/jj-validate`
+- `$jj-evolve` / `/jj-evolve`
+- 以及更早的 `$jj-feat` / `$jj-fix` / `$jj-knowhow` / `$jj-auto` / `$jj-review`
+
+控制平面里的 `delivery_id` **不是** `$jj-delivery` 入口，而是多项目调度任务的稳定身份。
 
 ## 通用输入模板
 
@@ -30,7 +36,7 @@
 ```text
 $jj-<命令>
 目标：要完成什么。
-资料：PRD、YApi、设计图、日志、diff、线程或文件路径。
+资料：会话、PRD、YApi、设计图、日志、diff、handoff 或文件路径。
 范围：本次做什么，不做什么。
 关键决策：已经由用户拍板的取舍。
 验收：什么结果算完成。
@@ -39,11 +45,11 @@ $jj-<命令>
 例如：
 
 ```text
-$jj-delivery
-目标：完成 AI 获客列表和详情。
-资料：PRD 在 docs/v17.1，接口看 YApi，设计图来自 MasterGo。
-范围：本期不做导出。
-验收：页面还原设计，接口字段真实，聚焦测试和 quality-review 通过。
+$jj-same
+会话=019f...
+当前需求=保留密码入口
+源=承接前台
+目标=兑接前台,承载前台
 ```
 
 ## 平台差异
@@ -51,8 +57,8 @@ $jj-delivery
 Codex 使用 `$jj-*`，Claude Code 使用 `/jj-*`。例如：
 
 ```text
-$jj-delivery 定位登录页 1027 重复提示并做最小修复
-/jj-delivery 定位登录页 1027 重复提示并做最小修复
+$jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
+/jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 ```
 
 `$jj-dispatch` 依赖 Codex App 的 task、thread 和 worktree 能力，当前没有对应的 `/jj-dispatch`。
@@ -79,4 +85,4 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run --json
 
 ## 下一步
 
-第一次使用建议先读 [使用说明](usage.html)，然后从 [$jj-delivery](command-jj-delivery.html) 开始。
+第一次使用建议先读 [使用说明](usage.html)，然后从 [$jj-same](command-jj-same.html) 开始。

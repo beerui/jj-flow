@@ -9,14 +9,13 @@
 ## v0.1 必须做
 
 - 独立项目，不放在文档站里。
-- 提供 Codex 内 `$jj-delivery`，以及 Claude Code 内 `/jj-delivery`，其中 delivery 是少参数端到端交付入口，并覆盖明确功能、线上最小修复、交付前审查与不确定意图。
-- 提供 `$jj-validate` 作为项目管理者自检入口，检查状态漂移并给出下一步升级建议。
-- 提供 `$jj-evolve` 作为项目自身迭代入口，把自检结果转换成 correction backlog、升级计划和 Maestro 调用链。
+- 提供 Codex 内 `$jj-same` 与 Claude Code 内 `/jj-same` 作为同源迁移/持续同步入口。
+- 提供 Codex 内 `$jj-dispatch` 作为项目族控制平面调度入口。
 - 文档站必须包含安装方式、命令参数、使用方案和维护说明，而不只是入口菜单。
 - 输出 Maestro 调用链、prompt、evidence checklist、guard 状态。
-- 把 `$yapi`、`$arms-fix`、`$sd-zentao-cli` 放进真实流程位置。
 - 用测试保证路由和 guard 不会把缺证据的内容误写成 PASS。
 - 建好 GitHub CI、GitHub Pages、Release Please、Dependabot、Changelog 基础设施。
+- 已收敛：移除 `jj-delivery` / `jj-validate` / `jj-evolve`；维护本仓使用 `npm run verify`。
 
 ## 暂时不做
 

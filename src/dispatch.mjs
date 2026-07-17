@@ -27,9 +27,9 @@ export function routeIntent(intent = '') {
   const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const [mode, score] = ranked[0];
   return {
-    mode: score > 0 ? mode : 'delivery',
+    mode: score > 0 ? mode : 'same',
     scores,
-    reason: score > 0 ? `命中 ${mode} 关键词。` : '没有明显关键词，默认按端到端交付处理。'
+    reason: score > 0 ? `命中 ${mode} 关键词。` : '没有明显关键词，默认按同源迁移 / 持续同步处理。'
   };
 }
 

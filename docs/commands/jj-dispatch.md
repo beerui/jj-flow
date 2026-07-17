@@ -14,8 +14,6 @@
 
 ## 何时不用
 
-- 单项目完整交付使用 [`jj-delivery`](command-jj-delivery.html)。
-- 单个业务交付、明确功能或线上问题使用 [`jj-delivery`](command-jj-delivery.html)。
 - 同源项目的具体差异分析、迁移实现和同步检查点使用 [`jj-same`](command-jj-same.html)。
 - 不需要创建 Codex task，只想手工维护一份计划时，不必引入控制项目。
 - Codex App 缺少 project/thread/worktree 或 runtime sandbox 证明时，只能停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目、无 worktree 的任务。
@@ -164,7 +162,4 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 ## 相关命令
 
 - [`jj-same`](command-jj-same.html)：执行具体同源迁移、差异适配和同步检查点。
-- [`jj-delivery`](command-jj-delivery.html)：承担完整需求交付。
-- [`jj-delivery`](command-jj-delivery.html)：承担交付、明确功能与真实 bug 的定位修复。
-- [`jj-delivery`](command-jj-delivery.html)：在目标项目内提供质量审查和可追溯 findings（经 `$quality-review`）。
-- [`jj` CLI](command-cli.html)：生成本地调度建议，不替代 Codex App 的 project task 调度。
+- [`jj` CLI](command-cli.html)：`dispatch-tick` 与本地调度建议，不替代 Codex App 的 project task 调度。

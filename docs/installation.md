@@ -4,11 +4,10 @@
 
 安装完成后：
 
-- Codex 识别 `$jj-delivery`、`$jj-validate`、`$jj-evolve` 等 skills。
 - Codex 识别 `$jj-same`，用于同源项目间迁移功能、修复和需求变更。
 - Codex 识别 `$jj-dispatch`，用于独立控制项目中的多项目任务调度。
-- Claude Code 识别 `/jj-delivery`、`/jj-validate`、`/jj-evolve` 等 slash commands。
-- Claude Code 识别 `/jj-same`。
+- Codex 识别兼容入口 `$jj`。
+- Claude Code 识别 `/jj-same` 与兼容入口 `/jj`。
 
 `$jj-dispatch` 首版只提供 Codex skill，不安装对应的 Claude `/jj-dispatch`。它需要 Codex App host 提供 project、thread 和 worktree capability；缺少能力时只输出预览或阻塞状态。
 
@@ -99,19 +98,13 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run
 如果安装命令不可用，可以手动复制 npm 包或仓库中的原生资产：
 
 ```text
-Codex 源目录：.codex/skills/jj-delivery
-Codex 目标目录：~/.codex/skills/jj-delivery
-Codex 迁移源目录：.codex/skills/jj-same
-Codex 迁移目标目录：~/.codex/skills/jj-same
-Codex 调度源目录：.codex/skills/jj-dispatch
-Codex 调度目标目录：~/.codex/skills/jj-dispatch
+Codex 技能源目录：.codex/skills/（jj、jj-same、jj-dispatch）
+Codex 技能目标目录：~/.codex/skills/
 Codex agent 源目录：.codex/agents
 Codex agent 目标目录：~/.codex/agents
 
-Claude 源文件：.claude/commands/jj-delivery.md
-Claude 目标文件：~/.claude/commands/jj-delivery.md
-Claude 迁移源文件：.claude/commands/jj-same.md
-Claude 迁移目标文件：~/.claude/commands/jj-same.md
+Claude 命令源目录：.claude/commands/（jj.md、jj-same.md）
+Claude 命令目标目录：~/.claude/commands/
 ```
 
 手动安装只作为排障备选；正常路径优先使用 `npx @shendu-sdt/jj-flow@beta install-skill`。
@@ -121,13 +114,13 @@ Claude 迁移目标文件：~/.claude/commands/jj-same.md
 在 Codex 新对话里输入：
 
 ```text
-$jj-delivery 测试安装是否生效
+$jj-same 测试安装是否生效
 ```
 
 在 Claude Code 里输入：
 
 ```text
-/jj-delivery 测试安装是否生效
+/jj-same 测试安装是否生效
 ```
 
 测试跨项目迁移入口：
@@ -152,18 +145,18 @@ $jj-dispatch PREVIEW origin=B lead=C targets=A,B
 
 ## 常见问题
 
-### Codex 没有识别 `$jj-delivery`
+### Codex 没有识别 `$jj-same`
 
-检查 `~/.codex/skills/jj-delivery/SKILL.md` 是否存在，且文件开头包含 `name: jj-delivery` 的 frontmatter。若文件存在但仍无法识别，重新打开 Codex 对话，或确认当前 Codex 配置允许加载本地 skills。
+检查 `~/.codex/skills/jj-same/SKILL.md` 是否存在，且文件开头包含 `name: jj-same` 的 frontmatter。若文件存在但仍无法识别，重新打开 Codex 对话，或确认当前 Codex 配置允许加载本地 skills。
 
 ### Codex 调度任务没有使用配套角色
 
 检查 `~/.codex/agents/jj-workflow-reviewer.toml` 和 `jj-workflow-developer.toml` 是否存在。Reviewer 配置必须保留 `sandbox_mode = "read-only"`；使用 `--force` 可以把本地旧版本更新为包内版本。
 
-### Claude Code 没有识别 `/jj-delivery`
+### Claude Code 没有识别 `/jj-same`
 
-检查 `~/.claude/commands/jj-delivery.md` 是否存在，且文件开头包含 `name: jj-delivery` 的 frontmatter。若文件存在但仍无法识别，重新打开 Claude Code。
+检查 `~/.claude/commands/jj-same.md` 是否存在，且文件开头包含 `name: jj-same` 的 frontmatter。若文件存在但仍无法识别，重新打开 Claude Code。
 
 ### 为什么还保留 `jj` CLI
 
-`jj` CLI 只做安装和维护调试，例如生成结构化调度结果、跑项目自检测试。普通交付不要在终端运行 `jj-delivery`；应该在 Codex 中使用 `$jj-delivery`，或在 Claude Code 中使用 `/jj-delivery`。
+`jj` CLI 只做安装和维护调试，例如生成结构化调度结果、跑项目自检测试。普通交付不要在终端运行 `jj-same`；应该在 Codex 中使用 `$jj-same`，或在 Claude Code 中使用 `/jj-same`。

@@ -7,8 +7,6 @@ import {
   projectCodexAgentsTarget,
   projectCodexTarget
 } from './installSkill.mjs';
-import { buildProjectEvolutionEvidence } from './projectEvolution.mjs';
-import { buildProjectValidationEvidence } from './projectValidation.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
 import { tickDispatch } from './dispatchRuntime.mjs';
 
@@ -29,17 +27,6 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
   }
 
   const options = parseArgs(args, cwd, { defaultMode: 'auto' });
-  if (shouldAttachProjectEvolutionEvidence(options)) {
-    options.evidence = [
-      ...buildProjectEvolutionEvidence({ cwd: options.cwd, intent: options.intent }),
-      ...options.evidence
-    ];
-  } else if (shouldAttachProjectValidationEvidence(options)) {
-    options.evidence = [
-      ...buildProjectValidationEvidence({ cwd: options.cwd }),
-      ...options.evidence
-    ];
-  }
   const dispatch = buildDispatch(options);
 
   if (options.json) {
@@ -83,17 +70,6 @@ export function parseArgs(rawArgs, defaultCwd = process.cwd(), { defaultMode = '
   }
 
   return { mode, intent: words.join(' ').trim(), evidence, cwd, json };
-}
-
-function shouldAttachProjectValidationEvidence(options) {
-  if (options.evidence.length) return false;
-  if (options.mode === 'validate') return true;
-  return /(^|\s)(validate|自检|项目状态|漂移|升级建议|路线图|roadmap)(\s|$)/i.test(options.intent);
-}
-
-function shouldAttachProjectEvolutionEvidence(options) {
-  if (options.mode === 'evolve') return true;
-  return /(^|\s)(evolve|自我进化|迭代|升级项目|项目管理者|管理者|自我纠正|长期规划|correction|backlog)(\s|$)/i.test(options.intent);
 }
 
 function readEvidence(file) {
@@ -247,7 +223,7 @@ function parseInstallArgs(rawArgs, cwd = process.cwd()) {
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口在 Codex 里是 $jj-delivery，在 Claude Code 里是 /jj-delivery。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-dispatch（Codex）与 /jj-same（Claude Code）。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
 }
 
 function printInstallHelp(stdout) {

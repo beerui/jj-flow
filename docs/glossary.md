@@ -1,23 +1,22 @@
 # 术语与缩写
 
-这页解释文档里常见的命令名、缩写和项目术语。第一次使用只需要知道 `$jj-delivery` 或 `/jj-delivery`。
+这页解释文档里常见的命令名、缩写和项目术语。第一次使用只需要知道 `$jj-same` 或 `/jj-same`。
 
 ## 项目标识
 
 - `jj`：简单命令标识，不代表组织或业务品牌。
-- `jj-flow`：给 Codex 和 Claude Code 用的交付入口，负责先整理需求、资料、边界和验证要求，再推进实现。
+- `jj-flow`：给 Codex 和 Claude Code 用的项目族入口，负责同源迁移与多项目调度边界。
 - `$jj-*`：Codex 内触发 `.codex/skills/jj-*/SKILL.md` 的缩写命令前缀，主推连字符写法。
 - `/jj-*`：Claude Code 内触发 `.claude/commands/jj-*.md` 的 slash command 前缀，主推连字符写法。
-- `$jj` / `/jj`：兼容旧写法的入口，不再作为文档主推命令。
+- `$jj` / `/jj`：兼容入口，默认路由到 same。
 - `jj` CLI：仓库内安装、维护和调试命令，不是普通交付主入口。
 
 ## `jj-*` 缩写命令
 
-- `$jj-delivery` / `/jj-delivery`：端到端交付入口。覆盖完整交付、边界明确的功能开发、线上问题最小修复、交付前 diff/风险审查，以及类型尚不清晰的默认推进。
-- `$jj-validate` / `/jj-validate`：项目管理者自检入口。用于检查文档、规则、测试、workflow 和路线图漂移。
-- `$jj-evolve` / `/jj-evolve`：项目自身迭代入口。用于把自检结果转换成修正清单和升级计划。
-- `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit 或 diff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
+- `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit、diff 或 handoff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
 - `$jj-dispatch`：Codex 控制项目中的多项目调度入口。用于预览、批准、派发、恢复和汇总多个固定项目任务；首版没有对应的 Claude `/jj-dispatch`。
+- 已移除：`$jj-delivery`、`$jj-validate`、`$jj-evolve` 以及更早的 feat/fix/knowhow/auto/review 入口。
+- `delivery_id`：控制平面里一次跨项目交付任务的稳定身份，**不是** `$jj-delivery` 对话入口。
 - `Handoff snapshot`：源 `ANL-SOURCE` 内的不可变迁移交接清单。它引用正式 `BLP/REQ`，记录来源指纹、源 commit、coverage、未解决项和验证门禁；多个目标复用同一 snapshot，但仍分别验证目标源码并生成 `ANL-TARGET`。
 
 ## 交付协议术语

@@ -1,7 +1,7 @@
 {
   "name": "@shendu-sdt/jj-flow",
-  "version": "0.1.1-beta.12",
-  "description": "jj-flow project-level AI delivery workflow adapter for Maestro.",
+  "version": "0.1.1-beta.13",
+  "description": "jj-flow project-family migration and dispatch adapter for Maestro.",
   "type": "module",
   "repository": {
     "type": "git",

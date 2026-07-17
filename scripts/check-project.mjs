@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -21,7 +22,6 @@ const requiredFiles = [
   'src/knowledgeLoop.mjs',
   'src/maestroCompatibility.mjs',
   'src/maestroExecution.mjs',
-  'src/projectEvolution.mjs',
   'src/dispatchControlPlane.mjs',
   'src/projectValidation.mjs',
   'scripts/build-docs.mjs',
@@ -34,14 +34,10 @@ const requiredFiles = [
   'tests/maestro-execution.test.mjs',
   'tests/evidence-providers.test.mjs',
   'tests/fixtures/evidence-providers.json',
-  'tests/project-evolution.test.mjs',
   'tests/project-validation.test.mjs',
   'tests/jj-dispatch-contract.test.mjs',
   'tests/fixtures/jj-dispatch-control-plane.json',
   '.codex/skills/jj/SKILL.md',
-  '.codex/skills/jj-delivery/SKILL.md',
-  '.codex/skills/jj-validate/SKILL.md',
-  '.codex/skills/jj-evolve/SKILL.md',
   '.codex/skills/jj-same/SKILL.md',
   '.codex/skills/jj-dispatch/SKILL.md',
   '.codex/skills/jj-dispatch/agents/openai.yaml',
@@ -59,9 +55,6 @@ const requiredFiles = [
   '.codex/skills/jj-same/scripts/collect-port-evidence.ps1',
   '.codex/skills/jj-same/scripts/extract_session_evidence.py',
   '.claude/commands/jj.md',
-  '.claude/commands/jj-delivery.md',
-  '.claude/commands/jj-validate.md',
-  '.claude/commands/jj-evolve.md',
   '.claude/commands/jj-same.md',
   'workflows/jj-flow-ai-delivery.json',
   'examples/project-family-control/README.md',
@@ -73,11 +66,8 @@ const requiredFiles = [
   'docs/adr/0002-project-family-control-plane.md',
   'docs/commands.md',
   'docs/commands/jj.md',
-  'docs/commands/jj-delivery.md',
   'docs/commands/jj-same.md',
   'docs/commands/jj-dispatch.md',
-  'docs/commands/jj-validate.md',
-  'docs/commands/jj-evolve.md',
   'docs/commands/cli.md',
   'docs/glossary.md',
   'docs/usage.md',
@@ -85,9 +75,28 @@ const requiredFiles = [
   'docs/maintenance.md'
 ];
 
+const forbiddenFiles = [
+  '.codex/skills/jj-delivery/SKILL.md',
+  '.codex/skills/jj-validate/SKILL.md',
+  '.codex/skills/jj-evolve/SKILL.md',
+  '.claude/commands/jj-delivery.md',
+  '.claude/commands/jj-validate.md',
+  '.claude/commands/jj-evolve.md',
+  'docs/commands/jj-delivery.md',
+  'docs/commands/jj-validate.md',
+  'docs/commands/jj-evolve.md',
+  'src/projectEvolution.mjs'
+];
+
 const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(process.cwd(), file)));
 if (missing.length) {
   console.error(`Missing required files:\n${missing.map((file) => `- ${file}`).join('\n')}`);
+  process.exit(1);
+}
+
+const stillPresent = forbiddenFiles.filter((file) => fs.existsSync(path.join(process.cwd(), file)));
+if (stillPresent.length) {
+  console.error(`Removed entry assets still present:\n${stillPresent.map((file) => `- ${file}`).join('\n')}`);
   process.exit(1);
 }
 

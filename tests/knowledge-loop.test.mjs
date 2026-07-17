@@ -1,69 +1,63 @@
-import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildDispatch } from '../src/dispatch.mjs';
-import { buildKnowledgeLoopPackage } from '../src/knowledgeLoop.mjs';
+import assert from 'node:assert/strict';
 import { getRecipe } from '../src/recipes.mjs';
+import { buildKnowledgeLoopPackage } from '../src/knowledgeLoop.mjs';
+import { buildGuardReport } from '../src/guards.mjs';
+import { buildExecutionDecision } from '../src/maestroExecution.mjs';
 
-test('completed delivery can be captured as knowhow spec and workflow recipe', () => {
-  const recipe = getRecipe('delivery');
-  const pkg = buildKnowledgeLoopPackage({
-    mode: 'delivery',
+test('completed same migration can be captured as knowhow spec and workflow recipe', () => {
+  const recipe = getRecipe('same');
+  const evidence = [
+    { id: 'intent', source: 'user', artifact_type: 'user_intent', summary: '迁移完成。' },
+    { id: 'source', source: 'git', artifact_type: 'source_materials', summary: '源资料齐备。' },
+    { id: 'decisions', source: 'user', artifact_type: 'decision_gate', summary: '范围已确认。' },
+    { id: 'chain', source: '$jj-same', artifact_type: 'maestro_chain', summary: '调用链完成。' },
+    { id: 'tests', source: 'manual', artifact_type: 'test_result', summary: '聚焦测试通过。' },
+    {
+      id: 'maestro',
+      source: 'jj-flow-check',
+      artifact_type: 'maestro_compatibility',
+      summary: '兼容。',
+      evidence: { status: 'compatible', compatible: true }
+    }
+  ];
+  const guardReport = buildGuardReport(recipe, evidence);
+  const executionDecision = buildExecutionDecision({
+    mode: 'same',
+    guardReport,
+    evidence,
+    maestroCalls: recipe.maestroCalls
+  });
+  const pack = buildKnowledgeLoopPackage({
+    mode: 'same',
     recipe,
-    intent: '完成一次端到端交付',
-    evidence: [
-      { id: 'result', source: 'manual', artifact_type: 'test_result', summary: '测试通过。' }
-    ],
-    guardReport: { status: 'PASS', results: [] },
-    executionDecision: { status: 'ready' }
+    intent: '完成迁移并沉淀经验',
+    evidence,
+    guardReport,
+    executionDecision
   });
 
-  assert.equal(pkg.status, 'ready');
-  assert.deepEqual(pkg.capture_targets, ['knowhow', 'spec', 'workflow_recipe']);
+  assert.equal(pack.status, 'ready');
+  assert.ok(pack.capture_targets.includes('knowhow'));
+  assert.ok(pack.capture_targets.includes('spec'));
+  assert.ok(pack.capture_targets.includes('workflow_recipe'));
 });
 
-test('team context exposes evidence guard status and next actions', () => {
-  const pkg = buildKnowledgeLoopPackage({
-    mode: 'delivery',
-    recipe: getRecipe('delivery'),
-    intent: '开发功能',
-    evidence: [{ id: 'api', source: '$yapi', artifact_type: 'yapi_contract', summary: '接口已确认。' }],
-    guardReport: {
-      status: 'PENDING',
-      results: [{ id: 'design-reference-ready', status: 'PENDING', reason: '缺少设计证据。' }]
-    },
-    executionDecision: { status: 'disabled' }
+test('pending same guards keep knowledge loop pending', () => {
+  const recipe = getRecipe('same');
+  const pack = buildKnowledgeLoopPackage({
+    mode: 'same',
+    recipe,
+    intent: '开始迁移',
+    evidence: [],
+    guardReport: buildGuardReport(recipe, []),
+    executionDecision: buildExecutionDecision({
+      mode: 'same',
+      guardReport: buildGuardReport(recipe, []),
+      evidence: [],
+      maestroCalls: recipe.maestroCalls
+    })
   });
-
-  assert.equal(pkg.status, 'pending');
-  assert.equal(pkg.team_context.guard_status, 'PENDING');
-  assert.equal(pkg.team_context.evidence[0].artifact_type, 'yapi_contract');
-  assert.match(pkg.team_context.next_actions[0], /design-reference-ready/);
-});
-
-test('knowledge loop does not modify Maestro core', () => {
-  const pkg = buildKnowledgeLoopPackage({
-    mode: 'delivery',
-    recipe: getRecipe('delivery'),
-    guardReport: { status: 'PASS', results: [] },
-    executionDecision: { status: 'disabled' }
-  });
-
-  assert.match(pkg.boundary, /Maestro core remains unchanged/);
-});
-
-test('dispatch exposes knowledge loop package', () => {
-  const dispatch = buildDispatch({
-    mode: 'delivery',
-    intent: '完成交付',
-    evidence: [
-      { id: 'ctx', source: 'manual', artifact_type: 'project_context', summary: '项目上下文已发现。' },
-      { id: 'design', source: 'manual', artifact_type: 'design_reference', summary: '设计证据已确认。' },
-      { id: 'decision', source: 'manual', artifact_type: 'decision_gate', summary: '阻塞决策已隔离。' },
-      { id: 'chain', source: 'manual', artifact_type: 'maestro_chain', summary: '调用链已形成。' },
-      { id: 'test', source: 'manual', artifact_type: 'test_result', summary: '测试通过。' }
-    ]
-  });
-
-  assert.equal(dispatch.knowledge_loop.status, 'ready');
-  assert.equal(dispatch.knowledge_loop.team_context.guard_status, 'PASS');
+  assert.equal(pack.status, 'pending');
+  assert.ok(pack.team_context.next_actions.length > 0);
 });

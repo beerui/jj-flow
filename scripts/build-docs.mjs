@@ -20,15 +20,9 @@ const NAV_GROUPS = [
     ]
   },
   {
-    title: '选择与交付',
+    title: '命令入口',
     pages: [
       { title: '$jj 兼容入口', source: 'docs/commands/jj.md', output: 'command-jj.html' },
-      { title: '$jj-delivery 完整交付', source: 'docs/commands/jj-delivery.md', output: 'command-jj-delivery.html' }
-    ]
-  },
-  {
-    title: '协作与迁移',
-    pages: [
       { title: '$jj-same 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
       { title: '$jj-dispatch 多项目调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' }
     ]
@@ -36,8 +30,6 @@ const NAV_GROUPS = [
   {
     title: '项目维护',
     pages: [
-      { title: '$jj-validate 项目自检', source: 'docs/commands/jj-validate.md', output: 'command-jj-validate.html' },
-      { title: '$jj-evolve 项目演进', source: 'docs/commands/jj-evolve.md', output: 'command-jj-evolve.html' },
       { title: 'CLI 调度与自动化', source: 'docs/commands/cli.md', output: 'command-cli.html' },
       { title: '维护说明', source: 'docs/maintenance.md', output: 'maintenance.html' },
       { title: 'GitHub Pages 部署', source: 'docs/deployment.md', output: 'deployment.html' }

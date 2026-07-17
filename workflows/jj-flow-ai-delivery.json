@@ -1,26 +1,17 @@
 {
   "name": "jj-flow-ai-delivery",
-  "version": "0.1.0",
-  "description": "jj-flow project-level AI delivery recipes.",
-  "entrypoint": "jj delivery",
-  "recipes": {
-    "delivery": {
-      "title": "少参数端到端交付",
-      "requiredEvidence": ["user_intent", "project_context", "decision_gate", "maestro_chain", "test_result"],
-      "optionalEvidence": ["prd_doc", "api_contract", "design_reference", "codex_thread", "delivery_record", "diff", "risk_list"],
-      "maestroSkills": ["$maestro-analyze", "$maestro-blueprint", "$maestro-roadmap", "$maestro-plan", "$yapi", "$arms-fix", "$maestro-execute", "$quality-review", "$quality-auto-test", "$quality-test", "$maestro-impeccable", "$manage-knowhow-capture"]
-    },
-    "validate": {
-      "title": "项目管理者自检",
-      "requiredEvidence": ["project_state", "workflow_state", "docs_reference", "next_recommendation"],
-      "optionalEvidence": ["recipe_registry", "test_coverage"],
-      "maestroSkills": ["$maestro-analyze", "$quality-review", "$maestro-plan", "$quality-test"]
-    },
-    "evolve": {
-      "title": "项目自身迭代",
-      "requiredEvidence": ["validation_summary", "correction_backlog", "evolution_plan"],
-      "optionalEvidence": ["roadmap_alignment", "manager_boundary"],
-      "maestroSkills": ["$maestro-analyze", "$quality-review", "$maestro-plan", "$maestro-execute", "$quality-test"]
+  "version": "0.2.0",
+  "description": "jj-flow project-family recipes: same migration and dispatch control plane.",
+  "entrypoint": "jj same",
+  "modes": {
+    "same": {
+      "requiredEvidence": ["user_intent", "source_materials"],
+      "optionalEvidence": ["handoff_snapshot", "source_commit", "target_analysis", "migration_matrix", "test_result", "review_result"],
+      "notes": "Primary user-facing mode for cross-project migration and continuous sync."
     }
+  },
+  "control_plane": {
+    "skill": "jj-dispatch",
+    "notes": "delivery_id is a control-plane task identity, not a removed $jj-delivery chat entry."
   }
 }

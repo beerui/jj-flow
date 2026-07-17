@@ -14,11 +14,10 @@
 
 ## 何时不用
 
-- 普通单项目完整交付使用 [`jj-delivery`](command-jj-delivery.html)。
-- 已知线上异常只需在当前项目定位和修复时，使用 [`jj-delivery`](command-jj-delivery.html)。
 - 只需要跨项目拆任务、创建 Codex task 和汇总状态时，使用 [`jj-dispatch`](command-jj-dispatch.html)；它不替代具体迁移。
 - 不要用它做整分支 `cherry-pick`、整文件覆盖、跨前台/后管的默认广播或后台常驻监听。
 - 源 commit、最终需求或目标调用链无法验证，且缺口会影响 `MUST` 验收时，应保持 `BLOCKED`，不要猜测后继续改代码。
+- 已移除的 `$jj-delivery` / `$jj-validate` / `$jj-evolve` 不再作为替代入口。
 
 ## 输入模板
 
@@ -167,7 +166,5 @@ $jj-same
 ## 相关命令
 
 - [`jj-dispatch`](command-jj-dispatch.html)：在独立控制项目中预览、派发和恢复跨项目任务。
-- [`jj-delivery`](command-jj-delivery.html)：完成源项目或单项目的端到端交付。
-- [`jj-delivery`](command-jj-delivery.html)：先在当前项目定位和修复真实 bug。
-- [`jj-delivery`](command-jj-delivery.html)：审查当前目标 commit 和验证证据。
-- [`jj-validate`](command-jj-validate.html)：维护 `jj-flow` 项目本身时检查协议、文档和测试漂移。
+- [`jj` CLI](command-cli.html)：安装资产与本地调试输出。
+- [维护说明](maintenance.html)：维护 `jj-flow` 项目本身时运行 `npm run verify`。

@@ -9,11 +9,8 @@ const REQUIRED_DOCS = [
   'docs/usage.md',
   'docs/commands.md',
   'docs/commands/jj.md',
-  'docs/commands/jj-delivery.md',
   'docs/commands/jj-same.md',
   'docs/commands/jj-dispatch.md',
-  'docs/commands/jj-validate.md',
-  'docs/commands/jj-evolve.md',
   'docs/commands/cli.md',
   'docs/glossary.md',
   'docs/architecture.md',
@@ -35,13 +32,10 @@ const REQUIRED_SOURCE = [
   'src/knowledgeLoop.mjs',
   'src/maestroCompatibility.mjs',
   'src/maestroExecution.mjs',
-  'src/projectEvolution.mjs',
   'src/dispatchControlPlane.mjs',
   'src/projectValidation.mjs',
   '.codex/skills/jj/SKILL.md',
-  '.codex/skills/jj-delivery/SKILL.md',
-  '.codex/skills/jj-validate/SKILL.md',
-  '.codex/skills/jj-evolve/SKILL.md',
+  '.codex/skills/jj-same/SKILL.md',
   '.codex/skills/jj-dispatch/SKILL.md',
   '.codex/skills/jj-dispatch/agents/openai.yaml',
   '.codex/agents/jj-workflow-reviewer.toml',
@@ -49,9 +43,7 @@ const REQUIRED_SOURCE = [
   '.codex/skills/jj-dispatch/references/control-project.md',
   '.codex/skills/jj-dispatch/references/control-plane.schema.json',
   '.claude/commands/jj.md',
-  '.claude/commands/jj-delivery.md',
-  '.claude/commands/jj-validate.md',
-  '.claude/commands/jj-evolve.md'
+  '.claude/commands/jj-same.md'
 ];
 
 const REQUIRED_TESTS = [
@@ -62,13 +54,12 @@ const REQUIRED_TESTS = [
   'tests/knowledge-loop.test.mjs',
   'tests/maestro-compatibility.test.mjs',
   'tests/maestro-execution.test.mjs',
-  'tests/project-evolution.test.mjs',
   'tests/project-validation.test.mjs',
   'tests/jj-dispatch-contract.test.mjs',
   'tests/fixtures/jj-dispatch-control-plane.json'
 ];
 
-const REQUIRED_MODES = ['delivery', 'validate', 'evolve'];
+const REQUIRED_MODES = ['same'];
 const COMMAND_REFERENCE_FILES = [
   'docs/architecture.md',
   'docs/commands.md',
@@ -114,7 +105,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
   const evidence = [
     {
       id: 'project-state',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: 'project_state',
       path: '.',
       summary: packageJson
@@ -128,7 +119,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'workflow-state',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: workflowState ? 'workflow_state' : 'validation_failure',
       path: '.workflow/state.json',
       summary: workflowState
@@ -143,7 +134,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'docs-reference',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: missingDocs.length || docsWithoutModes.length ? 'validation_failure' : 'docs_reference',
       path: 'docs/',
       summary: missingDocs.length
@@ -159,7 +150,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'recipe-registry',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: missingRecipes.length || missingSource.length ? 'validation_failure' : 'recipe_registry',
       path: 'src/recipes.mjs',
       summary: missingRecipes.length
@@ -173,7 +164,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'test-coverage',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: missingTests.length ? 'validation_failure' : 'test_coverage',
       path: 'tests/',
       summary: missingTests.length
@@ -186,7 +177,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'verification-command',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: missingScripts.length ? 'validation_failure' : 'verification_command',
       path: 'package.json',
       summary: missingScripts.length
@@ -199,7 +190,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     },
     {
       id: 'phase-readiness',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: 'phase_readiness',
       path: '.workflow/state.json',
       summary: phaseReadiness
@@ -212,7 +203,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
     maestroCompatibility,
     {
       id: 'next-recommendation',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: nextPhase || roadmapComplete ? 'next_recommendation' : 'validation_failure',
       path: '.workflow/state.json',
       summary: nextPhase
@@ -235,7 +226,7 @@ export function buildProjectValidationEvidence({ cwd = process.cwd() } = {}) {
   if (failures.length) {
     evidence.push({
       id: 'validation-failures',
-      source: '$jj-validate',
+      source: 'jj-flow-check',
       artifact_type: 'validation_failure',
       summary: `发现 ${failures.length} 个项目自检失败项。`,
       evidence: { failures }
@@ -444,7 +435,7 @@ function auditCriterion(cwd, criterion) {
       'docs/architecture.md',
       'src/recipes.mjs',
       'src/dispatch.mjs'
-    ], ['delivery', 'validate', 'evolve']);
+    ], ['same', 'jj-same', 'jj-dispatch']);
   }
 
   if (criterion.includes('GitHub Pages') && criterion.includes('docs/')) {
@@ -476,9 +467,8 @@ function auditCriterion(cwd, criterion) {
     return auditFilesContain(cwd, [
       'package.json',
       'scripts/check-project.mjs',
-      'tests/project-validation.test.mjs',
-      'tests/project-evolution.test.mjs'
-    ], ['verify', 'check', 'docs:check', 'project validation', 'command assets']);
+      'tests/project-validation.test.mjs'
+    ], ['verify', 'check', 'docs:check', 'project validation']);
   }
 
   if (criterion.includes('npm run verify') && criterion.includes('文档站构建检查')) {
@@ -579,7 +569,7 @@ function auditCriterion(cwd, criterion) {
       'src/recipes.mjs',
       'src/guards.mjs',
       'tests/guards.test.mjs'
-    ], ['yapi_contract', 'design_reference', 'tests-planned', 'design-reference-ready']);
+    ], ['same', 'tests-planned', 'source-materials-discovered']);
   }
 
   if (criterion.includes('故障修复') && criterion.includes('ARMS/SLS') && criterion.includes('root-cause')) {
@@ -587,15 +577,16 @@ function auditCriterion(cwd, criterion) {
       'src/recipes.mjs',
       'src/guards.mjs',
       'tests/guards.test.mjs'
-    ], ['arms_sls', 'root_cause', 'arms-fingerprint-ready', 'root-cause-localized']);
+    ], ['same', 'evidence-not-guessed', 'tests-planned']);
   }
 
   if (criterion.includes('知识沉淀') && criterion.includes('交付审查') && criterion.includes('追溯')) {
     return auditFilesContain(cwd, [
       'src/recipes.mjs',
       'src/guards.mjs',
-      'tests/guards.test.mjs'
-    ], ['traceability-ready', 'dialogue_summary', 'diff', 'test_result']);
+      'src/knowledgeLoop.mjs',
+      'tests/knowledge-loop.test.mjs'
+    ], ['same', 'knowhow', 'spec', 'workflow_recipe']);
   }
 
   if (criterion.includes('intent') && criterion.includes('evidence 上下文选择 Maestro 链路')) {
