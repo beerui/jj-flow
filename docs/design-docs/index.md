@@ -15,4 +15,6 @@
 
 - [Agent Harness 系统设计](harness-engineering.html)：把仓库真相源、机械门禁、可重放反馈、自主等级和熵清理组成一套 Agent 可读、可验证的工程系统。
 
+复杂实施过程进入 [版本化执行计划](../exec-plans/index.html)，不写入 `AGENTS.md`、聊天或本机隐藏状态。
+
 设计实施时，大任务应另建版本化 exec plan，记录进度、决策和验收证据，不把执行历史塞回 `AGENTS.md`。

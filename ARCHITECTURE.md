@@ -47,7 +47,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 ### 包与维护代码
 
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
-- `src/installSkill.mjs` 安装 Codex skills/agents 和 Claude commands；`src/releaseLog.mjs` 补充当前安装版本的发布说明。
+- `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/maestroExecution.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构；`src/maestroCompatibility.mjs` 支持可选工具的兼容性检查。
@@ -93,7 +93,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 
 ### 分发
 
-`package.json` 定义发布表面。安装过程只复制 commands 和 agents 资产，不启动工作流。文档从 `docs/` 构建，release 自动化位于运行时模块之外。
+`package.json` 定义发布表面。安装和卸载过程只管理明确归属 jj-flow 的 commands、skills 和 agents 资产，不启动工作流，也不按名称前缀扫描未知文件。文档从 `docs/` 构建，release 自动化位于运行时模块之外。
 
 ## 修改入口
 

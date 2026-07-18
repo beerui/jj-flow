@@ -90,10 +90,41 @@ npx @shendu-sdt/jj-flow@beta install-skill --force
 
 首次安装或更新成功后，命令会紧接着输出当前版本及其最新版本日志。使用 `--json` 时读取 `version` 和 `release_notes` 字段。`--dry-run` 只预览写入位置，不输出版本日志。
 
+安装还会在对应的 skills、agents 或 commands 目标根目录写入 `.jj-flow-install.json`。它只登记 jj-flow 实际复制的顶层资产及其 SHA-256 内容摘要，供后续卸载判断所有权和本地修改。
+
 预览安装位置：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run
+```
+
+## 卸载
+
+先预览全平台卸载：
+
+```bash
+npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
+```
+
+确认没有冲突后执行：
+
+```bash
+npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all
+```
+
+卸载沿用安装的 `--platform`、`--project`、`--target`、`--dry-run` 和 `--json` 目标规则，并遵守以下保护：
+
+- ownership manifest 中摘要匹配的资产可以直接删除。
+- 当前包资产没有 manifest 时，只有内容与当前包完全一致才可直接删除。
+- 本地修改过的资产会返回 `modified-assets`，且整组不执行删除。
+- `jj-auto`、`jj-delivery`、`jj-evolve`、`jj-feat`、`jj-fix`、`jj-knowhow`、`jj-review`、`jj-validate` 等历史入口因缺少旧版所有权证据，默认只报告为 `ownership-unverified`。
+- `--force` 只会强制删除当前包和上述明确 retired 清单中的精确路径；不会扫描或删除其它 `jj-*` 文件。使用前必须先查看 dry-run 结果。
+
+例如，清理旧 Codex 安装残留：
+
+```bash
+npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run --json
+npx @shendu-sdt/jj-flow@beta uninstall-skill --force
 ```
 
 ## 手动安装

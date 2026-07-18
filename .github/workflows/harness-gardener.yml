@@ -1,0 +1,72 @@
+name: Harness Gardener
+
+on:
+  schedule:
+    - cron: '17 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - id: harness_gc
+        name: Run read-only Harness GC
+        shell: bash
+        run: |
+          set +e
+          node bin/jj.mjs harness-gc --json > harness-gc-report.json
+          scan_exit=$?
+          echo "exit_code=${scan_exit}" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload Harness GC report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-gc-report
+          path: harness-gc-report.json
+          if-no-files-found: error
+      - name: Report blocking Harness drift
+        if: steps.harness_gc.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const title = 'Harness Gardener: blocking repository drift';
+            const marker = '<!-- jj-flow-harness-gardener -->';
+            const report = fs.readFileSync('harness-gc-report.json', 'utf8').slice(0, 60000);
+            const body = `${marker}\n\n定时 Harness GC 发现 P0/P1 阻断漂移。\n\n\`\`\`json\n${report}\n\`\`\``;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            const existing = issues.find((issue) => issue.title === title && issue.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body
+              });
+            }
+      - name: Fail on blocking Harness drift
+        if: steps.harness_gc.outputs.exit_code != '0'
+        run: exit 1

@@ -8,11 +8,14 @@ import {
   defaultCodexAgentsTarget,
   defaultCodexTarget,
   defaultSkillTarget,
+  INSTALL_MANIFEST_FILENAME,
+  INSTALL_MANIFEST_VERSION,
   installSkill,
   projectClaudeTarget,
   projectCodexAgentsTarget,
   projectCodexTarget,
-  projectSkillTarget
+  projectSkillTarget,
+  uninstallSkill
 } from '../src/installSkill.mjs';
 import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs';
 
@@ -109,6 +112,12 @@ test('installSkill installs global Codex skills and agents under the same CODEX_
   assert.equal(fs.existsSync(path.join(codexHome, 'skills', 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-developer.toml')), true);
+  const skillManifest = JSON.parse(fs.readFileSync(path.join(codexHome, 'skills', INSTALL_MANIFEST_FILENAME), 'utf8'));
+  assert.equal(skillManifest.schema_version, INSTALL_MANIFEST_VERSION);
+  assert.equal(skillManifest.asset, 'skills');
+  assert.ok(skillManifest.entries.some((entry) => entry.target_name === 'jj-dispatch'));
+  assert.match(skillManifest.entries[0].digest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(fs.existsSync(path.join(codexHome, 'agents', INSTALL_MANIFEST_FILENAME)), true);
 });
 
 test('installSkill copies bundled Codex skills and blocks accidental overwrite', () => {
@@ -307,6 +316,144 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-dispatch.md')), false);
 });
 
+test('uninstallSkill removes owned Codex assets and preserves unrelated files', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-');
+  const target = path.join(workspace, 'skills');
+  const unrelated = path.join(target, 'jj-custom', 'SKILL.md');
+  installSkill({ targetDir: target });
+  fs.mkdirSync(path.dirname(unrelated), { recursive: true });
+  fs.writeFileSync(unrelated, '# user owned\n', 'utf8');
+
+  const result = uninstallSkill({ targetDir: target });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'uninstalled');
+  assert.equal(result.conflicts.length, 0);
+  assert.equal(fs.existsSync(path.join(target, 'jj')), false);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same')), false);
+  assert.equal(fs.existsSync(path.join(target, 'jj-dispatch')), false);
+  assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), false);
+  assert.equal(fs.existsSync(path.join(target, INSTALL_MANIFEST_FILENAME)), false);
+  assert.equal(fs.existsSync(path.join(workspace, 'agents', INSTALL_MANIFEST_FILENAME)), false);
+  assert.equal(fs.readFileSync(unrelated, 'utf8'), '# user owned\n');
+});
+
+test('uninstallSkill removes Codex and Claude assets together', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-all-');
+  const codexTarget = path.join(workspace, '.codex', 'skills');
+  const claudeTarget = path.join(workspace, '.claude', 'commands');
+  installSkill({ platform: 'all', codexTargetDir: codexTarget, claudeTargetDir: claudeTarget });
+
+  const result = uninstallSkill({
+    platform: 'all',
+    codexTargetDir: codexTarget,
+    claudeTargetDir: claudeTarget
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'uninstalled');
+  assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same')), false);
+  assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-developer.toml')), false);
+  assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), false);
+});
+
+test('uninstallSkill dry run reports targets without deleting files', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-preview-');
+  const target = path.join(workspace, 'skills');
+  installSkill({ targetDir: target });
+
+  const result = uninstallSkill({ targetDir: target, dryRun: true });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'dry-run');
+  assert.equal(result.requires_force, false);
+  assert.ok(result.would_remove.includes(path.join(target, 'jj-same')));
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, INSTALL_MANIFEST_FILENAME)), true);
+});
+
+test('uninstallSkill blocks modified assets atomically until force is explicit', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-modified-');
+  const target = path.join(workspace, 'skills');
+  const modified = path.join(target, 'jj', 'SKILL.md');
+  installSkill({ targetDir: target });
+  fs.appendFileSync(modified, '\nlocal change\n', 'utf8');
+
+  const blocked = uninstallSkill({ targetDir: target });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.status, 'modified-assets');
+  assert.equal(blocked.requires_force, true);
+  assert.ok(blocked.conflict_details.some((item) => item.path === path.join(target, 'jj') && item.reason === 'content-modified'));
+  assert.equal(fs.existsSync(path.join(target, 'jj-same')), true);
+  assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), true);
+
+  const forced = uninstallSkill({ targetDir: target, force: true });
+  assert.equal(forced.ok, true);
+  assert.equal(forced.status, 'uninstalled');
+  assert.equal(fs.existsSync(path.join(target, 'jj')), false);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same')), false);
+  assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), false);
+});
+
+test('uninstallSkill requires force for retired assets without ownership evidence', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-retired-');
+  const target = path.join(workspace, 'skills');
+  const retired = path.join(target, 'jj-validate', 'SKILL.md');
+  fs.mkdirSync(path.dirname(retired), { recursive: true });
+  fs.writeFileSync(retired, '---\nname: jj-validate\n---\n', 'utf8');
+
+  const preview = uninstallSkill({ targetDir: target, dryRun: true });
+  assert.equal(preview.ok, true);
+  assert.equal(preview.requires_force, true);
+  assert.ok(preview.conflict_details.some((item) => item.path === path.dirname(retired) && item.reason === 'ownership-unverified'));
+
+  const blocked = uninstallSkill({ targetDir: target });
+  assert.equal(blocked.ok, false);
+  assert.equal(fs.existsSync(retired), true);
+
+  const forced = uninstallSkill({ targetDir: target, force: true });
+  assert.equal(forced.ok, true);
+  assert.equal(fs.existsSync(path.dirname(retired)), false);
+});
+
+test('uninstallSkill rejects a manifest that attempts path traversal', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-invalid-manifest-');
+  const target = path.join(workspace, 'skills');
+  const outside = path.join(workspace, 'outside.txt');
+  fs.mkdirSync(target, { recursive: true });
+  fs.writeFileSync(outside, 'keep\n', 'utf8');
+  fs.writeFileSync(path.join(target, INSTALL_MANIFEST_FILENAME), `${JSON.stringify({
+    schema_version: INSTALL_MANIFEST_VERSION,
+    package: packageJson.name,
+    package_version: packageVersion,
+    platform: 'codex',
+    asset: 'skills',
+    entries: [{ target_name: '../outside.txt', kind: 'file', digest: `sha256:${'0'.repeat(64)}` }]
+  }, null, 2)}\n`, 'utf8');
+
+  const result = uninstallSkill({ targetDir: target, force: true });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, 'invalid-manifest');
+  assert.equal(fs.readFileSync(outside, 'utf8'), 'keep\n');
+});
+
+test('CLI uninstall-skill returns structured output', () => {
+  const workspace = makeWorkspace('jj-flow-uninstall-cli-');
+  const target = path.join(workspace, 'skills');
+  installSkill({ targetDir: target });
+  const stdout = createStdout();
+
+  const status = runCli(['uninstall-skill', '--target', target, '--json'], { stdout });
+  const parsed = JSON.parse(stdout.output);
+
+  assert.equal(status, 0);
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.status, 'uninstalled');
+  assert.ok(parsed.removed.includes(path.join(target, 'jj-dispatch')));
+  assert.equal(fs.existsSync(path.join(target, 'jj-dispatch')), false);
+});
+
 test('CLI install-skill returns structured output', () => {
   const workspace = makeWorkspace('jj-flow-install-cli-');
   const target = path.join(workspace, 'skills');
@@ -401,9 +548,12 @@ test('CLI help keeps user-facing labels in Chinese', () => {
   const status = runCli(['--help'], { stdout });
   const installStdout = createStdout();
   const installStatus = runCli(['install-skill', '--help'], { stdout: installStdout });
+  const uninstallStdout = createStdout();
+  const uninstallStatus = runCli(['uninstall-skill', '--help'], { stdout: uninstallStdout });
 
   assert.equal(status, 0);
   assert.equal(installStatus, 0);
+  assert.equal(uninstallStatus, 0);
   assert.match(stdout.output, /用法：/);
   assert.match(stdout.output, /示例：/);
   assert.match(stdout.output, /--project/);
@@ -414,6 +564,9 @@ test('CLI help keeps user-facing labels in Chinese', () => {
   assert.doesNotMatch(stdout.output, /Examples:/);
   assert.match(installStdout.output, /\.codex\/skills 与 \.codex\/agents/);
   assert.match(installStdout.output, /agent_target/);
+  assert.match(stdout.output, /uninstall-skill/);
+  assert.match(uninstallStdout.output, /ownership manifest/);
+  assert.match(uninstallStdout.output, /不会按 jj-\* 前缀/);
 });
 
 test('CLI install-skill exits non-zero when target exists without force', () => {

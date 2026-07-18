@@ -40,9 +40,12 @@ export function checkHarnessRepository({
     scenarios_checked: 0,
     host_trials_checked: 0,
     gc_baselines_checked: 0,
+    gardeners_checked: 0,
     docs_checked: 0,
     design_docs_checked: 0,
-    adr_docs_checked: 0
+    adr_docs_checked: 0,
+    exec_plans_checked: 0,
+    maturity_models_checked: 0
   };
 
   const addFinding = (ruleId, targetPath, reason, nextAction) => {
@@ -199,6 +202,13 @@ export function checkHarnessRepository({
   checkHarnessGc({
     cwd,
     config: manifest.maintenance?.gc,
+    addFinding,
+    stats,
+    manifestPath
+  });
+  checkGardener({
+    cwd,
+    config: manifest.maintenance?.gardener,
     addFinding,
     stats,
     manifestPath
@@ -382,6 +392,21 @@ function checkDocumentationPolicy({ cwd, policy, addFinding, stats, manifestPath
     stats,
     siteBuilderText
   });
+  checkExecPlanPolicy({
+    cwd,
+    config: policy.exec_plans,
+    addFinding,
+    stats,
+    siteBuilderText,
+    manifestPath
+  });
+  checkMaturityModels({
+    cwd,
+    models: policy.maturity_models,
+    addFinding,
+    stats,
+    manifestPath
+  });
 }
 
 function checkIndexedDocumentSet({ cwd, config, kind, addFinding, stats, siteBuilderText }) {
@@ -443,6 +468,126 @@ function checkDesignStatus(source, file, config, addFinding) {
       addFinding('HNS-DESIGN-EVIDENCE-001', file, 'Implemented 设计缺少可追溯测试或验收证据。', `补充 ${evidencePrefix}\`tests/...\` 或版本化验收产物链接。`);
     }
   }
+}
+
+function checkExecPlanPolicy({ cwd, config, addFinding, stats, siteBuilderText, manifestPath }) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    addFinding('HNS-EXEC-PLAN-001', manifestPath, 'exec plan 文档策略必须是对象。', '声明 exec plan 根目录、索引、active/completed 目录和状态。');
+    return;
+  }
+
+  const paths = {};
+  for (const field of ['directory', 'index', 'active_directory', 'completed_directory']) {
+    paths[field] = resolveRepositoryPath(cwd, config[field], addFinding, 'HNS-EXEC-PLAN-002');
+  }
+  if (Object.values(paths).some((entry) => !entry)) return;
+
+  for (const field of ['directory', 'active_directory', 'completed_directory']) {
+    if (!fs.existsSync(paths[field]) || !fs.statSync(paths[field]).isDirectory()) {
+      addFinding('HNS-EXEC-PLAN-003', paths[field], `${field} 目录不存在。`, '恢复版本化 exec plan 目录。');
+    }
+  }
+  if (!fs.existsSync(paths.index) || !fs.statSync(paths.index).isFile()) {
+    addFinding('HNS-EXEC-PLAN-004', paths.index, 'exec plan 索引不存在。', '创建索引并登记 active/completed 计划。');
+    return;
+  }
+  if (Object.values(paths).some((entry) => !fs.existsSync(entry))) return;
+
+  const indexText = fs.readFileSync(paths.index, 'utf8');
+  const prefix = String(config.status_prefix || '');
+  const activeStatuses = new Set(Array.isArray(config.active_statuses) ? config.active_statuses : []);
+  const completedStatus = String(config.completed_status || '');
+  const planSets = [
+    { directory: paths.active_directory, allowed: activeStatuses, location: 'active' },
+    { directory: paths.completed_directory, allowed: new Set([completedStatus]), location: 'completed' }
+  ];
+
+  for (const planSet of planSets) {
+    for (const file of listMarkdownFiles(planSet.directory)) {
+      stats.exec_plans_checked += 1;
+      const repositoryPath = displayPath(cwd, file);
+      const relativeHtml = path.relative(paths.directory, file).replaceAll('\\', '/').replace(/\.md$/i, '.html');
+      if (!indexText.includes(relativeHtml)) {
+        addFinding('HNS-EXEC-PLAN-INDEX-001', paths.index, `${repositoryPath} 未登记到 exec plan 索引。`, `在索引中添加指向 ${relativeHtml} 的链接。`);
+      }
+      if (siteBuilderText !== null && !siteBuilderText.includes(repositoryPath)) {
+        addFinding('HNS-EXEC-PLAN-BUILD-001', file, 'exec plan 未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${repositoryPath}'。`);
+      }
+
+      const source = fs.readFileSync(file, 'utf8');
+      const statusLine = source.split(/\r?\n/).find((line) => line.startsWith(prefix));
+      const status = statusLine?.slice(prefix.length).trim() || '';
+      if (!statusLine) {
+        addFinding('HNS-EXEC-PLAN-STATUS-001', file, `exec plan 缺少状态行：${prefix}`, '声明 active、blocked 或 completed。');
+      } else if (!planSet.allowed.has(status)) {
+        addFinding('HNS-EXEC-PLAN-STATUS-002', file, `${planSet.location} 目录中的状态 ${status} 无效。`, `使用：${[...planSet.allowed].join(', ')}`);
+      }
+    }
+  }
+
+  const indexRepositoryPath = displayPath(cwd, paths.index);
+  if (siteBuilderText !== null && !siteBuilderText.includes(indexRepositoryPath)) {
+    addFinding('HNS-EXEC-PLAN-BUILD-002', paths.index, 'exec plan 索引未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${indexRepositoryPath}'。`);
+  }
+}
+
+function checkMaturityModels({ cwd, models, addFinding, stats, manifestPath }) {
+  const entries = arrayOrFinding(models, 'documentation_policy.maturity_models', manifestPath, addFinding);
+  checkUniqueEntries(entries, manifestPath, addFinding);
+  for (const model of entries) {
+    stats.maturity_models_checked += 1;
+    const target = resolveRepositoryPath(cwd, model?.path, addFinding, 'HNS-MATURITY-001');
+    if (!target || !fs.existsSync(target) || !fs.statSync(target).isFile()) {
+      if (target) addFinding('HNS-MATURITY-002', target, '成熟度模型文档不存在。', '恢复文档或修正 maturity_models.path。');
+      continue;
+    }
+    const minimum = model.minimum;
+    const maximum = model.maximum;
+    if (!Number.isInteger(minimum) || !Number.isInteger(maximum) || minimum < 0 || maximum < minimum) {
+      addFinding('HNS-MATURITY-003', manifestPath, `成熟度模型 ${model?.id || '(unknown)'} 的范围无效。`, '声明满足 0 <= minimum <= maximum 的整数范围。');
+      continue;
+    }
+
+    const rows = parseMarkdownScoreRows(fs.readFileSync(target, 'utf8'));
+    const dimensions = Array.isArray(model.dimensions) ? model.dimensions : [];
+    const seenLabels = new Set();
+    for (const dimension of dimensions) {
+      const label = String(dimension?.label || '').trim();
+      const score = dimension?.score;
+      if (!label || seenLabels.has(label)) {
+        addFinding('HNS-MATURITY-004', manifestPath, `成熟度维度缺失或重复：${label || '(empty)'}`, '每个维度使用唯一非空 label。');
+        continue;
+      }
+      seenLabels.add(label);
+      if (!Number.isInteger(score) || score < minimum || score > maximum) {
+        addFinding('HNS-MATURITY-SCORE-001', manifestPath, `维度 ${label} 的分数 ${score} 超出 ${minimum}-${maximum}。`, '修正 manifest 中的成熟度分数。');
+        continue;
+      }
+      if (!rows.has(label)) {
+        addFinding('HNS-MATURITY-ROW-001', target, `成熟度表缺少维度：${label}`, '补充与 manifest 一致的成熟度表行。');
+      } else {
+        const documentedScore = rows.get(label);
+        if (documentedScore < minimum || documentedScore > maximum) {
+          addFinding('HNS-MATURITY-SCORE-002', target, `维度 ${label} 的文档分数 ${documentedScore} 超出 ${minimum}-${maximum}。`, '修正文档中的成熟度分数。');
+        }
+        if (documentedScore !== score) {
+          addFinding('HNS-MATURITY-ROW-002', target, `维度 ${label} 的文档分数 ${documentedScore} 与 manifest ${score} 不一致。`, '更新文档或 manifest，使版本化事实一致。');
+        }
+      }
+    }
+  }
+}
+
+function parseMarkdownScoreRows(source) {
+  const rows = new Map();
+  for (const line of source.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('|') || !trimmed.endsWith('|')) continue;
+    const cells = trimmed.slice(1, -1).split('|').map((cell) => cell.trim());
+    if (cells.length < 2 || !/^-?\d+$/.test(cells[1])) continue;
+    rows.set(cells[0].replaceAll('`', ''), Number(cells[1]));
+  }
+  return rows;
 }
 
 function listMarkdownFiles(directory) {
@@ -700,6 +845,73 @@ function checkHarnessGc({ cwd, config, addFinding, stats, manifestPath }) {
   if (expectedRunnerHash && baseline.runner_sha256 !== expectedRunnerHash) {
     addFinding('HNS-GC-008', paths.baseline, 'GC baseline 与当前 runner fingerprint 不一致。', '重新运行 node bin/jj.mjs harness-gc --json 并更新版本化 baseline。');
   }
+}
+
+function checkGardener({ cwd, config, addFinding, stats, manifestPath }) {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    addFinding('HNS-GARDENER-001', manifestPath, 'maintenance.gardener 必须是对象。', '登记定时只读工作流、报告 artifact 和阻断 issue 策略。');
+    return;
+  }
+  stats.gardeners_checked += 1;
+  const workflow = resolveRepositoryPath(cwd, config.workflow, addFinding, 'HNS-GARDENER-002');
+  if (!workflow || !fs.existsSync(workflow) || !fs.statSync(workflow).isFile()) {
+    if (workflow) addFinding('HNS-GARDENER-003', workflow, 'Gardener workflow 不存在。', '恢复定时只读 Harness GC 工作流。');
+    return;
+  }
+  stats.files_checked += 1;
+
+  if (config.command !== 'node bin/jj.mjs harness-gc --json'
+    || !isNonEmptyString(config.schedule)
+    || config.artifact !== 'harness-gc-report'
+    || config.permissions?.contents !== 'read'
+    || config.permissions?.issues !== 'write'
+    || Object.keys(config.permissions || {}).length !== 2
+    || config.issue_on_blocking !== true
+    || config.auto_fix !== false) {
+    addFinding('HNS-GARDENER-004', manifestPath, 'Gardener 命令、schedule、artifact、权限或只读策略无效。', '要求定时运行 Harness GC、上传固定 artifact、仅授予 contents: read 和 issues: write，且 auto_fix=false。');
+  }
+
+  const source = fs.readFileSync(workflow, 'utf8');
+  const requiredFragments = [
+    config.schedule,
+    config.command,
+    `name: ${config.artifact}`,
+    'actions/upload-artifact@',
+    'actions/github-script@'
+  ];
+  for (const fragment of requiredFragments) {
+    if (!source.includes(fragment)) {
+      addFinding('HNS-GARDENER-005', workflow, `Gardener workflow 缺少契约片段：${fragment}`, '同步 workflow 与 maintenance.gardener 契约。');
+    }
+  }
+  const workflowPermissions = parseWorkflowPermissions(source);
+  const expectedPermissions = config.permissions || {};
+  if (!workflowPermissions
+    || Object.keys(workflowPermissions).length !== Object.keys(expectedPermissions).length
+    || Object.entries(expectedPermissions).some(([name, access]) => workflowPermissions[name] !== access)) {
+    addFinding('HNS-GARDENER-006', workflow, 'Gardener workflow 权限超出或偏离 manifest allowlist。', '顶层 permissions 只能声明 contents: read 和 issues: write，且禁止 job 级权限覆盖。');
+  }
+}
+
+function parseWorkflowPermissions(source) {
+  const lines = source.split(/\r?\n/);
+  const declarations = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index].match(/^(\s*)permissions\s*:\s*(.*?)\s*$/);
+    if (match) declarations.push({ index, indent: match[1].length, value: match[2] });
+  }
+  if (declarations.length !== 1 || declarations[0].indent !== 0 || declarations[0].value) return null;
+
+  const permissions = {};
+  for (let index = declarations[0].index + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    if (!/^\s/.test(line)) break;
+    const entry = line.match(/^ {2}([A-Za-z][A-Za-z0-9-]*):\s*(read|write|none)\s*(?:#.*)?$/);
+    if (!entry || Object.hasOwn(permissions, entry[1])) return null;
+    permissions[entry[1]] = entry[2];
+  }
+  return permissions;
 }
 
 function checkHostActionFixture(fixture, fixturePath, addFinding) {

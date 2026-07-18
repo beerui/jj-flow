@@ -43,6 +43,11 @@
         "authority_for": ["accepted-decisions", "adr-discovery"]
       },
       {
+        "id": "exec-plan-index",
+        "path": "docs/exec-plans/index.md",
+        "authority_for": ["execution-plan-discovery", "execution-progress"]
+      },
+      {
         "id": "same-contract",
         "path": ".codex/skills/jj-same/SKILL.md",
         "authority_for": ["same-workflow-contract"]
@@ -151,6 +156,11 @@
         "id": "harness-gc-tests",
         "path": "tests/harness-gc.test.mjs",
         "authority_for": ["harness-gc-regression-evidence"]
+      },
+      {
+        "id": "harness-gardener-workflow",
+        "path": ".github/workflows/harness-gardener.yml",
+        "authority_for": ["scheduled-entropy-scan", "blocking-drift-issue"]
       }
     ],
     "historical_paths": [
@@ -183,6 +193,10 @@
       "contains": "harness-engineering.html"
     },
     {
+      "source": "docs/design-docs/index.md",
+      "contains": "../exec-plans/index.html"
+    },
+    {
       "source": "docs/index.md",
       "contains": "adr/index.html"
     },
@@ -193,6 +207,10 @@
     {
       "source": "docs/index.md",
       "contains": "milestones/h5-acceptance.html"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "exec-plans/index.html"
     },
     {
       "source": ".codex/skills/jj-dispatch/SKILL.md",
@@ -234,7 +252,33 @@
     "adr_docs": {
       "directory": "docs/adr",
       "index": "docs/adr/index.md"
-    }
+    },
+    "exec_plans": {
+      "directory": "docs/exec-plans",
+      "index": "docs/exec-plans/index.md",
+      "active_directory": "docs/exec-plans/active",
+      "completed_directory": "docs/exec-plans/completed",
+      "status_prefix": "> 状态：",
+      "active_statuses": ["active", "blocked"],
+      "completed_status": "completed"
+    },
+    "maturity_models": [
+      {
+        "id": "repository-harness",
+        "path": "docs/design-docs/harness-engineering.md",
+        "minimum": 0,
+        "maximum": 3,
+        "dimensions": [
+          { "label": "导航地图", "score": 3 },
+          { "label": "真相一致性", "score": 3 },
+          { "label": "不变量执行", "score": 3 },
+          { "label": "可重放反馈", "score": 3 },
+          { "label": "可观测性", "score": 2 },
+          { "label": "自主闭环", "score": 2 },
+          { "label": "熵控制", "score": 2 }
+        ]
+      }
+    ]
   },
   "protocol_contracts": [
     {
@@ -307,6 +351,18 @@
       "expected_status": "PASS",
       "minimum_score": 95,
       "read_only": true,
+      "auto_fix": false
+    },
+    "gardener": {
+      "workflow": ".github/workflows/harness-gardener.yml",
+      "schedule": "17 2 * * 1",
+      "command": "node bin/jj.mjs harness-gc --json",
+      "artifact": "harness-gc-report",
+      "permissions": {
+        "contents": "read",
+        "issues": "write"
+      },
+      "issue_on_blocking": true,
       "auto_fix": false
     }
   },
@@ -420,6 +476,18 @@
       "owner": "harness",
       "description": "持续熵清理必须只读、禁止自动修复，并以当前 runner fingerprint 和最低质量分验证版本化基线。",
       "enforced_by": ["harness-check", "harness-gc", "harness-gc-runtime", "harness-gc-baseline", "harness-gc-tests"]
+    },
+    {
+      "id": "HNS-EXEC-PLAN-001",
+      "owner": "harness",
+      "description": "复杂实施计划必须进入版本化索引，并在 active 与 completed 目录之间保持状态一致。",
+      "enforced_by": ["harness-check", "exec-plan-index"]
+    },
+    {
+      "id": "HNS-GARDENER-001",
+      "owner": "harness",
+      "description": "定时 Gardener 只运行 Harness GC、上传报告并维护阻断 issue，不获得自动代码修复权限。",
+      "enforced_by": ["harness-check", "harness-gardener-workflow"]
     }
   ],
   "autonomy": {

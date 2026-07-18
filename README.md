@@ -15,7 +15,7 @@
 - 需要可版本化 handoff snapshot，避免每个目标重复重建源分析。
 - 需要稳定 `task_key`、批准与恢复协议，而不是只靠会话记忆。
 
-它不是新的应用框架，也不是终端里一键跑完业务代码的流水线。`npx` 只安装 skills / agents / slash commands；真实推进在 Codex / Claude Code 对话里完成。
+它不是新的应用框架，也不是终端里一键跑完业务代码的流水线。`npx` 只管理 skills / agents / slash commands；真实推进在 Codex / Claude Code 对话里完成。
 
 已移除 `$jj-delivery` / `$jj-validate` / `$jj-evolve` 等入口。控制面里的 `delivery_id` 是调度任务身份，不是对话命令。
 
@@ -37,6 +37,12 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform claude
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
+```
+
+卸载前先预览；旧版未登记或本地修改过的资产需要审查后显式加 `--force`：
+
+```bash
+npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
 ```
 
 Codex：

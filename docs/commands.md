@@ -13,7 +13,7 @@
 
 ## 维护与自动化
 
-- [CLI](command-cli.html)：`install-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`
+- [CLI](command-cli.html)：`install-skill`、`uninstall-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`
 - 维护本仓：`npm run verify`（无 `$jj-validate` / `$jj-evolve` 对话入口）
 
 ## 已移除（非活入口）
@@ -68,12 +68,18 @@ $jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 
 同源迁移的 Handoff 标准步骤和 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED` 判断见 [$jj-same](command-jj-same.html)。
 
-## 安装命令
+## 安装与卸载命令
 
 安装 Codex skills 或 Claude commands 使用 `install-skill`，完整参数和冲突处理见 [安装](installation.html)：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run --json
+```
+
+卸载同样支持平台、项目目标、dry-run 和 JSON。先预览，确认旧版未登记资产后再决定是否 `--force`：
+
+```bash
+npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
 ```
 
 ## 下一步

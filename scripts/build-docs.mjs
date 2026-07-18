@@ -43,6 +43,8 @@ const NAV_GROUPS = [
       { title: '架构', source: 'docs/architecture.md', output: 'architecture.html' },
       { title: '设计文档', source: 'docs/design-docs/index.md', output: 'design-docs/index.html' },
       { title: 'Agent Harness 设计', source: 'docs/design-docs/harness-engineering.md', output: 'design-docs/harness-engineering.html' },
+      { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },
+      { title: 'Harness 收口计划', source: 'docs/exec-plans/active/2026-07-18-harness-hardening.md', output: 'exec-plans/active/2026-07-18-harness-hardening.html' },
       { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },
       { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
       { title: 'M6 验收', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },

@@ -17,6 +17,9 @@ test('current repository satisfies the Harness manifest', () => {
   assert.equal(result.stats.scenarios_checked, 4);
   assert.equal(result.stats.host_trials_checked, 1);
   assert.equal(result.stats.gc_baselines_checked, 1);
+  assert.equal(result.stats.gardeners_checked, 1);
+  assert.ok(result.stats.exec_plans_checked > 0);
+  assert.equal(result.stats.maturity_models_checked, 1);
 });
 
 test('Harness check rejects a forbidden local state path', () => {
@@ -177,6 +180,86 @@ test('Harness check requires Implemented design evidence', () => {
     const result = checkHarnessRepository({ manifestPath });
     assert.equal(result.ok, false);
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-DESIGN-EVIDENCE-001'));
+  });
+});
+
+test('Harness check requires every exec plan to be indexed, built, and stored under the matching status directory', () => {
+  withTemporaryManifest((manifest, tempDir) => {
+    const planDir = path.join(tempDir, 'exec-plans');
+    const activeDir = path.join(planDir, 'active');
+    const completedDir = path.join(planDir, 'completed');
+    const indexPath = path.join(planDir, 'index.md');
+    const planPath = path.join(activeDir, 'unindexed.md');
+    const builderPath = path.join(tempDir, 'build-docs.mjs');
+    fs.mkdirSync(activeDir, { recursive: true });
+    fs.mkdirSync(completedDir, { recursive: true });
+    fs.writeFileSync(indexPath, '# 执行计划\n', 'utf8');
+    fs.writeFileSync(planPath, '# 未索引计划\n\n> 状态：completed\n', 'utf8');
+    fs.writeFileSync(builderPath, `source: '${repositoryRelative(indexPath)}'\n`, 'utf8');
+    manifest.documentation_policy.exec_plans = {
+      ...manifest.documentation_policy.exec_plans,
+      directory: repositoryRelative(planDir),
+      index: repositoryRelative(indexPath),
+      active_directory: repositoryRelative(activeDir),
+      completed_directory: repositoryRelative(completedDir)
+    };
+    manifest.documentation_policy.site_builder = repositoryRelative(builderPath);
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-INDEX-001'));
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-BUILD-001'));
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-STATUS-002'));
+  });
+});
+
+test('Harness check rejects maturity scores outside the declared scale and document drift', () => {
+  withTemporaryManifest((manifest, tempDir) => {
+    const maturityPath = path.join(tempDir, 'maturity.md');
+    fs.writeFileSync(maturityPath, '# 成熟度\n\n| 维度 | 当前 |\n| --- | ---: |\n| 可重放反馈 | 4 |\n', 'utf8');
+    manifest.documentation_policy.maturity_models = [{
+      id: 'temporary-maturity',
+      path: repositoryRelative(maturityPath),
+      minimum: 0,
+      maximum: 3,
+      dimensions: [{ label: '可重放反馈', score: 3 }]
+    }];
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-MATURITY-SCORE-002'));
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-MATURITY-ROW-002'));
+  });
+});
+
+test('Harness check rejects Gardener code-write permission and workflow contract drift', () => {
+  withTemporaryManifest((manifest, tempDir) => {
+    const workflowPath = path.join(tempDir, 'harness-gardener.yml');
+    const source = fs.readFileSync(path.join(process.cwd(), manifest.maintenance.gardener.workflow), 'utf8')
+      .replace('contents: read', 'contents: write')
+      .replace('issues: write', 'issues: read')
+      .replace('actions/github-script@v7', 'actions/not-github-script@v7');
+    fs.writeFileSync(workflowPath, source, 'utf8');
+    manifest.maintenance.gardener.workflow = repositoryRelative(workflowPath);
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-GARDENER-005'));
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-GARDENER-006'));
+  });
+});
+
+test('Harness check rejects Gardener permissions outside the explicit allowlist', () => {
+  withTemporaryManifest((manifest, tempDir) => {
+    const workflowPath = path.join(tempDir, 'harness-gardener.yml');
+    const source = fs.readFileSync(path.join(process.cwd(), manifest.maintenance.gardener.workflow), 'utf8')
+      .replace('  issues: write', '  issues: write\n  pull-requests: write');
+    fs.writeFileSync(workflowPath, source, 'utf8');
+    manifest.maintenance.gardener.workflow = repositoryRelative(workflowPath);
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-GARDENER-006'));
   });
 });
 

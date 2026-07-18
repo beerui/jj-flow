@@ -7,7 +7,7 @@
 - 维护者需要检查某个 intent 会被路由到哪个内置 mode。
 - CI 或脚本需要结构化 JSON，用于检查 evidence、guard 和 Maestro 调用链。
 - 调试 `same` recipe。
-- 使用 `install-skill` 安装或更新 Codex/Claude Code 原生命令资产。
+- 使用 `install-skill` 安装或更新 Codex/Claude Code 原生命令资产，使用 `uninstall-skill` 安全卸载。
 - 使用 `doctor` 只读判断当前仓库的 Harness、Git、host capabilities 和自治等级。
 - 使用 `scenario` 运行固定、隔离、无副作用的任务级回归。
 - 使用 `trace explain` / `trace replay` 解释或纯重放 scenario trace，不重复 host action。
@@ -20,7 +20,7 @@
 - 真实迁移应在 Codex 中使用 `$jj-same`，或在 Claude Code 中使用 `/jj-same`。
 - 真实多项目调度应在 Codex 中使用 `$jj-dispatch`。
 - 不要在终端执行 `jj same ...` 后期待 CLI 修改业务代码；它只生成调度结果。
-- 安装命令资产时直接使用 `install-skill`，完整说明见[安装](installation.html)。
+- 管理命令资产时使用 `install-skill` 或 `uninstall-skill`，完整说明见[安装](installation.html)。
 
 ## 命令格式
 
@@ -38,10 +38,11 @@ jj-flow [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
 - `auto`（仅 CLI 内部路由，不是对话入口）
 - `same`
 
-安装与调度：
+安装、卸载与调度：
 
 ```text
 jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
 jj doctor [--json]
 jj scenario list [--json]
 jj scenario check [--json]
@@ -56,6 +57,9 @@ jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
 
 注意：
 
+- `install-skill` 会在每个目标根目录写入 `.jj-flow-install.json`，记录包版本、明确资产名和内容摘要。
+- `uninstall-skill` 默认只删除摘要匹配的自有资产；任一资产被修改时整组拒绝删除。`--dry-run --json` 会返回 `would_remove`、`conflicts` 和 `conflict_details`。
+- 已移除的旧版入口没有 ownership manifest，只会作为明确 retired 候选报告；必须审查后显式使用 `--force`。命令不会按 `jj-*` 前缀扫描未知文件。
 - `doctor` 只读取 Git、`harness-manifest.json` 和仓库文件，不修复、不安装、不派发；失败输出包含 `rule_id`、原因和下一动作。
 - `scenario list` 输出 Manifest 机械校验的 runtime registry；`scenario check` 执行全部场景但省略完整 trace；`scenario run` 输出统一 report 和可审计 trace。
 - 当前场景为 `dispatch-happy-path`、`dispatch-interrupted-resume`、`dispatch-partial-target-failure` 和 `same-handoff-contract`。
@@ -84,4 +88,4 @@ jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
 
 - [`jj-same`](command-jj-same.html)：Codex/Claude Code 中的同源迁移入口。
 - [`jj-dispatch`](command-jj-dispatch.html)：Codex 多项目调度入口。
-- [安装](installation.html)：`install-skill` 完整参数。
+- [安装](installation.html)：`install-skill` 与 `uninstall-skill` 完整参数。

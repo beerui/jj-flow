@@ -55,6 +55,8 @@ node --test tests/docs-site.test.mjs
 
 `harness:gc` 中 P0/P1 会阻断，P2/P3 只提示小批次维护候选。首版明确禁用自动修复；基线位于 `docs/milestones/h5-gc-baseline.json`，runner 变化后必须重新生成。
 
+`.github/workflows/harness-gardener.yml` 每周运行同一只读扫描并上传 `harness-gc-report.json`。出现 P0/P1 时，它只创建或更新一个去重 issue；工作流没有代码写权限，不会自动提交或发起修复 PR。
+
 ## 新增一页文档的清单
 
 1. 在 `docs/` 写 Markdown（链接用站内 `.html` 目标，如 `command-jj-same.html`）。  

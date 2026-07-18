@@ -11,6 +11,7 @@
 - P0/P1 finding 阻断，P2/P3 保留为小型维护候选；所有 finding 均声明 `auto_fix_eligible=false`。
 - `harness-manifest.json` 为每条 invariant 指定 owner，并登记 GC runner、schema、test、baseline、最低分和只读策略。
 - `scripts/check-harness.mjs` 校验 baseline 状态、最低分、只读策略和 runner fingerprint；过期基线会 fail closed。
+- `.github/workflows/harness-gardener.yml` 定时运行只读扫描、上传 JSON artifact，并在 P0/P1 时创建或更新去重 issue。
 
 ## 机械验收
 
@@ -25,4 +26,4 @@
 
 ## 边界
 
-H5 首版是只读 gardener，不自动删除、重写、提交或合并。P2/P3 代表候选维护成本，不等于必须抽象；局部重复在保持独立更清晰时可以保留。真实 Codex App thread/sandbox 联调仍属于部署环境验证，与 GC 完成状态无关。
+H5 首版是只读 gardener，不自动删除、重写、提交或合并。定时工作流只有 `issues: write`，没有 `contents: write`；P2/P3 代表候选维护成本，不等于必须抽象。真实 Codex App thread/sandbox 联调仍属于部署环境验证，与 GC 完成状态无关。
