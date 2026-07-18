@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -16,6 +15,7 @@ import {
   validateControlPlane
 } from './dispatchControlPlane.mjs';
 import { buildReceipt, persistPlaneCas, tickDispatch } from './dispatchRuntime.mjs';
+import { hashNormalizedTextFile } from './fileFingerprint.mjs';
 
 export const HOST_TRIAL_REPORT_VERSION = 'jj-flow/host-trial-report/1.0';
 
@@ -503,8 +503,7 @@ function assertion(id, passed, evidence) {
 }
 
 function runnerHash() {
-  const content = fs.readFileSync(fileURLToPath(import.meta.url));
-  return `sha256:${crypto.createHash('sha256').update(content).digest('hex')}`;
+  return hashNormalizedTextFile(fileURLToPath(import.meta.url));
 }
 
 function failedReport(error) {

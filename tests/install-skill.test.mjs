@@ -144,8 +144,8 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\nname: jj-same/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /handoff_ref/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /更新交接/);
@@ -265,8 +265,8 @@ test('installSkill can install Claude slash commands', () => {
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch.md')), false);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\nname: jj-same/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /cj -> dj -> cz/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /handoff_ref/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /更新交接/);

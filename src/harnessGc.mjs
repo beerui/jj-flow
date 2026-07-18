@@ -5,6 +5,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { checkHarnessRepository } from '../scripts/check-harness.mjs';
 import { HOST_ACTION_TYPES } from './dispatchHostContract.mjs';
+import { hashNormalizedTextFile } from './fileFingerprint.mjs';
 
 export const HARNESS_GC_REPORT_VERSION = 'jj-flow/harness-gc-report/1.0';
 
@@ -219,7 +220,7 @@ function semanticHash(value) {
 }
 
 function runnerHash() {
-  return `sha256:${crypto.createHash('sha256').update(fs.readFileSync(fileURLToPath(import.meta.url))).digest('hex')}`;
+  return hashNormalizedTextFile(fileURLToPath(import.meta.url));
 }
 
 function readJson(file) {

@@ -6,7 +6,7 @@
   "status": "PASS",
   "isolated": true,
   "side_effects": "temporary-git-only",
-  "runner_sha256": "sha256:82fbe58959c98ced8ce0b3c4a7e6f614b1d93efbe6c6fc874cd1d67b91f281e4",
+  "runner_sha256": "sha256:21dfa90376a9bf9c058c6bbf625ff690e6af82b0be2b3617f503ada3aeba5096",
   "summary": "临时控制仓通过真实 Git worktree、commit、CAS、中断恢复和两轮 Review 完成 A2/A3 半真实闭环。",
   "host": {
     "adapter": "local-git-worktree",

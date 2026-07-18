@@ -1,12 +1,12 @@
 {
   "schema_version": "jj-flow/harness-gc-report/1.0",
-  "scan_id": "sha256:60baa13da974f5998da71cf3b26f104ae36e9f44029b2941433fe91edec473ce",
+  "scan_id": "sha256:284c1c4822b88c069f2810a263f1f7f5a287d5e1fe4c6036d42b4f7786ef8ac4",
   "status": "PASS",
   "score": 98,
   "grade": "A",
   "read_only": true,
   "auto_fix": false,
-  "runner_sha256": "sha256:cb145908d23de46b463cda778d73483cf7131d6e68930fcaab7e6342c6fbcf6f",
+  "runner_sha256": "sha256:c68427d58863e0030b09d6202907da9a029a0ec7b0c4fc62c646e31414b6ff5c",
   "categories": [
     {
       "id": "record-integrity",
@@ -91,7 +91,7 @@
     "schemas": 5,
     "invariants": 11,
     "active_exec_plans": 1,
-    "code_files": 23,
+    "code_files": 24,
     "host_action_types": 2
   },
   "summary": "无阻断漂移；2 个低优先级维护候选。"

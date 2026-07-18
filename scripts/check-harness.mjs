@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -22,6 +21,7 @@ import {
 import { TRACE_SCHEMA_VERSION } from '../src/dispatchTrace.mjs';
 import { SCENARIO_IDS, SCENARIO_REPORT_VERSION } from '../src/scenarioRunner.mjs';
 import { HOST_TRIAL_REPORT_VERSION } from '../src/hostTrialRunner.mjs';
+import { hashNormalizedTextFile } from '../src/fileFingerprint.mjs';
 
 export const HARNESS_SCHEMA_VERSION = 'jj-flow/harness/1.0';
 const HARNESS_GC_REPORT_VERSION = 'jj-flow/harness-gc-report/1.0';
@@ -773,7 +773,7 @@ function checkHostTrial({ cwd, config, addFinding, stats, manifestPath }) {
   const evidence = readJsonSurface(paths.evidence, addFinding, 'HNS-HOST-TRIAL-006');
   if (!evidence) return;
   const expectedRunnerHash = paths.runner && fs.existsSync(paths.runner)
-    ? `sha256:${crypto.createHash('sha256').update(fs.readFileSync(paths.runner)).digest('hex')}`
+    ? hashNormalizedTextFile(paths.runner)
     : null;
   if (evidence.schema_version !== HOST_TRIAL_REPORT_VERSION
     || evidence.status !== 'PASS'
@@ -832,7 +832,7 @@ function checkHarnessGc({ cwd, config, addFinding, stats, manifestPath }) {
   const baseline = readJsonSurface(paths.baseline, addFinding, 'HNS-GC-006');
   if (!baseline) return;
   const expectedRunnerHash = paths.runner && fs.existsSync(paths.runner)
-    ? `sha256:${crypto.createHash('sha256').update(fs.readFileSync(paths.runner)).digest('hex')}`
+    ? hashNormalizedTextFile(paths.runner)
     : null;
   if (baseline.schema_version !== HARNESS_GC_REPORT_VERSION
     || baseline.status !== 'PASS'
