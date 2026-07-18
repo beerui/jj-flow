@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.1.1-beta.16
 
 - 文档站：嵌套页相对路径修复、表格/粗体渲染、导航与样式可读性增强、首页 3 步路径；维护说明写清文档所有权；`tests/docs-site.test.mjs` 覆盖主路径与 docs:check。
+- dispatch 运行时：分析 receipt 先消费、目标独立 ADAPT/NO_CHANGE/BLOCKED 门禁、resume 调和 pending intent、CAS 写锁不误删他人 lock。
 
 ## 0.1.1-beta.15
 

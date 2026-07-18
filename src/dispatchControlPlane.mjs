@@ -27,6 +27,13 @@ export const REQUIRED_APP_CAPABILITIES = Object.freeze([
 
 export const REVIEW_OUTCOMES = Object.freeze(['PASS', 'NEEDS_CHANGES']);
 export const REVIEW_FINDING_STATUSES = Object.freeze(['OPEN', 'RESOLVED', 'WAIVED']);
+export const TARGET_DIFFERENCE_DECISIONS = Object.freeze([
+  'DIRECT',
+  'ADAPT',
+  'SYNC',
+  'NO_CHANGE_REQUIRED',
+  'BLOCKED'
+]);
 
 const DELIVERY_STATUSES = new Set([
   'DRAFT',
@@ -77,6 +84,7 @@ export function createControlPlane({
   projects = [],
   deliveries = [],
   revision = 0,
+  runtime = null,
   events = []
 } = {}) {
   const plane = {
@@ -85,6 +93,7 @@ export function createControlPlane({
     control_project: normalizeControlProject(controlProject || control_project),
     projects: Array.isArray(projects) ? projects.map(normalizeProject) : projects,
     deliveries: Array.isArray(deliveries) ? deliveries.map(normalizeDelivery) : deliveries,
+    runtime: runtime === undefined ? null : clone(runtime),
     events: clone(events)
   };
 
@@ -118,6 +127,7 @@ export function validateControlPlane(plane) {
   else if (plane.projects.length === 0) errors.push('projects requires at least one project');
   if (!Array.isArray(plane.deliveries)) errors.push('deliveries must be an array');
   if (plane.events !== undefined && !Array.isArray(plane.events)) errors.push('events must be an array');
+  validateRuntimeState(plane.runtime, errors);
 
   const projectIds = new Set();
   const projectPaths = new Map();
@@ -218,6 +228,7 @@ export function validateControlPlane(plane) {
       if (!TARGET_STATUSES.has(target.status)) {
         errors.push(`target ${target.project_id} in ${delivery.delivery_id} has invalid status ${target.status}`);
       }
+      validateTargetAnalysis(target.analysis, `${delivery.delivery_id}/${target.project_id}`, errors);
       validateTargetCheckpoint(delivery, target, errors);
       validateTargetLastResult(delivery, target, errors);
       validateTargetSuccessConsistency(delivery, target, errors);
@@ -592,7 +603,8 @@ export function dispatchTasks(plane, deliveryId, {
   capabilities = [],
   now = new Date().toISOString(),
   hostId = null,
-  eligibleProjects = null
+  eligibleProjects = null,
+  allowedTaskKeys = null
 } = {}) {
   if (!isDateTime(now)) throw new Error('dispatch now must be a date-time');
   if (hostId !== null && (typeof hostId !== 'string' || !hostId)) {
@@ -667,6 +679,11 @@ export function dispatchTasks(plane, deliveryId, {
     : eligibleProjects instanceof Set
       ? eligibleProjects
       : new Set(eligibleProjects);
+  const allowed = allowedTaskKeys == null
+    ? null
+    : allowedTaskKeys instanceof Set
+      ? allowedTaskKeys
+      : new Set(allowedTaskKeys);
 
   for (const task of plans) {
     const prior = existing.get(task.task_key);
@@ -678,6 +695,13 @@ export function dispatchTasks(plane, deliveryId, {
       deferred.push({
         ...task,
         blocked_by: [`target-analysis:${task.project_id}`]
+      });
+      continue;
+    }
+    if (allowed && !allowed.has(task.task_key)) {
+      deferred.push({
+        ...task,
+        blocked_by: [`runtime-gate:${task.project_id}`]
       });
       continue;
     }
@@ -1711,6 +1735,106 @@ function validateResponsibilities(responsibilities, context, errors) {
       if (responsibility.skipped_at !== undefined && !isDateTime(responsibility.skipped_at)) {
         errors.push(`responsibility ${responsibility.name} in ${context} skipped_at must be a date-time`);
       }
+    }
+  }
+}
+
+function validateRuntimeState(runtime, errors) {
+  if (runtime === undefined || runtime === null) return;
+  if (!runtime || typeof runtime !== 'object' || Array.isArray(runtime)) {
+    errors.push('runtime must be an object or null');
+    return;
+  }
+  const ids = runtime.processed_receipt_ids;
+  if (ids !== undefined) {
+    if (!Array.isArray(ids)) {
+      errors.push('runtime.processed_receipt_ids must be an array');
+    } else {
+      const unique = new Set();
+      for (const id of ids) {
+        if (!isNonEmptyString(id)) errors.push('runtime.processed_receipt_ids requires non-empty strings');
+        if (unique.has(id)) errors.push(`runtime has duplicate processed receipt id ${id}`);
+        unique.add(id);
+      }
+    }
+  }
+  if (runtime.processed_receipts !== undefined) {
+    if (!Array.isArray(runtime.processed_receipts)) {
+      errors.push('runtime.processed_receipts must be an array');
+    } else {
+      const unique = new Set();
+      for (const receipt of runtime.processed_receipts) {
+        if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
+          errors.push('runtime.processed_receipts contains a non-object entry');
+          continue;
+        }
+        for (const field of ['receipt_id', 'task_key', 'kind']) {
+          if (!isNonEmptyString(receipt[field])) errors.push(`runtime processed receipt requires ${field}`);
+        }
+        if (!Number.isInteger(receipt.attempt) || receipt.attempt < 1) {
+          errors.push(`runtime processed receipt ${receipt.receipt_id || '(unknown)'} requires positive attempt`);
+        }
+        if (unique.has(receipt.receipt_id)) errors.push(`runtime has duplicate processed receipt ${receipt.receipt_id}`);
+        unique.add(receipt.receipt_id);
+      }
+    }
+  }
+  if (runtime.deliveries !== undefined
+    && (!runtime.deliveries || typeof runtime.deliveries !== 'object' || Array.isArray(runtime.deliveries))) {
+    errors.push('runtime.deliveries must be an object');
+  }
+}
+
+function validateTargetAnalysis(analysis, context, errors) {
+  if (analysis === undefined || analysis === null) return;
+  if (!analysis || typeof analysis !== 'object' || Array.isArray(analysis)) {
+    errors.push(`target ${context} analysis must be an object or null`);
+    return;
+  }
+  for (const field of ['analysis_ref', 'evidence_ref']) {
+    if (!isNonEmptyString(analysis[field]) || !/^ANL-TARGET(?:-|:|$)/.test(analysis[field])) {
+      errors.push(`target ${context} analysis ${field} must be ANL-TARGET evidence`);
+    }
+  }
+  if (analysis.analysis_ref && analysis.evidence_ref && analysis.analysis_ref !== analysis.evidence_ref) {
+    errors.push(`target ${context} analysis_ref must equal evidence_ref`);
+  }
+  if (!isNonEmptyString(analysis.difference_ref)) errors.push(`target ${context} analysis requires difference_ref`);
+  if (!Array.isArray(analysis.knowledge_refs) || analysis.knowledge_refs.length === 0
+    || analysis.knowledge_refs.some((ref) => !isNonEmptyString(ref))) {
+    errors.push(`target ${context} analysis requires knowledge_refs`);
+  }
+  if (!TARGET_DIFFERENCE_DECISIONS.includes(analysis.decision)) {
+    errors.push(`target ${context} analysis has invalid decision ${analysis.decision}`);
+  }
+  if (!['PENDING', 'APPROVED'].includes(analysis.decision_status)) {
+    errors.push(`target ${context} analysis has invalid decision_status ${analysis.decision_status}`);
+  }
+  if (!Number.isInteger(analysis.attempt) || analysis.attempt < 1) {
+    errors.push(`target ${context} analysis requires positive attempt`);
+  }
+  if (!isNonEmptyString(analysis.source_head)) errors.push(`target ${context} analysis requires source_head`);
+  if (!isNonEmptyString(analysis.target_head)) errors.push(`target ${context} analysis requires target_head`);
+  if (!['HIGH', 'MEDIUM', 'LOW'].includes(analysis.confidence)) {
+    errors.push(`target ${context} analysis requires HIGH, MEDIUM, or LOW confidence`);
+  }
+  if (!Array.isArray(analysis.unresolved)) errors.push(`target ${context} analysis requires unresolved array`);
+  if (analysis.reference_commit !== undefined && analysis.reference_commit !== null
+    && (!isNonEmptyString(analysis.reference_commit) || analysis.reference_commit.length < 7)) {
+    errors.push(`target ${context} analysis reference_commit must be null or a commit`);
+  }
+  if (analysis.decision_status === 'APPROVED') {
+    if (!['AUTO', 'HUMAN'].includes(analysis.decision_origin)) {
+      errors.push(`target ${context} approved analysis requires decision_origin`);
+    }
+    if (!isNonEmptyString(analysis.decision_ref)) errors.push(`target ${context} approved analysis requires decision_ref`);
+    if (!isDateTime(analysis.decided_at)) errors.push(`target ${context} approved analysis requires decided_at`);
+    if (analysis.decision_origin === 'AUTO'
+      && (analysis.decision !== 'DIRECT' || analysis.confidence !== 'HIGH' || analysis.unresolved?.length)) {
+      errors.push(`target ${context} AUTO approval only permits HIGH-confidence DIRECT with unresolved=[]`);
+    }
+    if (analysis.decision !== 'BLOCKED' && analysis.unresolved?.length) {
+      errors.push(`target ${context} approved ${analysis.decision} requires unresolved=[]`);
     }
   }
 }
