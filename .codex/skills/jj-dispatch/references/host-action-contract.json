@@ -1,0 +1,51 @@
+{
+  "$schema": "host-action-contract.schema.json",
+  "schema_version": "jj-flow/dispatch-host-action/1.0",
+  "required_app_capabilities": [
+    "list_projects",
+    "list_threads",
+    "create_thread",
+    "read_thread",
+    "send_message_to_thread",
+    "worktree",
+    "sandbox"
+  ],
+  "action_types": ["CREATE_THREAD", "RECONCILE_THREAD"],
+  "access_profiles": {
+    "read": {
+      "agent_name": "jj-workflow-reviewer",
+      "sandbox_mode": "read-only",
+      "environment": "project-read",
+      "worktree_policy": "forbidden"
+    },
+    "write": {
+      "agent_name": "jj-workflow-developer",
+      "sandbox_mode": "workspace-write",
+      "environment": "exclusive-worktree",
+      "worktree_policy": "required-at-bind"
+    }
+  },
+  "actions": [
+    {
+      "type": "CREATE_THREAD",
+      "mode": "external-write",
+      "required_capabilities": ["create_thread", "sandbox"],
+      "write_access_capabilities": ["worktree"]
+    },
+    {
+      "type": "RECONCILE_THREAD",
+      "mode": "read-only",
+      "required_capabilities": ["list_threads", "read_thread", "sandbox"],
+      "write_access_capabilities": ["worktree"]
+    }
+  ],
+  "receipt_contract": {
+    "kinds": ["TASK_RESULT", "REVIEW_RESULT"],
+    "statuses": ["COMPLETED", "BLOCKED"],
+    "review_outcomes": ["PASS", "NEEDS_CHANGES"]
+  },
+  "control_plane_contract": {
+    "target_difference_decisions": ["DIRECT", "ADAPT", "SYNC", "NO_CHANGE_REQUIRED", "BLOCKED"],
+    "review_finding_statuses": ["OPEN", "RESOLVED", "WAIVED"]
+  }
+}

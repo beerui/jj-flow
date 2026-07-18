@@ -10,11 +10,18 @@ import {
   recordReviewResult,
   recordTargetResult,
   recordTaskResult,
+  REVIEW_OUTCOMES,
   TARGET_DIFFERENCE_DECISIONS,
   validateControlPlane
 } from './dispatchControlPlane.mjs';
+import {
+  describeHostAction,
+  HOST_ACTION_TYPES,
+  RECEIPT_KINDS,
+  RECEIPT_STATUSES
+} from './dispatchHostContract.mjs';
 
-export const RECEIPT_KINDS = Object.freeze(['TASK_RESULT', 'REVIEW_RESULT']);
+export { HOST_ACTION_TYPES, RECEIPT_KINDS, RECEIPT_STATUSES };
 export const DIFFERENCE_DECISIONS = TARGET_DIFFERENCE_DECISIONS;
 
 export function buildReceipt({
@@ -62,7 +69,7 @@ export function validateReceipt(receipt) {
   }
   if (!Number.isInteger(receipt.attempt) || receipt.attempt < 1) errors.push('receipt requires positive attempt');
   if (!RECEIPT_KINDS.includes(receipt.kind)) errors.push(`receipt kind must be ${RECEIPT_KINDS.join(' or ')}`);
-  if (!['COMPLETED', 'BLOCKED'].includes(receipt.status)) errors.push('receipt status must be COMPLETED or BLOCKED');
+  if (!RECEIPT_STATUSES.includes(receipt.status)) errors.push(`receipt status must be ${RECEIPT_STATUSES.join(' or ')}`);
   if (Number.isNaN(Date.parse(receipt.recorded_at || ''))) errors.push('receipt recorded_at must be a date-time');
   if (receipt.findings !== undefined && !Array.isArray(receipt.findings)) errors.push('receipt findings must be an array');
 
@@ -74,7 +81,7 @@ export function validateReceipt(receipt) {
 
   if (receipt.kind === 'REVIEW_RESULT') {
     if (receipt.status !== 'COMPLETED') errors.push('REVIEW_RESULT status must be COMPLETED');
-    if (!['PASS', 'NEEDS_CHANGES'].includes(receipt.outcome)) errors.push('REVIEW_RESULT requires PASS or NEEDS_CHANGES outcome');
+    if (!REVIEW_OUTCOMES.includes(receipt.outcome)) errors.push(`REVIEW_RESULT requires ${REVIEW_OUTCOMES.join(' or ')} outcome`);
     if (!isNonEmptyString(receipt.reviewed_commit) || receipt.reviewed_commit.length < 7) {
       errors.push('REVIEW_RESULT requires reviewed_commit');
     }
@@ -504,6 +511,7 @@ function collectHostActions(dispatch, allowedTaskKeys) {
 
 function threadAction(type, intent) {
   return {
+    ...describeHostAction(type, intent.access),
     type,
     action_id: `${type}:${intent.task_key}`,
     task_key: intent.task_key,

@@ -1,0 +1,69 @@
+{
+  "schema_version": "jj-flow/dispatch-host-action/1.0",
+  "actions": [
+    {
+      "host_action_schema_version": "jj-flow/dispatch-host-action/1.0",
+      "type": "CREATE_THREAD",
+      "action_id": "CREATE_THREAD:DEL-001/A/test/1",
+      "task_key": "DEL-001/A/test/1",
+      "project_id": "A",
+      "responsibility": "test",
+      "access": "read",
+      "worktree": null,
+      "mode": "external-write",
+      "required_capabilities": ["create_thread", "sandbox"],
+      "agent_name": "jj-workflow-reviewer",
+      "sandbox_mode": "read-only",
+      "environment": "project-read",
+      "worktree_policy": "forbidden"
+    },
+    {
+      "host_action_schema_version": "jj-flow/dispatch-host-action/1.0",
+      "type": "CREATE_THREAD",
+      "action_id": "CREATE_THREAD:DEL-001/A/development/1",
+      "task_key": "DEL-001/A/development/1",
+      "project_id": "A",
+      "responsibility": "development",
+      "access": "write",
+      "worktree": null,
+      "mode": "external-write",
+      "required_capabilities": ["create_thread", "sandbox", "worktree"],
+      "agent_name": "jj-workflow-developer",
+      "sandbox_mode": "workspace-write",
+      "environment": "exclusive-worktree",
+      "worktree_policy": "required-at-bind"
+    },
+    {
+      "host_action_schema_version": "jj-flow/dispatch-host-action/1.0",
+      "type": "RECONCILE_THREAD",
+      "action_id": "RECONCILE_THREAD:DEL-001/A/test/1",
+      "task_key": "DEL-001/A/test/1",
+      "project_id": "A",
+      "responsibility": "test",
+      "access": "read",
+      "worktree": null,
+      "mode": "read-only",
+      "required_capabilities": ["list_threads", "read_thread", "sandbox"],
+      "agent_name": "jj-workflow-reviewer",
+      "sandbox_mode": "read-only",
+      "environment": "project-read",
+      "worktree_policy": "forbidden"
+    },
+    {
+      "host_action_schema_version": "jj-flow/dispatch-host-action/1.0",
+      "type": "RECONCILE_THREAD",
+      "action_id": "RECONCILE_THREAD:DEL-001/A/development/1",
+      "task_key": "DEL-001/A/development/1",
+      "project_id": "A",
+      "responsibility": "development",
+      "access": "write",
+      "worktree": null,
+      "mode": "read-only",
+      "required_capabilities": ["list_threads", "read_thread", "sandbox", "worktree"],
+      "agent_name": "jj-workflow-developer",
+      "sandbox_mode": "workspace-write",
+      "environment": "exclusive-worktree",
+      "worktree_policy": "required-at-bind"
+    }
+  ]
+}

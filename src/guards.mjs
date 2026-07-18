@@ -81,7 +81,7 @@ const GUARD_RULES = {
     title: '项目状态可读取',
     fail: (items) => hasValidationFailure(items, ['project-state', 'workflow-state']),
     pass: (items) => hasType(items, ['project_state']) && hasType(items, ['workflow_state']),
-    pending: '缺少 package.json 或 .workflow/state.json 状态证据。'
+    pending: '缺少 package.json 或版本化项目状态证据。'
   },
   'docs-code-aligned': {
     title: '文档与 recipe 对齐',

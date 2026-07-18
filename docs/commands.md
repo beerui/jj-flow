@@ -13,7 +13,7 @@
 
 ## 维护与自动化
 
-- [CLI](command-cli.html)：`install-skill`、`dispatch-tick`
+- [CLI](command-cli.html)：`install-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`
 - 维护本仓：`npm run verify`（无 `$jj-validate` / `$jj-evolve` 对话入口）
 
 ## 已移除（非活入口）

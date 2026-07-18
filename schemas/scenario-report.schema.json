@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/scenario-report.schema.json",
+  "title": "jj-flow scenario report",
+  "oneOf": [
+    { "$ref": "#/$defs/report" },
+    { "$ref": "#/$defs/suite" }
+  ],
+  "$defs": {
+    "assertion": {
+      "type": "object",
+      "required": ["id", "status", "evidence", "reason", "next_action"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["PASS", "FAIL"] },
+        "evidence": {},
+        "reason": { "type": ["string", "null"] },
+        "next_action": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "violation": {
+      "type": ["object", "null"],
+      "properties": {
+        "rule_id": { "type": "string" },
+        "reason": { "type": "string" },
+        "next_action": { "type": "string" }
+      },
+      "required": ["rule_id", "reason", "next_action"],
+      "additionalProperties": false
+    },
+    "report": {
+      "type": "object",
+      "required": ["schema_version", "scenario", "status", "isolated", "side_effects", "assertions", "earliest_violation", "trace"],
+      "properties": {
+        "schema_version": { "const": "jj-flow/scenario-report/1.0" },
+        "scenario": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["PASS", "FAIL"] },
+        "isolated": { "const": true },
+        "side_effects": { "const": "none" },
+        "summary": { "type": "string" },
+        "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+        "earliest_violation": { "$ref": "#/$defs/violation" },
+        "replay": { "type": "object" },
+        "trace": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "suite": {
+      "type": "object",
+      "required": ["schema_version", "status", "isolated", "side_effects", "reports"],
+      "properties": {
+        "schema_version": { "const": "jj-flow/scenario-suite/1.0" },
+        "status": { "enum": ["PASS", "FAIL"] },
+        "isolated": { "const": true },
+        "side_effects": { "const": "none" },
+        "reports": { "type": "array", "items": { "$ref": "#/$defs/report" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

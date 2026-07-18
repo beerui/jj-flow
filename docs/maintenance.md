@@ -35,6 +35,9 @@ npm run docs:build
 
 # 全仓门禁（测试 + 结构检查 + 文档检查）
 npm run verify
+
+# 只读持续熵清理与质量评分
+npm run harness:gc
 ```
 
 修改调度协议后额外：
@@ -49,6 +52,8 @@ git diff --check
 ```bash
 node --test tests/docs-site.test.mjs
 ```
+
+`harness:gc` 中 P0/P1 会阻断，P2/P3 只提示小批次维护候选。首版明确禁用自动修复；基线位于 `docs/milestones/h5-gc-baseline.json`，runner 变化后必须重新生成。
 
 ## 新增一页文档的清单
 

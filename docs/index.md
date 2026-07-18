@@ -40,13 +40,17 @@ $jj-same
 | 同源迁移、handoff、持续同步 | [$jj-same](command-jj-same.html) |
 | 多项目预览、批准、绑定、恢复 | [$jj-dispatch](command-jj-dispatch.html) |
 | 只说「用 jj-flow」 | [$jj](command-jj.html)（默认路由到 same） |
-| 安装 / `dispatch-tick` | [CLI](command-cli.html) · [安装](installation.html) |
+| 安装 / `dispatch-tick` / 半真实 Host 试跑 | [CLI](command-cli.html) · [安装](installation.html) |
 
 ## 维护与深入
 
 - 本仓库维护：直接改代码并运行 `npm run verify`（见 [维护说明](maintenance.html)）
 - 架构边界：[架构](architecture.html)
-- M6 已关闭：[M6 验收](milestones/m6-acceptance.html)；下一阶段为真实控制项目试跑（M7）
+- Agent 可维护性演进：[Harness Engineering 设计](design-docs/harness-engineering.html)
+- 已接受的长期决策：[ADR 索引](adr/index.html)
+- M6 已关闭：[M6 验收](milestones/m6-acceptance.html)
+- M7 半真实 Host 闭环已关闭：[M7 验收](milestones/m7-acceptance.html)；真实 Codex App thread/sandbox 联调仍属于部署环境验证
+- H5 持续熵清理已关闭：[H5 验收](milestones/h5-acceptance.html)；`harness:gc` 只读评分并输出维护候选，不自动修复
 
 ## 搜索
 

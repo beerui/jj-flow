@@ -53,7 +53,8 @@
 |--------|------|------|
 | M5 项目族控制平面与审查闭环 | completed | P9/P10 |
 | M6 主调度运行时与目标差异决策 | **completed** | P11/P12；验收见 [m6-acceptance.md](milestones/m6-acceptance.html) |
-| M7 真实控制项目试跑与 host 闭环 | pending | P13：PREVIEW→tick→BIND→receipt→resume 与恢复演练 |
+| M7 控制项目试跑与 host 闭环 | **completed（semi-real）** | P13：真实临时 Git/worktree；PREVIEW→tick→BIND→receipt→resume→rework，验收见 [m7-acceptance.md](milestones/m7-acceptance.html) |
+| H5 Harness 持续熵清理 | **completed** | 只读质量评分、P0/P1 阻断、版本化 baseline；验收见 [h5-acceptance.md](milestones/h5-acceptance.html) |
 
 ## 与外部工具的关系
 

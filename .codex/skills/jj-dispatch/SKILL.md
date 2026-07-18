@@ -50,6 +50,8 @@ delivery_id / project_id / responsibility / attempt
 
 控制项目 skill 不把 host API 封装进 npm CLI，但在 Codex App 中按以下顺序调用能力：
 
+Host action allowlist、required capabilities、sandbox/worktree profile 和 receipt 关键枚举以 `references/host-action-contract.json` 为结构化契约；runtime、JSON Schema、fixtures 与本文必须通过 `npm run harness:check` 保持一致。当前 runtime 只允许输出 `CREATE_THREAD` 和 `RECONCILE_THREAD`。
+
 1. 用 `list_projects` 解析每个注册项目的 Codex `projectId`；路径、Git identity 和 `projectId` 分开记录。
 2. 按批准快照生成 `task_key`，先写入 `dispatch_intents`，再调用 `create_thread`。写责任必须指定目标项目的独占 worktree；只读责任消费已提交 commit。
 3. 创建成功后立即执行 `BIND_THREAD`；写回失败就标记 `UNKNOWN`，不能直接再次 `create_thread`。绑定时必须记录 `host_id`、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment` 和 `bound_at`。TOML 只是默认配置，不能证明子会话实际继承的 sandbox；host 拿不到 runtime effective sandbox attestation 时必须拒绝绑定。`access=read` 只能使用 `jj-workflow-reviewer`、`read-only`、`project-read`，不得绑定 worktree。

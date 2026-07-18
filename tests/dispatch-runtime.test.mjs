@@ -137,6 +137,12 @@ test('missing target analysis dispatches only analysis tasks and reports per-tar
   assert.ok(result.actions.some((action) => action.task_key === 'DEL-001/A/analysis/1'));
   assert.ok(result.actions.some((action) => action.task_key === 'DEL-001/B/analysis/1'));
   assert.equal(result.actions.some((action) => action.responsibility === 'development'), false);
+  const readAction = result.actions.find((action) => action.task_key === 'DEL-001/A/analysis/1');
+  assert.equal(readAction.host_action_schema_version, 'jj-flow/dispatch-host-action/1.0');
+  assert.equal(readAction.agent_name, 'jj-workflow-reviewer');
+  assert.equal(readAction.sandbox_mode, 'read-only');
+  assert.equal(readAction.worktree_policy, 'forbidden');
+  assert.deepEqual(readAction.required_capabilities, ['create_thread', 'sandbox']);
 });
 
 test('analysis receipt is consumed before gating and one ready target can advance independently', () => {
@@ -153,6 +159,12 @@ test('analysis receipt is consumed before gating and one ready target can advanc
   assert.ok(result.applied_receipts.includes('RCPT-ANL-A-DIRECT'));
   assert.ok(result.actions.some((action) => action.task_key === 'DEL-001/A/development/1'));
   assert.equal(result.actions.some((action) => action.task_key === 'DEL-001/B/development/1'), false);
+  const writeAction = result.actions.find((action) => action.task_key === 'DEL-001/A/development/1');
+  assert.equal(writeAction.agent_name, 'jj-workflow-developer');
+  assert.equal(writeAction.sandbox_mode, 'workspace-write');
+  assert.equal(writeAction.environment, 'exclusive-worktree');
+  assert.equal(writeAction.worktree_policy, 'required-at-bind');
+  assert.deepEqual(writeAction.required_capabilities, ['create_thread', 'sandbox', 'worktree']);
   assert.ok(result.decision_required.some((item) => item.project_id === 'B'));
   assert.equal(validateControlPlane(result.plane).ok, true);
 });

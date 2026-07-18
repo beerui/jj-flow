@@ -41,8 +41,13 @@ const NAV_GROUPS = [
     pages: [
       { title: '术语与缩写', source: 'docs/glossary.md', output: 'glossary.html' },
       { title: '架构', source: 'docs/architecture.md', output: 'architecture.html' },
+      { title: '设计文档', source: 'docs/design-docs/index.md', output: 'design-docs/index.html' },
+      { title: 'Agent Harness 设计', source: 'docs/design-docs/harness-engineering.md', output: 'design-docs/harness-engineering.html' },
+      { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },
       { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
       { title: 'M6 验收', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },
+      { title: 'M7 Host 闭环验收', source: 'docs/milestones/m7-acceptance.md', output: 'milestones/m7-acceptance.html' },
+      { title: 'H5 持续熵清理验收', source: 'docs/milestones/h5-acceptance.md', output: 'milestones/h5-acceptance.html' },
       { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' },
       { title: 'ADR 0002', source: 'docs/adr/0002-project-family-control-plane.md', output: 'adr-0002-project-family-control-plane.html' }
     ]

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/harness-gc-report.schema.json",
+  "title": "jj-flow Harness garbage-collection report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scan_id", "status", "score", "grade", "read_only", "auto_fix", "runner_sha256", "categories", "findings", "scanned", "summary"],
+  "properties": {
+    "schema_version": { "const": "jj-flow/harness-gc-report/1.0" },
+    "scan_id": { "$ref": "#/$defs/hash" },
+    "status": { "enum": ["PASS", "FAIL"] },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "grade": { "enum": ["A", "B", "C", "D", "F"] },
+    "read_only": { "const": true },
+    "auto_fix": { "const": false },
+    "runner_sha256": { "$ref": "#/$defs/hash" },
+    "categories": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "score", "maximum"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "score": { "type": "integer", "minimum": 0 },
+          "maximum": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "scanned": { "type": "object" },
+    "summary": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "severity", "path", "reason", "evidence", "next_action", "auto_fix_eligible"],
+      "properties": {
+        "rule_id": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+        "path": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "evidence": {},
+        "next_action": { "type": "string", "minLength": 1 },
+        "auto_fix_eligible": { "const": false }
+      }
+    }
+  }
+}

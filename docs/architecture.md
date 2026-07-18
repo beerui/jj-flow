@@ -19,6 +19,7 @@ flowchart LR
   F --> G
   G --> H[Git commit / VRF / REV]
   H --> D
+  D --> I[scenario trace / pure replay]
 ```
 
 跨项目调度使用独立控制平面：
@@ -41,7 +42,15 @@ flowchart LR
 - `.codex/skills/jj-dispatch/`：控制项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD），Codex-only。
 - `.codex/skills/jj/`、`.claude/commands/`：兼容路由与 Claude 入口。
 - `.codex/agents/*.toml`：Reviewer（read-only）与 Developer 角色期望；运行时 sandbox 以 host attestation 为准。
+- `src/dispatchHostContract.mjs` 与 `.codex/skills/jj-dispatch/references/host-action-contract.json`：host action allowlist、capability、sandbox 和 worktree policy；`npm run harness:check` 负责跨 runtime/schema/skill/fixture parity。
+- `src/scenarioRunner.mjs`、`src/dispatchTrace.mjs` 与 `src/handoffContract.mjs`：固定场景、统一 report、语义 hash、纯 replay 和 handoff snapshot 校验；`npm run scenario:check` 不执行真实 host action。
+- `src/hostTrialRunner.mjs`：系统临时目录中的半真实 Host adapter，使用实际 Git/worktree、control-plane CAS、receipt 和 Review rework；它明确不创建 Codex App thread。
+- `schemas/dispatch-trace.schema.json` 与 `schemas/scenario-report.schema.json`：场景和 trace 的外部序列化契约；Manifest 检查其版本与 runtime 一致。
+- `schemas/host-trial-report.schema.json` 与 `docs/milestones/m7-host-trial.json`：H4/M7 结构化验收契约和版本化证据；Harness 校验 runner fingerprint。
+- `src/harnessGc.mjs`、`schemas/harness-gc-report.schema.json` 与 `docs/milestones/h5-gc-baseline.json`：H5 只读熵清理、质量评分和版本化基线；P0/P1 阻断，P2/P3 仅提示。
+- `docs/design-docs/index.md` 与 `docs/adr/index.md`：目标设计和已接受决策的发现入口；Harness 检查索引覆盖、站点构建、设计状态和 Implemented 验收证据。
 - `bin/jj.mjs` / `src/cli.mjs`：安装与 `dispatch-tick` 调试，不是业务交付主入口。
+- `jj scenario` / `jj trace`：面向 Agent 和维护者的任务级反馈入口；只使用固定 fixture 和纯状态转换。
 - `src/dispatchControlPlane.mjs` / `src/dispatchRuntime.mjs`：控制面状态机与单次 tick/CAS/receipt。
 - `src/recipes.mjs`：CLI 侧 `same` recipe（可选辅助，不是产品定义中心）。
 - 全部流程禁止调用 `maestro explore`；代码定位用定点读取与搜索。

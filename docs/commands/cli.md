@@ -8,6 +8,11 @@
 - CI 或脚本需要结构化 JSON，用于检查 evidence、guard 和 Maestro 调用链。
 - 调试 `same` recipe。
 - 使用 `install-skill` 安装或更新 Codex/Claude Code 原生命令资产。
+- 使用 `doctor` 只读判断当前仓库的 Harness、Git、host capabilities 和自治等级。
+- 使用 `scenario` 运行固定、隔离、无副作用的任务级回归。
+- 使用 `trace explain` / `trace replay` 解释或纯重放 scenario trace，不重复 host action。
+- 使用 `host-trial` 在临时 Git repo/worktree 中验证 A2/A3 半真实 Host 闭环。
+- 使用 `harness-gc` 只读检查 Harness 漂移、规则健康和维护重复。
 - 使用 `dispatch-tick` 对控制面做一次可恢复调度预览或写回。
 
 ## 何时不用
@@ -37,12 +42,28 @@ jj-flow [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
 
 ```text
 jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj doctor [--json]
+jj scenario list [--json]
+jj scenario check [--json]
+jj scenario run <scenario|all> [--json]
+jj trace explain <trace.json> [--json]
+jj trace replay <trace.json> [--json]
+jj host-trial run [--json]
+jj harness-gc [--json]
 jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
   [--expected-revision N] [--receipt receipt.json] [--capabilities a,b,c] [--write] [--json]
 ```
 
 注意：
 
+- `doctor` 只读取 Git、`harness-manifest.json` 和仓库文件，不修复、不安装、不派发；失败输出包含 `rule_id`、原因和下一动作。
+- `scenario list` 输出 Manifest 机械校验的 runtime registry；`scenario check` 执行全部场景但省略完整 trace；`scenario run` 输出统一 report 和可审计 trace。
+- 当前场景为 `dispatch-happy-path`、`dispatch-interrupted-resume`、`dispatch-partial-target-failure` 和 `same-handoff-contract`。
+- 场景只使用固定 fixture 与内存状态。report 始终声明隔离策略；`trace replay` 会校验 before/after/output/final hash，并在最早不匹配步骤失败。
+- `trace.json` 相对当前工作目录解析；replay 重新调用纯状态转换，但不执行 trace 中记录的 `CREATE_THREAD` 或 `RECONCILE_THREAD`。
+- `host-trial` 会创建临时控制仓、真实 Git repo 和 worktree，执行 CAS、中断对账及两轮 Review，然后删除临时目录。它不联网、不触碰业务仓，也不创建 Codex App task。
+- 半真实报告中的批准和 sandbox attestation 是固定 Host fixture，用于验证协议消费；真实宿主能力仍需在 Codex App 环境单独验证。
+- `harness-gc` 输出 100 分质量评分；P0/P1 使命令失败，P2/P3 仅形成维护建议。它不会自动删除、重写或创建 `.workflow`。
 - `--delivery` 是控制面 `delivery_id`，不是已移除的 `$jj-delivery` 入口。
 - `dispatch-tick` 是单次 tick/resume：消费结构化 receipt、按 `expected_revision` 做 revision CAS，输出 `actions` / `decision_required` / `next_wait`。
 - `--write` 使用文件级 CAS 写回；若磁盘 revision 已变化，返回 `REVISION_CONFLICT` 且不覆盖。

@@ -1,0 +1,456 @@
+{
+  "$schema": "schemas/harness-manifest.schema.json",
+  "schema_version": "jj-flow/harness/1.0",
+  "record_system": {
+    "maps": [
+      {
+        "id": "agent-map",
+        "path": "AGENTS.md",
+        "authority_for": ["agent-entrypoint", "global-invariants"],
+        "max_lines": 80
+      },
+      {
+        "id": "architecture-map",
+        "path": "ARCHITECTURE.md",
+        "authority_for": ["physical-codemap", "module-boundaries"],
+        "max_lines": 180
+      }
+    ],
+    "authorities": [
+      {
+        "id": "product-positioning",
+        "path": "README.md",
+        "authority_for": ["product-positioning", "public-entrypoints"]
+      },
+      {
+        "id": "product-architecture",
+        "path": "docs/architecture.md",
+        "authority_for": ["product-architecture", "maintainer-boundaries"]
+      },
+      {
+        "id": "design-index",
+        "path": "docs/design-docs/index.md",
+        "authority_for": ["design-discovery", "design-status"]
+      },
+      {
+        "id": "harness-design",
+        "path": "docs/design-docs/harness-engineering.md",
+        "authority_for": ["harness-target-state", "autonomy-policy"]
+      },
+      {
+        "id": "architecture-decisions",
+        "path": "docs/adr/index.md",
+        "authority_for": ["accepted-decisions", "adr-discovery"]
+      },
+      {
+        "id": "same-contract",
+        "path": ".codex/skills/jj-same/SKILL.md",
+        "authority_for": ["same-workflow-contract"]
+      },
+      {
+        "id": "dispatch-contract",
+        "path": ".codex/skills/jj-dispatch/SKILL.md",
+        "authority_for": ["dispatch-workflow-contract"]
+      },
+      {
+        "id": "control-plane-schema",
+        "path": ".codex/skills/jj-dispatch/references/control-plane.schema.json",
+        "authority_for": ["serialized-control-plane"]
+      },
+      {
+        "id": "receipt-schema",
+        "path": ".codex/skills/jj-dispatch/references/task-receipt.schema.json",
+        "authority_for": ["serialized-task-receipt"]
+      },
+      {
+        "id": "control-plane-runtime",
+        "path": "src/dispatchControlPlane.mjs",
+        "authority_for": ["control-plane-transitions"]
+      },
+      {
+        "id": "tick-runtime",
+        "path": "src/dispatchRuntime.mjs",
+        "authority_for": ["tick-receipt-cas"]
+      },
+      {
+        "id": "dispatch-host-runtime-contract",
+        "path": "src/dispatchHostContract.mjs",
+        "authority_for": ["host-action-envelope", "host-access-policy"]
+      },
+      {
+        "id": "dispatch-host-skill-contract",
+        "path": ".codex/skills/jj-dispatch/references/host-action-contract.json",
+        "authority_for": ["host-action-allowlist", "dispatch-protocol-enums"]
+      },
+      {
+        "id": "dispatch-contract-tests",
+        "path": "tests/jj-dispatch-contract.test.mjs",
+        "authority_for": ["dispatch-regression-evidence"]
+      },
+      {
+        "id": "runtime-tests",
+        "path": "tests/dispatch-runtime.test.mjs",
+        "authority_for": ["runtime-regression-evidence"]
+      },
+      {
+        "id": "scenario-runtime",
+        "path": "src/scenarioRunner.mjs",
+        "authority_for": ["deterministic-scenario-registry", "scenario-report-runtime"]
+      },
+      {
+        "id": "trace-runtime",
+        "path": "src/dispatchTrace.mjs",
+        "authority_for": ["trace-envelope", "pure-state-replay"]
+      },
+      {
+        "id": "handoff-runtime",
+        "path": "src/handoffContract.mjs",
+        "authority_for": ["same-handoff-validation"]
+      },
+      {
+        "id": "scenario-report-schema",
+        "path": "schemas/scenario-report.schema.json",
+        "authority_for": ["serialized-scenario-report"]
+      },
+      {
+        "id": "dispatch-trace-schema",
+        "path": "schemas/dispatch-trace.schema.json",
+        "authority_for": ["serialized-dispatch-trace"]
+      },
+      {
+        "id": "scenario-tests",
+        "path": "tests/scenario-runner.test.mjs",
+        "authority_for": ["scenario-replay-regression-evidence"]
+      },
+      {
+        "id": "host-trial-runtime",
+        "path": "src/hostTrialRunner.mjs",
+        "authority_for": ["semi-real-host-trial", "a2-a3-trial-runtime"]
+      },
+      {
+        "id": "host-trial-evidence",
+        "path": "docs/milestones/m7-host-trial.json",
+        "authority_for": ["m7-acceptance-evidence", "host-trial-attention-cost"]
+      },
+      {
+        "id": "host-trial-tests",
+        "path": "tests/host-trial.test.mjs",
+        "authority_for": ["host-trial-regression-evidence"]
+      },
+      {
+        "id": "harness-gc-runtime",
+        "path": "src/harnessGc.mjs",
+        "authority_for": ["entropy-scan", "quality-score"]
+      },
+      {
+        "id": "harness-gc-baseline",
+        "path": "docs/milestones/h5-gc-baseline.json",
+        "authority_for": ["h5-acceptance-evidence", "maintenance-baseline"]
+      },
+      {
+        "id": "harness-gc-tests",
+        "path": "tests/harness-gc.test.mjs",
+        "authority_for": ["harness-gc-regression-evidence"]
+      }
+    ],
+    "historical_paths": [
+      {
+        "path": "docs/other",
+        "reason": "历史方案与演示材料，不作为当前产品或 Harness 决策来源。"
+      }
+    ],
+    "forbidden_paths": [".workflow"]
+  },
+  "required_links": [
+    {
+      "source": "AGENTS.md",
+      "contains": "ARCHITECTURE.md"
+    },
+    {
+      "source": "AGENTS.md",
+      "contains": "docs/design-docs/index.md"
+    },
+    {
+      "source": "ARCHITECTURE.md",
+      "contains": "docs/design-docs/"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "design-docs/harness-engineering.html"
+    },
+    {
+      "source": "docs/design-docs/index.md",
+      "contains": "harness-engineering.html"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "adr/index.html"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "milestones/m7-acceptance.html"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "milestones/h5-acceptance.html"
+    },
+    {
+      "source": ".codex/skills/jj-dispatch/SKILL.md",
+      "contains": "references/host-action-contract.json"
+    }
+  ],
+  "documentation_policy": {
+    "current_roots": ["docs"],
+    "current_files": [
+      "README.md",
+      "AGENTS.md",
+      "ARCHITECTURE.md",
+      ".codex/skills/jj/SKILL.md",
+      ".codex/skills/jj-dispatch/SKILL.md"
+    ],
+    "site_builder": "scripts/build-docs.mjs",
+    "excluded_paths": ["docs/other"],
+    "removed_entrypoints": [
+      "$jj-delivery",
+      "/jj-delivery",
+      "$jj-validate",
+      "/jj-validate",
+      "$jj-evolve",
+      "/jj-evolve"
+    ],
+    "negative_context_markers": ["已移除", "不再", "不是", "无 ", "勿", "不要", "历史"],
+    "removed_outputs": [
+      "command-jj-delivery.html",
+      "command-jj-validate.html",
+      "command-jj-evolve.html"
+    ],
+    "design_docs": {
+      "directory": "docs/design-docs",
+      "index": "docs/design-docs/index.md",
+      "allowed_statuses": ["Proposed", "Accepted", "Implemented", "Superseded"],
+      "status_prefix": "> 状态：",
+      "implemented_evidence_prefix": "> 验收证据："
+    },
+    "adr_docs": {
+      "directory": "docs/adr",
+      "index": "docs/adr/index.md"
+    }
+  },
+  "protocol_contracts": [
+    {
+      "id": "dispatch-host-contract",
+      "contract": ".codex/skills/jj-dispatch/references/host-action-contract.json",
+      "schema": ".codex/skills/jj-dispatch/references/host-action-contract.schema.json",
+      "runtime": "src/dispatchHostContract.mjs",
+      "control_plane_schema": ".codex/skills/jj-dispatch/references/control-plane.schema.json",
+      "receipt_schema": ".codex/skills/jj-dispatch/references/task-receipt.schema.json",
+      "skill": ".codex/skills/jj-dispatch/SKILL.md",
+      "fixture": "tests/fixtures/dispatch-host-actions.json"
+    }
+  ],
+  "scenarios": {
+    "runner": "src/scenarioRunner.mjs",
+    "trace_runtime": "src/dispatchTrace.mjs",
+    "handoff_runtime": "src/handoffContract.mjs",
+    "report_schema": "schemas/scenario-report.schema.json",
+    "trace_schema": "schemas/dispatch-trace.schema.json",
+    "fixture": "examples/scenarios/jj-same-handoff-snapshot.json",
+    "test": "tests/scenario-runner.test.mjs",
+    "entries": [
+      {
+        "id": "dispatch-happy-path",
+        "command": "node bin/jj.mjs scenario run dispatch-happy-path --json",
+        "expected_status": "PASS",
+        "isolated": true,
+        "side_effects": "none"
+      },
+      {
+        "id": "dispatch-interrupted-resume",
+        "command": "node bin/jj.mjs scenario run dispatch-interrupted-resume --json",
+        "expected_status": "PASS",
+        "isolated": true,
+        "side_effects": "none"
+      },
+      {
+        "id": "dispatch-partial-target-failure",
+        "command": "node bin/jj.mjs scenario run dispatch-partial-target-failure --json",
+        "expected_status": "PASS",
+        "isolated": true,
+        "side_effects": "none"
+      },
+      {
+        "id": "same-handoff-contract",
+        "command": "node bin/jj.mjs scenario run same-handoff-contract --json",
+        "expected_status": "PASS",
+        "isolated": true,
+        "side_effects": "none"
+      }
+    ]
+  },
+  "host_trial": {
+    "runner": "src/hostTrialRunner.mjs",
+    "report_schema": "schemas/host-trial-report.schema.json",
+    "evidence": "docs/milestones/m7-host-trial.json",
+    "test": "tests/host-trial.test.mjs",
+    "command": "node bin/jj.mjs host-trial run --json",
+    "expected_status": "PASS",
+    "mode": "semi-real",
+    "side_effects": "temporary-git-only"
+  },
+  "maintenance": {
+    "gc": {
+      "runner": "src/harnessGc.mjs",
+      "report_schema": "schemas/harness-gc-report.schema.json",
+      "baseline": "docs/milestones/h5-gc-baseline.json",
+      "test": "tests/harness-gc.test.mjs",
+      "command": "node bin/jj.mjs harness-gc --json",
+      "expected_status": "PASS",
+      "minimum_score": 95,
+      "read_only": true,
+      "auto_fix": false
+    }
+  },
+  "capabilities": [
+    {
+      "id": "unit-tests",
+      "command": "npm run test",
+      "mode": "temporary-write",
+      "evidence": "exit-code"
+    },
+    {
+      "id": "repository-check",
+      "command": "npm run check",
+      "mode": "read-only",
+      "evidence": "exit-code"
+    },
+    {
+      "id": "doctor",
+      "command": "npm run doctor",
+      "mode": "read-only",
+      "evidence": "structured-findings"
+    },
+    {
+      "id": "harness-check",
+      "command": "npm run harness:check",
+      "mode": "read-only",
+      "evidence": "structured-findings"
+    },
+    {
+      "id": "scenario-check",
+      "command": "npm run scenario:check",
+      "mode": "read-only",
+      "evidence": "structured-findings"
+    },
+    {
+      "id": "host-trial",
+      "command": "npm run host:trial",
+      "mode": "temporary-write",
+      "evidence": "artifact"
+    },
+    {
+      "id": "harness-gc",
+      "command": "npm run harness:gc",
+      "mode": "read-only",
+      "evidence": "artifact"
+    },
+    {
+      "id": "docs-check",
+      "command": "npm run docs:check",
+      "mode": "temporary-write",
+      "evidence": "exit-code"
+    },
+    {
+      "id": "full-verification",
+      "command": "npm run verify",
+      "mode": "temporary-write",
+      "evidence": "exit-code"
+    }
+  ],
+  "invariants": [
+    {
+      "id": "HNS-RECORD-001",
+      "owner": "harness",
+      "description": "只有 manifest 索引的 versioned repository 资产可以声明系统事实。",
+      "enforced_by": ["harness-check"]
+    },
+    {
+      "id": "HNS-STATE-001",
+      "owner": "harness",
+      "description": "本仓库不维护第二套隐藏项目状态。",
+      "enforced_by": ["harness-check"]
+    },
+    {
+      "id": "HNS-DISPATCH-001",
+      "owner": "dispatch",
+      "description": "控制平面由单写者推进，Worker 只返回结构化 receipt。",
+      "enforced_by": ["dispatch-contract-tests", "runtime-tests"]
+    },
+    {
+      "id": "HNS-HOST-001",
+      "owner": "dispatch",
+      "description": "外部副作用由 host 执行，核心 runtime 只计算并校验状态转换。",
+      "enforced_by": ["dispatch-contract-tests", "runtime-tests"]
+    },
+    {
+      "id": "HNS-PROTOCOL-001",
+      "owner": "dispatch",
+      "description": "Host action、receipt 和 review 关键枚举在 runtime、schemas、skill contract 与 fixtures 间保持一致。",
+      "enforced_by": ["harness-check", "runtime-tests"]
+    },
+    {
+      "id": "HNS-DOCS-001",
+      "owner": "documentation",
+      "description": "当前文档不恢复已移除入口，design 和 ADR 必须被索引、构建并带有可验证状态。",
+      "enforced_by": ["harness-check", "docs-check"]
+    },
+    {
+      "id": "HNS-REPLAY-001",
+      "owner": "harness",
+      "description": "登记的任务场景必须确定、隔离、无外部副作用，并能通过纯状态 replay 检出最早漂移。",
+      "enforced_by": ["harness-check", "scenario-check", "scenario-tests"]
+    },
+    {
+      "id": "HNS-HOST-TRIAL-001",
+      "owner": "dispatch",
+      "description": "A2/A3 半真实闭环必须使用临时独立控制仓、真实 Git worktree、sandbox attestation、CAS、恢复和 Review 返工，并保留与 runner 匹配的版本化证据。",
+      "enforced_by": ["harness-check", "host-trial", "host-trial-evidence", "host-trial-tests"]
+    },
+    {
+      "id": "HNS-GC-001",
+      "owner": "harness",
+      "description": "持续熵清理必须只读、禁止自动修复，并以当前 runner fingerprint 和最低质量分验证版本化基线。",
+      "enforced_by": ["harness-check", "harness-gc", "harness-gc-runtime", "harness-gc-baseline", "harness-gc-tests"]
+    }
+  ],
+  "autonomy": {
+    "default_level": "A1",
+    "max_unattended_level": "A1",
+    "levels": [
+      {
+        "id": "A0",
+        "external_writes": false,
+        "approval": "none"
+      },
+      {
+        "id": "A1",
+        "external_writes": false,
+        "approval": "none"
+      },
+      {
+        "id": "A2",
+        "external_writes": true,
+        "approval": "required"
+      },
+      {
+        "id": "A3",
+        "external_writes": true,
+        "approval": "required"
+      },
+      {
+        "id": "A4",
+        "external_writes": true,
+        "approval": "required"
+      }
+    ]
+  }
+}

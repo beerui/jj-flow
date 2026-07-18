@@ -55,7 +55,7 @@ $jj-dispatch RECONCILE task_key=<delivery_id/project_id/responsibility/attempt>
 ```text
 $jj-dispatch PREVIEW
 delivery：支付状态优化
-需求引用：@D:\codeup\duijie\dj-frontend-web\.workflow\blueprint\BLP-payment-status-20260717\requirements\REQ-001.md
+需求引用：@D:\codeup\duijie\dj-frontend-web\docs\requirements\payment-status\REQ-001.md
 origin_project：duijie-web
 requirement_owner：duijie-web
 lead_project：chengjie-web
@@ -172,6 +172,7 @@ jj dispatch-tick --manifest control-plane.json --delivery DEL-001 \
 
 - `expected_revision` 与磁盘 revision 不一致时返回 `REVISION_CONFLICT`，不写回。
 - 仍为 `PENDING_THREAD` 的 intent 会再次输出 `CREATE_THREAD`，避免恢复丢 action。
+- runtime 只输出 `CREATE_THREAD` 和 `RECONCILE_THREAD`。每个 action 都携带 `required_capabilities`、`agent_name`、`sandbox_mode`、`environment` 和 `worktree_policy`；完整 allowlist 见 `.codex/skills/jj-dispatch/references/host-action-contract.json`。
 - receipt 的 `attempt` 必须匹配 `task_key` 与 intent。
 - 某目标缺 `ANL-TARGET` 时只阻塞该目标，其它已批准就绪目标可继续派发。
 

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/dispatch-host-action-contract.json",
+  "title": "jj-flow dispatch host action contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "required_app_capabilities", "action_types", "access_profiles", "actions", "receipt_contract", "control_plane_contract"],
+  "properties": {
+    "$schema": { "const": "host-action-contract.schema.json" },
+    "schema_version": { "const": "jj-flow/dispatch-host-action/1.0" },
+    "required_app_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "action_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["CREATE_THREAD", "RECONCILE_THREAD"] }
+    },
+    "access_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read", "write"],
+      "properties": {
+        "read": { "$ref": "#/$defs/access_profile" },
+        "write": { "$ref": "#/$defs/access_profile" }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/action_policy" }
+    },
+    "receipt_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kinds", "statuses", "review_outcomes"],
+      "properties": {
+        "kinds": { "type": "array", "uniqueItems": true, "items": { "enum": ["TASK_RESULT", "REVIEW_RESULT"] } },
+        "statuses": { "type": "array", "uniqueItems": true, "items": { "enum": ["COMPLETED", "BLOCKED"] } },
+        "review_outcomes": { "type": "array", "uniqueItems": true, "items": { "enum": ["PASS", "NEEDS_CHANGES"] } }
+      }
+    },
+    "control_plane_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_difference_decisions", "review_finding_statuses"],
+      "properties": {
+        "target_difference_decisions": { "type": "array", "uniqueItems": true, "items": { "enum": ["DIRECT", "ADAPT", "SYNC", "NO_CHANGE_REQUIRED", "BLOCKED"] } },
+        "review_finding_statuses": { "type": "array", "uniqueItems": true, "items": { "enum": ["OPEN", "RESOLVED", "WAIVED"] } }
+      }
+    }
+  },
+  "$defs": {
+    "access_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_name", "sandbox_mode", "environment", "worktree_policy"],
+      "properties": {
+        "agent_name": { "type": "string", "minLength": 1 },
+        "sandbox_mode": { "enum": ["read-only", "workspace-write"] },
+        "environment": { "enum": ["project-read", "exclusive-worktree"] },
+        "worktree_policy": { "enum": ["forbidden", "required-at-bind"] }
+      }
+    },
+    "action_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "mode", "required_capabilities", "write_access_capabilities"],
+      "properties": {
+        "type": { "enum": ["CREATE_THREAD", "RECONCILE_THREAD"] },
+        "mode": { "enum": ["read-only", "external-write"] },
+        "required_capabilities": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "write_access_capabilities": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

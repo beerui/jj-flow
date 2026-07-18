@@ -27,7 +27,7 @@
 - `Context package`：交付上下文包，包含用户目标、资料来源、项目状态、约束、风险和关键决策。
 - `Maestro prompt`：交给 Maestro skill 或 CLI 的结构化提示。
 - `Correction backlog`：自检后生成的修正清单，用于优先处理文档、代码、测试或 workflow 漂移。
-- `Workflow`：项目交付流程或里程碑状态，通常指 `.workflow/` 下的状态和产物。
+- `Workflow`：由 skills、commands、control-plane manifest、证据和验证门禁共同定义的项目交付流程。
 - `Spec`：可复用规范或约束，用于沉淀项目级规则。
 - `Knowhow`：可复用经验，重点记录触发条件、证据、决策和复用方式。
 - `Sibling project`：同源但已分叉演进的项目。迁移时只能复用需求语义和目标项目模式，不能默认复制源文件。

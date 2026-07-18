@@ -1,0 +1,61 @@
+{
+  "schema_version": "jj-same/handoff-snapshot/1.0",
+  "snapshot_id": "HOF-scenario-001",
+  "parent_snapshot": null,
+  "feature": "Scenario handoff contract",
+  "created_at": "2026-07-18T00:00:00.000Z",
+  "handoff_status": "READY_FOR_HANDOFF",
+  "execution_readiness": "READY",
+  "seal_freshness": "FRESH",
+  "source": {
+    "repo": "project-source",
+    "role": "source",
+    "ref": "refs/heads/feature/scenario",
+    "head": "abcdef1234567890",
+    "thread_id": "thread-source",
+    "thread_cursor": "cursor-1"
+  },
+  "canonical": {
+    "anl_source_ref": "docs/analysis/ANL-SOURCE-001.md",
+    "blueprint_ref": "docs/requirements/BLP-001.md",
+    "requirement_refs": ["docs/requirements/REQ-001.md"],
+    "family_plan_ref": "docs/plans/family-plan.md"
+  },
+  "source_inventory": [
+    {
+      "source_id": "SRC-001",
+      "type": "git",
+      "locator": "project-source@abcdef1234567890",
+      "fingerprint": "sha256:source",
+      "status": "AVAILABLE",
+      "last_consumed_cursor": null
+    }
+  ],
+  "requirement_ledger": {
+    "must": [
+      {
+        "id": "REQ-001",
+        "requirement_ref": "docs/requirements/REQ-001.md",
+        "status": "CONFIRMED",
+        "source_refs": ["SRC-001"],
+        "supersedes": []
+      }
+    ],
+    "do_not_port": [],
+    "unresolved": []
+  },
+  "verification": {
+    "commit_stable": true,
+    "static_checks": "PASS",
+    "review": "PASS",
+    "user_test": "N/A"
+  },
+  "target_candidates": [
+    {
+      "role": "target",
+      "repo": "project-target",
+      "status": "READY",
+      "known_differences": []
+    }
+  ]
+}

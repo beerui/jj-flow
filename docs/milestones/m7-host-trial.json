@@ -1,0 +1,124 @@
+{
+  "schema_version": "jj-flow/host-trial-report/1.0",
+  "trial_id": "HST-semi-real-001",
+  "executed_at": "2026-07-18T00:00:00.000Z",
+  "mode": "semi-real",
+  "status": "PASS",
+  "isolated": true,
+  "side_effects": "temporary-git-only",
+  "runner_sha256": "sha256:82fbe58959c98ced8ce0b3c4a7e6f614b1d93efbe6c6fc874cd1d67b91f281e4",
+  "summary": "临时控制仓通过真实 Git worktree、commit、CAS、中断恢复和两轮 Review 完成 A2/A3 半真实闭环。",
+  "host": {
+    "adapter": "local-git-worktree",
+    "real_git": true,
+    "real_worktree": true,
+    "codex_app_threads": false,
+    "external_network": false
+  },
+  "control_plane": {
+    "final_revision": 26,
+    "delivery_status": "VERIFIED",
+    "target_status": "VERIFIED",
+    "cas_writes": 22,
+    "transition_count": 22
+  },
+  "git": {
+    "branch": "codex/h4-host-trial",
+    "base_head": "c26b721a35bd75f7b9eef82fc8ca02f45f6eb51a",
+    "attempt_1_commit": "bd05fc88063c8414cdff9570bb4eb92be35d728c",
+    "attempt_2_commit": "6ca39956e81039bd1793b2f8a77cb345b7bca824"
+  },
+  "recovery": {
+    "uncertain_create": true,
+    "resume_action": "RECONCILE_THREAD",
+    "candidates": 1,
+    "duplicate_create_count": 0
+  },
+  "review_loop": {
+    "outcomes": [
+      "NEEDS_CHANGES",
+      "PASS"
+    ],
+    "finding_id": "F-H4-001",
+    "development_attempts": 2,
+    "review_attempts": 2
+  },
+  "attention": {
+    "approval_points": 2,
+    "simulated_approvals": 2,
+    "unexpected_escalations": 0,
+    "unresolved_decisions": 0
+  },
+  "assertions": [
+    {
+      "id": "HST-A2-WORKTREE",
+      "status": "PASS",
+      "evidence": {
+        "commits": 2,
+        "exclusive_worktree": true
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-SANDBOX-ATTESTATION",
+      "status": "PASS",
+      "evidence": {
+        "bound_intents": 7
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-INTERRUPTED-RESUME",
+      "status": "PASS",
+      "evidence": {
+        "action": "RECONCILE_THREAD",
+        "duplicate_create_count": 0
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-A3-REWORK",
+      "status": "PASS",
+      "evidence": {
+        "outcomes": [
+          "NEEDS_CHANGES",
+          "PASS"
+        ]
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-CAS-PERSISTED",
+      "status": "PASS",
+      "evidence": {
+        "revision": 26,
+        "cas_writes": 22
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-TARGET-VERIFIED",
+      "status": "PASS",
+      "evidence": {
+        "target_status": "VERIFIED",
+        "delivery_status": "VERIFIED"
+      },
+      "reason": null,
+      "next_action": null
+    }
+  ],
+  "earliest_violation": null,
+  "fixture": {
+    "initial_task_count": 4,
+    "rework_task_count": 4
+  },
+  "cleanup": {
+    "status": "PASS",
+    "temporary_root_removed": true
+  }
+}

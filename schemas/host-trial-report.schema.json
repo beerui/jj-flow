@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/host-trial-report.schema.json",
+  "title": "jj-flow semi-real host trial report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trial_id",
+    "executed_at",
+    "mode",
+    "status",
+    "isolated",
+    "side_effects",
+    "runner_sha256",
+    "summary",
+    "host",
+    "assertions",
+    "earliest_violation",
+    "cleanup"
+  ],
+  "properties": {
+    "schema_version": { "const": "jj-flow/host-trial-report/1.0" },
+    "trial_id": { "const": "HST-semi-real-001" },
+    "executed_at": { "type": "string", "format": "date-time" },
+    "mode": { "const": "semi-real" },
+    "status": { "enum": ["PASS", "FAIL"] },
+    "isolated": { "const": true },
+    "side_effects": { "const": "temporary-git-only" },
+    "runner_sha256": { "$ref": "#/$defs/hash" },
+    "summary": { "type": "string", "minLength": 1 },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter", "real_git", "real_worktree", "codex_app_threads", "external_network"],
+      "properties": {
+        "adapter": { "const": "local-git-worktree" },
+        "real_git": { "const": true },
+        "real_worktree": { "const": true },
+        "codex_app_threads": { "const": false },
+        "external_network": { "const": false }
+      }
+    },
+    "control_plane": { "type": "object" },
+    "git": { "type": "object" },
+    "recovery": { "type": "object" },
+    "review_loop": { "type": "object" },
+    "attention": { "type": "object" },
+    "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+    "earliest_violation": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/violation" }
+      ]
+    },
+    "fixture": { "type": "object" },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "temporary_root_removed"],
+      "properties": {
+        "status": { "enum": ["PASS", "FAIL"] },
+        "temporary_root_removed": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "evidence", "reason", "next_action"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["PASS", "FAIL"] },
+        "evidence": {},
+        "reason": { "type": ["string", "null"] },
+        "next_action": { "type": ["string", "null"] }
+      }
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_id", "reason", "next_action"],
+      "properties": {
+        "rule_id": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "next_action": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

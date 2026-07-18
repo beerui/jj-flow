@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 import { buildDispatch, MODE_CHOICES, renderMarkdown } from './dispatch.mjs';
 import {
@@ -9,6 +10,11 @@ import {
 } from './installSkill.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
 import { persistPlaneCas, tickDispatch } from './dispatchRuntime.mjs';
+import { inspectHarnessRepository, renderDoctorText } from './harnessDoctor.mjs';
+import { replayTrace, renderTraceExplanation } from './dispatchTrace.mjs';
+import { renderScenarioText, runAllScenarios, runScenario, SCENARIO_IDS } from './scenarioRunner.mjs';
+import { renderHostTrialText, runHostTrial } from './hostTrialRunner.mjs';
+import { renderHarnessGcText, runHarnessGc } from './harnessGc.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -19,6 +25,26 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
 
   if (args[0] === 'dispatch-tick') {
     return runDispatchTick(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'doctor') {
+    return runDoctor(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'scenario') {
+    return runScenarioCommand(args.slice(1), { stdout });
+  }
+
+  if (args[0] === 'trace') {
+    return runTraceCommand(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'host-trial') {
+    return runHostTrialCommand(args.slice(1), { stdout });
+  }
+
+  if (args[0] === 'harness-gc') {
+    return runHarnessGcCommand(args.slice(1), { cwd, stdout });
   }
 
   if (args.includes('--help') || args.includes('-h')) {
@@ -36,6 +62,101 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
   }
 
   return 0;
+}
+
+function runScenarioCommand(rawArgs, { stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printScenarioHelp(stdout);
+    return 0;
+  }
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const command = args.shift();
+  let result;
+  if (command === 'list') {
+    result = { schema_version: 'jj-flow/scenario-list/1.0', scenarios: [...SCENARIO_IDS] };
+  } else if (command === 'check') {
+    if (args.length) throw new Error(`Unknown scenario check option: ${args[0]}`);
+    result = runAllScenarios({ includeTraces: false });
+  } else if (command === 'run') {
+    const scenarioId = args.shift();
+    if (!scenarioId) throw new Error('scenario run requires a scenario id');
+    if (args.length) throw new Error(`Unknown scenario run option: ${args[0]}`);
+    result = scenarioId === 'all' ? runAllScenarios() : runScenario(scenarioId);
+  } else {
+    throw new Error('scenario requires list, check, or run');
+  }
+  if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else if (command === 'list') stdout.write(`${result.scenarios.join('\n')}\n`);
+  else stdout.write(renderScenarioText(result));
+  return result.status && result.status !== 'PASS' ? 1 : 0;
+}
+
+function runTraceCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printTraceHelp(stdout);
+    return 0;
+  }
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const command = args.shift();
+  const file = args.shift();
+  if (!['explain', 'replay'].includes(command)) throw new Error('trace requires explain or replay');
+  if (!file) throw new Error(`trace ${command} requires a trace JSON file`);
+  if (args.length) throw new Error(`Unknown trace ${command} option: ${args[0]}`);
+  const trace = JSON.parse(fs.readFileSync(fs.realpathSync(path.resolve(cwd, file)), 'utf8'));
+  const replay = replayTrace(trace);
+  if (json) {
+    const result = command === 'replay'
+      ? replay
+      : { run_id: trace.run_id, scenario: trace.scenario, steps: trace.steps?.length || 0, replay };
+    stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  } else {
+    stdout.write(renderTraceExplanation(trace, replay));
+  }
+  return replay.ok ? 0 : 1;
+}
+
+function runHostTrialCommand(rawArgs, { stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printHostTrialHelp(stdout);
+    return 0;
+  }
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const command = args.shift();
+  if (command !== 'run') throw new Error('host-trial requires run');
+  if (args.length) throw new Error(`Unknown host-trial option: ${args[0]}`);
+  const result = runHostTrial();
+  if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(renderHostTrialText(result));
+  return result.status === 'PASS' ? 0 : 1;
+}
+
+function runHarnessGcCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printHarnessGcHelp(stdout);
+    return 0;
+  }
+  const unknown = rawArgs.filter((arg) => arg !== '--json');
+  if (unknown.length) throw new Error(`Unknown harness-gc option: ${unknown[0]}`);
+  const result = runHarnessGc({ cwd });
+  if (rawArgs.includes('--json')) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(renderHarnessGcText(result));
+  return result.status === 'PASS' ? 0 : 1;
+}
+
+function runDoctor(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printDoctorHelp(stdout);
+    return 0;
+  }
+  const unknown = rawArgs.filter((arg) => arg !== '--json');
+  if (unknown.length) throw new Error(`Unknown doctor option: ${unknown[0]}`);
+  const result = inspectHarnessRepository({ cwd });
+  if (rawArgs.includes('--json')) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(renderDoctorText(result));
+  return result.ok ? 0 : 1;
 }
 
 export function parseArgs(rawArgs, defaultCwd = process.cwd(), { defaultMode = 'auto' } = {}) {
@@ -105,18 +226,17 @@ function runInstallSkill(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   const options = parseDispatchTickArgs(rawArgs, cwd);
   const plane = JSON.parse(fs.readFileSync(options.manifest, 'utf8'));
-  const receipts = options.receipts.flatMap((file) => {
-    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-    return Array.isArray(value) ? value : [value];
-  });
+  const receipts = options.receipts.flatMap(readJsonItems);
+  const targetApprovals = options.approvals.flatMap(readJsonItems);
   const expectedRevision = options.expectedRevision === null ? plane.revision : options.expectedRevision;
   let result = tickDispatch(plane, {
     deliveryId: options.deliveryId,
     expectedRevision,
     receipts,
+    targetApprovals,
     capabilities: options.capabilities
   });
-  if (options.write && result.ok && result.plane.revision !== plane.revision) {
+  if (options.write && result.state_changed && result.plane.revision !== plane.revision) {
     const cas = persistPlaneCas({
       manifestPath: options.manifest,
       expectedRevision,
@@ -138,8 +258,18 @@ function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
     result.persisted = false;
   }
   if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  else stdout.write(`${result.status}${result.persisted ? '（已写回）' : '（预览）'}\n`);
+  else {
+    stdout.write(`${result.status}${result.persisted ? '（已写回）' : '（预览）'}\n`);
+    if (result.actions?.length) stdout.write(`actions: ${result.actions.map((item) => `${item.type}:${item.task_key}`).join(', ')}\n`);
+    if (result.decision_required?.length) stdout.write(`decision_required: ${result.decision_required.map((item) => item.type).join(', ')}\n`);
+    if (result.next_wait?.length) stdout.write(`next_wait: ${result.next_wait.join(', ')}\n`);
+  }
   return result.ok ? 0 : 1;
+}
+
+function readJsonItems(file) {
+  const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return Array.isArray(value) ? value : [value];
 }
 
 function parseDispatchTickArgs(rawArgs, cwd) {
@@ -149,6 +279,7 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     deliveryId: null,
     expectedRevision: null,
     receipts: [],
+    approvals: [],
     capabilities: [],
     write: false,
     json: false
@@ -159,6 +290,7 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     else if (arg === '--delivery') options.deliveryId = rest.shift();
     else if (arg === '--expected-revision') options.expectedRevision = Number(rest.shift());
     else if (arg === '--receipt') options.receipts.push(rest.shift());
+    else if (arg === '--approval') options.approvals.push(rest.shift());
     else if (arg === '--capabilities') options.capabilities = (rest.shift() || '').split(',').filter(Boolean);
     else if (arg === '--no-target-analysis') {
       throw new Error('--no-target-analysis 已移除：目标 ANL-TARGET 差异决策不可绕过');
@@ -233,7 +365,27 @@ function parseInstallArgs(rawArgs, cwd = process.cwd()) {
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-dispatch（Codex）与 /jj-same（Claude Code）。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform claude\n  npx @shendu-sdt/jj-flow@beta install-skill --platform all --project\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-dispatch（Codex）与 /jj-same（Claude Code）。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+}
+
+function printDoctorHelp(stdout) {
+  stdout.write(`jj doctor\n\n用法：\n  jj doctor [--json]\n\n说明：\n  只读检查 Git、Harness manifest、权威文件、禁止路径、host capabilities 和可用 autonomy level。\n`);
+}
+
+function printScenarioHelp(stdout) {
+  stdout.write(`jj scenario\n\n用法：\n  jj scenario list [--json]\n  jj scenario check [--json]\n  jj scenario run <scenario|all> [--json]\n\n说明：\n  使用版本化 fixture 执行确定性任务场景，只计算状态转换和 host actions，不执行外部副作用。\n`);
+}
+
+function printTraceHelp(stdout) {
+  stdout.write(`jj trace\n\n用法：\n  jj trace explain <trace.json> [--json]\n  jj trace replay <trace.json> [--json]\n\n说明：\n  explain 展示状态转换链；replay 校验 hash、output 和最早违规步骤，不执行 host actions。\n`);
+}
+
+function printHostTrialHelp(stdout) {
+  stdout.write(`jj host-trial\n\n用法：\n  jj host-trial run [--json]\n\n说明：\n  在系统临时目录创建独立控制仓、真实 Git repo 和 worktree，验证中断恢复、sandbox attestation、receipt、CAS 和 Reviewer/Developer 返工。不会联网，也不会创建真实 Codex App task。\n`);
+}
+
+function printHarnessGcHelp(stdout) {
+  stdout.write(`jj harness-gc\n\n用法：\n  jj harness-gc [--json]\n\n说明：\n  只读执行 Harness 熵清理扫描和质量评分。P0/P1 阻断；P2/P3 仅形成维护建议；不会自动删除、重写或创建本地状态。\n`);
 }
 
 function printInstallHelp(stdout) {

@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beerui.github.io/jj-flow/schemas/harness-manifest.schema.json",
+  "title": "jj-flow Harness Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "record_system",
+    "required_links",
+    "documentation_policy",
+    "protocol_contracts",
+    "scenarios",
+    "host_trial",
+    "maintenance",
+    "capabilities",
+    "invariants",
+    "autonomy"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "schemas/harness-manifest.schema.json"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "jj-flow/harness/1.0"
+    },
+    "record_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maps", "authorities", "historical_paths", "forbidden_paths"],
+      "properties": {
+        "maps": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/mapEntry" }
+        },
+        "authorities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/authorityEntry" }
+        },
+        "historical_paths": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/historicalPath" }
+        },
+        "forbidden_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/repositoryPath" }
+        }
+      }
+    },
+    "required_links": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "contains"],
+        "properties": {
+          "source": { "$ref": "#/$defs/repositoryPath" },
+          "contains": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "documentation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["current_roots", "current_files", "site_builder", "excluded_paths", "removed_entrypoints", "negative_context_markers", "removed_outputs", "design_docs", "adr_docs"],
+      "properties": {
+        "current_roots": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/repositoryPath" } },
+        "current_files": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/repositoryPath" } },
+        "site_builder": { "$ref": "#/$defs/repositoryPath" },
+        "excluded_paths": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/repositoryPath" } },
+        "removed_entrypoints": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "negative_context_markers": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "removed_outputs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "design_docs": { "$ref": "#/$defs/documentSet" },
+        "adr_docs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["directory", "index"],
+          "properties": {
+            "directory": { "$ref": "#/$defs/repositoryPath" },
+            "index": { "$ref": "#/$defs/repositoryPath" }
+          }
+        }
+      }
+    },
+    "protocol_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "contract", "schema", "runtime", "control_plane_schema", "receipt_schema", "skill", "fixture"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "contract": { "$ref": "#/$defs/repositoryPath" },
+          "schema": { "$ref": "#/$defs/repositoryPath" },
+          "runtime": { "$ref": "#/$defs/repositoryPath" },
+          "control_plane_schema": { "$ref": "#/$defs/repositoryPath" },
+          "receipt_schema": { "$ref": "#/$defs/repositoryPath" },
+          "skill": { "$ref": "#/$defs/repositoryPath" },
+          "fixture": { "$ref": "#/$defs/repositoryPath" }
+        }
+      }
+    },
+    "scenarios": { "$ref": "#/$defs/scenarioSet" },
+    "host_trial": { "$ref": "#/$defs/hostTrial" },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gc"],
+      "properties": {
+        "gc": { "$ref": "#/$defs/harnessGc" }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "command", "mode", "evidence"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "command": { "type": "string", "pattern": "^npm run [a-z0-9:_-]+$" },
+          "mode": { "enum": ["read-only", "temporary-write", "external-write"] },
+          "evidence": { "enum": ["exit-code", "structured-findings", "artifact"] }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "owner", "description", "enforced_by"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "owner": { "$ref": "#/$defs/id" },
+          "description": { "type": "string", "minLength": 1 },
+          "enforced_by": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/id" }
+          }
+        }
+      }
+    },
+    "autonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default_level", "max_unattended_level", "levels"],
+      "properties": {
+        "default_level": { "type": "string", "pattern": "^A[0-4]$" },
+        "max_unattended_level": { "type": "string", "pattern": "^A[0-4]$" },
+        "levels": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "external_writes", "approval"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^A[0-4]$" },
+              "external_writes": { "type": "boolean" },
+              "approval": { "enum": ["none", "required"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "repositoryPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "(^[A-Za-z]:|^[/\\\\]|(^|[/\\\\])\\.\\.([/\\\\]|$))" }
+    },
+    "authorityEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "authority_for"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "path": { "$ref": "#/$defs/repositoryPath" },
+        "authority_for": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "mapEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "authority_for", "max_lines"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "path": { "$ref": "#/$defs/repositoryPath" },
+        "authority_for": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "max_lines": { "type": "integer", "minimum": 1, "maximum": 500 }
+      }
+    },
+    "historicalPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reason"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repositoryPath" },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    },
+    "documentSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["directory", "index", "allowed_statuses", "status_prefix", "implemented_evidence_prefix"],
+      "properties": {
+        "directory": { "$ref": "#/$defs/repositoryPath" },
+        "index": { "$ref": "#/$defs/repositoryPath" },
+        "allowed_statuses": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["Proposed", "Accepted", "Implemented", "Superseded"] } },
+        "status_prefix": { "type": "string", "minLength": 1 },
+        "implemented_evidence_prefix": { "type": "string", "minLength": 1 }
+      }
+    },
+    "scenarioSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runner", "trace_runtime", "handoff_runtime", "report_schema", "trace_schema", "fixture", "test", "entries"],
+      "properties": {
+        "runner": { "$ref": "#/$defs/repositoryPath" },
+        "trace_runtime": { "$ref": "#/$defs/repositoryPath" },
+        "handoff_runtime": { "$ref": "#/$defs/repositoryPath" },
+        "report_schema": { "$ref": "#/$defs/repositoryPath" },
+        "trace_schema": { "$ref": "#/$defs/repositoryPath" },
+        "fixture": { "$ref": "#/$defs/repositoryPath" },
+        "test": { "$ref": "#/$defs/repositoryPath" },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/scenarioEntry" }
+        }
+      }
+    },
+    "scenarioEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command", "expected_status", "isolated", "side_effects"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "command": { "type": "string", "pattern": "^node bin/jj\\.mjs scenario run [a-z0-9-]+ --json$" },
+        "expected_status": { "const": "PASS" },
+        "isolated": { "const": true },
+        "side_effects": { "const": "none" }
+      }
+    },
+    "hostTrial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runner", "report_schema", "evidence", "test", "command", "expected_status", "mode", "side_effects"],
+      "properties": {
+        "runner": { "$ref": "#/$defs/repositoryPath" },
+        "report_schema": { "$ref": "#/$defs/repositoryPath" },
+        "evidence": { "$ref": "#/$defs/repositoryPath" },
+        "test": { "$ref": "#/$defs/repositoryPath" },
+        "command": { "const": "node bin/jj.mjs host-trial run --json" },
+        "expected_status": { "const": "PASS" },
+        "mode": { "const": "semi-real" },
+        "side_effects": { "const": "temporary-git-only" }
+      }
+    },
+    "harnessGc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runner", "report_schema", "baseline", "test", "command", "expected_status", "minimum_score", "read_only", "auto_fix"],
+      "properties": {
+        "runner": { "$ref": "#/$defs/repositoryPath" },
+        "report_schema": { "$ref": "#/$defs/repositoryPath" },
+        "baseline": { "$ref": "#/$defs/repositoryPath" },
+        "test": { "$ref": "#/$defs/repositoryPath" },
+        "command": { "const": "node bin/jj.mjs harness-gc --json" },
+        "expected_status": { "const": "PASS" },
+        "minimum_score": { "type": "integer", "minimum": 95, "maximum": 100 },
+        "read_only": { "const": true },
+        "auto_fix": { "const": false }
+      }
+    }
+  }
+}

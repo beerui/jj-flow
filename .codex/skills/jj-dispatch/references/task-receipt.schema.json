@@ -17,7 +17,26 @@
     "outcome": { "enum": ["PASS", "NEEDS_CHANGES"] },
     "findings": { "type": "array", "items": { "$ref": "control-plane.schema.json#/$defs/review_finding" } },
     "resolved_finding_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "target_analysis": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "control-plane.schema.json#/$defs/target_analysis" }
+      ]
+    },
     "recorded_at": { "type": "string", "format": "date-time" }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "REVIEW_RESULT" } }, "required": ["kind"] },
+      "then": {
+        "required": ["outcome", "reviewed_commit", "findings"],
+        "properties": {
+          "status": { "const": "COMPLETED" },
+          "reviewed_commit": { "type": "string", "minLength": 7 },
+          "target_analysis": { "type": "null" }
+        }
+      }
+    }
+  ],
   "additionalProperties": false
 }

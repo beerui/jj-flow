@@ -1,0 +1,98 @@
+{
+  "schema_version": "jj-flow/harness-gc-report/1.0",
+  "scan_id": "sha256:f9352dbaed157f4355cac559d8cad0c552a16fd305809cb3abda951a1a2ac639",
+  "status": "PASS",
+  "score": 98,
+  "grade": "A",
+  "read_only": true,
+  "auto_fix": false,
+  "runner_sha256": "sha256:cb145908d23de46b463cda778d73483cf7131d6e68930fcaab7e6342c6fbcf6f",
+  "categories": [
+    {
+      "id": "record-integrity",
+      "score": 30,
+      "maximum": 30
+    },
+    {
+      "id": "documentation-coverage",
+      "score": 20,
+      "maximum": 20
+    },
+    {
+      "id": "protocol-coverage",
+      "score": 20,
+      "maximum": 20
+    },
+    {
+      "id": "rule-health",
+      "score": 15,
+      "maximum": 15
+    },
+    {
+      "id": "maintenance-hygiene",
+      "score": 13,
+      "maximum": 15
+    }
+  ],
+  "findings": [
+    {
+      "rule_id": "GC-REPEATED-HELPER-001",
+      "severity": "P3",
+      "path": "src/dispatchControlPlane.mjs",
+      "reason": "局部 helper isNonEmptyString 在 3 个位置重复定义。",
+      "evidence": {
+        "helper": "isNonEmptyString",
+        "definitions": [
+          {
+            "file": "src/dispatchControlPlane.mjs",
+            "line": 2413
+          },
+          {
+            "file": "src/dispatchRuntime.mjs",
+            "line": 633
+          },
+          {
+            "file": "scripts/check-harness.mjs",
+            "line": 822
+          }
+        ]
+      },
+      "next_action": "仅在能减少真实维护成本时提取共享 helper；保持独立更清晰时记录为接受的局部重复。",
+      "auto_fix_eligible": false
+    },
+    {
+      "rule_id": "GC-REPEATED-HELPER-001",
+      "severity": "P3",
+      "path": "src/harnessDoctor.mjs",
+      "reason": "局部 helper readJson 在 3 个位置重复定义。",
+      "evidence": {
+        "helper": "readJson",
+        "definitions": [
+          {
+            "file": "src/harnessDoctor.mjs",
+            "line": 132
+          },
+          {
+            "file": "src/harnessGc.mjs",
+            "line": 225
+          },
+          {
+            "file": "src/scenarioRunner.mjs",
+            "line": 389
+          }
+        ]
+      },
+      "next_action": "仅在能减少真实维护成本时提取共享 helper；保持独立更清晰时记录为接受的局部重复。",
+      "auto_fix_eligible": false
+    }
+  ],
+  "scanned": {
+    "current_docs": 21,
+    "schemas": 5,
+    "invariants": 9,
+    "active_exec_plans": 0,
+    "code_files": 23,
+    "host_action_types": 2
+  },
+  "summary": "无阻断漂移；2 个低优先级维护候选。"
+}
