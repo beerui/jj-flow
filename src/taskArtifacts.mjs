@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { buildTaskState, canonicalTaskId, writeTaskState } from './taskRegistry.mjs';
 
 const DEFAULT_SECTIONS = ['任务目标', '项目归属', '分发提示词', '任务范围', '非目标', '风险', '验收标准', '依赖', '当前状态', '推荐下一步'];
 
@@ -9,7 +10,7 @@ export function taskArtifactDirectory(root, taskId) {
   return path.resolve(root, '.workflow', 'tasks', safeId);
 }
 
-export function buildTaskArtifacts(delivery, { root = process.cwd(), taskId = `TASK-${delivery?.delivery_id || 'UNNAMED'}` } = {}) {
+export function buildTaskArtifacts(delivery, { root = process.cwd(), taskId = canonicalTaskId(delivery), manifestPath = null, now = new Date().toISOString() } = {}) {
   if (!delivery || typeof delivery !== 'object') throw new Error('delivery is required');
   if (delivery.task_mode === 'quick') {
     return { mode: 'quick', directory: null, files: {}, reason: 'quick 任务不生成完整任务文档。' };
@@ -82,7 +83,8 @@ export function buildTaskArtifacts(delivery, { root = process.cwd(), taskId = `T
   ].join('\n');
 
   const files = {
-    '任务.md': `${taskMarkdown}\n`,
+    ...(manifestPath ? { 'task.json': `${JSON.stringify(buildTaskState({ delivery, taskId, manifestPath, root, now }), null, 2)}\n` } : {}),
+    'task.md': `${taskMarkdown}\n`,
     'plan.md': renderPlan(delivery, taskId, planRows),
     'progress.md': renderProgress(delivery, taskId),
     'result.md': renderResult(delivery, taskId)
@@ -99,6 +101,14 @@ export function writeTaskArtifacts(delivery, options = {}) {
     const target = path.join(bundle.directory, name);
     fs.writeFileSync(target, content, 'utf8');
     paths[name] = target;
+  }
+  if (!paths['task.json'] && options.manifestPath) {
+    paths['task.json'] = writeTaskState(buildTaskState({
+      delivery,
+      taskId: options.taskId || canonicalTaskId(delivery),
+      manifestPath: options.manifestPath,
+      root: options.root || process.cwd()
+    }), { root: options.root || process.cwd() });
   }
   return { ...bundle, paths };
 }

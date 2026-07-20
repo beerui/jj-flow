@@ -14,6 +14,7 @@
 - 使用 `host-trial` 在临时 Git repo/worktree 中验证 A2/A3 半真实 Host 闭环。
 - 使用 `harness-gc` 只读检查 Harness 漂移、规则健康和维护重复。
 - 使用 `dispatch-tick` 对控制面做一次可恢复调度预览或写回。
+- 使用 `task assign` 读取任务 ID 对应的 `task.md` 主标题，生成简洁的分配流程和下一步命令。
 
 ## 何时不用
 
@@ -53,6 +54,7 @@ jj host-trial run [--json]
 jj harness-gc [--json]
 jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
   [--expected-revision N] [--receipt receipt.json] [--capabilities a,b,c] [--write] [--json]
+jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]
 ```
 
 注意：
@@ -70,6 +72,7 @@ jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID \
 - `harness-gc` 输出 100 分质量评分；P0/P1 使命令失败，P2/P3 仅形成维护建议。它不会自动删除、重写或创建 `.workflow`。
 - `--delivery` 是控制面 `delivery_id`，不是已移除的 `$jj-delivery` 入口。
 - `dispatch-tick` 是单次 tick/resume：消费结构化 receipt、按 `expected_revision` 做 revision CAS，输出 `actions` / `decision_required` / `next_wait`。
+- `task assign` 默认只输出任务主标题、任务 ID、`PREVIEW → APPROVE → DISPATCH → TICK` 和下一步命令；任务文档正文只留在控制项目中。
 - `--write` 使用文件级 CAS 写回；若磁盘 revision 已变化，返回 `REVISION_CONFLICT` 且不覆盖。
 - 目标 `ANL-TARGET` 差异决策不可绕过（已移除 `--no-target-analysis`）。
 - 未批准差异的目标会进入 `decision_required`，但**不会**阻塞其它已就绪目标的派发。

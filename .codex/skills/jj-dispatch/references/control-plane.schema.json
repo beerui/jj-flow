@@ -518,6 +518,9 @@
     "distribution_prompt": {
       "type": ["object", "null"],
       "properties": {
+        "task_id": { "type": ["string", "null"] },
+        "task_title": { "type": ["string", "null"] },
+        "task_doc_ref": { "type": ["string", "null"] },
         "delivery_id": { "type": ["string", "null"] },
         "summary": { "type": ["string", "null"] },
         "source_project": { "type": ["string", "null"] },
@@ -596,6 +599,7 @@
       "required": ["delivery_id", "origin_project", "requirement_owner", "lead_project", "lead_responsibilities", "reference_implementation", "targets", "status", "dispatch_intents"],
       "properties": {
         "delivery_id": { "type": "string", "pattern": "^[^/]+$" },
+        "task_id": { "type": "string", "pattern": "^TASK-[^/\\\\]+$" },
         "title": { "type": "string" },
         "request_ref": { "type": ["string", "null"] },
         "intake": {

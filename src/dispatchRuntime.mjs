@@ -528,12 +528,12 @@ function renderInitialPrompt(intent) {
   const prompt = intent.distribution_prompt;
   if (!prompt || typeof prompt !== 'object') return null;
   return [
-    '这是一个由 jj-flow 分发的任务。请直接消费以下已确认上下文，不要重新询问源需求或目标项目。',
+    `任务：${prompt.task_title || prompt.summary || intent.task_key}`,
+    `任务 ID：${prompt.task_id || intent.task_key}`,
+    `职责：${intent.responsibility}（${intent.phase}）`,
     '',
-    '分发提示词：',
-    JSON.stringify(prompt, null, 2),
-    '',
-    '执行要求：先输出 AI 友好的任务描述、风险点、验收标准和计划；然后按当前 task_key 执行。'
+    '这是一个由 jj-flow 分发的任务。结构化分发上下文已随 action 传入，请直接消费，不要重新询问已确认的源需求、目标或风险。',
+    '开始时只需确认任务标题；完成时只回报结构化证据、验证结果、未解决项和下一步。'
   ].join('\n');
 }
 

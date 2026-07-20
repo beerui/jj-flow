@@ -175,6 +175,7 @@ export function validateControlPlane(plane) {
   }
 
   const deliveryIds = new Set();
+  const taskIds = new Set();
   const activeWriterTaskByProject = new Map();
   const activeWorktreeTaskByPath = new Map();
   const boundThreadTaskById = new Map();
@@ -191,6 +192,15 @@ export function validateControlPlane(plane) {
     if (String(delivery.delivery_id).includes('/')) errors.push(`delivery id cannot contain /: ${delivery.delivery_id}`);
     if (deliveryIds.has(delivery.delivery_id)) errors.push(`duplicate delivery id: ${delivery.delivery_id}`);
     deliveryIds.add(delivery.delivery_id);
+    if (delivery.task_id !== undefined) {
+      if (typeof delivery.task_id !== 'string' || !/^TASK-[^/\\]+$/.test(delivery.task_id)) {
+        errors.push(`delivery ${delivery.delivery_id} task_id must match TASK-<id> and cannot contain /`);
+      } else if (taskIds.has(delivery.task_id)) {
+        errors.push(`duplicate task_id: ${delivery.task_id}`);
+      } else {
+        taskIds.add(delivery.task_id);
+      }
+    }
 
     if (!DELIVERY_STATUSES.has(delivery.status)) {
       errors.push(`delivery ${delivery.delivery_id} has invalid status ${delivery.status}`);
@@ -1670,8 +1680,12 @@ function buildDistributionPrompt(delivery, projectId, responsibility) {
   const base = delivery?.distribution_prompt && typeof delivery.distribution_prompt === 'object'
     ? clone(delivery.distribution_prompt)
     : {};
+  const taskId = base.task_id || `TASK-${delivery?.delivery_id || 'UNNAMED'}`;
   return {
     ...base,
+    task_id: taskId,
+    task_title: base.task_title || delivery?.title || delivery?.delivery_id || taskId,
+    task_doc_ref: base.task_doc_ref || `.workflow/tasks/${taskId}/task.md`,
     delivery_id: delivery?.delivery_id || null,
     source_project: base.source_project || delivery?.requirement_owner || delivery?.origin_project || null,
     source_head: base.source_head || delivery?.reference_implementation?.commit || null,

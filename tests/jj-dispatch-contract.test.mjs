@@ -141,6 +141,7 @@ test('distribution prompt is frozen into approval and dispatched intent', () => 
   const source = structuredClone(fixture);
   source.deliveries[0].distribution_prompt = {
     summary: '将登录主标题改为品牌蓝。',
+    task_title: '登录标题颜色',
     source_project: 'B',
     source_head: 'abcdef1',
     handoff_ref: 'HOF-login-title-color-001',
@@ -154,6 +155,9 @@ test('distribution prompt is frozen into approval and dispatched intent', () => 
   assert.equal(approved.deliveries[0].approval.tasks[0].distribution_prompt.handoff_ref, 'HOF-login-title-color-001');
   const dispatched = dispatchTasks(approved, 'DEL-001', { capabilities: appCapabilities });
   assert.equal(dispatched.created[0].distribution_prompt.target_project, 'C');
+  assert.equal(dispatched.created[0].distribution_prompt.task_id, 'TASK-DEL-001');
+  assert.equal(dispatched.created[0].distribution_prompt.task_title, '登录标题颜色');
+  assert.equal(dispatched.created[0].distribution_prompt.task_doc_ref, '.workflow/tasks/TASK-DEL-001/task.md');
 });
 
 test('dispatch requires approval and App capabilities, and is idempotent by task_key', () => {

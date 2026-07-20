@@ -17,6 +17,8 @@ import { renderScenarioText, runAllScenarios, runScenario, SCENARIO_IDS } from '
 import { renderHostTrialText, runHostTrial } from './hostTrialRunner.mjs';
 import { renderHarnessGcText, runHarnessGc } from './harnessGc.mjs';
 import { writeTaskArtifacts } from './taskArtifacts.mjs';
+import { buildTaskAssignment, readTaskTitle, renderDispatchSummary, renderTaskAssignment } from './taskPresentation.mjs';
+import { canonicalTaskId, resolveTask, taskStatus } from './taskRegistry.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -158,32 +160,83 @@ function runHarnessGcCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 
 function runTaskCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
-    stdout.write('jj task\n\n用法：\n  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n\n说明：\n  standard 任务在 .workflow/tasks/<TASK-ID>/ 下生成 任务.md、plan.md、progress.md、result.md；quick 任务不生成完整任务文档。\n');
+    stdout.write('jj task\n\n用法：\n  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--task TASK-ID] [--root dir] [--json]\n  jj task assign --task TASK-ID [--root dir] [--manifest control-plane.json] [--delivery DELIVERY_ID] [--json]\n  jj task status --task TASK-ID [--root dir] [--manifest control-plane.json] [--json]\n  jj task context --task TASK-ID [--root dir] [--manifest control-plane.json] [--json]\n\n说明：\n  task.json 是任务 ID 的持久索引；新会话只需提供 TASK-ID，即可解析任务文档、控制面和最新状态。\n');
     return 0;
   }
   const command = rawArgs.shift();
-  if (command !== 'scaffold') throw new Error('task requires scaffold');
-  const options = { manifest: null, deliveryId: null, root: cwd, json: false };
+  if (!['scaffold', 'assign', 'status', 'context'].includes(command)) throw new Error('task requires scaffold, assign, status, or context');
+  const options = { manifest: null, deliveryId: null, taskId: null, root: cwd, json: false };
   while (rawArgs.length) {
     const arg = rawArgs.shift();
     if (arg === '--manifest') options.manifest = rawArgs.shift();
     else if (arg === '--delivery') options.deliveryId = rawArgs.shift();
+    else if (arg === '--task') options.taskId = rawArgs.shift();
     else if (arg === '--root') options.root = rawArgs.shift() || cwd;
     else if (arg === '--json') options.json = true;
     else throw new Error(`Unknown task option: ${arg}`);
   }
-  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path');
+  const root = path.resolve(cwd, options.root);
+  let resolved = null;
+  if (options.taskId && (!options.manifest || !options.deliveryId)) {
+    resolved = resolveTask({ root, taskId: options.taskId, manifestPath: options.manifest });
+    options.manifest = path.relative(root, resolved.manifestPath) || path.basename(resolved.manifestPath);
+    options.deliveryId = resolved.delivery.delivery_id;
+  }
+  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path, unless --task points to task.json');
   if (!options.deliveryId) throw new Error('--delivery requires a delivery_id');
-  const manifestPath = path.resolve(cwd, options.manifest);
-  const plane = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const delivery = plane.deliveries?.find((item) => item.delivery_id === options.deliveryId);
+  const manifestPath = path.resolve(root, options.manifest);
+  const plane = resolved?.plane || JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const delivery = resolved?.delivery || plane.deliveries?.find((item) => item.delivery_id === options.deliveryId);
   if (!delivery) throw new Error(`Unknown delivery_id: ${options.deliveryId}`);
-  const result = writeTaskArtifacts(delivery, { root: path.resolve(cwd, options.root), taskId: `TASK-${options.deliveryId}` });
+  options.taskId ||= canonicalTaskId(delivery);
+  if (['status', 'context'].includes(command)) {
+    const status = taskStatus({ root, taskId: options.taskId, manifestPath: options.manifest });
+    const result = command === 'context' ? {
+      ...status,
+      task_document: readTaskDocument(root, options.taskId),
+      prompt: `任务 ID：${status.task_id}\n任务：${status.title}\n当前状态：${status.status}\n下一步：${status.next_action}`
+    } : status;
+    if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(command === 'context' ? `${result.prompt}\n\n${result.task_document}` : renderTaskStatus(result));
+    return 0;
+  }
+  if (command === 'assign') {
+    const assignment = buildTaskAssignment({
+      root,
+      taskId: options.taskId,
+      delivery,
+      manifestPath: options.manifest
+    });
+    if (options.json) stdout.write(`${JSON.stringify(assignment, null, 2)}\n`);
+    else stdout.write(`${renderTaskAssignment(assignment)}\n`);
+    return 0;
+  }
+  const result = writeTaskArtifacts(delivery, { root, taskId: options.taskId, manifestPath: options.manifest });
   if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else stdout.write(result.mode === 'quick'
     ? 'quick 任务：跳过完整任务文档。\n'
     : `任务文档已生成：${result.directory}\n`);
   return 0;
+}
+
+function readTaskDocument(root, taskId) {
+  const document = path.resolve(root, '.workflow', 'tasks', taskId, 'task.md');
+  return fs.existsSync(document) ? fs.readFileSync(document, 'utf8') : '任务文档不存在。';
+}
+
+function renderTaskStatus(status) {
+  const lines = [
+    `任务：${status.title}`,
+    `任务 ID：${status.task_id}`,
+    `状态：${status.status}`,
+    `delivery：${status.delivery_id}`,
+    `revision：${status.revision}`,
+    `下一步：${status.next_action}`
+  ];
+  for (const target of status.targets || []) {
+    lines.push(`目标 ${target.project_id}：${target.status}`);
+  }
+  return `${lines.join('\n')}\n`;
 }
 
 function runDoctor(rawArgs, { cwd = process.cwd(), stdout } = {}) {
@@ -311,10 +364,13 @@ function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   }
   if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else {
-    stdout.write(`${result.status}${result.persisted ? '（已写回）' : '（预览）'}\n`);
-    if (result.actions?.length) stdout.write(`actions: ${result.actions.map((item) => `${item.type}:${item.task_key}`).join(', ')}\n`);
-    if (result.decision_required?.length) stdout.write(`decision_required: ${result.decision_required.map((item) => item.type).join(', ')}\n`);
-    if (result.next_wait?.length) stdout.write(`next_wait: ${result.next_wait.join(', ')}\n`);
+    let title = null;
+    try {
+      title = readTaskTitle({ root: cwd, taskId: `TASK-${options.deliveryId}` });
+    } catch {
+      // 任务文档可能尚未生成；调度仍可输出状态摘要。
+    }
+    stdout.write(renderDispatchSummary(result, { title }));
   }
   return result.ok ? 0 : 1;
 }
@@ -422,7 +478,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 
 function printHelp(stdout) {
   stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-dispatch（Codex）与 /jj-same（Claude Code）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
-  stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n');
+  stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n  jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]\n');
 }
 
 function printDoctorHelp(stdout) {

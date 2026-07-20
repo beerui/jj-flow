@@ -6,7 +6,7 @@
 
 ```text
 .workflow/
-  tasks/<TASK-ID>/{任务.md,plan.md,progress.md,result.md}
+  tasks/<TASK-ID>/{task.md,plan.md,progress.md,result.md}
   handoffs/<HOF-ID>/{handoff.json,source.md,risks.md,targets/}
   dispatch/<DELIVERY-ID>/{control-plane.json,preview.md,approval.md,recommendations.md}
   reports/<TASK-ID>/{summary.md,comparison.md}

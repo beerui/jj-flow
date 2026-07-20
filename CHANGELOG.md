@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1-beta.23
+
+- 新增可复制的 `TASK-ID`：标准任务的 `task.json` 记录任务文档、控制面 manifest 和 delivery 绑定；新会话可只提供任务 ID 恢复任务内容与实时状态。
+- 新增 `jj task assign`、`jj task status` 和 `jj task context`，普通输出保持简洁，JSON 输出保留完整审计面。
+
 ## 0.1.1-beta.22
 
 - control plane 在 `intake.status=REQUIRED` 时 fail-closed，必须确认项目归属和目标集合后才能 PREVIEW / APPROVE。

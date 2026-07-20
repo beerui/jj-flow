@@ -149,6 +149,7 @@ test('host CREATE_THREAD action carries the distribution prompt', () => {
   const plane = makeRuntimePlane({ targetIds: ['A'], leadProject: 'A' });
   plane.deliveries[0].distribution_prompt = {
     summary: '修改登录标题颜色',
+    task_title: '修改登录标题颜色',
     source_head: 'abcdef1',
     handoff_ref: 'HOF-001',
     acceptance_criteria: ['只改标题']
@@ -157,8 +158,10 @@ test('host CREATE_THREAD action carries the distribution prompt', () => {
   const action = result.actions.find((item) => item.type === 'CREATE_THREAD');
   assert.ok(action);
   assert.equal(action.distribution_prompt.target_project, 'A');
-  assert.match(action.initial_prompt, /分发提示词/);
-  assert.match(action.initial_prompt, /HOF-001/);
+  assert.equal(action.distribution_prompt.task_doc_ref, '.workflow/tasks/TASK-DEL-001/task.md');
+  assert.match(action.initial_prompt, /任务 ID：TASK-DEL-001/);
+  assert.match(action.initial_prompt, /任务：修改登录标题颜色/);
+  assert.doesNotMatch(action.initial_prompt, /HOF-001/);
 });
 
 test('analysis receipt is consumed before gating and one ready target can advance independently', () => {
