@@ -127,6 +127,16 @@ test('PREVIEW is read-only and creates stable task keys', () => {
   assert.equal(buildTaskKey({ deliveryId: 'D', projectId: 'P', responsibility: 'test', attempt: 2 }), 'D/P/test/2');
 });
 
+test('control intake blocks preview and approval until project ownership is confirmed', () => {
+  const source = structuredClone(fixture);
+  source.deliveries[0].intake = { status: 'REQUIRED' };
+  const plane = createControlPlane(source);
+  const preview = previewDispatch(plane, 'DEL-001');
+  assert.equal(preview.status, 'INTAKE_REQUIRED');
+  assert.deepEqual(preview.tasks, []);
+  assert.throws(() => approveDispatch(plane, { deliveryId: 'DEL-001', decisionRef: 'decision:skip-intake' }), /requires intake confirmation/);
+});
+
 test('distribution prompt is frozen into approval and dispatched intent', () => {
   const source = structuredClone(fixture);
   source.deliveries[0].distribution_prompt = {

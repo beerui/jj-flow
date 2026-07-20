@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1-beta.22
+
+- control plane 在 `intake.status=REQUIRED` 时 fail-closed，必须确认项目归属和目标集合后才能 PREVIEW / APPROVE。
+
 ## 0.1.1-beta.21
 
 - 在 `jj --help` 中公开标准任务 `task scaffold` 入口。

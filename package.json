@@ -1,6 +1,6 @@
 {
   "name": "@shendu-sdt/jj-flow",
-  "version": "0.1.1-beta.21",
+  "version": "0.1.1-beta.22",
   "description": "Project-family orchestration workflow: cross-repo migration (same) and multi-project dispatch.",
   "type": "module",
   "repository": {

@@ -530,6 +530,16 @@ export function buildTaskKey({ deliveryId, projectId, responsibility, attempt = 
 
 export function previewDispatch(plane, deliveryId) {
   const delivery = requireDelivery(plane, deliveryId);
+  if (delivery.intake?.status === 'REQUIRED') {
+    return {
+      action: 'PREVIEW',
+      status: 'INTAKE_REQUIRED',
+      delivery_id: deliveryId,
+      decision_required: ['requirement_owner', 'origin_project', 'lead_project', 'targets', 'task_mode'],
+      tasks: [],
+      reason: '控制项目必须先确认需求归属项目、来源项目、领头项目、目标集合和 quick/standard 模式。'
+    };
+  }
   return {
     action: 'PREVIEW',
     status: 'PREVIEW_ONLY',
@@ -555,6 +565,9 @@ export function approveDispatch(plane, { deliveryId, decisionRef, approvedAt = n
   }
   const next = clone(plane);
   const delivery = requireDelivery(next, deliveryId);
+  if (delivery.intake?.status === 'REQUIRED') {
+    throw new Error(`delivery ${deliveryId} requires intake confirmation before approval`);
+  }
   if (!decisionRef || typeof decisionRef !== 'string') throw new Error('decisionRef must be a non-empty string to approve dispatch');
   if (!isDateTime(approvedAt)) throw new Error('approvedAt must be a date-time');
   if (!['DRAFT', 'PREVIEW_ONLY', 'APPROVED', 'BLOCKED'].includes(delivery.status)) {
