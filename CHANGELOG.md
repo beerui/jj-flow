@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1-beta.21
+
+- 在 `jj --help` 中公开标准任务 `task scaffold` 入口。
+
 ## 0.1.1-beta.20
 
 - 新增标准任务资产 scaffold：非 quick 任务生成 `.workflow/tasks/<TASK-ID>/` 下的任务、计划、进度和结果 Markdown。
