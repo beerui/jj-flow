@@ -518,8 +518,23 @@ function threadAction(type, intent) {
     project_id: intent.project_id,
     responsibility: intent.responsibility,
     access: intent.access,
-    worktree: intent.worktree || null
+    worktree: intent.worktree || null,
+    distribution_prompt: intent.distribution_prompt || null,
+    initial_prompt: renderInitialPrompt(intent)
   };
+}
+
+function renderInitialPrompt(intent) {
+  const prompt = intent.distribution_prompt;
+  if (!prompt || typeof prompt !== 'object') return null;
+  return [
+    '这是一个由 jj-flow 分发的任务。请直接消费以下已确认上下文，不要重新询问源需求或目标项目。',
+    '',
+    '分发提示词：',
+    JSON.stringify(prompt, null, 2),
+    '',
+    '执行要求：先输出 AI 友好的任务描述、风险点、验收标准和计划；然后按当前 task_key 执行。'
+  ].join('\n');
 }
 
 function collectNextWait(plane, deliveryId, deferred) {

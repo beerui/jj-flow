@@ -1,6 +1,19 @@
 # Maestro 产物路由
 
-`jj-same` 负责恢复迁移需求和选择目标，正式文档与状态必须由对应 Maestro skill 生成并注册。不要在目标仓库中创建 `.workflow/jj-same/` 或其它私有产物目录。
+`jj-same` 负责恢复迁移需求和选择目标，正式文档与状态必须由对应 Maestro skill 生成并注册。真实业务项目允许并要求把本任务生成的资产放在 `.workflow/` 下，但必须使用按类型和任务 ID 分目录的公共路由；不要创建 `.workflow/jj-same/` 这种无法被其它工具发现的私有目录。
+
+推荐的项目资产根目录：
+
+```text
+.workflow/
+  tasks/<TASK-ID>/{任务.md,plan.md,progress.md,result.md}
+  handoffs/<HOF-ID>/{handoff.json,source.md,risks.md,targets/}
+  dispatch/<DELIVERY-ID>/{control-plane.json,preview.md,approval.md,recommendations.md}
+  reports/<TASK-ID>/{summary.md,comparison.md}
+  receipts/<TASK-ID>/{analysis.json,verification.json,review.json,recovery.json}
+```
+
+`jj-flow` 自身仓库仍遵守 Harness 规则，不把 `.workflow` 当作本仓库事实源；上述目录约束针对真实业务项目和验收项目。
 
 ## 产物归属
 

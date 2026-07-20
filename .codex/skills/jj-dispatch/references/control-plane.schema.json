@@ -294,6 +294,7 @@
         "environment": { "type": ["string", "null"] },
         "worktree": { "type": ["string", "null"] },
         "bound_at": { "type": ["string", "null"], "format": "date-time" },
+        "distribution_prompt": { "$ref": "#/$defs/distribution_prompt" },
         "result": {
           "type": ["object", "null"],
           "properties": {
@@ -509,9 +510,29 @@
         "access": { "enum": ["read", "write"] },
         "phase": { "enum": ["planning", "development", "verification", "review"] },
         "depends_on": { "type": "array", "items": { "type": "string" } },
-        "attempt": { "type": "integer", "minimum": 1 }
+        "attempt": { "type": "integer", "minimum": 1 },
+        "distribution_prompt": { "$ref": "#/$defs/distribution_prompt" }
       },
       "additionalProperties": false
+    },
+    "distribution_prompt": {
+      "type": ["object", "null"],
+      "properties": {
+        "delivery_id": { "type": ["string", "null"] },
+        "summary": { "type": ["string", "null"] },
+        "source_project": { "type": ["string", "null"] },
+        "source_head": { "type": ["string", "null"] },
+        "handoff_ref": { "type": ["string", "null"] },
+        "target_project": { "type": ["string", "null"] },
+        "target_decision": { "type": ["string", "null"] },
+        "responsibility": { "type": ["string", "null"] },
+        "task_mode": { "enum": ["quick", "standard", null] },
+        "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+        "risk_points": { "type": "array", "items": { "type": "string" } },
+        "do_not_port": { "type": "array", "items": { "type": "string" } },
+        "unresolved": { "type": "array" }
+      },
+      "additionalProperties": true
     },
     "review_finding": {
       "type": "object",
@@ -577,6 +598,30 @@
         "delivery_id": { "type": "string", "pattern": "^[^/]+$" },
         "title": { "type": "string" },
         "request_ref": { "type": ["string", "null"] },
+        "intake": {
+          "type": "object",
+          "properties": {
+            "status": { "enum": ["REQUIRED", "CONFIRMED"] },
+            "requirement_owner": { "type": ["string", "null"] },
+            "origin_project": { "type": ["string", "null"] },
+            "lead_project": { "type": ["string", "null"] },
+            "targets": { "type": "array", "items": { "type": "string" } },
+            "allow_multi_target": { "type": "boolean" },
+            "task_mode": { "enum": ["quick", "standard"] }
+          },
+          "additionalProperties": true
+        },
+        "task_mode": { "enum": ["quick", "standard"] },
+        "distribution_prompt": { "$ref": "#/$defs/distribution_prompt" },
+        "task_artifacts": {
+          "type": "object",
+          "properties": {
+            "task_md_ref": { "type": "string", "minLength": 1 },
+            "directory": { "type": "string", "minLength": 1 },
+            "status": { "enum": ["PENDING", "READY", "COMPLETED"] }
+          },
+          "additionalProperties": true
+        },
         "origin_project": { "type": "string", "minLength": 1 },
         "requirement_owner": { "type": "string", "minLength": 1 },
         "lead_project": { "type": "string", "minLength": 1 },

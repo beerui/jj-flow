@@ -16,6 +16,7 @@ import { replayTrace, renderTraceExplanation } from './dispatchTrace.mjs';
 import { renderScenarioText, runAllScenarios, runScenario, SCENARIO_IDS } from './scenarioRunner.mjs';
 import { renderHostTrialText, runHostTrial } from './hostTrialRunner.mjs';
 import { renderHarnessGcText, runHarnessGc } from './harnessGc.mjs';
+import { writeTaskArtifacts } from './taskArtifacts.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -50,6 +51,10 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
 
   if (args[0] === 'harness-gc') {
     return runHarnessGcCommand(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'task') {
+    return runTaskCommand(args.slice(1), { cwd, stdout });
   }
 
   if (args.includes('--help') || args.includes('-h')) {
@@ -149,6 +154,36 @@ function runHarnessGcCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   if (rawArgs.includes('--json')) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else stdout.write(renderHarnessGcText(result));
   return result.status === 'PASS' ? 0 : 1;
+}
+
+function runTaskCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    stdout.write('jj task\n\n用法：\n  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n\n说明：\n  standard 任务在 .workflow/tasks/<TASK-ID>/ 下生成 任务.md、plan.md、progress.md、result.md；quick 任务不生成完整任务文档。\n');
+    return 0;
+  }
+  const command = rawArgs.shift();
+  if (command !== 'scaffold') throw new Error('task requires scaffold');
+  const options = { manifest: null, deliveryId: null, root: cwd, json: false };
+  while (rawArgs.length) {
+    const arg = rawArgs.shift();
+    if (arg === '--manifest') options.manifest = rawArgs.shift();
+    else if (arg === '--delivery') options.deliveryId = rawArgs.shift();
+    else if (arg === '--root') options.root = rawArgs.shift() || cwd;
+    else if (arg === '--json') options.json = true;
+    else throw new Error(`Unknown task option: ${arg}`);
+  }
+  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path');
+  if (!options.deliveryId) throw new Error('--delivery requires a delivery_id');
+  const manifestPath = path.resolve(cwd, options.manifest);
+  const plane = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const delivery = plane.deliveries?.find((item) => item.delivery_id === options.deliveryId);
+  if (!delivery) throw new Error(`Unknown delivery_id: ${options.deliveryId}`);
+  const result = writeTaskArtifacts(delivery, { root: path.resolve(cwd, options.root), taskId: `TASK-${options.deliveryId}` });
+  if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(result.mode === 'quick'
+    ? 'quick 任务：跳过完整任务文档。\n'
+    : `任务文档已生成：${result.directory}\n`);
+  return 0;
 }
 
 function runDoctor(rawArgs, { cwd = process.cwd(), stdout } = {}) {

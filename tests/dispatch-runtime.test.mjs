@@ -145,6 +145,22 @@ test('missing target analysis dispatches only analysis tasks and reports per-tar
   assert.deepEqual(readAction.required_capabilities, ['create_thread', 'sandbox']);
 });
 
+test('host CREATE_THREAD action carries the distribution prompt', () => {
+  const plane = makeRuntimePlane({ targetIds: ['A'], leadProject: 'A' });
+  plane.deliveries[0].distribution_prompt = {
+    summary: '修改登录标题颜色',
+    source_head: 'abcdef1',
+    handoff_ref: 'HOF-001',
+    acceptance_criteria: ['只改标题']
+  };
+  const result = firstTick(plane);
+  const action = result.actions.find((item) => item.type === 'CREATE_THREAD');
+  assert.ok(action);
+  assert.equal(action.distribution_prompt.target_project, 'A');
+  assert.match(action.initial_prompt, /分发提示词/);
+  assert.match(action.initial_prompt, /HOF-001/);
+});
+
 test('analysis receipt is consumed before gating and one ready target can advance independently', () => {
   const initial = firstTick(makeRuntimePlane({ leadProject: 'A' }));
   const bound = bindAnalysis(initial.plane, 'A');

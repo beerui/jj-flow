@@ -22,7 +22,7 @@ description: 基于用户给出的 Codex 会话 ID、需求文档、handoff snap
 
 若存在 `$jj-dispatch` 控制项目，以控制 manifest 中明确批准的 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation` 和 `targets` 为本轮协调事实；`jj-same` 仍只负责具体迁移、差异适配和同步检查点。没有控制项目时继续兼容原有 `源=A 目标=B,C` 调用，不强制升级旧 handoff snapshot。
 
-开始生成迁移文档前读取 [references/maestro-artifact-routing.md](references/maestro-artifact-routing.md)，按 Maestro canonical path 保存并注册产物。不得创建 `.workflow/jj-same/` 或把需求正文写入 `.workflow/.maestro/*/status.json`。
+开始生成迁移文档前读取 [references/maestro-artifact-routing.md](references/maestro-artifact-routing.md)，按 Maestro canonical path 保存并注册产物。真实项目的任务、handoff、dispatch、报告和 receipt 必须进入 `.workflow/` 的任务分目录；不得创建 `.workflow/jj-same/` 私有目录或把需求正文写入 `.workflow/.maestro/*/status.json`。`jj-flow` 自身仓库仍不把 `.workflow` 作为事实源。
 
 用户要求准备源项目交接、更新交接或提供 `handoff_ref` 时，读取 [references/handoff-snapshot.md](references/handoff-snapshot.md)。源项目达到可验证交接状态时生成一次 snapshot；后续目标复用同一 snapshot，不得分别重建源 `ANL-SOURCE / BLP`。
 

@@ -1644,20 +1644,46 @@ function buildResponsibilityPlans(delivery, projectId, responsibilities) {
     phase: responsibility.phase,
     depends_on: [...(responsibility.depends_on || [])],
     attempt: responsibility.attempt || 1,
-    writer: responsibility.access === 'write'
+    writer: responsibility.access === 'write',
+    distribution_prompt: buildDistributionPrompt(delivery, projectId, responsibility.name)
   }));
+}
+
+/**
+ * Freeze the source handoff and target decision into every task plan. The
+ * host can pass this object verbatim as the child task's initial context.
+ */
+function buildDistributionPrompt(delivery, projectId, responsibility) {
+  const base = delivery?.distribution_prompt && typeof delivery.distribution_prompt === 'object'
+    ? clone(delivery.distribution_prompt)
+    : {};
+  return {
+    ...base,
+    delivery_id: delivery?.delivery_id || null,
+    source_project: base.source_project || delivery?.requirement_owner || delivery?.origin_project || null,
+    source_head: base.source_head || delivery?.reference_implementation?.commit || null,
+    handoff_ref: base.handoff_ref || delivery?.handoff_ref || null,
+    target_project: projectId,
+    // The approved task snapshot must stay stable while ANL-TARGET is being
+    // consumed. A later human decision is carried by a new approval attempt,
+    // not by mutating an existing task plan.
+    target_decision: base.target_decision || null,
+    responsibility,
+    task_mode: delivery?.task_mode || 'standard'
+  };
 }
 
 function buildApprovalTasks(delivery) {
   return buildTaskPlans(delivery)
-    .map(({ task_key, project_id, responsibility, access, phase, depends_on, attempt }) => ({
+    .map(({ task_key, project_id, responsibility, access, phase, depends_on, attempt, distribution_prompt }) => ({
       task_key,
       project_id,
       responsibility,
       access,
       phase,
       depends_on,
-      attempt
+      attempt,
+      distribution_prompt
     }))
     .sort((left, right) => left.task_key.localeCompare(right.task_key));
 }

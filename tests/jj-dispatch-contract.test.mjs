@@ -127,6 +127,25 @@ test('PREVIEW is read-only and creates stable task keys', () => {
   assert.equal(buildTaskKey({ deliveryId: 'D', projectId: 'P', responsibility: 'test', attempt: 2 }), 'D/P/test/2');
 });
 
+test('distribution prompt is frozen into approval and dispatched intent', () => {
+  const source = structuredClone(fixture);
+  source.deliveries[0].distribution_prompt = {
+    summary: '将登录主标题改为品牌蓝。',
+    source_project: 'B',
+    source_head: 'abcdef1',
+    handoff_ref: 'HOF-login-title-color-001',
+    acceptance_criteria: ['仅修改主标题颜色。'],
+    risk_points: ['不得修改全局 token。'],
+    do_not_port: ['副标题、按钮和表单。']
+  };
+  const preview = previewDispatch(createControlPlane(source), 'DEL-001');
+  assert.equal(preview.tasks[0].distribution_prompt.target_project, 'C');
+  const approved = approveDispatch(createControlPlane(source), { deliveryId: 'DEL-001', decisionRef: 'decision:prompt' });
+  assert.equal(approved.deliveries[0].approval.tasks[0].distribution_prompt.handoff_ref, 'HOF-login-title-color-001');
+  const dispatched = dispatchTasks(approved, 'DEL-001', { capabilities: appCapabilities });
+  assert.equal(dispatched.created[0].distribution_prompt.target_project, 'C');
+});
+
 test('dispatch requires approval and App capabilities, and is idempotent by task_key', () => {
   const plane = makePlane();
   const notApproved = dispatchTasks(plane, 'DEL-001', {
