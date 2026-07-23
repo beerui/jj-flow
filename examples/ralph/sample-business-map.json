@@ -10,7 +10,7 @@
       "reqs": ["REQ-001", "REQ-002"],
       "modules": ["src/api/auth.js", "src/views/login/LoginView.vue"],
       "acceptance": [
-        ".workflow/ralph/ralphs/RALPH-login-reminder-20260722/acceptance.md"
+        ".workflow/ralph/RALPH-login-reminder-20260722/acceptance.md"
       ],
       "run_refs": ["RALPH-login-reminder-20260722"],
       "depends_on": [],

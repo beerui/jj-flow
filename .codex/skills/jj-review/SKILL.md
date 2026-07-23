@@ -46,7 +46,7 @@ jj ralph review-record --run-id RALPH-... \
 ## 产物
 
 ```text
-.workflow/ralph/ralphs/<run_id>/
+.workflow/ralph/<run_id>/
   reviews/REV-1.json
   run.json
   progress.md

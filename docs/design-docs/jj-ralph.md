@@ -32,7 +32,7 @@
 ```text
 .workflow/ralph/
   business-map.json
-  ralphs/RALPH-{slug}-{date}/
+  RALPH-{slug}-{date}/
   archive/YYYY-MM-DD-{slug}/
 .workflow/handoffs/<HOF-ID>/
 .workflow/dispatch/recommendations/<SNAP-ID>/

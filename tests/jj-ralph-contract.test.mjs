@@ -56,7 +56,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'DELIVER',
     'ACCEPT',
     'ARCHIVE',
-    'ralphs',
+    '.workflow/ralph',
     'business-map',
     'handoff',
     'jj-dispatch',
@@ -67,12 +67,14 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
   const command = read('.claude/commands/jj-ralph.md');
-  assert.match(command, /ralphs/);
+  assert.match(command, /\.workflow\/ralph\/RALPH/);
   assert.match(command, /map-find/);
   assert.doesNotMatch(command, /[Mm]aestro/);
 
   const layout = read('.codex/skills/jj-ralph/references/artifact-layout.md');
-  assert.match(layout, /ralphs\//);
+  assert.match(layout, /\.workflow\/ralph\/RALPH/);
+  assert.doesNotMatch(layout, /ralph\/ralphs\//);
+  assert.doesNotMatch(layout, /ralphs\/RALPH/);
   assert.doesNotMatch(layout, /ralph\/runs\//);
 });
 
@@ -100,7 +102,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
       },
       cwd
     );
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'ralphs', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.phase = 'ACCEPT';
     run.gates = {
@@ -134,7 +136,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
     assert.ok(byTitle.length >= 1);
     assert.equal(byTitle[0].id, 'CAP-login-reminder');
     assert.ok(byTitle[0].run_refs.includes(runId));
-    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`ralphs/${runId}/run.json`)));
+    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`.workflow/ralph/${runId}/run.json`)));
 
     const byKeyword = mapFind('password_expired 登录', { cwd });
     assert.ok(byKeyword.matches.some((item) => item.id === 'CAP-login-reminder'));
@@ -179,7 +181,7 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
       0
     );
 
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'ralphs', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     run.gates.analyze = 'PASS';
@@ -229,8 +231,8 @@ test('review-record associates task/review threads on ralph run', () => {
     assert.equal(payload.report.outcome, 'PASS');
     assert.equal(payload.report.task_thread_id, '019f8c85-8c32-72c3-b62b-ee9f0753a9e7');
     assert.equal(payload.report.review_thread_id, '019f8cb8-14e9-79b3-bf40-30ba6c89ef2c');
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'ralphs', runId, 'reviews', 'REV-1.json')));
-    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'ralphs', runId, 'run.json'), 'utf8'));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'reviews', 'REV-1.json')));
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
     assert.equal(run.review.latest_review_id, 'REV-1');
     assert.equal(run.artifact_refs.latest_review_ref, 'reviews/REV-1.json');
     assert.deepEqual(validateRun(run), []);

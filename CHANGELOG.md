@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1-beta.25
+
+- 精简 `$jj-ralph` skill：Codex 直写产物、短路径约束、失败预算与 skeleton 模板。
+- Ralph 产物路径压扁为 `.workflow/ralph/RALPH-*/`，去掉 `ralphs/` 中间层。
+- 新增 skill 内确定性脚本 `scripts/ralph_ops.mjs`（init/status/archive/map-merge/handoff/dispatch-snapshot）。
+- 同步 Claude 命令、文档、样例、合同测试与 `agents/openai.yaml`。
+
 ## 0.1.1-beta.24
 
 - 新增 `$jj-ralph` / `/jj-ralph` 单仓全流程闭环：需求分析 → 计划实施 → 验收完成 → 归档，产物在 `.workflow/ralph/ralphs/`，能力地图 `business-map.json`。

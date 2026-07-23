@@ -1,0 +1,13 @@
+{
+  "schema_version": "jj-flow/ralph-archive/1.0",
+  "run_id": "RALPH-example-20260723",
+  "archived_at": "2026-07-23T00:00:00.000Z",
+  "archive_path": ".workflow/ralph/archive/2026-07-23-example",
+  "files": [
+    { "path": "run.json", "sha256": "replace-with-file-hash" },
+    { "path": "progress.md", "sha256": "replace-with-file-hash" },
+    { "path": "analyze.md", "sha256": "replace-with-file-hash" },
+    { "path": "plan.md", "sha256": "replace-with-file-hash" },
+    { "path": "acceptance.md", "sha256": "replace-with-file-hash" }
+  ]
+}

@@ -14,7 +14,7 @@
 ## `jj-*` 缩写命令
 
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit、diff 或 handoff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
-- `$jj-ralph` / `/jj-ralph`：单仓全流程自治闭环。需求分析 → 计划实施 → 验收完成 → 归档；产物在 `.workflow/ralph/ralphs/`，能力地图在 `business-map.json`。
+- `$jj-ralph` / `/jj-ralph`：单仓全流程自治闭环。需求分析 → 计划实施 → 验收完成 → 归档；产物在 `.workflow/ralph/`，能力地图在 `business-map.json`。
 - `$jj-dispatch`：Codex 控制项目中的多项目调度入口。用于预览、批准、派发、恢复和汇总多个固定项目任务；首版没有对应的 Claude `/jj-dispatch`。
 - 已移除：`$jj-delivery`、`$jj-validate`、`$jj-evolve` 以及更早的 feat/fix/knowhow/auto/review 入口。
 - `delivery_id`：控制平面里一次跨项目交付任务的稳定身份，**不是** `$jj-delivery` 对话入口。

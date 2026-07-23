@@ -1,44 +1,45 @@
 # Ralph 产物布局
 
-业务项目使用：
-
 ```text
 .workflow/ralph/
-  business-map.json                 # 累积能力地图（跨 run，机器可读）
-  ralphs/RALPH-{slug}-{YYYYMMDD}/
-    run.json                        # 状态与检查点
-    progress.md                     # 循环日志（每轮追加）
-    analyze.md                      # 需求分析与 REQ 账本
-    plan.md                         # 计划与 TASK
-    tasks/TASK-*.md                 # 可选拆分
-    acceptance.md                   # 验收清单与证据
-    reviews/REV-*.json              # optional jj-review reports
-    archive-manifest.json           # 归档后写入
-  archive/YYYY-MM-DD-{slug}/        # 冻结副本（只追加）
+  business-map.json
+  archive/YYYY-MM-DD-{slug}/
+  RALPH-{slug}-{YYYYMMDD}/
+    run.json
+    progress.md
+    analyze.md
+    plan.md
+    tasks/TASK-*.md            # 可选
+    acceptance.md
+    reviews/REV-*.json         # 可选
+    archive-manifest.json
 ```
 
 ## 规则
 
-1. **run 目录在 `ralphs/`**，不使用 `runs/`。
-2. **不创建** `.workflow/jj-ralph/` 私有目录。
-3. **交接实现不在 ralph 目录内**：handoff 包写入 `.workflow/handoffs/<HOF-ID>/`，由 `jj-same` 读取需求后在目标仓实施。
-4. **分发快照**写入 `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json`，供 `jj-dispatch` 消费。
-5. `jj-flow` 本仓不把 `.workflow` 当仓库事实源；上述路径约束业务目标仓。
+1. run 直接挂在 `.workflow/ralph/RALPH-*/`，与 `business-map.json`、`archive/` 同级。
+2. 不使用中间层目录；不创建 `.workflow/jj-ralph/`。
+3. handoff 写 `.workflow/handoffs/<HOF-ID>/`；dispatch 快照写 `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json`。
+4. 创建 JSON 先复制 skeleton，再填字段：
+   - [run.skeleton.json](run.skeleton.json)
+   - [archive-manifest.skeleton.json](archive-manifest.skeleton.json)
+   - [capability.skeleton.json](capability.skeleton.json)
 
-## 快速机械命令
+## Codex 落盘清单
 
-对话侧完成分析/编码；下列 CLI 保证归档、地图、提交清单快速可用且格式正确：
+| 动作 | 写什么 |
+| --- | --- |
+| init | `.workflow/ralph/<run_id>/run.json` + stubs |
+| map-find | 读 `business-map.json` |
+| archive | `archive-manifest.json` + `archive/…` |
+| map-merge | 更新 `business-map.json` |
+| handoff | `.workflow/handoffs/<HOF-ID>/` |
+| dispatch-snapshot | `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json` |
+| commit-prep | 完成报告/`progress.md` 中的提交建议 |
+| review-record | `reviews/REV-*.json` + 回写 `run.json` |
 
-```bash
-jj ralph init --run-id RALPH-demo-20260722 --title "…" --goal "…"
-jj ralph status [--run-id RALPH-…]
-jj ralph archive --run-id RALPH-…
-jj ralph map-merge --run-id RALPH-…
-jj ralph map-find --query "密码 登录"
-jj ralph handoff --run-id RALPH-…
-jj ralph dispatch-snapshot --run-id RALPH-…
-jj ralph commit-prep --run-id RALPH-…
-jj ralph review-record --run-id RALPH-… --outcome PASS --task-thread … --review-thread …
-```
+默认不自动 `git commit` / `push`。
 
-默认 **不** 自动 `git commit` / `push`。
+## 脚本
+
+优先：`scripts/ralph_ops.mjs`（init/status/archive/map-merge/handoff/dispatch-snapshot）。

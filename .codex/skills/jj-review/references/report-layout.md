@@ -1,3 +1,3 @@
 # review layout
 
-.workflow/ralph/ralphs/<run_id>/reviews/REV-n.json
+.workflow/ralph/<run_id>/reviews/REV-n.json

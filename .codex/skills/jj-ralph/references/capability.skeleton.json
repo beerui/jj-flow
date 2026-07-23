@@ -1,0 +1,14 @@
+{
+  "id": "CAP-example",
+  "title": "示例能力",
+  "status": "done",
+  "summary": "一句话能力摘要",
+  "reqs": ["REQ-001"],
+  "modules": ["src/path/to/file.vue"],
+  "acceptance": [".workflow/ralph/RALPH-example-20260723/acceptance.md"],
+  "run_refs": ["RALPH-example-20260723"],
+  "depends_on": [],
+  "keywords": ["示例", "关键词"],
+  "lessons": ["可检索的经验一句话"],
+  "handoff_refs": []
+}

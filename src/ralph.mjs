@@ -6,7 +6,8 @@ export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
 export const RALPH_REVIEW_SCHEMA_VERSION = 'jj-flow/ralph-review/1.0';
 export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
-export const RALPHS_DIR_REL = path.join(RALPH_ROOT_REL, 'ralphs');
+// Runs live directly under .workflow/ralph/RALPH-*/. Reserved siblings: business-map.json, archive/
+export const RALPHS_DIR_REL = RALPH_ROOT_REL;
 export const RALPH_ARCHIVE_DIR_REL = path.join(RALPH_ROOT_REL, 'archive');
 export const RALPH_MAP_REL = path.join(RALPH_ROOT_REL, 'business-map.json');
 export const HANDOFF_ROOT_REL = path.join('.workflow', 'handoffs');
