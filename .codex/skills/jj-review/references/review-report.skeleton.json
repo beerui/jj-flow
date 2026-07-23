@@ -1,0 +1,13 @@
+{
+  "schema_version": "jj-flow/ralph-review/1.0",
+  "review_id": "REV-1",
+  "run_id": "RALPH-example-20260723",
+  "outcome": "PASS",
+  "reviewed_commit": "abcdef1234567",
+  "task_thread_id": null,
+  "review_thread_id": null,
+  "summary": "一句话审查结论",
+  "findings": [],
+  "evidence_refs": [],
+  "recorded_at": "2026-07-23T00:00:00.000Z"
+}

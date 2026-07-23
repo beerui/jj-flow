@@ -1,0 +1,4 @@
+interface:
+  display_name: "单仓轻量审查"
+  short_description: "只读审查并写 REV 报告"
+  default_prompt: "$jj-review 评审当前 commit，关联到最新 ralph run"
