@@ -12,7 +12,7 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
   const manifest = readJson(path.join(root, 'harness-manifest.json'));
   const packageJson = readJson(path.join(root, 'package.json'));
   const git = inspectGit(root, runCommand);
-  const hostCapabilities = ['git', 'codex', 'claude', 'maestro'].map((command) => ({
+  const hostCapabilities = ['git', 'codex', 'claude'].map((command) => ({
     id: command,
     available: command === 'git' ? git.available : commandAvailable(command, runCommand)
   }));

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1-beta.24
+
+- 新增 `$jj-ralph` / `/jj-ralph` 单仓全流程闭环：需求分析 → 计划实施 → 验收完成 → 归档，产物在 `.workflow/ralph/ralphs/`，能力地图 `business-map.json`。
+- 新增 `jj ralph` 机械 CLI：`init`、`status`、`archive`、`map-merge`、`map-find`、`handoff`、`dispatch-snapshot`、`commit-prep`、`review-record`。
+- 新增 `$jj-review` / `/jj-review` 单仓轻量审查：把审查结论与 task/review 会话关联到 ralph run 的 `reviews/REV-*.json`，不走 dispatch 控制面。
+- ralph 完成后可导出 `.workflow/handoffs/` 供 `jj-same` 迁移，或导出 dispatch 推荐快照供 `jj-dispatch` 分发；迁移实现不在 ralph 目录内完成。
+- 增加 schema、样例、设计文档与合同测试：map-merge 后 map-find 可恢复历史能力与 run 路径；review-record 可关联任务/审查会话。
+
 ## 0.1.1-beta.23
 
 - 新增可复制的 `TASK-ID`：标准任务的 `task.json` 记录任务文档、控制面 manifest 和 delivery 绑定；新会话可只提供任务 ID 恢复任务内容与实时状态。
@@ -43,7 +51,7 @@
 
 ## 0.1.1-beta.15
 
-- 产品定位调整：`jj-flow` 定位为 **项目族编排工作流**（same / dispatch），不再以「Maestro 适配层」为对外简介；Maestro 为可选执行工具。同步 README、架构、规划、AGENTS、package 描述与文档站标语。
+- 产品定位调整：`jj-flow` 定位为 **项目族编排工作流**（same / dispatch），同步 README、架构、规划、AGENTS、package 描述与文档站标语。
 - 一并发布尚未上架的 beta.14 能力：dispatch 可恢复 tick/CAS、目标独立差异门禁、M6 验收文档。
 
 ## 0.1.1-beta.14
@@ -65,7 +73,7 @@
 
 - 移除 `jj-feat` / `jj-fix` / `jj-knowhow` / `jj-auto` / `jj-review` 原生命令与 recipe；明确功能、线上修复、交付前审查与不确定意图统一走 `jj-delivery`。
 - 知识沉淀与独立 review 入口不再提供；审查走 delivery 内 `$quality-review`，沉淀可按需调用 `$manage-knowhow-capture`。
-- 全部流程禁止调用 `maestro explore`；代码定位改用定点读取与搜索工具。
+- 全部流程代码定位改用定点读取与搜索工具。
 - 同步更新 Codex skills、Claude commands、文档、安装校验与回归测试。
 
 ## 0.1.1-beta.11
@@ -116,14 +124,14 @@
 
 - 将 `jj-same` 扩展为可持续同步协议，按最近成功检查点分析 A 项目的需求更新、bug 修复、回退和有效增量。
 - 增加修改完成后的项目、分支和候选目标确认门禁，由用户逐项目决定立即同步、延期、不适用或暂停关系。
-- 使用目标项目 Maestro open issue 跟踪延期同步，恢复时从最近成功检查点重新计算累计范围。
+- 使用目标项目 目标项目 open issue 跟踪延期同步，恢复时从最近成功检查点重新计算累计范围。
 - 为 `jj-delivery`、`jj-feat` 和 `jj-fix` 增加 post-change discovery，并补充 Codex、Claude、文档与安装回归测试。
 
 ## 0.1.1-beta.3
 
 - 将 `jj-same` 固化为源证据总结、正式需求、目标项目评审、实施计划和实现复审的顺序门禁。
-- 按 Maestro canonical artifact 规范保存并注册 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*`，禁止创建私有迁移文档目录。
-- 增加 Maestro 产物路由参考、安装资产检查和回归测试。
+- 按 canonical artifact 规范保存并注册 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*`，禁止创建私有迁移文档目录。
+- 增加 产物路由参考、安装资产检查和回归测试。
 
 ## 0.1.1-beta.2
 

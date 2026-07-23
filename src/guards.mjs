@@ -17,10 +17,10 @@ const GUARD_RULES = {
     pass: (items) => hasType(items, ['decision_gate', 'delivery_decision']),
     pending: '尚未整理哪些问题必须由用户拍板。'
   },
-  'maestro-chain-ready': {
-    title: 'Maestro 调用链已形成',
-    pass: (items) => hasType(items, ['maestro_chain', 'context_package', 'plan']),
-    pending: '尚未形成 Maestro 可消费的上下文包或调用链。'
+  'workflow-chain-ready': {
+    title: '工作调用链已形成',
+    pass: (items) => hasType(items, ['workflow_chain', 'context_package', 'plan']),
+    pending: '尚未形成可消费的上下文包或调用链。'
   },
   'scope-confirmed': {
     title: '项目边界已确认',
@@ -106,10 +106,10 @@ const GUARD_RULES = {
     pass: (items) => hasType(items, ['phase_readiness']),
     pending: '缺少当前 phase 成功标准的审计证据。'
   },
-  'maestro-compatibility-reported': {
-    title: 'Maestro 兼容性已报告',
-    pass: (items) => hasType(items, ['maestro_compatibility']),
-    pending: '缺少 Maestro CLI 可用性和版本兼容性报告。'
+  'host-capability-reported': {
+    title: '宿主能力已报告',
+    pass: (items) => hasType(items, ['host_capability', 'tool_compatibility']),
+    pending: '缺少宿主或工具可用性报告。'
   },
   'self-validation-ready': {
     title: '已复用项目自检',
@@ -130,7 +130,7 @@ const GUARD_RULES = {
   'manager-boundary-preserved': {
     title: '管理者边界保持清晰',
     pass: (items) => hasType(items, ['manager_boundary']),
-    pending: '缺少不替代 Maestro core、不重写执行引擎的边界证据。'
+    pending: '缺少管理者边界证据：不重写外部执行引擎、不扩大授权范围。'
   }
 };
 

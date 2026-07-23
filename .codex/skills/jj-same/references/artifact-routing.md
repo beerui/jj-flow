@@ -1,6 +1,6 @@
-# Maestro 产物路由
+# 产物路由
 
-`jj-same` 负责恢复迁移需求和选择目标，正式文档与状态必须由对应 Maestro skill 生成并注册。真实业务项目允许并要求把本任务生成的资产放在 `.workflow/` 下，但必须使用按类型和任务 ID 分目录的公共路由；不要创建 `.workflow/jj-same/` 这种无法被其它工具发现的私有目录。
+`jj-same` 负责恢复迁移需求和选择目标，正式文档与状态必须按 canonical 路径写入并注册。真实业务项目允许并要求把本任务生成的资产放在 `.workflow/` 下，但必须使用按类型和任务 ID 分目录的公共路由；不要创建 `.workflow/jj-same/` 这种无法被其它工具发现的私有目录。
 
 推荐的项目资产根目录：
 
@@ -28,20 +28,20 @@
 
 ## Canonical 路由
 
-| 阶段 | 负责 skill | canonical 产物 | 状态注册 |
+| 阶段 | 动作 | canonical 产物 | 状态注册 |
 |---|---|---|---|
-| 初始化 | `maestro-init` | `.workflow/project.md`、`.workflow/state.json` | init artifact |
-| 持续同步契约 | `maestro spec add arch` | 源项目 outgoing 索引与目标项目 incoming 契约，均位于各自 `.workflow/specs/architecture-constraints.md` | spec entry |
-| 源证据总结 | `maestro-analyze` | `.workflow/.csv-wave/{YYYYMMDD}-analyze-{slug}/context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | `ANL-*` |
+| 初始化 | 初始化工作流目录 | `.workflow/project.md`、`.workflow/state.json` | init artifact |
+| 持续同步契约 | 写入 arch spec | 源项目 outgoing 索引与目标项目 incoming 契约，均位于各自 `.workflow/specs/architecture-constraints.md` | spec entry |
+| 源证据总结 | 源分析 | `.workflow/.csv-wave/{YYYYMMDD}-analyze-{slug}/context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | `ANL-*` |
 | 迁移交接快照 | `jj-same` 在源分析 artifact 内生成 | `ANL-SOURCE/requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`，只引用 `BLP/REQ` 和来源证据 | 随所属 `ANL-*`；`context-package.json` 只登记 `handoff_ref` |
-| 正式需求 | `maestro-blueprint` | 标准发现或交接完成前生成 `.workflow/blueprint/BLP-{slug}-{date}/product-brief.md`、`requirements/REQ-*.md`、`readiness-report.md` 等实际需要的 canonical 文件 | `BLP-*` |
-| 家族协调计划 | `jj-dispatch` 控制 manifest；无控制项目时用 `maestro-plan` | 控制项目只保存协调状态和 artifact refs；无控制项目时使用领头项目 `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json` | 控制 `delivery_id`；无控制项目时为 `PLN-*` |
-| 目标项目评审 | `maestro-analyze --from blueprint:BLP-*`；跨仓库使用 blueprint path | 目标仓库自己的 analyze session，包含 `context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | 目标仓库的 `ANL-*` |
-| 实施计划 | `maestro-plan --from analyze:ANL-*` | `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`、`.task/TASK-*.json` | `PLN-*` |
-| 实施与验证 | `maestro-execute` | execute session、计划目录下的 `.summaries/TASK-*-summary.md` 与 `verification.json` | `EXC-*`、`VRF-*` |
-| 代码评审 | `quality-review` | 该 skill 的 `context.md` 与 `review.json` | `REV-*` |
+| 正式需求 | 正式需求生成 | 标准发现或交接完成前生成 `.workflow/blueprint/BLP-{slug}-{date}/product-brief.md`、`requirements/REQ-*.md`、`readiness-report.md` 等实际需要的 canonical 文件 | `BLP-*` |
+| 家族协调计划 | `jj-dispatch` 控制 manifest；无控制项目时写实施计划 | 控制项目只保存协调状态和 artifact refs；无控制项目时使用领头项目 `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json` | 控制 `delivery_id`；无控制项目时为 `PLN-*` |
+| 目标项目评审 | 目标分析（from blueprint path） | 目标仓库自己的 analyze session，包含 `context.md`、`analysis.md`、`conclusions.json`、`context-package.json` | 目标仓库的 `ANL-*` |
+| 实施计划 | 实施计划（from analyze） | `.workflow/scratch/{YYYYMMDD}-plan-P{N}-{slug}/plan.json`、`.task/TASK-*.json` | `PLN-*` |
+| 实施与验证 | 实施执行 | execute session、计划目录下的 `.summaries/TASK-*-summary.md` 与 `verification.json` | `EXC-*`、`VRF-*` |
+| 代码评审 | quality-review | 该 skill 的 `context.md` 与 `review.json` | `REV-*` |
 
-目标仓库没有 `.workflow/` 时，先执行 `maestro-init`。不要手工伪造 artifact ID，也不要绕过对应 skill 直接向 `.workflow/state.json` 注册完成状态。
+目标仓库没有 `.workflow/` 时，先初始化工作流目录。不要手工伪造 artifact ID，也不要绕过协议直接向 `.workflow/state.json` 注册完成状态。
 
 ## 内容映射
 
@@ -84,7 +84,7 @@
 
 ## 状态边界
 
-- `.workflow/.maestro/{session-id}/status.json` 只保存编排步骤、目标和完成证据，不保存需求正文。
+- session status 只保存编排步骤、目标和完成证据，不保存需求正文。
 - `.workflow/specs/` 只保存经过交付验证、可跨任务复用的稳定规则。持续同步的 `sync_key`、范围与排除策略可以进入 arch spec；不断变化的 commit 游标以及单次迁移的需求、分析和计划不得写入这里。
 - 原始提取报告应被 source analyze session 引用或吸收，不另建长期目录。
 - `context-package.json` 只保存 `snapshot_id`、`handoff_ref` 和必要摘要；Source Inventory 实体只存在于 `ANL-SOURCE/requirement-baseline/`。

@@ -5,19 +5,20 @@
 在 Codex / Claude Code 里用对话入口完成：
 
 - **同源迁移与持续同步** → `$jj-same` / `/jj-same`
+- **单仓全流程闭环** → `$jj-ralph` / `/jj-ralph`
+- **单仓轻量审查** → `$jj-review` / `/jj-review`
 - **多项目调度** → `$jj-dispatch`（Codex）
 
-控制面、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。Maestro 等工具可按需调用，但产品中心是 **项目编排**，不是 Maestro 适配层。
-
-全部流程禁止调用 `maestro explore`。
+控制面、ralph run ledger、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。产品中心是 **项目编排**。
 
 ## 3 步开始
 
-1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex 或 Claude  
-2. **[使用说明](usage.html)** — 如何写一条好输入、如何判断完成  
-3. **选入口做第一件事**  
-   - 迁移/同步 → **[$jj-same](command-jj-same.html)**  
-   - 多项目派发 → **[$jj-dispatch](command-jj-dispatch.html)**  
+1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex 或 Claude
+2. **[使用说明](usage.html)** — 如何写一条好输入、如何判断完成
+3. **选入口做第一件事**
+   - 迁移/同步 → **[$jj-same](command-jj-same.html)**
+   - 单仓闭环 → **[$jj-ralph](command-jj-ralph.html)**
+   - 多项目派发 → **[$jj-dispatch](command-jj-dispatch.html)**
 
 不确定时打开 **[命令总览](commands.html)**。
 
@@ -38,9 +39,11 @@ $jj-same
 | 你想做什么 | 入口 |
 |------------|------|
 | 同源迁移、handoff、持续同步 | [$jj-same](command-jj-same.html) |
+| 单仓分析→计划→验收→归档、能力地图 | [$jj-ralph](command-jj-ralph.html) |
+| 单仓轻量审查、会话关联、reviews 报告 | [$jj-review](command-jj-review.html) |
 | 多项目预览、批准、绑定、恢复 | [$jj-dispatch](command-jj-dispatch.html) |
-| 只说「用 jj-flow」 | [$jj](command-jj.html)（默认路由到 same） |
-| 安装 / `dispatch-tick` / 半真实 Host 试跑 | [CLI](command-cli.html) · [安装](installation.html) |
+| 只说「用 jj-flow」 | [$jj](command-jj.html)（按路由优先级） |
+| 安装 / `ralph *` / `dispatch-tick` / Host 试跑 | [CLI](command-cli.html) · [安装](installation.html) |
 
 ## 维护与深入
 

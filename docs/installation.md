@@ -117,7 +117,7 @@ npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all
 - ownership manifest 中摘要匹配的资产可以直接删除。
 - 当前包资产没有 manifest 时，只有内容与当前包完全一致才可直接删除。
 - 本地修改过的资产会返回 `modified-assets`，且整组不执行删除。
-- `jj-auto`、`jj-delivery`、`jj-evolve`、`jj-feat`、`jj-fix`、`jj-knowhow`、`jj-review`、`jj-validate` 等历史入口因缺少旧版所有权证据，默认只报告为 `ownership-unverified`。
+- `jj-auto`、`jj-delivery`、`jj-evolve`、`jj-feat`、`jj-fix`、`jj-knowhow`、`jj-validate` 等历史入口因缺少旧版所有权证据，默认只报告为 `ownership-unverified`。
 - `--force` 只会强制删除当前包和上述明确 retired 清单中的精确路径；不会扫描或删除其它 `jj-*` 文件。使用前必须先查看 dry-run 结果。
 
 例如，清理旧 Codex 安装残留：

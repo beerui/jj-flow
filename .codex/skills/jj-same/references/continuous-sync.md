@@ -15,9 +15,9 @@
 
 ## 同步契约
 
-为每项持续同步关系分配稳定的 `sync_key`，建议格式为 `SYNC-{feature-slug}`。它是业务关系标识，不是 Maestro artifact ID。
+为每项持续同步关系分配稳定的 `sync_key`，建议格式为 `SYNC-{feature-slug}`。它是业务关系标识，不是 工作流 artifact ID。
 
-首次迁移成功后，通过 `maestro spec add arch` 在源项目写入 `outgoing` 索引，并在每个目标项目写入 `incoming` 契约。两端使用同一个 `sync_key`：
+首次迁移成功后，通过 `写入 arch spec` 在源项目写入 `outgoing` 索引，并在每个目标项目写入 `incoming` 契约。两端使用同一个 `sync_key`：
 
 | 字段 | 含义 |
 |---|---|
@@ -47,7 +47,7 @@
 - 当前 `snapshot_id`、`handoff_ref`、source HEAD、freshness 和 successor 关系。
 - 下一个项目的解锁条件与用户触发状态。
 
-分析阶段只为未来项目记录高层范围、风险与待验证差异，不把领头项目文件或实现步骤预填为目标任务。blueprint readiness 通过后，使用 `maestro-plan` 生成或更新家族协调 `PLN`；每个目标进入开发前仍须在自己的仓库完成 `ANL-TARGET` 并生成独立实施 `PLN`。
+分析阶段只为未来项目记录高层范围、风险与待验证差异，不把领头项目文件或实现步骤预填为目标任务。blueprint readiness 通过后，使用 `实施计划` 生成或更新家族协调 `PLN`；每个目标进入开发前仍须在自己的仓库完成 `ANL-TARGET` 并生成独立实施 `PLN`。
 
 开发、bug 修复、需求纠正、验证、评审、提交和交接任一状态变化后，都要同步更新家族交付计划。计划状态不能替代 Git、`VRF` 或 `REV` 证据。
 
@@ -93,10 +93,10 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
 
 ## 首次迁移
 
-1. 按 `maestro-artifact-routing.md` 生成 `ANL-SOURCE -> BLP -> ANL-TARGET -> PLN -> EXC/VRF -> REV`。
+1. 按 `artifact-routing.md` 生成 `ANL-SOURCE -> BLP -> ANL-TARGET -> PLN -> EXC/VRF -> REV`。
 2. 在源分析记录 `sync_key`、`source_base`、`source_head` 和功能范围。
 3. 在目标分析记录 B 的对应入口、`TARGET-ONLY`、排除项和迁移决策。
-4. 验证成功后，通过 `maestro spec add arch` 在 A 建立 outgoing 索引，并在 B 建立 incoming 契约。
+4. 验证成功后，通过 `写入 arch spec` 在 A 建立 outgoing 索引，并在 B 建立 incoming 契约。
 5. 把首次迁移的 `source_head` 作为首个成功检查点。
 
 多目标首次迁移在源项目形成可交接状态后先生成一次 handoff snapshot。各目标复用同一共享 `ANL-SOURCE / BLP/REQ`，不得分别重建；目标成功检查点仍分别维护。
@@ -121,7 +121,7 @@ ANL-SOURCE-DELTA -> BLP(按需) -> ANL-TARGET -> PLN -> EXC -> VRF
 7. 有共享需求或 source HEAD 变化时生成 successor handoff snapshot；只补验证证据时可生成 evidence-only successor。Snapshot 更新本身不得推进目标同步检查点。
 8. 在 B 做目标分析。比较“上次成功目标状态、B 当前状态、A 新增量”三方，保护 B 在同步后产生的本地改动。
 9. 仅迁移 `DIRECT / ADAPT / EXTEND`，同根因不存在的 bug fix 标记 `N/A`。
-10. 通过 `maestro-plan -> maestro-execute -> quality-review` 实施和验证。
+10. 通过 `计划 → 实施 → 审查` 实施和验证。
 11. 满足已实施检查点或零改动检查点条件后，才把 `current_source_head` 作为下一次基线。
 
 ## 修改完成决策门禁

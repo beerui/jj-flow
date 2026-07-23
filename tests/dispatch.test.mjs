@@ -22,14 +22,18 @@ test('same dispatch keeps input parameters minimal', () => {
   const dispatch = buildDispatch({ mode: 'same', intent: '从会话 019f 迁移密码更新提醒' });
   assert.equal(dispatch.mode, 'same');
   assert.equal(dispatch.recipe.id, 'cross-project-same');
-  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$maestro-analyze'));
-  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$maestro-execute'));
-  assert.ok(dispatch.maestro_prompt.includes('五项门禁') || dispatch.maestro_prompt.includes('EXECUTION_READY') || dispatch.maestro_prompt.includes('同源'));
+  assert.ok(dispatch.skill_calls.some((call) => call.skill === 'analyze-source'));
+  assert.ok(dispatch.skill_calls.some((call) => call.skill === 'execute'));
+  assert.ok(
+    dispatch.workflow_prompt.includes('五项门禁')
+      || dispatch.workflow_prompt.includes('EXECUTION_READY')
+      || dispatch.workflow_prompt.includes('同源')
+  );
 });
 
 test('same dispatch includes quality-review', () => {
   const dispatch = buildDispatch({ mode: 'same', intent: '迁移后审查 diff 并补齐测试缺口' });
-  assert.ok(dispatch.maestro_calls.some((call) => call.skill === '$quality-review'));
+  assert.ok(dispatch.skill_calls.some((call) => call.skill === 'quality-review'));
 });
 
 test('same dispatch can capture knowledge after migration', () => {
@@ -41,5 +45,6 @@ test('same dispatch can capture knowledge after migration', () => {
 test('renderMarkdown includes same mode heading', () => {
   const markdown = renderMarkdown(buildDispatch({ mode: 'same', intent: '准备交接' }));
   assert.match(markdown, /# \/jj-same/);
-  assert.match(markdown, /Maestro 调用/);
+  assert.match(markdown, /调用链/);
+  assert.doesNotMatch(markdown, /Maestro|maestro/);
 });

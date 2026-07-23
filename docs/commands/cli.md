@@ -1,17 +1,18 @@
 # `jj` / `jj-flow` CLI
 
-`jj` 与 `jj-flow` 是同一个 Node.js CLI 的两个可执行名，面向 jj-flow 维护者和自动化脚本。它可以读取 intent 与 evidence，生成 recipe、guard、execution decision、knowledge loop 和 Maestro prompt；它不会在终端里代替 Codex/Claude Code 完成真实业务交付。
+`jj` 与 `jj-flow` 是同一个 Node.js CLI 的两个可执行名，面向 jj-flow 维护者和自动化脚本。它可以读取 intent 与 evidence，生成 recipe、guard、execution decision、knowledge loop 和 工作提示词；它不会在终端里代替 Codex/Claude Code 完成真实业务交付。
 
 ## 适用场景
 
 - 维护者需要检查某个 intent 会被路由到哪个内置 mode。
-- CI 或脚本需要结构化 JSON，用于检查 evidence、guard 和 Maestro 调用链。
+- CI 或脚本需要结构化 JSON，用于检查 evidence、guard 和 调用链。
 - 调试 `same` recipe。
 - 使用 `install-skill` 安装或更新 Codex/Claude Code 原生命令资产，使用 `uninstall-skill` 安全卸载。
 - 使用 `doctor` 只读判断当前仓库的 Harness、Git、host capabilities 和自治等级。
 - 使用 `scenario` 运行固定、隔离、无副作用的任务级回归。
 - 使用 `trace explain` / `trace replay` 解释或纯重放 scenario trace，不重复 host action。
 - 使用 `host-trial` 在临时 Git repo/worktree 中验证 A2/A3 半真实 Host 闭环。
+- 使用 `ralph` 子命令执行单仓闭环机械步骤：`init`、`status`、`archive`、`map-merge`、`map-find`、`handoff`、`dispatch-snapshot`、`commit-prep`。
 - 使用 `harness-gc` 只读检查 Harness 漂移、规则健康和维护重复。
 - 使用 `dispatch-tick` 对控制面做一次可恢复调度预览或写回。
 - 使用 `task assign` 读取任务 ID 对应的 `task.md` 主标题，生成简洁的分配流程和下一步命令。

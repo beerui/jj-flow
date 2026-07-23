@@ -24,6 +24,8 @@ const NAV_GROUPS = [
     title: '命令入口',
     pages: [
       { title: '$jj-same 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
+      { title: '$jj-ralph 单仓闭环', source: 'docs/commands/jj-ralph.md', output: 'command-jj-ralph.html' },
+      { title: '$jj-review 单仓审查', source: 'docs/commands/jj-review.md', output: 'command-jj-review.html' },
       { title: '$jj-dispatch 多项目调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' },
       { title: '$jj 兼容入口', source: 'docs/commands/jj.md', output: 'command-jj.html' }
     ]
@@ -44,6 +46,7 @@ const NAV_GROUPS = [
       { title: '设计文档', source: 'docs/design-docs/index.md', output: 'design-docs/index.html' },
       { title: 'Agent Harness 设计', source: 'docs/design-docs/harness-engineering.md', output: 'design-docs/harness-engineering.html' },
       { title: '任务分配与反馈设计', source: 'docs/design-docs/task-assignment-ux.md', output: 'design-docs/task-assignment-ux.html' },
+      { title: 'jj-ralph 单仓闭环设计', source: 'docs/design-docs/jj-ralph.md', output: 'design-docs/jj-ralph.html' },
       { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },
       { title: 'Harness 收口计划', source: 'docs/exec-plans/active/2026-07-18-harness-hardening.md', output: 'exec-plans/active/2026-07-18-harness-hardening.html' },
       { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },

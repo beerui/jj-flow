@@ -1,0 +1,405 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jj-flow/ralph-run/1.0",
+  "title": "jj-flow Ralph Run Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "title",
+    "phase",
+    "status",
+    "goal",
+    "scope",
+    "iteration",
+    "max_iterations",
+    "tasks",
+    "gates",
+    "capability_ids",
+    "artifact_refs",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "jj-flow/ralph-run/1.0"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "ANALYZE",
+        "PLAN",
+        "DELIVER",
+        "ACCEPT",
+        "ARCHIVE"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "IN_PROGRESS",
+        "READY_FOR_USER_TEST",
+        "BLOCKED",
+        "PAUSED",
+        "COMPLETED"
+      ]
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "in",
+        "out"
+      ],
+      "properties": {
+        "in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 20
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "req",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^TASK-"
+          },
+          "req": {
+            "type": "string",
+            "pattern": "^REQ-"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "DONE",
+              "BLOCKED",
+              "N/A"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analyze",
+        "plan",
+        "deliver",
+        "accept",
+        "archive"
+      ],
+      "properties": {
+        "analyze": {
+          "$ref": "#/$defs/gateStatus"
+        },
+        "plan": {
+          "$ref": "#/$defs/gateStatus"
+        },
+        "deliver": {
+          "$ref": "#/$defs/gateStatus"
+        },
+        "accept": {
+          "$ref": "#/$defs/gateStatus"
+        },
+        "archive": {
+          "$ref": "#/$defs/gateStatus"
+        }
+      }
+    },
+    "intervention_needed": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reason",
+            "unblock"
+          ],
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "unblock": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "MUST_AMBIGUITY",
+                "IRREVERSIBLE",
+                "MISSING_SECRET",
+                "USER_TEST",
+                "DIRTY_WORKTREE",
+                "MAX_ITERATIONS",
+                "OTHER"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "capability_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^CAP-"
+      }
+    },
+    "artifact_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "analyze",
+        "plan",
+        "acceptance",
+        "progress"
+      ],
+      "properties": {
+        "analyze": {
+          "type": "string"
+        },
+        "plan": {
+          "type": "string"
+        },
+        "acceptance": {
+          "type": "string"
+        },
+        "progress": {
+          "type": "string"
+        },
+        "handoff_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dispatch_snapshot_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latest_review_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "handoff": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "handoff_id",
+            "path"
+          ],
+          "properties": {
+            "handoff_id": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "READY",
+                "CONSUMED"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "dispatch_recommendation": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_path"
+          ],
+          "properties": {
+            "snapshot_path": {
+              "type": "string"
+            },
+            "targets_hint": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "latest_review_id",
+            "reviews"
+          ],
+          "properties": {
+            "latest_review_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "task_thread_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "reviews": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "review_id",
+                  "path",
+                  "outcome",
+                  "recorded_at"
+                ],
+                "properties": {
+                  "review_id": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "outcome": {
+                    "enum": [
+                      "PASS",
+                      "NEEDS_CHANGES",
+                      "BLOCKED"
+                    ]
+                  },
+                  "reviewed_commit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "task_thread_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "review_thread_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "recorded_at": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "gateStatus": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "PASS",
+        "FAIL",
+        "N/A",
+        "BLOCKED"
+      ]
+    }
+  }
+}

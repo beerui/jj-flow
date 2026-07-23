@@ -5,19 +5,22 @@
 ## 项目标识
 
 - `jj`：简单命令标识，不代表组织或业务品牌。
-- `jj-flow`：项目族编排工作流。在 Codex / Claude Code 中提供同源迁移（same）与多项目调度（dispatch）；Maestro 等是可选执行工具，不是产品定义中心。
+- `jj-flow`：项目族编排工作流。在 Codex / Claude Code 中提供同源迁移（same）、单仓闭环（ralph）与多项目调度（dispatch）。产品定义中心是编排协议，不是外部工具适配层。
 - `$jj-*`：Codex 内触发 `.codex/skills/jj-*/SKILL.md` 的缩写命令前缀，主推连字符写法。
 - `/jj-*`：Claude Code 内触发 `.claude/commands/jj-*.md` 的 slash command 前缀，主推连字符写法。
-- `$jj` / `/jj`：兼容入口，默认路由到 same。
-- `jj` CLI：仓库内安装、维护和调试命令，不是普通交付主入口。
+- `$jj` / `/jj`：兼容入口，按优先级路由到 same / ralph / dispatch。
+- `jj` CLI：仓库内安装、维护、ralph 机械步骤和调试命令；业务分析/编码主入口仍是对话 skill。
 
 ## `jj-*` 缩写命令
 
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit、diff 或 handoff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
+- `$jj-ralph` / `/jj-ralph`：单仓全流程自治闭环。需求分析 → 计划实施 → 验收完成 → 归档；产物在 `.workflow/ralph/ralphs/`，能力地图在 `business-map.json`。
 - `$jj-dispatch`：Codex 控制项目中的多项目调度入口。用于预览、批准、派发、恢复和汇总多个固定项目任务；首版没有对应的 Claude `/jj-dispatch`。
 - 已移除：`$jj-delivery`、`$jj-validate`、`$jj-evolve` 以及更早的 feat/fix/knowhow/auto/review 入口。
 - `delivery_id`：控制平面里一次跨项目交付任务的稳定身份，**不是** `$jj-delivery` 对话入口。
-- `Handoff snapshot`：源 `ANL-SOURCE` 内的不可变迁移交接清单。它引用正式 `BLP/REQ`，记录来源指纹、源 commit、coverage、未解决项和验证门禁；多个目标复用同一 snapshot，但仍分别验证目标源码并生成 `ANL-TARGET`。
+- `Handoff snapshot`：源侧不可变迁移交接清单。ralph 完成后可把交接包写到 `.workflow/handoffs/` 供 same 读取；迁移实现不在 `.workflow/ralph/` 下完成。
+- `Ralph run`：一次单仓闭环实例，身份为 `RALPH-*`，状态在 `run.json`。
+- `Business map`：跨 run 累积的能力地图（`business-map.json`），供下次会话 `map-find` 检索历史经验与任务。
 
 ## 交付协议术语
 
@@ -25,7 +28,7 @@
 - `Evidence`：可追溯证据，例如 PRD、YApi 契约、ARMS/SLS 日志、diff、测试结果和交付记录。
 - `Guard`：证据检查规则。证据不足时保持 `PENDING`，不能把猜测当作通过。
 - `Context package`：交付上下文包，包含用户目标、资料来源、项目状态、约束、风险和关键决策。
-- `Maestro prompt`：交给 Maestro skill 或 CLI 的结构化提示。
+- `工作提示词`：交给 agent 或 CLI 的结构化提示。
 - `Correction backlog`：自检后生成的修正清单，用于优先处理文档、代码、测试或 workflow 漂移。
 - `Workflow`：由 skills、commands、control-plane manifest、证据和验证门禁共同定义的项目交付流程。
 - `Spec`：可复用规范或约束，用于沉淀项目级规则。
@@ -38,15 +41,14 @@
 - `Reference implementation`：经过验证后可供其它目标参考的稳定 commit 和 snapshot；初始为空，不能因项目是基线就自动设置。
 - `Dispatch intent`：创建 Codex task 前先写入控制项目的派发意图，使用稳定 `task_key` 保证重试不会重复创建任务。
 - `Migration ledger`：迁移需求账本，通常包含 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
-- `Sync contract`：A/B 项目间某项功能的稳定同步关系，包含 `sync_key`、源/目标、功能范围、目标专有差异、排除项和触发策略；源项目保存 outgoing 索引，目标项目保存 incoming Maestro arch spec。
+- `Sync contract`：A/B 项目间某项功能的稳定同步关系，包含 `sync_key`、源/目标、功能范围、目标专有差异、排除项和触发策略；源项目保存 outgoing 索引，目标项目保存 incoming arch spec。
 - `Sync checkpoint`：目标项目最近一次验证通过且评审无阻塞的同步点；它记录对应的源 commit，只有目标交付成功后才能推进。
-- `Deferred sync`：用户选择暂不把当前源增量同步到某个目标。它以目标项目 open Maestro issue 保存，保持同步基线不变，恢复时从最近成功检查点重新计算累计范围。
+- `Deferred sync`：用户选择暂不把当前源增量同步到某个目标。它以目标项目 open issue 保存，保持同步基线不变，恢复时从最近成功检查点重新计算累计范围。
 
 ## 外部工具和资料
 
-- `Maestro`：底层工作流体系，`jj-flow` 只在它前面组织交付上下文。全部流程禁止调用 `maestro explore`。
-- `Codex`：运行 `$jj-*`、Maestro skill 和代码修改的对话环境。
-- `Claude Code`：运行 `/jj-*` slash command、Maestro skill 和代码修改的对话环境。
+- `Codex`：运行 `$jj-*` skill 和代码修改的对话环境。
+- `Claude Code`：运行 `/jj-*` slash command 和代码修改的对话环境。
 - `PRD`：Product Requirements Document，产品需求文档。
 - `YApi`：接口文档和契约来源。
 - `ARMS`：前端或应用监控系统，用于线上错误和性能证据。

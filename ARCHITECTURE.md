@@ -2,18 +2,22 @@
 
 ## 概览
 
-`jj-flow` 是项目族编排工作流，解决两个相关问题：
+`jj-flow` 是项目族编排工作流，解决三类相关问题：
 
 - `jj-same` 在同源但已分叉的仓库之间迁移功能，或持续同步后续变更。
+- `jj-ralph` 在**单一业务仓库**内完成分析 → 计划 → 验收 → 归档，并沉淀可检索能力地图。
 - `jj-dispatch` 从独立控制项目协调一次涉及动态项目集合的交付。
 
-产品本体是编排协议，包括持久身份、证据门禁、可恢复状态转换，以及控制工作与业务代码之间的边界。Codex、Claude Code、Maestro、Git、YApi 和 ARMS 是协议外部的宿主或证据提供者，不定义产品的架构中心。
+产品本体是编排协议，包括持久身份、证据门禁、可恢复状态转换，以及控制工作与业务代码之间的边界。Codex、Claude Code、Git、YApi 和 ARMS 是协议外部的宿主或证据提供者，不定义产品的架构中心。
 
-系统有两条主路径：
+系统有三条主路径：
 
 ```text
 same:     需求或 handoff -> 源证据 -> 目标差异分析 -> 按目标原生架构实施
           -> 验证 -> 同步检查点
+
+ralph:    需求 -> 计划 -> 实施/验证循环 -> 验收 -> 归档 -> 能力地图
+          （可选 handoff 给 same / 推荐快照给 dispatch）
 
 dispatch: control-plane manifest -> 单次确定性 tick -> host actions
           -> task receipts -> review/verification evidence -> 下一检查点
@@ -24,12 +28,13 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 ### 对话入口资产
 
 - `.codex/skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
+- `.codex/skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/ralphs/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
 - `.codex/skills/jj-dispatch/` 定义 Codex 专用的控制项目调度协议。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
-- `.codex/skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same` 或 `jj-dispatch` 入口。
+- `.codex/skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph` 或 `jj-dispatch` 入口。
 - `.claude/commands/` 保存 Claude Code 对应命令。`jj-dispatch` 有意不在此暴露。
 - `.codex/agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。
 
-修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装或控制平面运行时行为才应先进入 npm CLI。
+修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装、ralph 机械步骤或控制平面运行时行为才应先进入 npm CLI。
 
 ### Dispatch 协议与运行时
 
@@ -49,8 +54,9 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
 - `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
-- `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/maestroExecution.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
-- `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构；`src/maestroCompatibility.mjs` 支持可选工具的兼容性检查。
+- `src/ralph.mjs` 提供单仓闭环机械步骤：init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep。它不替代 `$jj-ralph` 对话协议。
+- `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
+- `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
 - `scripts/check-project.mjs` 检查仓库资产不变量；`scripts/build-docs.mjs` 把 `docs/` 下的 Markdown 构建为文档站。
 - `harness-manifest.json` 是 Agent 的机器可读仓库地图；它同时登记 scenario registry、运行命令、预期状态和无副作用策略。`scripts/check-harness.mjs` 校验权威资产、导航、能力、自主等级、协议 parity、scenario/schema parity 和禁止的本地状态路径；`src/harnessDoctor.mjs` 只读汇总 Git、Harness 和 host capabilities，供 `jj doctor` 使用。
 - `src/harnessGc.mjs` 是只读 gardener：把 Harness 漂移、文档/schema 覆盖、规则 owner 和维护重复转换为分级 findings 与质量分。`docs/milestones/h5-gc-baseline.json` 保存与当前 runner fingerprint 匹配的验收基线；首版不自动修复。
@@ -70,9 +76,9 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 4. `task_key` 是可恢复的调度身份。临时 subagent 和 task/thread 的展示状态不能替代它。
 5. Reviewer 保持只读。Developer 只在当前任务获批目标的独占 worktree 中写入。
 6. 缺少证据时输出 `PENDING` 或 `BLOCKED`，不能推断为 `PASS`。一个目标失败时，不能推进自身检查点，也不能替其他目标宣告完成。
-7. `jj-same` 负责迁移、目标适配和同步检查点；`jj-dispatch` 负责项目选择、批准、任务身份、派发和恢复。两者不重写彼此的职责。
-8. 外部副作用属于宿主。dispatch 核心代码只计算和校验状态转换，不创建 task，不 merge、push、release，也不运行后台服务。
-9. Maestro 可以提供分析、计划、执行或审查能力，但 `jj-flow` 不 fork Maestro core，也不让某个 Maestro 实现决定协议语义。
+7. `jj-same` 负责迁移、目标适配和同步检查点；`jj-ralph` 负责单仓闭环与能力地图；`jj-dispatch` 负责项目选择、批准、任务身份、派发和恢复。三者不重写彼此的职责。ralph 完成后可导出 handoff（给 same）或推荐快照（给 dispatch），迁移实现不在 `.workflow/ralph/` 内完成。
+8. 外部副作用属于宿主。dispatch 核心代码只计算和校验状态转换，不创建 task，不 merge、push、release，也不运行后台服务。ralph 的 `commit-prep` 同样不自动 commit/push。
+9. 协议语义由 jj-flow skill / schema / CLI 定义；不绑定外部编排产品名称。
 10. Trace replay 只重放纯状态转换。场景固定、隔离且不执行真实 host action；任何输入、输出或状态 hash 漂移都必须在最早不匹配步骤失败。
 11. 半真实 Host trial 的副作用只能位于系统临时目录，并必须清理。版本化 evidence 必须匹配当前 runner fingerprint；它不能替代真实宿主 thread 与 sandbox attestation。
 12. Harness GC 只读运行。P0/P1 可以阻断，P2/P3 只形成维护候选；任何 finding 都不能自行删除、重写或合并仓库内容。
@@ -100,6 +106,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | 需求 | 起点 |
 | --- | --- |
 | 修改同源迁移或持续同步行为 | `.codex/skills/jj-same/` |
+| 修改单仓闭环或能力地图 | `.codex/skills/jj-ralph/`、`src/ralph.mjs` |
 | 修改多项目调度策略 | `.codex/skills/jj-dispatch/` |
 | 修改持久调度状态转换 | `src/dispatchControlPlane.mjs` |
 | 修改 tick、receipt 或 manifest 持久化 | `src/dispatchRuntime.mjs` |

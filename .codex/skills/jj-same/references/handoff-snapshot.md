@@ -6,7 +6,7 @@ Handoff snapshot 用于把一次已经收敛的源需求语义交给多个目标
 
 - `BLP-* / REQ-*` 始终是正式需求唯一 source of truth。
 - Snapshot 是源 `ANL-SOURCE` artifact 内的不可变派生清单，MUST 只保存引用、来源指纹、coverage、纠正顺序、验证状态和待验证目标差异。
-- Snapshot MUST NOT 复制 requirement body，不得写入 `.workflow/specs/`、`.workflow/.maestro/*/status.json` 或新建 `.workflow/jj-same/`。
+- Snapshot MUST NOT 复制 requirement body，不得写入 `.workflow/specs/`、`.workflow/.sessions/*/status.json` 或新建 `.workflow/jj-same/`。
 - Source Inventory 实体 MUST 只存在于 snapshot 所属的 `requirement-baseline` bundle；`context-package.json` 只保存 `handoff_ref`、`snapshot_id` 和必要摘要。
 - 每个目标 MUST 重新验证当前 Git、源码、调用链和目标专有行为，并独立生成 `ANL-TARGET -> PLN -> EXC/VRF -> REV`。
 

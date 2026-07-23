@@ -26,7 +26,7 @@ export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence 
       pending_guards: pendingGuards,
       next_actions: nextActions
     },
-    boundary: 'knowledge loop only packages context; Maestro core remains unchanged'
+    boundary: 'knowledge loop only packages context; external runtimes stay out of scope'
   };
 }
 
@@ -47,7 +47,7 @@ function inferCaptureTargets(mode, evidence) {
 function buildCompletedNextActions(captureTargets, executionDecision) {
   const actions = captureTargets.map((target) => `捕获为 ${target}`);
   if (executionDecision?.status === 'ready') {
-    actions.unshift('可以交给 Maestro 调用链继续执行');
+    actions.unshift('可以按调用链继续执行');
   }
   if (!actions.length) {
     actions.push('无需捕获知识资产，保留 evidence 和 guard 状态。');

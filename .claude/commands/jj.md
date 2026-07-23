@@ -1,6 +1,6 @@
 ---
 name: jj
-description: 兼容入口；把 /jj 或 jj-flow 泛称路由到 /jj-same 等原生命令。
+description: 兼容入口；把 /jj 或 jj-flow 泛称路由到 /jj-same、/jj-ralph 等原生命令。
 argument-hint: "<需求、资料、范围或问题>"
 allowed-tools:
   - Read
@@ -15,8 +15,13 @@ allowed-tools:
 
 用户输入：$ARGUMENTS
 
-这是兼容入口，不是 shell 命令。优先根据用户原始需求路由到 `/jj-same`。多项目调度在 Codex 使用 `$jj-dispatch`（Claude 侧无对等 slash command）。
+这是兼容入口，不是 shell 命令。按优先级路由：
 
-已移除 `/jj-delivery`、`/jj-validate`、`/jj-evolve` 以及更早的 `/jj-feat`、`/jj-fix`、`/jj-knowhow`、`/jj-auto`、`/jj-review`。
+1. 同源迁移 / handoff / 同步 → `/jj-same`
+2. 单仓全流程闭环 / ralph / 归档 / 能力地图 → `/jj-ralph`
+3. 多项目调度在 Codex 使用 `$jj-dispatch`（Claude 侧无对等 slash）
+4. 不确定时默认 `/jj-same`
 
-执行时保留原始动机和证据，先找项目资料、会话、handoff 与 `.workflow` 状态，再调用合适的 Maestro/Claude Code skills。**禁止调用 `maestro explore`**。不要要求用户改用终端命令；`npx` 只用于安装或刷新本地命令资产。
+已移除 `/jj-delivery`、`/jj-validate`、`/jj-evolve` 以及更早的 feat/fix/knowhow/auto/review。
+
+保留原始动机和证据；`npx`/`jj` 只用于安装或 `jj ralph *` 机械步骤。

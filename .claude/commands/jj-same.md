@@ -15,7 +15,7 @@ allowed-tools:
 
 用户输入：$ARGUMENTS
 
-同步需求不变量，不复制源项目文件。首次迁移建立可验证基线；后续只处理源项目自上次成功同步后的有效增量，再按目标项目真实能力做最窄适配。全流程**禁止调用 `maestro explore`**；代码定位使用 Read、Glob、Grep、Bash、`rg` 与定点读取。
+同步需求不变量，不复制源项目文件。首次迁移建立可验证基线；后续只处理源项目自上次成功同步后的有效增量，再按目标项目真实能力做最窄适配。全流程****；代码定位使用 Read、Glob、Grep、Bash、`rg` 与定点读取。
 
 ## 交付生命周期
 
@@ -53,19 +53,19 @@ allowed-tools:
 2. 确认入口模式：`准备交接`、消费 `handoff_ref`、`更新交接`、无 snapshot 首次迁移或按 `sync_key` 后续同步。
 3. 当前用户需求优先于历史会话；历史会话和 assistant 交付摘要只作为线索，必须用 Git 和当前源码验证。
 4. 分支或 commit 证据用 `merge-base..feature-ref` 按时间看提交，区分新增、修复、回退和产品反转。
-5. 无有效 snapshot 时，用 `maestro-analyze` 和 `maestro-blueprint` 生成共享 `ANL-SOURCE / BLP/REQ`；准备交接时按 `jj-same/handoff-snapshot/1.0` 写入 source inventory、source HEAD、coverage、验证状态和 canonical refs。
+5. 无有效 snapshot 时，用 `源/目标分析` 和 `正式需求生成` 生成共享 `ANL-SOURCE / BLP/REQ`；准备交接时按 `jj-same/handoff-snapshot/1.0` 写入 source inventory、source HEAD、coverage、验证状态和 canonical refs。
 6. 消费 `handoff_ref` 时验证 source repo、HEAD、会话 cursor、来源指纹、父链和 canonical refs，输出唯一动作 `REUSE / REFRESH_SOURCES / REBASELINE / BLOCKED`。
 7. `REUSE` 时目标 MUST NOT 重建源 `ANL-SOURCE / BLP`；`PARTIAL_HANDOFF` 按 `execution_readiness` 决策，`READY` 可带 caveat 实施，`BLOCKED` 只能分析。
 8. 从源分析阶段维护家族协调计划；blueprint readiness 前只记录草案和阻塞项，通过后在领头项目注册协调 `PLN`。
-9. 每个目标用 `maestro-analyze --from blueprint:BLP-*` 生成独立 `ANL-TARGET`，建立能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
-10. 需求 readiness 通过且目标无影响 `MUST` 的阻塞时，用 `maestro-plan --from analyze:ANL-*` 生成最小 `PLN`；当前请求已要求实施时，同一轮继续调用 `maestro-execute` 修改业务代码，不停在计划产物。
+9. 每个目标用 `目标分析（from blueprint:BLP-*）` 生成独立 `ANL-TARGET`，建立能力矩阵，决策只使用：`DIRECT`、`ADAPT`、`EXTEND`、`BLOCKED`、`N/A`。
+10. 需求 readiness 通过且目标无影响 `MUST` 的阻塞时，用 `实施计划（from analyze:ANL-*）` 生成最小 `PLN`；当前请求已要求实施时，同一轮继续调用 `实施执行` 修改业务代码，不停在计划产物。
 11. 只改用户明确授权的当前项目；用户只要求分析时，不写业务代码。
 12. 每一行改动都要追溯到 `REQ-*`、`MUST` 或目标专有的 `TARGET-ONLY`。
 13. 多个目标按计划顺序分别实施、验证和提交；不要整分支 cherry-pick，不整文件覆盖。
 
 ## 持续同步
 
-- 首次 A -> B 迁移成功后分配 `SYNC-{feature-slug}`，通过 `maestro spec add arch` 在 A 保存 outgoing 索引、在 B 保存 incoming 契约；两端记录源/目标、功能范围、目标专有行为、排除项和触发策略。
+- 首次 A -> B 迁移成功后分配 `SYNC-{feature-slug}`，通过 `写入 arch spec` 在 A 保存 outgoing 索引、在 B 保存 incoming 契约；两端记录源/目标、功能范围、目标专有行为、排除项和触发策略。
 - 可变的 `last_source_head` 不写入 spec；从 B 最近一次成功的 `VRF/REV` 交付链或 `NO_CHANGE_REQUIRED` 目标分析反查。
 - 后续只分析 `last_source_head..current_source_head`，并分类为 `REQUIREMENT_CHANGE / BUG_FIX / REFACTOR / REVERT / NOISE`。
 - 产品行为变化时生成新的 blueprint 增量；仅修复同一需求下的 bug 时复用原 blueprint，但必须证明 B 存在同一根因。
@@ -82,15 +82,15 @@ allowed-tools:
 
 `DEFER` 通过 `manage-issue` 在目标项目创建或更新 open issue。相同 `sync_key + target` 保留最早未同步 `before_sha`、更新最新 `after_sha`，且不推进基线；恢复时从最近成功检查点重算累计范围，成功或 `NO_CHANGE_REQUIRED` 后关闭 issue。
 
-## Maestro 产物规范
+## 产物规范
 
-- 不创建 `.workflow/jj-same/`。目标项目没有 `.workflow/` 时先调用 `maestro-init`。
+- 不创建 `.workflow/jj-same/`。目标项目没有 `.workflow/` 时先调用 `工作流初始化`。
 - 源总结和目标评审保存到各自 `.workflow/.csv-wave/{日期}-analyze-{主题}/`，并注册 `ANL-*`。
 - Handoff snapshot 保存到源 `ANL-SOURCE/requirement-baseline/{snapshot_id}/handoff-snapshot.yaml`；`context-package.json` 只记录 `snapshot_id` 和 `handoff_ref`。
 - 正式需求保存到 `.workflow/blueprint/BLP-{主题}-{日期}/`，并注册 `BLP-*`。
 - 实施计划保存到 `.workflow/scratch/{日期}-plan-P{阶段}-{主题}/plan.json` 与 `.task/TASK-*.json`，并注册 `PLN-*`。
 - 实施、验证和评审由对应 skill 注册 `EXC-*`、`VRF-*`、`REV-*`。
-- `.workflow/.maestro/*/status.json` 只保存编排状态；`.workflow/specs/` 保存交付后沉淀的稳定规则和持续同步契约，不保存可变 commit 游标。
+- `.workflow/.sessions/*/status.json` 只保存编排状态；`.workflow/specs/` 保存交付后沉淀的稳定规则和持续同步契约，不保存可变 commit 游标。
 - 多目标迁移只共享一份源分析和 blueprint；每个目标分别生成自己的目标分析、计划、实施与评审产物。跨仓库引用使用直接 path，不假设 artifact ID 能跨仓库解析。
 - 有效 `handoff_ref` 是共享源分析和 blueprint 的发现入口；目标不得复制 snapshot、Source Inventory 或需求正文。
 - 家族协调 `PLN` 由领头项目持有，只记录顺序、状态、分支、会话交接和门禁；不替代目标仓库的实施 `PLN`。
@@ -105,7 +105,7 @@ allowed-tools:
 
 每个目标由代理执行 `git diff --check`、目标文件 lint、聚焦单元测试或契约测试等非浏览器检查，并默认跳过编译、build、浏览器、E2E 和页面交互自测。运行时验证不必要时记录 `N/A` 理由并继续；必要时提示用户下一步手动测试，输出覆盖本次实际风险的最小清单并保持 `READY_FOR_USER_TEST`，用户确认通过后才记录验收证据并进入 `READY_FOR_HANDOFF`。只有用户主动要求时才由代理运行 build 或浏览器测试。
 
-最终用中文按项目报告：证据入口、源项目/分支确认、候选项目状态、用户同步决策、延期 issue、`sync_key`、源 commit range、检查点状态、Maestro 产物链、需求账本、迁移决策、验证结果、残余风险和提交/推送状态。
+最终用中文按项目报告：证据入口、源项目/分支确认、候选项目状态、用户同步决策、延期 issue、`sync_key`、源 commit range、检查点状态、产物链、需求账本、迁移决策、验证结果、残余风险和提交/推送状态。
 
 当前项目完成时还要输出跨会话交接包：前一会话 ID、`snapshot_id`、`handoff_ref`、snapshot hash 和 freshness、领头/当前/下一项目路径与角色、分支、HEAD、验证 commit range、`BLP/ANL/PLN/VRF/REV` 引用、家族计划位置、派生分支、未解决项及 `TARGET-ONLY / DO-NOT-PORT`。新会话必须先验证 snapshot、Git 和目标源码事实。
 

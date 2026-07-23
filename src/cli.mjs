@@ -19,6 +19,18 @@ import { renderHarnessGcText, runHarnessGc } from './harnessGc.mjs';
 import { writeTaskArtifacts } from './taskArtifacts.mjs';
 import { buildTaskAssignment, readTaskTitle, renderDispatchSummary, renderTaskAssignment } from './taskPresentation.mjs';
 import { canonicalTaskId, resolveTask, taskStatus } from './taskRegistry.mjs';
+import {
+  archiveRun,
+  commitPrep,
+  getStatus,
+  initRun,
+  mapFind,
+  mapMergeFromRun,
+  renderRalphStatusText,
+  recordReview,
+  writeDispatchSnapshot,
+  writeHandoffPackage
+} from './ralph.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -57,6 +69,10 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
 
   if (args[0] === 'task') {
     return runTaskCommand(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'ralph') {
+    return runRalphCommand(args.slice(1), { cwd, stdout });
   }
 
   if (args.includes('--help') || args.includes('-h')) {
@@ -477,8 +493,235 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-dispatch（Codex）与 /jj-same（Claude Code）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n  jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]\n');
+}
+
+function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout } = {}) {
+  if (!rawArgs.length || rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printRalphHelp(stdout);
+    return 0;
+  }
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const command = args.shift();
+
+  if (command === 'init') {
+    const options = parseRalphInitArgs(args);
+    const run = initRun(options, cwd);
+    if (json) stdout.write(`${JSON.stringify({ run }, null, 2)}\n`);
+    else stdout.write(`initialized ${run.run_id}\n`);
+    return 0;
+  }
+
+  if (command === 'status') {
+    const options = parseRalphRunArgs(args, { requireRunId: false });
+    const payload = getStatus({ runId: options.runId, cwd });
+    if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else stdout.write(`${renderRalphStatusText(payload)}\n`);
+    return 0;
+  }
+
+  if (command === 'archive') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = archiveRun(options.runId, { cwd, slug: options.slug });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`archived ${options.runId} -> ${result.manifest.archive_path}\n`);
+    return 0;
+  }
+
+  if (command === 'map-merge') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = mapMergeFromRun(options.runId, {}, cwd);
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`map-merged ${result.capability.id} from ${options.runId}\n`);
+    return 0;
+  }
+
+  if (command === 'map-find') {
+    const options = parseRalphFindArgs(args);
+    const result = mapFind(options.query, { cwd, limit: options.limit });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else if (!result.matches.length) stdout.write('no matches\n');
+    else {
+      for (const match of result.matches) {
+        stdout.write(`- ${match.id} (${match.score}) ${match.title}\n  runs: ${match.run_refs.join(', ')}\n`);
+      }
+    }
+    return 0;
+  }
+
+  if (command === 'handoff') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = writeHandoffPackage(options.runId, {
+      cwd,
+      handoff_id: options.handoffId,
+      targets_hint: options.targets
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`handoff ${result.handoff.handoff_id} -> ${result.path}\n`);
+    return 0;
+  }
+
+  if (command === 'dispatch-snapshot') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = writeDispatchSnapshot(options.runId, { cwd, targets_hint: options.targets });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`dispatch-snapshot -> ${result.path}\n`);
+    return 0;
+  }
+
+  if (command === 'review-record') {
+    const options = parseRalphReviewArgs(args);
+    const result = recordReview(options.runId, {
+      cwd,
+      outcome: options.outcome,
+      reviewed_commit: options.reviewedCommit || null,
+      task_thread_id: options.taskThreadId || null,
+      review_thread_id: options.reviewThreadId || null,
+      summary: options.summary || '',
+      findings: options.findings,
+      evidence_refs: options.evidenceRefs
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`review-record ${result.report.review_id} ${result.report.outcome} -> ${result.path}\n`);
+    return 0;
+  }
+
+  if (command === 'commit-prep') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = commitPrep(options.runId, cwd);
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      stdout.write(`${result.suggested_message}\n\nfiles:\n${result.files.map((file) => `- ${file}`).join('\n')}\n`);
+      stdout.write(`\n${result.note}\n`);
+    }
+    return 0;
+  }
+
+  throw new Error(`Unknown ralph command: ${command}`);
+}
+
+function parseRalphInitArgs(args) {
+  const options = {
+    force: false,
+    scope: { in: [], out: [] },
+    capability_ids: []
+  };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') {
+      options.run_id = args[++i];
+      continue;
+    }
+    if (arg === '--title') {
+      options.title = args[++i];
+      continue;
+    }
+    if (arg === '--goal') {
+      options.goal = args[++i];
+      continue;
+    }
+    if (arg === '--capability') {
+      options.capability_ids.push(args[++i]);
+      continue;
+    }
+    if (arg === '--in') {
+      options.scope.in.push(args[++i]);
+      continue;
+    }
+    if (arg === '--out') {
+      options.scope.out.push(args[++i]);
+      continue;
+    }
+    if (arg === '--force') {
+      options.force = true;
+      continue;
+    }
+    throw new Error(`Unknown ralph init option: ${arg}`);
+  }
+  if (!options.run_id || !options.title || !options.goal) {
+    throw new Error('ralph init requires --run-id, --title, and --goal');
+  }
+  return options;
+}
+
+function parseRalphRunArgs(args, { requireRunId = false } = {}) {
+  const options = { targets: [] };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') {
+      options.runId = args[++i];
+      continue;
+    }
+    if (arg === '--slug') {
+      options.slug = args[++i];
+      continue;
+    }
+    if (arg === '--handoff-id') {
+      options.handoffId = args[++i];
+      continue;
+    }
+    if (arg === '--target') {
+      options.targets.push(args[++i]);
+      continue;
+    }
+    throw new Error(`Unknown ralph option: ${arg}`);
+  }
+  if (requireRunId && !options.runId) throw new Error('requires --run-id');
+  return options;
+}
+
+function parseRalphReviewArgs(args) {
+  const options = { findings: [], evidenceRefs: [] };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--outcome') { options.outcome = args[++i]; continue; }
+    if (arg === '--reviewed-commit') { options.reviewedCommit = args[++i]; continue; }
+    if (arg === '--task-thread') { options.taskThreadId = args[++i]; continue; }
+    if (arg === '--review-thread') { options.reviewThreadId = args[++i]; continue; }
+    if (arg === '--summary') { options.summary = args[++i]; continue; }
+    if (arg === '--finding-json') { options.findings.push(JSON.parse(args[++i])); continue; }
+    if (arg === '--findings-file') {
+      const filePath = args[++i];
+      const payload = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (!Array.isArray(payload)) throw new Error('--findings-file must contain a JSON array');
+      options.findings.push(...payload);
+      continue;
+    }
+    if (arg === '--evidence') { options.evidenceRefs.push(args[++i]); continue; }
+    throw new Error(`Unknown ralph review-record option: ${arg}`);
+  }
+  if (!options.runId) throw new Error('review-record requires --run-id');
+  if (!options.outcome) throw new Error('review-record requires --outcome');
+  return options;
+}
+
+function parseRalphFindArgs(args) {
+  const options = { limit: 10 };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--query') {
+      options.query = args[++i];
+      continue;
+    }
+    if (arg === '--limit') {
+      options.limit = Number(args[++i]);
+      continue;
+    }
+    if (!options.query && !arg.startsWith('--')) {
+      options.query = arg;
+      continue;
+    }
+    throw new Error(`Unknown ralph map-find option: ${arg}`);
+  }
+  if (!options.query) throw new Error('map-find requires --query');
+  return options;
+}
+
+function printRalphHelp(stdout) {
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph map-merge --run-id RALPH-… [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--json]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；map-merge 把能力写入 business-map.json 供下次 map-find。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json。\n`);
 }
 
 function printDoctorHelp(stdout) {

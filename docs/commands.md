@@ -1,19 +1,20 @@
 # 命令总览
 
-30 秒选对入口。细节在各命令页。`jj-flow` = **项目族编排**（same + dispatch）。禁止 `maestro explore`。
+30 秒选对入口。细节在各命令页。`jj-flow` = **项目族编排**（same + ralph + dispatch）。
 
 ## 主入口（优先）
 
 | 入口 | 何时用 | 平台 |
 |------|--------|------|
 | [$jj-same](command-jj-same.html) | 同源迁移、handoff、持续同步 | Codex `$` / Claude `/` |
+| [$jj-ralph](command-jj-ralph.html) | 单仓全流程：分析 → 计划 → 验收 → 归档 + 能力地图 | Codex `$` / Claude `/` |
 | [$jj-dispatch](command-jj-dispatch.html) | 控制项目上多项目预览、批准、绑定、恢复 | **仅 Codex** |
 
-**不确定就用 same。** 兼容路由见 [$jj](command-jj.html)。
+**不确定：** 多仓迁移用 same；单仓闭环用 ralph。兼容路由见 [$jj](command-jj.html)。
 
 ## 维护与自动化
 
-- [CLI](command-cli.html)：`install-skill`、`uninstall-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`
+- [CLI](command-cli.html)：`install-skill`、`uninstall-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`、`ralph *`
 - 维护本仓：`npm run verify`（无 `$jj-validate` / `$jj-evolve` 对话入口）
 
 ## 已移除（非活入口）
@@ -45,6 +46,13 @@ $jj-same
 目标=兑接前台,承载前台
 ```
 
+```text
+$jj-ralph
+目标=登录后密码过期提醒
+范围=仅登录成功路径
+验收=提示出现且可跳转改密
+```
+
 ## 平台差异
 
 Codex 使用 `$jj-*`，Claude Code 使用 `/jj-*`。例如：
@@ -52,6 +60,8 @@ Codex 使用 `$jj-*`，Claude Code 使用 `/jj-*`。例如：
 ```text
 $jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
+$jj-ralph 目标=… 验收=…
+/jj-ralph 目标=… 验收=…
 ```
 
 `$jj-dispatch` 依赖 Codex App 的 task、thread 和 worktree 能力，当前没有对应的 `/jj-dispatch`。

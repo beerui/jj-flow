@@ -149,7 +149,7 @@ Manifest 只做索引，不复制文档正文。其 schema 必须被 `npm run ve
 
 - 当前版本、Git 状态和关键文件是否齐全；
 - manifest 声明的权威文件、禁止路径和 required links 是否满足；
-- Codex/Claude/Maestro capabilities 是否可用；
+- Codex/Claude/Git capabilities 是否可用；
 - schema、skill、tests 和 docs 是否漂移；
 - 可以进入的 autonomy level；
 - 阻塞原因和精确下一动作。

@@ -22,7 +22,7 @@ description: 基于用户给出的 Codex 会话 ID、需求文档、handoff snap
 
 若存在 `$jj-dispatch` 控制项目，以控制 manifest 中明确批准的 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation` 和 `targets` 为本轮协调事实；`jj-same` 仍只负责具体迁移、差异适配和同步检查点。没有控制项目时继续兼容原有 `源=A 目标=B,C` 调用，不强制升级旧 handoff snapshot。
 
-开始生成迁移文档前读取 [references/maestro-artifact-routing.md](references/maestro-artifact-routing.md)，按 Maestro canonical path 保存并注册产物。真实项目的任务、handoff、dispatch、报告和 receipt 必须进入 `.workflow/` 的任务分目录；不得创建 `.workflow/jj-same/` 私有目录或把需求正文写入 `.workflow/.maestro/*/status.json`。`jj-flow` 自身仓库仍不把 `.workflow` 作为事实源。
+开始生成迁移文档前读取 [references/artifact-routing.md](references/artifact-routing.md)，按 canonical path 保存并注册产物。真实项目的任务、handoff、dispatch、报告和 receipt 必须进入 `.workflow/` 的任务分目录；不得创建 `.workflow/jj-same/` 私有目录或把需求正文写入 `.workflow/.sessions/*/status.json`。`jj-flow` 自身仓库仍不把 `.workflow` 作为事实源。
 
 用户要求准备源项目交接、更新交接或提供 `handoff_ref` 时，读取 [references/handoff-snapshot.md](references/handoff-snapshot.md)。源项目达到可验证交接状态时生成一次 snapshot；后续目标复用同一 snapshot，不得分别重建源 `ANL-SOURCE / BLP`。
 
@@ -123,7 +123,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 5. `PARTIAL_HANDOFF` 必须单独读取 `execution_readiness`：`READY` 表示仅缺交付完成证据，可带 caveat 实施；`BLOCKED` 表示源不稳定、需求冲突或存在影响 `MUST` 的缺口，不创建可执行 `PLN` 或业务改动。
 6. 目标仍必须基于当前源码生成自己的 `ANL-TARGET`，并记录 `snapshot_id`、`handoff_ref`、snapshot hash 和 source HEAD。
 
-## Maestro 产物路由
+## 产物路由
 
 不要在需求和目标事实尚未收敛时直接改代码，也不要把“产物链完整”误当成“事实充分”。根据输入选择最短路径：
 
@@ -133,22 +133,22 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 
 标准发现路径按顺序生成并注册：
 
-1. **源分析 `ANL-SOURCE`**：用 `maestro-analyze` 总结会话、需求演变、commit、diff、源变更地图、需求账本初稿和剃刀清单。
-2. **正式需求 `BLP`**：用 `maestro-blueprint` 消费源分析，把确认内容生成到 `.workflow/blueprint/BLP-*/requirements/REQ-*.md`；`UNRESOLVED` 不得改写成确认需求。
-3. **目标分析 `ANL-TARGET`**：每个目标用 `maestro-analyze --from blueprint:BLP-*` 评审当前架构、调用链、目标能力矩阵、风险和迁移决策。跨仓库时使用 blueprint 的直接 path。
-4. **实施计划 `PLN`**：仅在需求 readiness 通过且目标分析无影响 `MUST` 的阻塞后，用 `maestro-plan --from analyze:ANL-*` 生成最小 `plan.json` 和 `.task/TASK-*.json`；计划生成后同一实施请求继续编码，不停在计划交付。
-5. **实施与复审 `EXC/VRF/REV`**：用 `maestro-execute` 实施，用 `quality-review` 复审；由各 skill 写入 canonical 产物并注册到目标仓库 `.workflow/state.json`。
+1. **源分析 `ANL-SOURCE`**：用 `源/目标分析` 总结会话、需求演变、commit、diff、源变更地图、需求账本初稿和剃刀清单。
+2. **正式需求 `BLP`**：用 `正式需求生成` 消费源分析，把确认内容生成到 `.workflow/blueprint/BLP-*/requirements/REQ-*.md`；`UNRESOLVED` 不得改写成确认需求。
+3. **目标分析 `ANL-TARGET`**：每个目标用 `目标分析（from blueprint:BLP-*）` 评审当前架构、调用链、目标能力矩阵、风险和迁移决策。跨仓库时使用 blueprint 的直接 path。
+4. **实施计划 `PLN`**：仅在需求 readiness 通过且目标分析无影响 `MUST` 的阻塞后，用 `实施计划（from analyze:ANL-*）` 生成最小 `plan.json` 和 `.task/TASK-*.json`；计划生成后同一实施请求继续编码，不停在计划交付。
+5. **实施与复审 `EXC/VRF/REV`**：用 `实施执行` 实施，用 `quality-review` 复审；由各 skill 写入 canonical 产物并注册到目标仓库 `.workflow/state.json`。
 
 源项目完成第 1、2 步并形成稳定 commit 后，用 [references/handoff-snapshot.md](references/handoff-snapshot.md) 的契约在源 `ANL-SOURCE` 内生成 handoff snapshot。目标提供有效 `handoff_ref` 时复用共享第 1、2 步，只执行 freshness gate 和自己的第 3 至 5 步；不得为了“产物完整”在每个目标复制一套源分析和 blueprint。
 
-多项目任务从 `ANL-SOURCE` 阶段就维护家族协调计划。blueprint readiness 前只记录计划草案和阻塞项；readiness 通过后由 `maestro-plan` 在领头项目注册家族协调 `PLN`。它只管理项目顺序、状态、分支、会话交接和解锁门禁，不替代每个目标自己的 `ANL-TARGET -> PLN`。
+多项目任务从 `ANL-SOURCE` 阶段就维护家族协调计划。blueprint readiness 前只记录计划草案和阻塞项；readiness 通过后由 `实施计划` 在领头项目注册家族协调 `PLN`。它只管理项目顺序、状态、分支、会话交接和解锁门禁，不替代每个目标自己的 `ANL-TARGET -> PLN`。
 
-无 handoff snapshot 的单目标迁移由目标仓库拥有整条产物链。准备交接模式由源 artifact 归属仓库持有共享源分析、blueprint 和 snapshot；无论一个还是多个目标，每个目标都必须分别拥有 `ANL-TARGET`、`PLN`、`EXC/VRF` 和 `REV`。目标仓库没有 `.workflow/` 时先运行 `maestro-init`。
+无 handoff snapshot 的单目标迁移由目标仓库拥有整条产物链。准备交接模式由源 artifact 归属仓库持有共享源分析、blueprint 和 snapshot；无论一个还是多个目标，每个目标都必须分别拥有 `ANL-TARGET`、`PLN`、`EXC/VRF` 和 `REV`。目标仓库没有 `.workflow/` 时先运行 `工作流初始化`。
 
 后续同步走增量链：
 
 1. 从目标 arch spec 恢复 `sync_key` 和稳定范围，从最近成功的 `VRF/REV` 交付链或 `NO_CHANGE_REQUIRED` 目标分析反查 `last_source_head`。
-2. 用 `maestro-analyze` 分析 `last_source_head..current_source_head`，生成 `ANL-SOURCE-DELTA`。
+2. 用 `源/目标分析` 分析 `last_source_head..current_source_head`，生成 `ANL-SOURCE-DELTA`。
 3. 产品行为变化时生成新的 `BLP-*` 需求增量；仅修复同一需求下的 bug 时复用原 blueprint。
 4. 每个目标重新生成 `ANL-TARGET -> PLN -> EXC/VRF -> REV`，不能沿用旧目标分析直接改代码。
 5. 只有目标的非浏览器检查通过、必要的用户手动测试已确认通过或有证据标记为 `N/A`，且评审不阻塞；或目标分析证明全部增量无需修改，才把本次 `current_source_head` 作为下一次成功检查点。
@@ -171,7 +171,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 
 ## 持续同步规则
 
-- 为每项 A -> B 功能关系分配 `SYNC-{feature-slug}`，首次交付成功后通过 `maestro spec add arch` 在 A 写 outgoing 索引、在每个 B 写 incoming 契约。
+- 为每项 A -> B 功能关系分配 `SYNC-{feature-slug}`，首次交付成功后通过 `写入 arch spec` 在 A 写 outgoing 索引、在每个 B 写 incoming 契约。
 - spec 只保存源/目标、功能范围、目标专有行为、排除项和触发策略；可变 commit 游标从最近成功 artifact chain 反查。
 - 后续同步必须比较“上次成功目标状态、B 当前状态、A 新增量”三方，保留 B 在首次迁移后产生的本地修改。
 - 将源增量分类为 `REQUIREMENT_CHANGE / BUG_FIX / REFACTOR / REVERT / NOISE`。只有需求相关变化和同根因修复进入目标评审。
@@ -217,11 +217,11 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 目标专有入口、feature flag、租户差异、权限和 legacy 条件。
 - 目标已有测试、lint、build 和提交 hook。
 
-仓库要求使用 Maestro 时先执行 `maestro search` 与 `maestro load`。定位代码时**禁止调用 `maestro explore`**，直接使用 `rg`/Grep、Git 和定点读取。
+定位代码时直接使用 `rg`/Grep、Git 和定点读取。
 
 ### 3. 生成正式需求
 
-- 首次迁移从 `ANL-SOURCE` 生成 Maestro blueprint，不手写散落的 AI 需求文档。
+- 首次迁移从 `ANL-SOURCE` 生成 正式需求 blueprint，不手写散落的 AI 需求文档。
 - 后续同步仅在产品行为变化时生成继承旧需求的新 blueprint；不改变产品契约的 bug fix 复用原 `BLP-* / REQ-*`。
 - 把 `MUST` 与确认后的 `TARGET-ONLY` 转成可追踪的 `REQ-*` 和验收条件。
 - 把 `DO-NOT-PORT` 写入 out-of-scope；保留 `UNRESOLVED` 并阻止 readiness 假通过。
@@ -257,7 +257,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 全局与局部提示是否重复。
 - 请求失败采用 fail-open、fail-closed 还是旧流程兜底。
 
-把通过评审的矩阵交给 `maestro-plan`，让 `plan.json` 和每个 `TASK-*` 追溯到 `REQ-*` 或带来源引用的临时 `MUST` ledger、目标分析与最小文件范围。只有影响 `MUST` 的 `UNRESOLVED` 或 `BLOCKED` 才阻止实现；评审、UAT、家族计划和 canonical 交接记录的待补状态不得伪装成业务阻塞。
+把通过评审的矩阵交给 `实施计划`，让 `plan.json` 和每个 `TASK-*` 追溯到 `REQ-*` 或带来源引用的临时 `MUST` ledger、目标分析与最小文件范围。只有影响 `MUST` 的 `UNRESOLVED` 或 `BLOCKED` 才阻止实现；评审、UAT、家族计划和 canonical 交接记录的待补状态不得伪装成业务阻塞。
 
 ### 6. 实施增量
 
@@ -296,7 +296,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 同步关系：`sync_key`、源/目标、分析 commit range、旧检查点与新检查点状态。
 - 同步决策：源项目/分支确认结果、候选项目状态、用户对每个目标的选择和延期 issue ID。
 - 家族交付计划：优先引用 `$jj-dispatch` 控制项目的 `delivery_id`、动态角色、任务和状态；没有控制项目时才由领头项目持有 `cj/dj/cz` 顺序、各项目状态与分支、会话交接和下一项目门禁。
-- Maestro 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
+- 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
 - 交接快照：`snapshot_id`、`handoff_ref`、handoff status、freshness、启动动作、source HEAD 和 successor 关系。
 - 最终需求账本及后续要求覆盖关系。
 - 六项目中哪些被分析、哪些被修改、哪些不适用及原因。
@@ -307,7 +307,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 ## 参考
 
 - 处理项目角色、路径和迁移方向时读取 [references/project-family.md](references/project-family.md)。
-- 生成需求、分析、计划、实施和评审文档时读取 [references/maestro-artifact-routing.md](references/maestro-artifact-routing.md)。
+- 生成需求、分析、计划、实施和评审文档时读取 [references/artifact-routing.md](references/artifact-routing.md)。
 - 准备或消费跨项目交接快照时读取 [references/handoff-snapshot.md](references/handoff-snapshot.md)。
 - 建立持续同步关系或同步后续更新、bug 修复和回退时读取 [references/continuous-sync.md](references/continuous-sync.md)。
 - 处理沉默账户、登录或切换账户案例时读取 [references/silence-account-case.md](references/silence-account-case.md)。使用前重新验证分支，不把案例快照当永久源码事实。

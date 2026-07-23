@@ -39,6 +39,7 @@ test('built site home exposes install, usage, same, dispatch paths', () => {
     'installation.html',
     'usage.html',
     'command-jj-same.html',
+    'command-jj-ralph.html',
     'command-jj-dispatch.html',
     '项目族编排'
   ]) {

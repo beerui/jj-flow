@@ -1,0 +1,15 @@
+{
+  "schema_version": "jj-flow/ralph-review/1.0",
+  "review_id": "REV-1",
+  "run_id": "RALPH-login-reminder-20260722",
+  "outcome": "PASS",
+  "reviewed_commit": "abcdef1234567",
+  "task_thread_id": "019f8c85-8c32-72c3-b62b-ee9f0753a9e7",
+  "review_thread_id": "019f8cb8-14e9-79b3-bf40-30ba6c89ef2c",
+  "summary": "ok",
+  "findings": [],
+  "evidence_refs": [
+    "tests/auth-login.test.js"
+  ],
+  "recorded_at": "2026-07-23T08:00:00.000Z"
+}

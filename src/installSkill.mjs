@@ -22,7 +22,6 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-feat',
     'jj-fix',
     'jj-knowhow',
-    'jj-review',
     'jj-validate'
   ]),
   agents: Object.freeze([]),
@@ -33,7 +32,6 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-feat.md',
     'jj-fix.md',
     'jj-knowhow.md',
-    'jj-review.md',
     'jj-validate.md'
   ])
 });

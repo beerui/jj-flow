@@ -1,0 +1,25 @@
+{
+  "schema_version": "jj-flow/ralph-business-map/1.0",
+  "updated_at": "2026-07-22T11:00:00.000Z",
+  "capabilities": [
+    {
+      "id": "CAP-login-reminder",
+      "title": "登录密码更新提醒",
+      "status": "done",
+      "summary": "登录成功后根据 password_expired 提示用户更新密码。",
+      "reqs": ["REQ-001", "REQ-002"],
+      "modules": ["src/api/auth.js", "src/views/login/LoginView.vue"],
+      "acceptance": [
+        ".workflow/ralph/ralphs/RALPH-login-reminder-20260722/acceptance.md"
+      ],
+      "run_refs": ["RALPH-login-reminder-20260722"],
+      "depends_on": [],
+      "keywords": ["login", "password", "expired", "登录", "密码"],
+      "lessons": [
+        "password_expired 只在登录成功响应中读取，不要改注册接口。",
+        "提示条关闭后同会话内不重复弹出，刷新后可再提示。"
+      ],
+      "handoff_refs": []
+    }
+  ]
+}

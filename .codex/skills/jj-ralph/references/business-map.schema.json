@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jj-flow/ralph-business-map/1.0",
+  "title": "jj-flow Ralph Business Capability Map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "capabilities"],
+  "properties": {
+    "schema_version": {
+      "const": "jj-flow/ralph-business-map/1.0"
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "status", "summary", "run_refs"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^CAP-"
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "status": {
+            "type": "string",
+            "enum": ["active", "done", "deprecated"]
+          },
+          "summary": { "type": "string" },
+          "reqs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "modules": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "acceptance": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "run_refs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "keywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "lessons": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "handoff_refs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          }
+        }
+      }
+    }
+  }
+}

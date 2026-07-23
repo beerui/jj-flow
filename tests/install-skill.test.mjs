@@ -93,6 +93,8 @@ test('installSkill dry run does not write files', () => {
   assert.ok(result.skills.includes('jj-same'));
   assert.ok(result.skills.includes('jj-same'));
   assert.ok(result.skills.includes('jj-dispatch'));
+  assert.ok(result.skills.includes('jj-ralph'));
+  assert.ok(result.skills.includes('jj-review'));
   assert.ok(result.agents.includes('jj-workflow-reviewer'));
   assert.ok(result.agents.includes('jj-workflow-developer'));
   assert.equal(result.agent_target, path.join(workspace, 'agents'));
@@ -131,7 +133,10 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.ok(installed.skills.includes('jj-same'));
   assert.ok(installed.skills.includes('jj-same'));
   assert.ok(installed.skills.includes('jj-dispatch'));
+  assert.ok(installed.skills.includes('jj-ralph'));
+  assert.ok(installed.skills.includes('jj-review'));
   assert.equal(fs.existsSync(path.join(target, 'jj', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-ralph', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch', 'SKILL.md')), true);
@@ -142,7 +147,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json')), true);
-  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
@@ -153,7 +158,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /feat\/cj-0717-1 -> feat\/dj-0717-1/);
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
-    /grill-me|grill-with-doc|maestro-grill/
+    /grill-me|grill-with-doc|workflow-grill/
   );
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /READY_FOR_USER_TEST/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /默认跳过编译、build、浏览器/);
@@ -171,7 +176,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
     const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
     assert.match(content, /\$jj-same/);
     assert.match(content, /分析阶段/);
-    assert.match(content, /maestro explore/);
+    assert.doesNotMatch(content, /[Mm]aestro|maestro explore/);
     assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);
     assert.equal(fs.existsSync(path.join(target, 'jj-fix', 'SKILL.md')), false);
   }
@@ -184,7 +189,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
     /READY_FOR_USER_TEST/
   );
   assert.match(
-    fs.readFileSync(path.join(target, 'jj-same', 'references', 'maestro-artifact-routing.md'), 'utf8'),
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'artifact-routing.md'), 'utf8'),
     /家族协调计划/
   );
   assert.match(
@@ -206,7 +211,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   );
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
-    /grill-me|grill-with-doc|maestro-grill/
+    /grill-me|grill-with-doc|workflow-grill/
   );
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /jj-same\s+"/);
 
@@ -261,9 +266,11 @@ test('installSkill can install Claude slash commands', () => {
   assert.equal(installed.platform, 'claude');
   assert.ok(installed.commands.includes('jj-same'));
   assert.ok(installed.commands.includes('jj-same'));
+  assert.ok(installed.commands.includes('jj-ralph'));
   assert.equal(installed.commands.includes('jj-dispatch'), false);
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-ralph.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch.md')), false);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
@@ -273,7 +280,7 @@ test('installSkill can install Claude slash commands', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /PARTIAL_HANDOFF/);
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'),
-    /grill-me|grill-with-doc|maestro-grill/
+    /grill-me|grill-with-doc|workflow-grill/
   );
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /READY_FOR_USER_TEST/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /默认跳过编译、build、浏览器/);
@@ -286,7 +293,7 @@ test('installSkill can install Claude slash commands', () => {
     const content = fs.readFileSync(path.join(target, command), 'utf8');
     assert.match(content, /\/jj-same/);
     assert.match(content, /分析阶段/);
-    assert.match(content, /maestro explore/);
+    assert.doesNotMatch(content, /[Mm]aestro|maestro explore/);
     assert.equal(fs.existsSync(path.join(target, 'jj-feat.md')), false);
     assert.equal(fs.existsSync(path.join(target, 'jj-fix.md')), false);
   }

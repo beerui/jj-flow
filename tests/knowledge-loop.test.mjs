@@ -1,63 +1,48 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getRecipe } from '../src/recipes.mjs';
-import { buildKnowledgeLoopPackage } from '../src/knowledgeLoop.mjs';
+import test from 'node:test';
 import { buildGuardReport } from '../src/guards.mjs';
-import { buildExecutionDecision } from '../src/maestroExecution.mjs';
+import { buildKnowledgeLoopPackage } from '../src/knowledgeLoop.mjs';
+import { getRecipe } from '../src/recipes.mjs';
+import { buildExecutionDecision } from '../src/executionDecision.mjs';
 
-test('completed same migration can be captured as knowhow spec and workflow recipe', () => {
+test('knowledge loop is pending until guards pass', () => {
+  const recipe = getRecipe('same');
+  const pack = buildKnowledgeLoopPackage({
+    mode: 'same',
+    recipe,
+    intent: '迁移',
+    evidence: [],
+    guardReport: buildGuardReport(recipe, []),
+    executionDecision: { status: 'disabled' }
+  });
+  assert.equal(pack.status, 'pending');
+});
+
+test('knowledge loop is ready when same guards pass', () => {
   const recipe = getRecipe('same');
   const evidence = [
-    { id: 'intent', source: 'user', artifact_type: 'user_intent', summary: '迁移完成。' },
-    { id: 'source', source: 'git', artifact_type: 'source_materials', summary: '源资料齐备。' },
-    { id: 'decisions', source: 'user', artifact_type: 'decision_gate', summary: '范围已确认。' },
-    { id: 'chain', source: '$jj-same', artifact_type: 'maestro_chain', summary: '调用链完成。' },
-    { id: 'tests', source: 'manual', artifact_type: 'test_result', summary: '聚焦测试通过。' },
-    {
-      id: 'maestro',
-      source: 'jj-flow-check',
-      artifact_type: 'maestro_compatibility',
-      summary: '兼容。',
-      evidence: { status: 'compatible', compatible: true }
-    }
+    { id: 'intent', source: 'user', artifact_type: 'source_materials', summary: '会话与需求。' },
+    { id: 'ctx', source: 'repo', artifact_type: 'context_package', summary: '上下文包。' },
+    { id: 'chain', source: '$jj-same', artifact_type: 'workflow_chain', summary: '调用链完成。' },
+    { id: 'plan', source: 'plan', artifact_type: 'test_plan', summary: '聚焦验证。' },
+    { id: 'decision', source: 'user', artifact_type: 'decision_gate', summary: '无阻塞决策。' }
   ];
   const guardReport = buildGuardReport(recipe, evidence);
   const executionDecision = buildExecutionDecision({
     mode: 'same',
     guardReport,
     evidence,
-    maestroCalls: recipe.maestroCalls
+    skillCalls: recipe.skillCalls
   });
   const pack = buildKnowledgeLoopPackage({
     mode: 'same',
     recipe,
-    intent: '完成迁移并沉淀经验',
+    intent: '迁移并沉淀',
     evidence,
     guardReport,
     executionDecision
   });
-
   assert.equal(pack.status, 'ready');
   assert.ok(pack.capture_targets.includes('knowhow'));
-  assert.ok(pack.capture_targets.includes('spec'));
-  assert.ok(pack.capture_targets.includes('workflow_recipe'));
-});
-
-test('pending same guards keep knowledge loop pending', () => {
-  const recipe = getRecipe('same');
-  const pack = buildKnowledgeLoopPackage({
-    mode: 'same',
-    recipe,
-    intent: '开始迁移',
-    evidence: [],
-    guardReport: buildGuardReport(recipe, []),
-    executionDecision: buildExecutionDecision({
-      mode: 'same',
-      guardReport: buildGuardReport(recipe, []),
-      evidence: [],
-      maestroCalls: recipe.maestroCalls
-    })
-  });
-  assert.equal(pack.status, 'pending');
-  assert.ok(pack.team_context.next_actions.length > 0);
+  assert.doesNotMatch(pack.boundary, /Maestro|maestro/);
 });

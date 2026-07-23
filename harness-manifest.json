@@ -53,6 +53,26 @@
         "authority_for": ["same-workflow-contract"]
       },
       {
+        "id": "ralph-contract",
+        "path": ".codex/skills/jj-ralph/SKILL.md",
+        "authority_for": ["ralph-workflow-contract"]
+      },
+      {
+        "id": "ralph-run-schema",
+        "path": "schemas/ralph-run.schema.json",
+        "authority_for": ["ralph-run-ledger"]
+      },
+      {
+        "id": "ralph-map-schema",
+        "path": "schemas/ralph-business-map.schema.json",
+        "authority_for": ["ralph-business-map"]
+      },
+      {
+        "id": "ralph-design",
+        "path": "docs/design-docs/jj-ralph.md",
+        "authority_for": ["ralph-target-state"]
+      },
+      {
         "id": "dispatch-contract",
         "path": ".codex/skills/jj-dispatch/SKILL.md",
         "authority_for": ["dispatch-workflow-contract"]
@@ -224,6 +244,7 @@
       "AGENTS.md",
       "ARCHITECTURE.md",
       ".codex/skills/jj/SKILL.md",
+      ".codex/skills/jj-ralph/SKILL.md",
       ".codex/skills/jj-dispatch/SKILL.md"
     ],
     "site_builder": "scripts/build-docs.mjs",
