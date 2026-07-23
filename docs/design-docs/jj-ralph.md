@@ -45,9 +45,16 @@
 | same | `jj ralph handoff` 写出 `.workflow/handoffs/`；same 读需求后在目标仓实现 |
 | dispatch | 验收后 `jj ralph dispatch-snapshot` 写出推荐快照 |
 
-## CLI 机械步骤
+## 机械步骤
 
-- `jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep`
+- 权威实现：`src/ralph.mjs`
+- Skill 可移植副本：`.codex/skills/jj-ralph/scripts/lib/ralph.mjs`（`npm run ralph:sync` 保持同步）
+- Agent：`.codex/skills/jj-ralph/scripts/ralph_ops.mjs`（优先 live src，否则 bundled lib；业务仓无需安装 jj-flow）
+- CLI：`jj ralph init|status|archive|finalize|map-merge|gate|map-find|handoff|dispatch-snapshot|commit-prep|review-record`
+- `finalize` = map-merge + archive（accept PASS 后默认收口）
+- `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
+- archive 目录默认去重 run_id 末尾日期：`2026-07-23-smoke` 而非 `…-smoke-20260723`
+- archive 冻结副本包含 COMPLETED 的 `run.json`
 
 ## 验收
 

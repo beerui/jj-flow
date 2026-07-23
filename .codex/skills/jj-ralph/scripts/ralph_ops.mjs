@@ -1,37 +1,35 @@
 #!/usr/bin/env node
 /**
- * Deterministic Ralph ops for Codex.
+ * Portable CLI for Codex $jj-ralph mechanical steps.
+ *
+ * Source of truth for library logic: jj-flow `src/ralph.mjs`
+ * Portable copy shipped with skill: `scripts/lib/ralph.mjs` (npm run ralph:sync)
+ *
+ * Resolve order:
+ *   1) $JJ_FLOW_ROOT/src/ralph.mjs
+ *   2) monorepo checkout: ../../../../src/ralph.mjs (when skill lives under jj-flow)
+ *   3) skill-bundled scripts/lib/ralph.mjs  ← business repos without jj-flow
+ *   4) walk cwd for package root / node_modules/@shendu-sdt/jj-flow
+ *   5) else exit 2 (skill incomplete; skeleton last resort)
+ *
  * Usage:
- *   node ralph_ops.mjs init --run-id RALPH-x-20260723 --title "..." --goal "..." [--cwd DIR] [--force]
- *   node ralph_ops.mjs archive --run-id RALPH-x-20260723 [--cwd DIR] [--slug name]
- *   node ralph_ops.mjs map-merge --run-id RALPH-x-20260723 [--cwd DIR] [--keywords a,b] [--lessons "l1|l2"] [--modules p1,p2]
- *   node ralph_ops.mjs handoff --run-id RALPH-x-20260723 [--cwd DIR] [--handoff-id HOF-x]
- *   node ralph_ops.mjs dispatch-snapshot --run-id RALPH-x-20260723 [--cwd DIR]
- *   node ralph_ops.mjs status [--run-id RALPH-x] [--cwd DIR]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REFS = path.join(__dirname, '..', 'references');
-const RUN_SCHEMA = 'jj-flow/ralph-run/1.0';
-const MAP_SCHEMA = 'jj-flow/ralph-business-map/1.0';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SKILL_ROOT = path.resolve(__dirname, '..');
+const REFS = path.join(SKILL_ROOT, 'references');
+const BUNDLED_LIB = path.join(__dirname, 'lib', 'ralph.mjs');
 
-function nowIso() { return new Date().toISOString(); }
-function unique(items) { return [...new Set((items || []).filter(Boolean))]; }
-function die(msg) { console.error(msg); process.exit(1); }
-function readJson(p) { return JSON.parse(fs.readFileSync(p, 'utf8')); }
-function writeJson(p, v) {
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, JSON.stringify(v, null, 2) + '\n', 'utf8');
+function die(msg, code = 1) {
+  console.error(msg);
+  process.exit(code);
 }
-function rel(cwd, ...parts) { return path.join(cwd, ...parts); }
-function ralphRoot(cwd) { return rel(cwd, '.workflow', 'ralph'); }
-function runDir(cwd, runId) { return path.join(ralphRoot(cwd), runId); }
-function runJsonPath(cwd, runId) { return path.join(runDir(cwd, runId), 'run.json'); }
-function mapPath(cwd) { return path.join(ralphRoot(cwd), 'business-map.json'); }
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -41,313 +39,344 @@ function parseArgs(argv) {
       const key = a.slice(2);
       const next = argv[i + 1];
       if (!next || next.startsWith('--')) out[key] = true;
-      else { out[key] = next; i += 1; }
+      else {
+        out[key] = next;
+        i += 1;
+      }
     } else out._.push(a);
   }
   return out;
-}
-
-function loadSkeleton(name) {
-  const p = path.join(REFS, name);
-  if (!fs.existsSync(p)) return null;
-  return readJson(p);
-}
-
-function loadRun(cwd, runId) {
-  const p = runJsonPath(cwd, runId);
-  if (!fs.existsSync(p)) die('run not found: ' + runId + ' (' + p + ')');
-  return readJson(p);
-}
-
-function saveRun(cwd, run) {
-  run.updated_at = nowIso();
-  writeJson(runJsonPath(cwd, run.run_id), run);
-}
-
-function sha256File(filePath) {
-  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
-}
-
-function copyTree(src, dest) {
-  fs.mkdirSync(dest, { recursive: true });
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const from = path.join(src, entry.name);
-    const to = path.join(dest, entry.name);
-    if (entry.isDirectory()) copyTree(from, to);
-    else fs.copyFileSync(from, to);
-  }
-}
-
-function cmdInit(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  const runId = args['run-id'];
-  const title = args.title;
-  const goal = args.goal;
-  if (!runId || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(runId)) die('need --run-id RALPH-...');
-  if (!title) die('need --title');
-  if (!goal) die('need --goal');
-  const dir = runDir(cwd, runId);
-  if (fs.existsSync(dir) && !args.force) die('run exists: ' + runId + ' (use --force)');
-  fs.mkdirSync(dir, { recursive: true });
-  const sk = loadSkeleton('run.skeleton.json') || {};
-  const created = nowIso();
-  const run = {
-    ...sk,
-    schema_version: RUN_SCHEMA,
-    run_id: runId,
-    title,
-    goal,
-    phase: 'ANALYZE',
-    status: 'IN_PROGRESS',
-    scope: { in: splitList(args.in), out: splitList(args.out) },
-    assumptions: [],
-    iteration: 0,
-    max_iterations: Number(args['max-iterations'] || 20),
-    tasks: [],
-    gates: { analyze: 'PENDING', plan: 'PENDING', deliver: 'PENDING', accept: 'PENDING', archive: 'PENDING' },
-    intervention_needed: null,
-    capability_ids: splitList(args.capability || args.capabilities),
-    artifact_refs: {
-      analyze: 'analyze.md',
-      plan: 'plan.md',
-      acceptance: 'acceptance.md',
-      progress: 'progress.md',
-      handoff_ref: null,
-      dispatch_snapshot_ref: null,
-      latest_review_ref: null
-    },
-    review: null,
-    handoff: null,
-    dispatch_recommendation: null,
-    created_at: created,
-    updated_at: created
-  };
-  if (!run.capability_ids.length) run.capability_ids = ['CAP-' + runId.replace(/^RALPH-/, '').toLowerCase()];
-  writeJson(runJsonPath(cwd, runId), run);
-  const nl = '\n';
-  const stubs = {
-    'analyze.md': '# ANALYZE' + nl + nl + 'run_id: ' + runId + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
-    'plan.md': '# PLAN' + nl + nl + 'run_id: ' + runId + nl + nl + '## Tasks' + nl + nl + '## Out of scope' + nl,
-    'progress.md': '# Progress' + nl + nl + '- ' + created + ' init ' + runId + nl,
-    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + runId + nl + nl + '| item | result | evidence |' + nl + '| --- | --- | --- |' + nl
-  };
-  for (const [name, body] of Object.entries(stubs)) {
-    const fp = path.join(dir, name);
-    if (!fs.existsSync(fp) || args.force) fs.writeFileSync(fp, body, 'utf8');
-  }
-  console.log(JSON.stringify({ ok: true, action: 'init', run_id: runId, path: path.relative(cwd, dir).replaceAll('\\', '/') }, null, 2));
-}
-
-function cmdArchive(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  const runId = args['run-id'];
-  if (!runId) die('need --run-id');
-  const run = loadRun(cwd, runId);
-  if (run.gates?.accept !== 'PASS') die('archive requires gates.accept=PASS');
-  const date = nowIso().slice(0, 10);
-  const slug = args.slug || runId.replace(/^RALPH-/, '').toLowerCase();
-  const destRel = path.join('.workflow', 'ralph', 'archive', date + '-' + slug);
-  const destAbs = rel(cwd, destRel);
-  if (fs.existsSync(destAbs)) die('archive exists: ' + destRel);
-  const sourceAbs = runDir(cwd, runId);
-  copyTree(sourceAbs, destAbs);
-  const files = [];
-  (function walk(dir, prefix = '') {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const next = prefix ? prefix + '/' + entry.name : entry.name;
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(full, next);
-      else files.push({ path: next.replaceAll('\\', '/'), sha256: sha256File(full) });
-    }
-  })(destAbs);
-  const manifest = {
-    schema_version: 'jj-flow/ralph-archive/1.0',
-    run_id: runId,
-    archived_at: nowIso(),
-    archive_path: destRel.replaceAll('\\', '/'),
-    files
-  };
-  writeJson(path.join(sourceAbs, 'archive-manifest.json'), manifest);
-  writeJson(path.join(destAbs, 'archive-manifest.json'), manifest);
-  run.phase = 'ARCHIVE';
-  run.status = 'COMPLETED';
-  run.gates.archive = 'PASS';
-  saveRun(cwd, run);
-  console.log(JSON.stringify({ ok: true, action: 'archive', run_id: runId, archive_path: manifest.archive_path }, null, 2));
-}
-
-function tokenize(text = '') {
-  return String(text).toLowerCase().split(/[^a-z0-9\u4e00-\u9fff]+/i).map((x) => x.trim()).filter((x) => x.length >= 2);
-}
-
-function cmdMapMerge(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  const runId = args['run-id'];
-  if (!runId) die('need --run-id');
-  const run = loadRun(cwd, runId);
-  const mp = mapPath(cwd);
-  const map = fs.existsSync(mp) ? readJson(mp) : { schema_version: MAP_SCHEMA, updated_at: nowIso(), capabilities: [] };
-  const sk = loadSkeleton('capability.skeleton.json') || {};
-  const id = run.capability_ids?.[0] || ('CAP-' + runId.replace(/^RALPH-/, '').toLowerCase());
-  const capability = {
-    ...sk,
-    id,
-    title: run.title,
-    status: args.status || 'done',
-    summary: run.goal,
-    reqs: splitList(args.reqs),
-    modules: splitList(args.modules),
-    lessons: splitPipe(args.lessons),
-    keywords: unique([...splitList(args.keywords), ...tokenize(run.title), ...tokenize(run.goal)]),
-    acceptance: unique([
-      ...splitList(args.acceptance),
-      path.join('.workflow', 'ralph', runId, 'acceptance.md').replaceAll('\\', '/')
-    ]),
-    run_refs: [runId],
-    depends_on: splitList(args['depends-on']),
-    handoff_refs: splitList(args['handoff-refs'])
-  };
-  const idx = (map.capabilities || []).findIndex((c) => c.id === id);
-  if (idx < 0) map.capabilities = [...(map.capabilities || []), capability];
-  else {
-    const old = map.capabilities[idx];
-    map.capabilities[idx] = {
-      ...old,
-      ...capability,
-      modules: unique([...(old.modules || []), ...(capability.modules || [])]),
-      lessons: unique([...(old.lessons || []), ...(capability.lessons || [])]),
-      keywords: unique([...(old.keywords || []), ...(capability.keywords || [])]),
-      acceptance: unique([...(old.acceptance || []), ...(capability.acceptance || [])]),
-      run_refs: unique([...(old.run_refs || []), ...(capability.run_refs || [])]),
-      handoff_refs: unique([...(old.handoff_refs || []), ...(capability.handoff_refs || [])])
-    };
-  }
-  map.schema_version = MAP_SCHEMA;
-  map.updated_at = nowIso();
-  writeJson(mp, map);
-  console.log(JSON.stringify({ ok: true, action: 'map-merge', run_id: runId, capability_id: id, map_path: path.relative(cwd, mp).replaceAll('\\', '/') }, null, 2));
-}
-
-function cmdHandoff(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  const runId = args['run-id'];
-  if (!runId) die('need --run-id');
-  const run = loadRun(cwd, runId);
-  const id = args['handoff-id'] || ('HOF-' + runId.replace(/^RALPH-/, ''));
-  const relDir = path.join('.workflow', 'handoffs', id);
-  const abs = rel(cwd, relDir);
-  fs.mkdirSync(abs, { recursive: true });
-  const handoff = {
-    schema_version: 'jj-flow/handoff/1.0',
-    handoff_id: id,
-    run_id: runId,
-    title: run.title,
-    goal: run.goal,
-    scope: run.scope,
-    capability_ids: run.capability_ids || [],
-    targets_hint: splitList(args.targets),
-    created_at: nowIso()
-  };
-  writeJson(path.join(abs, 'handoff.json'), handoff);
-  const nl = '\n';
-  const md = [
-    '# Handoff ' + id, '',
-    'run_id: ' + runId,
-    'title: ' + run.title, '',
-    '## Goal', run.goal, '',
-    '## Scope in', ...(run.scope?.in || []).map((x) => '- ' + x), '',
-    '## Scope out', ...(run.scope?.out || []).map((x) => '- ' + x), ''
-  ].join(nl);
-  fs.writeFileSync(path.join(abs, 'source.md'), md, 'utf8');
-  run.handoff = { handoff_id: id, path: relDir.replaceAll('\\', '/'), status: 'READY' };
-  run.artifact_refs = { ...(run.artifact_refs || {}), handoff_ref: path.join(relDir, 'handoff.json').replaceAll('\\', '/') };
-  saveRun(cwd, run);
-  console.log(JSON.stringify({ ok: true, action: 'handoff', run_id: runId, path: run.handoff.path }, null, 2));
-}
-
-function cmdDispatchSnapshot(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  const runId = args['run-id'];
-  if (!runId) die('need --run-id');
-  const run = loadRun(cwd, runId);
-  const snapId = 'SNAP-' + runId.replace(/^RALPH-/, '');
-  const relDir = path.join('.workflow', 'dispatch', 'recommendations', snapId);
-  const abs = rel(cwd, relDir);
-  fs.mkdirSync(abs, { recursive: true });
-  const snapshot = {
-    schema_version: 'jj-flow/dispatch-recommendation/1.0',
-    snapshot_id: snapId,
-    run_id: runId,
-    title: run.title,
-    goal: run.goal,
-    targets_hint: splitList(args.targets),
-    created_at: nowIso()
-  };
-  const snapPath = path.join(relDir, 'snapshot.json').replaceAll('\\', '/');
-  writeJson(path.join(abs, 'snapshot.json'), snapshot);
-  run.dispatch_recommendation = { snapshot_path: snapPath, targets_hint: snapshot.targets_hint };
-  run.artifact_refs = { ...(run.artifact_refs || {}), dispatch_snapshot_ref: snapPath };
-  saveRun(cwd, run);
-  console.log(JSON.stringify({ ok: true, action: 'dispatch-snapshot', run_id: runId, path: snapPath }, null, 2));
-}
-
-function cmdStatus(args) {
-  const cwd = path.resolve(args.cwd || process.cwd());
-  if (args['run-id']) {
-    const run = loadRun(cwd, args['run-id']);
-    console.log(JSON.stringify({ ok: true, run, path: path.relative(cwd, runDir(cwd, args['run-id'])).replaceAll('\\', '/') }, null, 2));
-    return;
-  }
-  const root = ralphRoot(cwd);
-  const runs = [];
-  if (fs.existsSync(root)) {
-    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
-      if (!entry.isDirectory() || !entry.name.startsWith('RALPH-')) continue;
-      const p = path.join(root, entry.name, 'run.json');
-      if (!fs.existsSync(p)) { runs.push({ run_id: entry.name }); continue; }
-      try {
-        const run = readJson(p);
-        runs.push({ run_id: run.run_id, phase: run.phase, status: run.status, title: run.title, updated_at: run.updated_at });
-      } catch {
-        runs.push({ run_id: entry.name });
-      }
-    }
-  }
-  runs.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
-  console.log(JSON.stringify({ ok: true, runs, map_exists: fs.existsSync(mapPath(cwd)) }, null, 2));
 }
 
 function splitList(v) {
   if (!v || v === true) return [];
   return String(v).split(',').map((x) => x.trim()).filter(Boolean);
 }
+
 function splitPipe(v) {
   if (!v || v === true) return [];
   return String(v).split('|').map((x) => x.trim()).filter(Boolean);
 }
 
-function main() {
+function printHelp() {
+  console.log(`ralph_ops.mjs — portable wrapper over ralph library
+
+Resolve library:
+  1. $JJ_FLOW_ROOT/src/ralph.mjs
+  2. jj-flow checkout ../../../../src/ralph.mjs
+  3. skill-bundled scripts/lib/ralph.mjs (no jj-flow install required)
+  4. cwd package / node_modules/@shendu-sdt/jj-flow
+  5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
+
+Commands:
+  init --run-id RALPH-x --title "..." --goal "..." [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--cwd DIR]
+  status [--run-id RALPH-x] [--cwd DIR]
+  archive --run-id RALPH-x [--slug name] [--cwd DIR]
+  finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
+  map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
+  gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+  map-find --query "keyword" [--limit N] [--cwd DIR]
+  handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
+  dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
+  commit-prep --run-id RALPH-x [--cwd DIR]
+  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--cwd DIR]
+`);
+}
+
+function candidateRalphModules(cwd) {
+  const out = [];
+  const seen = new Set();
+  const push = (p) => {
+    const abs = path.resolve(p);
+    if (seen.has(abs)) return;
+    seen.add(abs);
+    out.push(abs);
+  };
+
+  if (process.env.JJ_FLOW_ROOT) {
+    push(path.join(process.env.JJ_FLOW_ROOT, 'src', 'ralph.mjs'));
+  }
+
+  // When skill is inside jj-flow checkout, prefer live source.
+  push(path.resolve(__dirname, '../../../../src/ralph.mjs'));
+
+  // Portable copy shipped with the skill (business repos without jj-flow).
+  push(BUNDLED_LIB);
+
+  let dir = path.resolve(cwd || process.cwd());
+  for (let i = 0; i < 12; i += 1) {
+    push(path.join(dir, 'src', 'ralph.mjs'));
+    push(path.join(dir, 'node_modules', '@shendu-sdt', 'jj-flow', 'src', 'ralph.mjs'));
+    const pkgPath = path.join(dir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.name === '@shendu-sdt/jj-flow') push(path.join(dir, 'src', 'ralph.mjs'));
+      } catch {
+        // ignore
+      }
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return out;
+}
+
+async function loadRalph(cwd) {
+  const candidates = candidateRalphModules(cwd);
+  const tried = [];
+  for (const file of candidates) {
+    tried.push(file);
+    if (!fs.existsSync(file)) continue;
+    try {
+      const mod = await import(pathToFileURL(file).href);
+      return { mod, resolved: file };
+    } catch (err) {
+      tried.push(`# import failed: ${file}: ${err.message}`);
+    }
+  }
+  const hint = [
+    'Could not resolve ralph library for ralph_ops.mjs.',
+    'Tried:',
+    ...tried.map((t) => `  - ${t}`),
+    '',
+    'Expected skill-bundled lib at:',
+    `  ${BUNDLED_LIB}`,
+    '',
+    'Fix:',
+    '  - reinstall/update jj-ralph skill (must include scripts/lib/ralph.mjs)',
+    '  - or in jj-flow checkout: npm run ralph:sync',
+    '  - last resort: copy references/*.skeleton.json by hand',
+    `      ${path.join(REFS, 'run.skeleton.json')}`,
+  ].join('\n');
+  die(hint, 2);
+}
+
+function printJson(payload) {
+  console.log(JSON.stringify(payload, null, 2));
+}
+
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   const cmd = args._[0];
-  if (!cmd || args.help) {
-    console.log(`ralph_ops.mjs <init|status|archive|map-merge|handoff|dispatch-snapshot> [options]
-  --cwd DIR
-  init: --run-id --title --goal [--force] [--capability CAP-x] [--in a,b] [--out c,d]
-  archive: --run-id [--slug name]
-  map-merge: --run-id [--keywords a,b] [--lessons "l1|l2"] [--modules p1,p2]
-  handoff: --run-id [--handoff-id HOF-x] [--targets a,b]
-  dispatch-snapshot: --run-id [--targets a,b]
-  status: [--run-id]
-`);
+  if (!cmd || args.help || args.h) {
+    printHelp();
     process.exit(cmd ? 1 : 0);
   }
-  if (cmd === 'init') return cmdInit(args);
-  if (cmd === 'archive') return cmdArchive(args);
-  if (cmd === 'map-merge') return cmdMapMerge(args);
-  if (cmd === 'handoff') return cmdHandoff(args);
-  if (cmd === 'dispatch-snapshot') return cmdDispatchSnapshot(args);
-  if (cmd === 'status') return cmdStatus(args);
-  die('unknown command: ' + cmd);
+
+  const cwd = path.resolve(args.cwd || process.cwd());
+  const { mod, resolved } = await loadRalph(cwd);
+  const {
+    initRun,
+    getStatus,
+    archiveRun,
+    finalizeRun,
+    mapMergeFromRun,
+    mapFind,
+    writeHandoffPackage,
+    writeDispatchSnapshot,
+    commitPrep,
+    recordReview,
+    setGate,
+    RALPH_MAP_REL,
+  } = mod;
+
+  try {
+    if (cmd === 'init') {
+      const runId = args['run-id'];
+      const title = args.title;
+      const goal = args.goal;
+      if (!runId || !title || !goal) die('init needs --run-id --title --goal');
+      const run = initRun(
+        {
+          run_id: runId,
+          title,
+          goal,
+          force: Boolean(args.force),
+          scope: { in: splitList(args.in), out: splitList(args.out) },
+          capability_ids: splitList(args.capability),
+        },
+        cwd
+      );
+      printJson({
+        ok: true,
+        action: 'init',
+        run_id: run.run_id,
+        path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', run.run_id)).replaceAll('\\', '/'),
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'status') {
+      const payload = getStatus({ runId: args['run-id'], cwd });
+      printJson({ ok: true, action: 'status', ...payload, resolved });
+      return;
+    }
+
+    if (cmd === 'archive') {
+      const runId = args['run-id'];
+      if (!runId) die('archive needs --run-id');
+      const result = archiveRun(runId, { cwd, slug: args.slug });
+      printJson({
+        ok: true,
+        action: 'archive',
+        run_id: runId,
+        archive_path: result.archive_path,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'map-merge') {
+      const runId = args['run-id'];
+      if (!runId) die('map-merge needs --run-id');
+      const result = mapMergeFromRun(
+        runId,
+        {
+          modules: splitList(args.modules),
+          keywords: splitList(args.keywords),
+          lessons: splitPipe(args.lessons),
+          acceptance: splitList(args.acceptance),
+          status: args.status || 'done',
+          force: Boolean(args.force),
+        },
+        cwd
+      );
+      printJson({
+        ok: true,
+        action: 'map-merge',
+        run_id: runId,
+        capability_id: result.capability.id,
+        map_path: (RALPH_MAP_REL || '.workflow/ralph/business-map.json').replaceAll('\\', '/'),
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'finalize') {
+      const runId = args['run-id'];
+      if (!runId) die('finalize needs --run-id');
+      if (typeof finalizeRun !== 'function') {
+        die('resolved ralph.mjs has no finalizeRun; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = finalizeRun(runId, {
+        cwd,
+        slug: args.slug,
+        modules: splitList(args.modules),
+        keywords: splitList(args.keywords),
+        lessons: splitPipe(args.lessons),
+        acceptance: splitList(args.acceptance),
+        status: args.status || 'done',
+        force: Boolean(args.force),
+      });
+      printJson({
+        ok: true,
+        action: 'finalize',
+        run_id: runId,
+        archive_path: result.archive_path,
+        capability_id: result.capability?.id,
+        map_path: result.map_path,
+        phase: result.run?.phase,
+        status: result.run?.status,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'gate') {
+      const runId = args['run-id'];
+      const gate = args.gate || args.phase;
+      const status = args.status;
+      if (!runId || !gate || !status) die('gate needs --run-id --gate --status');
+      if (typeof setGate !== 'function') die('resolved ralph.mjs has no setGate; upgrade jj-ralph skill / npm run ralph:sync');
+      const result = setGate(runId, {
+        gate,
+        status,
+        cwd,
+        advance: args['no-advance'] ? false : true,
+      });
+      printJson({
+        ok: true,
+        action: 'gate',
+        run_id: runId,
+        gate,
+        status,
+        phase: result.phase,
+        run_status: result.run?.status,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'map-find') {
+      const query = args.query || args._[1];
+      if (!query) die('map-find needs --query');
+      const result = mapFind(query, { cwd, limit: args.limit ? Number(args.limit) : 10 });
+      printJson({ ok: true, action: 'map-find', ...result, resolved });
+      return;
+    }
+
+    if (cmd === 'handoff') {
+      const runId = args['run-id'];
+      if (!runId) die('handoff needs --run-id');
+      const result = writeHandoffPackage(runId, {
+        cwd,
+        handoff_id: args['handoff-id'],
+        targets_hint: splitList(args.targets),
+      });
+      printJson({ ok: true, action: 'handoff', run_id: runId, path: result.path, resolved });
+      return;
+    }
+
+    if (cmd === 'dispatch-snapshot') {
+      const runId = args['run-id'];
+      if (!runId) die('dispatch-snapshot needs --run-id');
+      const result = writeDispatchSnapshot(runId, {
+        cwd,
+        targets_hint: splitList(args.targets),
+      });
+      printJson({ ok: true, action: 'dispatch-snapshot', run_id: runId, path: result.path, resolved });
+      return;
+    }
+
+    if (cmd === 'commit-prep') {
+      const runId = args['run-id'];
+      if (!runId) die('commit-prep needs --run-id');
+      const result = commitPrep(runId, cwd);
+      printJson({ ok: true, action: 'commit-prep', ...result, resolved });
+      return;
+    }
+
+    if (cmd === 'review-record') {
+      const runId = args['run-id'];
+      const outcome = args.outcome;
+      if (!runId || !outcome) die('review-record needs --run-id --outcome');
+      const result = recordReview(runId, {
+        cwd,
+        outcome,
+        reviewed_commit: args['reviewed-commit'] || null,
+        task_thread_id: args['task-thread'] || null,
+        review_thread_id: args['review-thread'] || null,
+        summary: args.summary || '',
+      });
+      printJson({
+        ok: true,
+        action: 'review-record',
+        run_id: runId,
+        review_id: result.report.review_id,
+        outcome: result.report.outcome,
+        path: result.path,
+        resolved,
+      });
+      return;
+    }
+
+    die('unknown command: ' + cmd);
+  } catch (err) {
+    die(err && err.message ? err.message : String(err));
+  }
 }
 
 main();

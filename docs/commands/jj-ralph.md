@@ -39,9 +39,11 @@ $jj-ralph
 
 ## 执行默认
 
-- 全部走 Codex 读写约定路径，不依赖 `jj ralph *` CLI
+- 机械步骤优先 skill 脚本 `ralph_ops.mjs`（自带 `scripts/lib/ralph.mjs`，业务仓无需 jj-flow 包）
+- 仅 skill 损坏时 skeleton 手建；不要因“无 jj-flow”降级
 - 少检索、短产物、失败换策略
-- JSON 优先复制 skill 内 skeleton
+- accept 后优先 `finalize`（map-merge + archive）
+- JSON 优先脚本；脚本不可用再复制 skill 内 skeleton
 - 默认不自动 commit/push
 
 设计细节见 [jj-ralph 设计](../design-docs/jj-ralph.html)。

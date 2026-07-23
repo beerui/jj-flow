@@ -27,6 +27,8 @@
 
 ## map-find
 
+优先：`ralph_ops.mjs map-find --query "…"`（输出 matches + discover_paths）。
+
 1. 读 `business-map.json`，按标题/关键词/模块片段检索。
 2. 命中后按 `run_refs` 打开 `.workflow/ralph/RALPH-*/run.json`、`progress.md`、`acceptance.md`。
 3. `discover_paths` 若出现在工具输出中，是检索时计算的路径列表，**不落库**。

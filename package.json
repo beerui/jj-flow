@@ -37,7 +37,9 @@
     "harness:gc": "node bin/jj.mjs harness-gc --json",
     "docs:build": "node scripts/build-docs.mjs",
     "docs:check": "node scripts/build-docs.mjs --check",
-    "verify": "npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check"
+    "verify": "npm run ralph:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check",
+    "ralph:sync": "node scripts/sync-ralph-skill-lib.mjs",
+    "ralph:check": "node scripts/sync-ralph-skill-lib.mjs --check"
   },
   "keywords": [
     "project-family",

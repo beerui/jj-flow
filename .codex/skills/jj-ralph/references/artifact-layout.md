@@ -30,16 +30,23 @@
 | 动作 | 写什么 |
 | --- | --- |
 | init | `.workflow/ralph/<run_id>/run.json` + stubs |
-| map-find | 读 `business-map.json` |
+| map-find | 读 `business-map.json`（优先脚本） |
+| finalize | map-merge + archive |
 | archive | `archive-manifest.json` + `archive/…` |
 | map-merge | 更新 `business-map.json` |
 | handoff | `.workflow/handoffs/<HOF-ID>/` |
 | dispatch-snapshot | `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json` |
-| commit-prep | 完成报告/`progress.md` 中的提交建议 |
+| commit-prep | 建议 message + 文件清单（不 commit） |
 | review-record | `reviews/REV-*.json` + 回写 `run.json` |
 
 默认不自动 `git commit` / `push`。
 
 ## 脚本
 
-优先：`scripts/ralph_ops.mjs`（init/status/archive/map-merge/handoff/dispatch-snapshot）。
+优先：`scripts/ralph_ops.mjs`（薄封装 `src/ralph.mjs`）：
+
+`init` / `status` / `archive` / `finalize` / `map-merge` / `map-find` / `handoff` / `dispatch-snapshot` / `commit-prep` / `review-record`
+
+路径解析见 SKILL.md；等价 `jj ralph`。
+
+可移植：`scripts/lib/ralph.mjs` 与 `src/ralph.mjs` 同步（`npm run ralph:sync`）；业务仓无需 jj-flow 包。

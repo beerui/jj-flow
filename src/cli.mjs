@@ -21,6 +21,8 @@ import { buildTaskAssignment, readTaskTitle, renderDispatchSummary, renderTaskAs
 import { canonicalTaskId, resolveTask, taskStatus } from './taskRegistry.mjs';
 import {
   archiveRun,
+  finalizeRun,
+  setGate,
   commitPrep,
   getStatus,
   initRun,
@@ -530,9 +532,33 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     return 0;
   }
 
+  if (command === 'finalize') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = finalizeRun(options.runId, {
+      cwd,
+      slug: options.slug,
+      modules: options.modules || [],
+      keywords: options.keywords || [],
+      lessons: options.lessons || [],
+      acceptance: options.acceptance || [],
+      status: options.status || 'done',
+      force: Boolean(options.force)
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`finalized ${options.runId} -> ${result.archive_path} (map ${result.capability.id})\n`);
+    return 0;
+  }
+
   if (command === 'map-merge') {
     const options = parseRalphRunArgs(args, { requireRunId: true });
-    const result = mapMergeFromRun(options.runId, {}, cwd);
+    const result = mapMergeFromRun(options.runId, {
+      modules: options.modules || [],
+      keywords: options.keywords || [],
+      lessons: options.lessons || [],
+      acceptance: options.acceptance || [],
+      status: options.status || 'done',
+      force: Boolean(options.force)
+    }, cwd);
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`map-merged ${result.capability.id} from ${options.runId}\n`);
     return 0;
@@ -585,6 +611,19 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`review-record ${result.report.review_id} ${result.report.outcome} -> ${result.path}\n`);
+    return 0;
+  }
+
+  if (command === 'gate') {
+    const options = parseRalphGateArgs(args);
+    const result = setGate(options.runId, {
+      gate: options.gate,
+      status: options.status,
+      cwd,
+      advance: options.advance
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`gate ${options.gate}=${options.status} phase=${result.phase} (${options.runId})\n`);
     return 0;
   }
 
@@ -647,7 +686,7 @@ function parseRalphInitArgs(args) {
 }
 
 function parseRalphRunArgs(args, { requireRunId = false } = {}) {
-  const options = { targets: [] };
+  const options = { targets: [], modules: [], keywords: [], lessons: [], acceptance: [] };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--run-id') {
@@ -666,9 +705,49 @@ function parseRalphRunArgs(args, { requireRunId = false } = {}) {
       options.targets.push(args[++i]);
       continue;
     }
+    if (arg === '--modules') {
+      options.modules = String(args[++i] || '').split(',').map((x) => x.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg === '--keywords') {
+      options.keywords = String(args[++i] || '').split(',').map((x) => x.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg === '--lessons') {
+      options.lessons = String(args[++i] || '').split('|').map((x) => x.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg === '--acceptance') {
+      options.acceptance = String(args[++i] || '').split(',').map((x) => x.trim()).filter(Boolean);
+      continue;
+    }
+    if (arg === '--status') {
+      options.status = args[++i];
+      continue;
+    }
+    if (arg === '--force') {
+      options.force = true;
+      continue;
+    }
     throw new Error(`Unknown ralph option: ${arg}`);
   }
   if (requireRunId && !options.runId) throw new Error('requires --run-id');
+  return options;
+}
+
+function parseRalphGateArgs(args) {
+  const options = { advance: true };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--gate' || arg === '--phase') { options.gate = args[++i]; continue; }
+    if (arg === '--status') { options.status = args[++i]; continue; }
+    if (arg === '--no-advance') { options.advance = false; continue; }
+    throw new Error(`Unknown ralph gate option: ${arg}`);
+  }
+  if (!options.runId) throw new Error('gate requires --run-id');
+  if (!options.gate) throw new Error('gate requires --gate analyze|plan|deliver|accept|archive');
+  if (!options.status) throw new Error('gate requires --status PENDING|PASS|FAIL|N/A|BLOCKED');
   return options;
 }
 
@@ -721,7 +800,7 @@ function parseRalphFindArgs(args) {
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph map-merge --run-id RALPH-… [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--json]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；map-merge 把能力写入 business-map.json 供下次 map-find。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json。\n`);
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--json]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json。\n`);
 }
 
 function printDoctorHelp(stdout) {

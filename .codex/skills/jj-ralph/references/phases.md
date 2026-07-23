@@ -20,7 +20,7 @@
   → 追加 progress + 更新 run.json
   → 验证 FAIL 且 iteration < max → 继续 DELIVER
   → 需人决策 → BLOCKED / READY_FOR_USER_TEST 停表
-  → accept PASS → 写 archive + 合并 map → COMPLETED
+  → accept PASS → finalize（map-merge + archive）→ COMPLETED
 ```
 
 `max_iterations` 默认 20，触顶写 `intervention_needed.kind=MAX_ITERATIONS`。
@@ -42,3 +42,13 @@
 5. 脏工作区会覆盖用户改动
 
 阶段 PASS 后默认自动进入下一阶段，不询问「是否继续」。
+
+## 收口
+
+- accept PASS 后优先 `ralph_ops.mjs finalize`（或 `jj ralph finalize`）= map-merge + archive。
+- 分步亦可：`map-merge` 再 `archive`；勿只 archive 导致地图漏写。
+
+## gate
+
+- 优先 `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS`。
+- PASS 默认推进 phase；`--no-advance` 只改 gate。
