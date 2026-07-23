@@ -1,6 +1,6 @@
 ---
 name: jj
-description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $jj / /jj 转到 jj-same、jj-ralph、jj-review 或 jj-dispatch。
+description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $jj / /jj 转到 jj-same、jj-ralph、jj-review、jj-dispatch 或 jj-end。
 ---
 
 # jj
@@ -9,7 +9,7 @@ description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $
 
 `jj` 是兼容入口，不是终端命令入口。正式使用主推：
 
-- Codex：`$jj-same` / `$jj-ralph` / `$jj-review` / `$jj-dispatch`
+- Codex：`$jj-same` / `$jj-ralph` / `$jj-review` / `$jj-dispatch` / `$jj-end`
 - Claude Code：`/jj-same` / `/jj-ralph` / `/jj-review`
 
 ## 路由优先级
@@ -18,7 +18,8 @@ description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $
 2. 控制项目多目标预览/批准/派发/恢复、`delivery_id` → `$jj-dispatch`（仅 Codex）
 3. 单仓全流程闭环、ralph、归档、能力地图、从需求做到验收 → `$jj-ralph`
 4. 单仓轻量审查、关联任务/审查会话、写 reviews 报告 → `$jj-review`
-5. 不确定：默认 `$jj-same`（兼容历史）
+5. 单仓任务收尾：提交、推送、合并到 dev/develop、切回工作分支 → `$jj-end`
+6. 不确定：默认 `$jj-same`（兼容历史）
 
 ## 执行契约
 
