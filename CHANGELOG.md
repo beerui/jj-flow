@@ -1,11 +1,19 @@
 # Changelog
 
+## 0.1.1-beta.26
+
+- 新增 `$jj-end` 任务收尾 skill：提交、推送、合并到 `dev`/`develop` 并切回工作分支；`$jj` 路由接入收尾入口。
+- `$jj-ralph` 可移植机械步骤：skill 内同步实现与 finalize/gate/map-find，业务仓无需安装 jj-flow 包。
+- `$jj-dispatch` 对齐 runtime 门禁优先级与状态语义：capability 失败不改 plane，UNKNOWN 禁止同 key 重建。
+- `$jj-review` 收敛为直接写 `reviews/REV-*.json` 的只读审查；无 run 时 BLOCKED，PASS/NEEDS_CHANGES 强制 `reviewed_commit`。
+- 统一 skill `agents/openai.yaml` 展示名为 `jj-*`，补齐 `$jj` 路由 agent 元数据，并收紧 `$jj-end` 边界说明。
+
 ## 0.1.1-beta.25
 
 - 精简 `$jj-ralph` skill：Codex 直写产物、短路径约束、失败预算与 skeleton 模板。
 - Ralph 产物路径压扁为 `.workflow/ralph/RALPH-*/`，去掉 `ralphs/` 中间层。
 - 新增 skill 内确定性脚本 `scripts/ralph_ops.mjs`（init/status/archive/map-merge/handoff/dispatch-snapshot）。
-- 同步 Claude 命令、文档、样例、合同测试与 `agents/openai.yaml`。
+- 同步 Claude 命令、文档、样例、合同测试与 `agents/openai.yaml。
 
 ## 0.1.1-beta.24
 

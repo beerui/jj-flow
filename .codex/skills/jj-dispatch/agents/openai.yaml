@@ -1,4 +1,4 @@
 interface:
-  display_name: "跨项目需求调度"
+  display_name: "jj-dispatch"
   short_description: "控制项目中按门禁 PREVIEW/DISPATCH/RECONCILE，可恢复多项目任务"
   default_prompt: "Use $jj-dispatch only in the control project and follow gate priority: INTAKE_REQUIRED, then UNKNOWN->RECONCILE (never recreate same task_key), then PREVIEW if unapproved, then capability checks before DISPATCH. On missing REQUIRED_APP_CAPABILITIES reject DISPATCH without mutating plane or writing dispatch_intent. Only after approval+capabilities write PENDING_THREAD intents then CREATE_THREAD/BIND_THREAD with effective sandbox attestation. Delegate migration to $jj-same, single-repo loop to $jj-ralph, local review to $jj-review. Use jj-workflow-reviewer for read-only findings and jj-workflow-developer for approved write fixes."

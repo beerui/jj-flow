@@ -1,6 +1,6 @@
 ---
 name: jj-end
-description: Task closeout that commits with Chinese Conventional Commits, pushes the working branch, merges into the integration branch (default dev/develop), pushes integration, then returns to the working branch. Use for jj-end, $jj-end, 收工, 结束任务, 任务完成, 提交并合并到dev, land on dev; also proactively when implementation is finished and git closeout is expected. Do not use for mid-task checkpoints, commit-only (standard-commit), review-only, or when push/merge is forbidden.
+description: Task closeout that commits with Chinese Conventional Commits, pushes the working branch, merges into the integration branch (default dev/develop), pushes integration, then returns to the working branch. Use for jj-end, $jj-end, 收工, 结束任务, 任务完成, 提交并合并到dev, land on dev; also proactively when implementation is finished and git closeout is expected. Do not use for mid-task checkpoints, commit-only, review-only, or when push/merge is forbidden.
 ---
 
 # JJ End
@@ -13,7 +13,7 @@ description: Task closeout that commits with Chinese Conventional Commits, pushe
 
 - 显式：`$jj-end` / 收工 / 结束任务 / 提交并合并到 dev
 - **主动收尾**：实现完成且用户未禁止 push/merge 时，先用一行说明 `work→integration`，再执行
-- 只要 commit：`$standard-commit`
+- 仅提交、不 push/merge：不用本 skill
 
 ## Defaults
 
@@ -22,7 +22,7 @@ description: Task closeout that commits with Chinese Conventional Commits, pushe
 | integration | auto：优先 `dev`，否则 `develop`；都可被显式覆盖 |
 | return_to | `work`（`work` \| `integration`） |
 | remote | `origin` |
-| message | 自动（走 `$standard-commit`） |
+| message | 自动：`type(scope): 中文摘要` |
 | dry_run | `false` |
 
 `$jj-end` · `$jj-end integration=release return_to=integration` · `$jj-end dry_run=true`
@@ -57,7 +57,7 @@ Hard-stop：非 git 仓库、detached HEAD、merge/rebase/cherry-pick/revert 进
 
 ### 2. Commit（仅本任务）
 
-有本任务未提交改动时，严格按 `$standard-commit`：
+有本任务未提交改动时：
 
 1. 读 diff；无关脏文件不 stage
 2. `git add -- <paths>`
@@ -131,6 +131,6 @@ Codex app 中 stage/commit 成功后按要求发出 git directives。
 
 ## Boundaries
 
-- 仅提交 → `$standard-commit`
+- 仅提交 / 中途 checkpoint：不用本 skill
 - ralph 归档/handoff → `$jj-ralph`（本 skill 不写 run）
 - 多仓迁移/调度 → `$jj-same` / `$jj-dispatch`

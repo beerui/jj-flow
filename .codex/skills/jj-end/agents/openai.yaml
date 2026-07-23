@@ -1,6 +1,6 @@
 interface:
-  display_name: "JJ End"
-  short_description: "Close out tasks: commit, push, merge to dev"
+  display_name: "jj-end"
+  short_description: "收工：提交、推送并合入 dev/develop"
   default_prompt: "Use $jj-end to commit, push, merge into dev, push, and return to the working branch."
 policy:
   allow_implicit_invocation: true

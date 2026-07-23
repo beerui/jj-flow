@@ -1,4 +1,4 @@
 interface:
-  display_name: "Ralph 单仓闭环"
+  display_name: "jj-ralph"
   short_description: "单仓分析到归档，产物可追溯"
   default_prompt: "$jj-ralph 目标=… 范围=… 验收=…"

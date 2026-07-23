@@ -1,0 +1,4 @@
+interface:
+  display_name: "jj"
+  short_description: "jj-flow 兼容路由入口，转发到 same/ralph/review/dispatch/end"
+  default_prompt: "Use $jj only as a compatibility router; prefer the explicit $jj-same / $jj-ralph / $jj-review / $jj-dispatch / $jj-end skill."
