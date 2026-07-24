@@ -71,6 +71,15 @@ export function projectClaudeTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.claude', 'commands');
 }
 
+export function defaultQoderTarget({ homeDir = os.homedir(), qoderHome = process.env.QODER_HOME } = {}) {
+  const root = qoderHome || path.join(homeDir, '.qoder');
+  return path.join(root, 'skills');
+}
+
+export function projectQoderTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.qoder', 'skills');
+}
+
 export function installSkill({
   platform = 'codex',
   sourceDir,
@@ -78,12 +87,15 @@ export function installSkill({
   codexSourceDir = sourceDir || DEFAULT_CODEX_SOURCE_DIR,
   codexAgentsSourceDir = DEFAULT_CODEX_AGENTS_SOURCE_DIR,
   claudeSourceDir = sourceDir || DEFAULT_CLAUDE_SOURCE_DIR,
+  qoderSourceDir,
   codexTargetDir,
   codexAgentsTargetDir,
   claudeTargetDir,
+  qoderTargetDir,
   homeDir,
   codexHome,
   claudeHome,
+  qoderHome,
   force = false,
   dryRun = false
 } = {}) {
@@ -94,12 +106,15 @@ export function installSkill({
     codexSourceDir,
     codexAgentsSourceDir,
     claudeSourceDir,
+    qoderSourceDir,
     codexTargetDir,
     codexAgentsTargetDir,
     claudeTargetDir,
+    qoderTargetDir,
     homeDir,
     codexHome,
-    claudeHome
+    claudeHome,
+    qoderHome
   });
   const summary = summarizeInstallJobs(jobs, platforms);
 
@@ -164,12 +179,15 @@ export function uninstallSkill({
   codexSourceDir = sourceDir || DEFAULT_CODEX_SOURCE_DIR,
   codexAgentsSourceDir = DEFAULT_CODEX_AGENTS_SOURCE_DIR,
   claudeSourceDir = sourceDir || DEFAULT_CLAUDE_SOURCE_DIR,
+  qoderSourceDir,
   codexTargetDir,
   codexAgentsTargetDir,
   claudeTargetDir,
+  qoderTargetDir,
   homeDir,
   codexHome,
   claudeHome,
+  qoderHome,
   force = false,
   dryRun = false
 } = {}) {
@@ -180,12 +198,15 @@ export function uninstallSkill({
     codexSourceDir,
     codexAgentsSourceDir,
     claudeSourceDir,
+    qoderSourceDir,
     codexTargetDir,
     codexAgentsTargetDir,
     claudeTargetDir,
+    qoderTargetDir,
     homeDir,
     codexHome,
-    claudeHome
+    claudeHome,
+    qoderHome
   });
   const summary = summarizeInstallJobs(jobs, platforms);
   const scans = jobs.map(scanUninstallJob);
@@ -281,12 +302,15 @@ function buildAssetJobs({
   codexSourceDir,
   codexAgentsSourceDir,
   claudeSourceDir,
+  qoderSourceDir,
   codexTargetDir,
   codexAgentsTargetDir,
   claudeTargetDir,
+  qoderTargetDir,
   homeDir,
   codexHome,
-  claudeHome
+  claudeHome,
+  qoderHome
 }) {
   return platforms.flatMap((name) => {
     if (name === 'codex') {
@@ -312,6 +336,19 @@ function buildAssetJobs({
           label: 'Codex agents'
         }
       ];
+    }
+
+    if (name === 'qoder') {
+      const skillSource = path.resolve(qoderSourceDir || codexSourceDir);
+      const skillTarget = path.resolve(qoderTargetDir || targetDir || defaultQoderTarget({ homeDir, qoderHome }));
+      return [{
+        platform: 'qoder',
+        asset: 'skills',
+        source: skillSource,
+        target: skillTarget,
+        entries: collectCodexSkillSources(skillSource),
+        label: 'Qoder skills'
+      }];
     }
 
     const commandSource = path.resolve(claudeSourceDir);
@@ -528,8 +565,8 @@ function summarizeInstallJobs(jobs, platforms) {
 
 function normalizePlatforms(platform) {
   const normalized = String(platform || 'codex').trim().toLowerCase();
-  if (normalized === 'all') return ['codex', 'claude'];
-  if (normalized === 'codex' || normalized === 'claude') return [normalized];
+  if (normalized === 'all') return ['codex', 'claude', 'qoder'];
+  if (normalized === 'codex' || normalized === 'claude' || normalized === 'qoder') return [normalized];
   throw new Error(`Unknown install platform: ${platform}`);
 }
 

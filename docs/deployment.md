@@ -47,14 +47,17 @@ npm run verify
 
 ## npm 发布流程
 
-`npm-publish.yml` 用于从 GitHub Actions 发布 npm 包。它不会自动跟随每次 push 发布，需要维护者手动触发。
+**本项目 npm 发布的唯一正式路径是 GitHub Actions `NPM Publish`（`npm-publish.yml`）。**  
+不要用本地 `npm publish` 作为发布手段；本地 token 不是事实源，常见 401/404。
+
+工作流不会自动跟随每次 push 发布，需要维护者手动 `workflow_dispatch`。
 
 发布 beta 前确认：
 
-- `package.json` 的版本是预发布版本，例如 `0.1.1-beta.0`。
+- 版本 commit 已推到 `main`（含 `package.json` / `CHANGELOG.md`）。
+- `package.json` 的版本是预发布版本，例如 `0.1.1-beta.26`。
 - GitHub 仓库 secret 已配置 `NPM_TOKEN`。
 - `npm run verify` 在本地或 CI 中通过。
-- `npm publish --dry-run --tag beta --access public` 没有包内容警告。
 
 在 GitHub Actions 中运行：
 
@@ -63,6 +66,13 @@ Workflow: NPM Publish
 tag: beta
 dry_run: false
 run_verify: true
+```
+
+CLI 等价：
+
+```bash
+gh workflow run "NPM Publish" --field tag=beta --field dry_run=false --field run_verify=true
+gh run watch
 ```
 
 发布成功后，用户可以用：

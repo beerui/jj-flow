@@ -7,6 +7,7 @@ import {
   projectClaudeTarget,
   projectCodexAgentsTarget,
   projectCodexTarget,
+  projectQoderTarget,
   uninstallSkill
 } from './installSkill.mjs';
 import { loadCurrentReleaseLog } from './releaseLog.mjs';
@@ -458,9 +459,9 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
     }
     if (arg === '--platform') {
       const platform = rest.shift();
-      if (!platform) throw new Error('--platform requires codex, claude, or all');
-      if (!['codex', 'claude', 'all'].includes(platform)) {
-        throw new Error('--platform must be codex, claude, or all');
+      if (!platform) throw new Error('--platform requires codex, claude, qoder, or all');
+      if (!['codex', 'claude', 'qoder', 'all'].includes(platform)) {
+        throw new Error('--platform must be codex, claude, qoder, or all');
       }
       if (options.targetDir && platform === 'all') {
         throw new Error('--platform all cannot be used with --target');
@@ -474,6 +475,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
       options.codexTargetDir = projectCodexTarget({ cwd });
       options.codexAgentsTargetDir = projectCodexAgentsTarget({ cwd });
       options.claudeTargetDir = projectClaudeTarget({ cwd });
+      options.qoderTargetDir = projectQoderTarget({ cwd });
       continue;
     }
     if (arg === '--force') {
@@ -495,7 +497,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder 安装写入 .qoder/skills；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform qoder\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n  jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]\n');
 }
 
@@ -824,9 +826,9 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents 或 .claude/commands。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/commands，qoder 安装 .qoder/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands 或 .qoder/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n`);
 }
 
 function printUninstallHelp(stdout) {
-  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/commands，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents 或 .claude/commands 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
+  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/commands，qoder 处理 .qoder/skills，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands 或 .qoder/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
 }

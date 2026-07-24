@@ -304,11 +304,13 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   const workspace = makeWorkspace('jj-flow-install-all-');
   const codexTarget = path.join(workspace, '.codex', 'skills');
   const claudeTarget = path.join(workspace, '.claude', 'commands');
+  const qoderTarget = path.join(workspace, '.qoder', 'skills');
 
   const installed = installSkill({
     platform: 'all',
     codexTargetDir: codexTarget,
-    claudeTargetDir: claudeTarget
+    claudeTargetDir: claudeTarget,
+    qoderTargetDir: qoderTarget
   });
 
   assert.equal(installed.ok, true);
@@ -321,6 +323,8 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-dispatch.md')), false);
+  assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-dispatch', 'SKILL.md')), true);
 });
 
 test('uninstallSkill removes owned Codex assets and preserves unrelated files', () => {
@@ -349,12 +353,14 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   const workspace = makeWorkspace('jj-flow-uninstall-all-');
   const codexTarget = path.join(workspace, '.codex', 'skills');
   const claudeTarget = path.join(workspace, '.claude', 'commands');
-  installSkill({ platform: 'all', codexTargetDir: codexTarget, claudeTargetDir: claudeTarget });
+  const qoderTarget = path.join(workspace, '.qoder', 'skills');
+  installSkill({ platform: 'all', codexTargetDir: codexTarget, claudeTargetDir: claudeTarget, qoderTargetDir: qoderTarget });
 
   const result = uninstallSkill({
     platform: 'all',
     codexTargetDir: codexTarget,
-    claudeTargetDir: claudeTarget
+    claudeTargetDir: claudeTarget,
+    qoderTargetDir: qoderTarget
   });
 
   assert.equal(result.ok, true);
@@ -362,6 +368,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-developer.toml')), false);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), false);
+  assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same')), false);
 });
 
 test('uninstallSkill dry run reports targets without deleting files', () => {
@@ -536,18 +543,21 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(parsed.status, 'dry-run');
   assert.deepEqual(parsed.target, [
     path.join(workspace, '.codex', 'skills'),
-    path.join(workspace, '.claude', 'commands')
+    path.join(workspace, '.claude', 'commands'),
+    path.join(workspace, '.qoder', 'skills')
   ]);
   assert.equal(parsed.agent_target, path.join(workspace, '.codex', 'agents'));
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'skills', 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), false);
+  assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same')), false);
 
   const installStdout = createStdout();
   assert.equal(runCli(['install-skill', '--platform', 'all', '--project', '--json'], { cwd: workspace, stdout: installStdout }), 0);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same', 'SKILL.md')), true);
 });
 
 test('CLI help keeps user-facing labels in Chinese', () => {

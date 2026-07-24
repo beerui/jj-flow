@@ -8,6 +8,7 @@
 
 - Codex：`$jj-same`、`$jj-dispatch`、兼容入口 `$jj`
 - Claude Code：`/jj-same`、兼容入口 `/jj`
+- Qoder：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-dispatch`、`/jj-end`、兼容入口 `/jj`
 
 `$jj-dispatch` 目前仅 Codex；需要 project / thread / worktree 等 host 能力，缺失时停在预览或阻塞。
 
@@ -22,6 +23,7 @@
 
 - 使用 Codex 时，需要 Codex 能读取本机 `~/.codex/skills/`、`~/.codex/agents/`，或项目内对应的 `./.codex/` 目录。
 - 使用 Claude Code 时，需要 Claude Code 能读取本机 `~/.claude/commands/` 或项目内 `./.claude/commands/`。
+- 使用 Qoder 时，需要 Qoder 能读取本机 `~/.qoder/skills/` 或项目内 `./.qoder/skills/`。
 - 已能通过 `npx` 运行 npm 包。
 
 ## 推荐安装
@@ -51,6 +53,18 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform claude
 ~/.claude/commands
 ```
 
+安装 Qoder skills：
+
+```bash
+npx @shendu-sdt/jj-flow@beta install-skill --platform qoder
+```
+
+安装到：
+
+```text
+~/.qoder/skills
+```
+
 同时安装两端资产：
 
 ```bash
@@ -69,14 +83,16 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 ./.codex/skills
 ./.codex/agents
 ./.claude/commands
+./.qoder/skills
 ```
 
 ## 安装选项
 
 - `--platform codex`：同时安装 Codex skills 和配套 agents，默认值。
 - `--platform claude`：安装 Claude Code slash commands。
-- `--platform all`：同时安装 Codex 和 Claude Code 资产。
-- `--project`：安装到当前项目的 `./.codex/skills`、`./.codex/agents` 或 `./.claude/commands`。
+- `--platform qoder`：安装 Qoder skills。
+- `--platform all`：同时安装 Codex、Claude Code 和 Qoder 资产。
+- `--project`：安装到当前项目的 `./.codex/skills`、`./.codex/agents`、`./.claude/commands` 或 `./.qoder/skills`。
 - `--target <dir>`：自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 `agents` 目录。不能和 `--platform all` 一起使用。
 - `--force`：skills 或 agents 任一目标已存在时，覆盖整组安装文件。
 - `--dry-run`：预览 skills、agents、commands 的位置与冲突，不复制文件。
@@ -139,6 +155,9 @@ Codex agent 目标目录：~/.codex/agents
 
 Claude 命令源目录：.claude/commands/（jj.md、jj-same.md）
 Claude 命令目标目录：~/.claude/commands/
+
+Qoder 技能源目录：.codex/skills/（与 Codex 共用同一套 SKILL.md 资产）
+Qoder 技能目标目录：~/.qoder/skills/
 ```
 
 手动安装只作为排障备选；正常路径优先使用 `npx @shendu-sdt/jj-flow@beta install-skill`。
@@ -152,6 +171,12 @@ $jj-same 测试安装是否生效
 ```
 
 在 Claude Code 里输入：
+
+```text
+/jj-same 测试安装是否生效
+```
+
+在 Qoder 里输入：
 
 ```text
 /jj-same 测试安装是否生效
@@ -190,6 +215,10 @@ $jj-dispatch PREVIEW origin=B lead=C targets=A,B
 ### Claude Code 没有识别 `/jj-same`
 
 检查 `~/.claude/commands/jj-same.md` 是否存在，且文件开头包含 `name: jj-same` 的 frontmatter。若文件存在但仍无法识别，重新打开 Claude Code。
+
+### Qoder 没有识别 `/jj-same`
+
+检查 `~/.qoder/skills/jj-same/SKILL.md` 是否存在，且文件开头包含 `name: jj-same` 的 frontmatter。若文件存在但仍无法识别，重新打开 Qoder 对话，或确认当前 Qoder 配置允许加载本地 skills。
 
 ### 为什么还保留 `jj` CLI
 

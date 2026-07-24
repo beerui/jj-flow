@@ -74,9 +74,10 @@ node --test tests/docs-site.test.mjs
 
 - `ci.yml`：PR / push 跑测试  
 - `pages.yml`：构建并部署文档站  
-- `release-please.yml` / `npm-publish.yml`：版本与 npm  
+- `release-please.yml`：版本辅助
+- `npm-publish.yml`：**npm 唯一正式发布路径**（GitHub Actions 手动触发；禁止依赖本地 `npm publish`）
 
-文档-only 改动不必单独发 npm；用户说「发布」时再升版本。
+文档-only 改动不必单独发 npm；用户说「发布」时：升版本 → 推 `main` → 触发 Actions `NPM Publish`。
 
 ## 已移除入口（勿恢复为活入口）
 

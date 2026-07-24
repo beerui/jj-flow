@@ -43,8 +43,8 @@ jj-flow [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
 安装、卸载与调度：
 
 ```text
-jj install-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
-jj uninstall-skill [--platform codex|claude|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj install-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj uninstall-skill [--platform codex|claude|qoder|all] [--project | --target dir] [--force] [--dry-run] [--json]
 jj doctor [--json]
 jj scenario list [--json]
 jj scenario check [--json]
