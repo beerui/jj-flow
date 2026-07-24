@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.2.0](https://github.com/beerui/jj-flow/compare/jj-flow-v0.1.0...jj-flow-v0.2.0) (2026-07-24)
+
+
+### Features
+
+* add Qoder platform support for install-skill and uninstall-skill ([622decc](https://github.com/beerui/jj-flow/commit/622deccc291329af11706c2d6255202810511b81))
+* **dispatch:** 增加多项目双角色调度闭环 ([1d1a433](https://github.com/beerui/jj-flow/commit/1d1a4336978d5f7a488c3acd8cbbafc77549a71b))
+* **jj-end:** 新增任务收尾 skill 并接入 jj 路由 ([a8f5681](https://github.com/beerui/jj-flow/commit/a8f5681e7d9f09df3b20e8e463dc0bc71781b5d6))
+* **jj-ralph:** 可移植机械步骤并收敛单事实源 ([ed3a973](https://github.com/beerui/jj-flow/commit/ed3a973502ee0fb95a5b23279e81f65342c5a2a3))
+* **jj-same:** 增加迁移交接快照 ([c36cfe0](https://github.com/beerui/jj-flow/commit/c36cfe0ea4b062824041e95fa70e47fe2600e3a3))
+* 初始化 jj-flow beta 发布流程 ([ed45a22](https://github.com/beerui/jj-flow/commit/ed45a22b814133429c27f334d73a56001ca8d396))
+* 加固 Harness 并新增安全卸载命令 ([6444b5a](https://github.com/beerui/jj-flow/commit/6444b5a01f4abe7bf035d17f8acce5bac6eabe72))
+* 加固 jj-dispatch 可恢复 tick 与目标差异门禁 ([5647fe7](https://github.com/beerui/jj-flow/commit/5647fe70e261d798bb69712b902b0842d6946e7c))
+* 增加 jj-same 条件式手动验收提示 ([706c3b3](https://github.com/beerui/jj-flow/commit/706c3b346587a8ac6cc3f5a6534afe5476aad4e3))
+* 安装后输出最新版本日志 ([c69a937](https://github.com/beerui/jj-flow/commit/c69a937448e97ccf3d99dc089e7a4986c0e7c37d))
+* 支持 jj-same 家族串行交付 ([8c47ca0](https://github.com/beerui/jj-flow/commit/8c47ca03a23438d5ccd1d59ca7c6fe64f7ef8e09))
+* 支持 jj-same 持续同步决策 ([9e70683](https://github.com/beerui/jj-flow/commit/9e70683324f92b0963f56bb323d80b007cc8d5e3))
+* 支持任务 ID 恢复与状态查询 ([ce5d9a5](https://github.com/beerui/jj-flow/commit/ce5d9a5c2c4035771a1c0e4d822f0731a06ce6d4))
+* 支持多平台安装资产发布 ([f070da8](https://github.com/beerui/jj-flow/commit/f070da8756da7a17e7721722843ba9b1784cb84f))
+* 收敛 jj 命令入口并发布 0.1.1-beta.12 ([be732e1](https://github.com/beerui/jj-flow/commit/be732e1712efe629956e0724e5c411b5cd9731d6))
+* 收敛入口至 same/dispatch 并发布 0.1.1-beta.13 ([0b2e9b8](https://github.com/beerui/jj-flow/commit/0b2e9b848c8df7c4216817f173a175d8237dd9b9))
+* 新增 jj-same 跨项目迁移入口 ([a726319](https://github.com/beerui/jj-flow/commit/a726319293642626866c7d0e1fb75a17f3b01659))
+* 构建 repository-native Agent Harness ([d40c810](https://github.com/beerui/jj-flow/commit/d40c81085ffa2453dcabd9632f8f119118ba75d5))
+* 补齐任务资产与分发上下文 ([ea59785](https://github.com/beerui/jj-flow/commit/ea59785279e7bc0bf5181f340ca8cfa8a7b241d8))
+* 规范 jj-same 的 Maestro 产物链 ([c4625a4](https://github.com/beerui/jj-flow/commit/c4625a414fc17f02bc6fb92a14ec80b779d44a93))
+
+
+### Bug Fixes
+
+* **jj-dispatch:** 对齐 runtime 门禁优先级与状态语义 ([90d5b60](https://github.com/beerui/jj-flow/commit/90d5b609fed2b955feb46c1ca84268363a59e4c4))
+* **jj-review:** 收敛为直接写 REV 的只读审查 ([3042955](https://github.com/beerui/jj-flow/commit/30429554774e6673b0eebee8f3dffed2df73c871))
+* 修复 fresh clone 的 Harness 指纹漂移 ([ee1f6c1](https://github.com/beerui/jj-flow/commit/ee1f6c19dca08b552509e0324c9bc5dd598eeb89))
+* 修复 GitHub 发布流程配置 ([8f1ec15](https://github.com/beerui/jj-flow/commit/8f1ec1587d02e0dbc1800ccade7f15023d2dc2ab))
+* 强制控制项目先完成 intake ([68e5301](https://github.com/beerui/jj-flow/commit/68e530129e430db14bbe1940157a9efb1068679d))
+* 收紧 jj-same 的 grill 提问门禁 ([2905c3f](https://github.com/beerui/jj-flow/commit/2905c3f2f043d4d4285e6f4eb53767e6077b4c1e))
+* 移除 jj-same 的 grill 流程 ([401c499](https://github.com/beerui/jj-flow/commit/401c499a90634cc384f67ac3aef42630f66e1dcb))
+* 稳定 clean checkout 测试 fixture ([15f8604](https://github.com/beerui/jj-flow/commit/15f8604733edec9f4069e2b4529b11305079607e))
+* 补充 npm provenance 仓库来源 ([6562b9d](https://github.com/beerui/jj-flow/commit/6562b9d27c45fe4e804c84f50cc35ed7169c8957))
+
 ## 0.1.1-beta.26
 
 - 新增 `$jj-end` 任务收尾 skill：提交、推送、合并到 `dev`/`develop` 并切回工作分支；`$jj` 路由接入收尾入口。
