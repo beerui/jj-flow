@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1-beta.27
+
+- 新增 Qoder 平台安装支持：`install-skill --platform qoder` 将 skills 安装到 `~/.qoder/skills/`。
+- `--platform all` 现在同时安装 Codex、Claude Code 和 Qoder 三端资产。
+- 项目级安装 `--project` 同步支持 `./.qoder/skills/` 目标。
+
 ## 0.1.1-beta.26
 
 - 新增 `$jj-end` 任务收尾 skill：提交、推送、合并到 `dev`/`develop` 并切回工作分支；`$jj` 路由接入收尾入口。
