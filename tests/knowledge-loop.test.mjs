@@ -44,5 +44,6 @@ test('knowledge loop is ready when same guards pass', () => {
   });
   assert.equal(pack.status, 'ready');
   assert.ok(pack.capture_targets.includes('knowhow'));
+  assert.ok(Array.isArray(pack.knowledge_refs));
   assert.doesNotMatch(pack.boundary, /Maestro|maestro/);
 });

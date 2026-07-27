@@ -38,5 +38,7 @@
   "dispatch_recommendation": null,
   "created_at": "2026-07-23T00:00:00.000Z",
   "updated_at": "2026-07-23T00:00:00.000Z",
-  "family": null
+  "family": null,
+  "knowledge_refs": [],
+  "knowledge_summary": []
 }

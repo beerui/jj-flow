@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = [
   { src: path.join(root, 'src', 'ralph.mjs'), dest: path.join(root, '.codex', 'skills', 'jj-ralph', 'scripts', 'lib', 'ralph.mjs') },
-  { src: path.join(root, 'src', 'namingConfig.mjs'), dest: path.join(root, '.codex', 'skills', 'jj-ralph', 'scripts', 'lib', 'namingConfig.mjs') }
+  { src: path.join(root, 'src', 'namingConfig.mjs'), dest: path.join(root, '.codex', 'skills', 'jj-ralph', 'scripts', 'lib', 'namingConfig.mjs') },
+  { src: path.join(root, 'src', 'portfolioKnowledge.mjs'), dest: path.join(root, '.codex', 'skills', 'jj-ralph', 'scripts', 'lib', 'portfolioKnowledge.mjs') }
 ]
 const checkOnly = process.argv.includes('--check');
 

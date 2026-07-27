@@ -540,6 +540,23 @@
           }
         }
       ]
+    },
+    "knowledge_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": [],
+      "description": "Portfolio knowledge entry ids attached at ANALYZE/init (D:/a/knowledge)"
+    },
+    "knowledge_summary": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Human-readable summaries paired with knowledge_refs"
     }
   },
   "$defs": {

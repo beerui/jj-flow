@@ -1,4 +1,6 @@
-export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence = [], guardReport, executionDecision } = {}) {
+import { attachKnowledgeRefs } from './portfolioKnowledge.mjs';
+
+export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence = [], guardReport, executionDecision, project = null, cwd = process.cwd(), knowledge_refs = null } = {}) {
   const completed = guardReport?.status === 'PASS';
   const captureTargets = completed ? inferCaptureTargets(mode, evidence) : [];
   const pendingGuards = (guardReport?.results || [])
@@ -8,12 +10,29 @@ export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence 
     ? buildCompletedNextActions(captureTargets, executionDecision)
     : pendingGuards.map((item) => `补齐 ${item.id}：${item.reason}`);
 
+  const portfolio = Array.isArray(knowledge_refs)
+    ? {
+        status: knowledge_refs.length ? 'ready' : 'empty',
+        knowledge_refs,
+        knowledge_summary: knowledge_refs.map((id) => String(id)),
+        knowledge_items: []
+      }
+    : attachKnowledgeRefs({ q: intent, project, cwd, limit: 12 });
+
   return {
     status: completed ? 'ready' : 'pending',
     intent,
     mode,
     recipe_id: recipe?.id || null,
     capture_targets: captureTargets,
+    knowledge_refs: portfolio.knowledge_refs || [],
+    knowledge_summary: portfolio.knowledge_summary || [],
+    portfolio_knowledge: {
+      status: portfolio.status,
+      root: portfolio.portfolio_kb_root || null,
+      project_key: portfolio.project_key || project || null,
+      items: portfolio.knowledge_items || []
+    },
     team_context: {
       guard_status: guardReport?.status || 'PENDING',
       execution_status: executionDecision?.status || 'disabled',
@@ -24,9 +43,10 @@ export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence 
         summary: item.summary
       })),
       pending_guards: pendingGuards,
-      next_actions: nextActions
+      next_actions: nextActions,
+      knowledge_refs: portfolio.knowledge_refs || []
     },
-    boundary: 'knowledge loop only packages context; external runtimes stay out of scope'
+    boundary: 'knowledge loop packages context and portfolio knowledge_refs; chat/thread memory is non-authoritative'
   };
 }
 

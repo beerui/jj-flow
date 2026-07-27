@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.1-beta.31
+
+- Ralph 硬接线 Portfolio KB: init auto-writes knowledge_refs / knowledge_summary (--no-knowledge-refs / --project / --knowledge-query).
+- Add src/portfolioKnowledge.mjs to read D:/a/knowledge indexes into run/analyze/status.
+- Skill portable lib syncs portfolioKnowledge.mjs; ralph:sync/check covers 3 files.
+- knowledge loop package emits knowledge_refs + portfolio_knowledge.
+- schema/sample/skill skeleton + contract tests cover knowledge fields.
+- design-docs index links external portfolio KB at D:/a/knowledge.
 ## 0.1.1-beta.30
 
 - 精简 Ralph handoff：交接状态并入 run.handoff（ready/must/targets/source_head），accept/finalize 自动维护。

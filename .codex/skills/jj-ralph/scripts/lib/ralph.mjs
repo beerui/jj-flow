@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig } from './namingConfig.mjs';
+import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown } from './portfolioKnowledge.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -32,7 +33,7 @@ export function nowIso() { return new Date().toISOString(); }
 export function createEmptyMap() { return { schema_version: RALPH_MAP_SCHEMA_VERSION, updated_at: nowIso(), capabilities: [] }; }
 function unique(items) { return [...new Set((items || []).filter(Boolean))]; }
 
-export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: [] }, capability_ids = [], max_iterations = 20, created_at = nowIso() } = {}) {
+export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: [] }, capability_ids = [], knowledge_refs = [], knowledge_summary = [], max_iterations = 20, created_at = nowIso() } = {}) {
   if (!run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run_id)) throw new Error('run_id must match RALPH-<slug> pattern');
   if (!title) throw new Error('title is required');
   if (!goal) throw new Error('goal is required');
@@ -51,6 +52,8 @@ export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: 
     gates: { analyze: 'PENDING', plan: 'PENDING', deliver: 'PENDING', accept: 'PENDING', archive: 'PENDING' },
     intervention_needed: null,
     capability_ids: [...capability_ids],
+    knowledge_refs: unique(knowledge_refs),
+    knowledge_summary: [...(knowledge_summary || [])],
     artifact_refs: { analyze: 'analyze.md', plan: 'plan.md', acceptance: 'acceptance.md', progress: 'progress.md', handoff_ref: null, dispatch_snapshot_ref: null, latest_review_ref: null },
     review: null,
     family: null,
@@ -77,6 +80,9 @@ export function validateRun(run) {
   if (!run.gates || typeof run.gates !== 'object') errors.push('gates required');
   else for (const key of GATE_KEYS) if (!run.gates[key]) errors.push('gates.' + key + ' required');
   if (!Array.isArray(run.capability_ids)) errors.push('capability_ids must be array');
+  if (run.knowledge_refs != null && !Array.isArray(run.knowledge_refs)) errors.push('knowledge_refs must be array when present');
+  if (Array.isArray(run.knowledge_refs) && run.knowledge_refs.some((ref) => typeof ref !== 'string' || !ref.trim())) errors.push('knowledge_refs must be non-empty strings');
+  if (run.knowledge_summary != null && !Array.isArray(run.knowledge_summary)) errors.push('knowledge_summary must be array when present');
   if (!run.artifact_refs?.analyze || !run.artifact_refs?.plan || !run.artifact_refs?.acceptance || !run.artifact_refs?.progress) errors.push('artifact_refs incomplete');
   if (run.review != null) {
     if (typeof run.review !== 'object' || Array.isArray(run.review)) errors.push('review must be object or null');
@@ -193,21 +199,49 @@ export function initRun(options, cwd = process.cwd()) {
   if (options?.strict_naming !== false && naming.ralph?.legacy_tolerance?.create_must_follow_config !== false) {
     assertStrictRalphRunId(options.run_id || options.runId, naming);
   }
-  const run = createRunSkeleton(options);
+  const runOptions = { ...options };
+  if (options?.attach_knowledge !== false && !(options?.knowledge_refs?.length)) {
+    const pack = attachKnowledgeRefs({
+      title: options.title,
+      goal: options.goal,
+      project: options.project || options.project_key || null,
+      q: options.knowledge_query || '',
+      cwd,
+      limit: options.knowledge_limit || 12
+    });
+    runOptions.knowledge_refs = pack.knowledge_refs || [];
+    runOptions.knowledge_summary = pack.knowledge_summary || [];
+    runOptions._knowledge_attach = pack;
+  } else {
+    runOptions.knowledge_refs = options.knowledge_refs || [];
+    runOptions.knowledge_summary = options.knowledge_summary || [];
+  }
+  const run = createRunSkeleton(runOptions);
   const dir = runDir(run.run_id, cwd);
   if (fs.existsSync(dir) && !options.force) throw new Error('run already exists: ' + run.run_id + ' (use --force to overwrite skeleton)');
   fs.mkdirSync(dir, { recursive: true });
   saveRun(run, cwd);
   const nl = String.fromCharCode(10);
+  const knowledgeMd = formatKnowledgeRefsMarkdown({
+    knowledge_refs: run.knowledge_refs || [],
+    knowledge_summary: run.knowledge_summary || []
+  });
   const stubs = {
-    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
-    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '## Tasks' + nl + nl + '## Out of scope' + nl,
-    'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl,
+    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
+    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Tasks' + nl + nl + '## Out of scope' + nl,
+    'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
     'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | result | evidence |' + nl + '| --- | --- | --- |' + nl
   };
   for (const [name, bodyText] of Object.entries(stubs)) {
     const filePath = path.join(dir, name);
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
+  }
+  if (runOptions._knowledge_attach) {
+    writeJson(path.join(dir, 'knowledge-attach.json'), {
+      ...runOptions._knowledge_attach,
+      attached_at: nowIso(),
+      run_id: run.run_id
+    });
   }
   return run;
 }
@@ -618,6 +652,7 @@ export function renderRalphStatusText(payload) {
       'iteration: ' + run.iteration + '/' + run.max_iterations,
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
       'capabilities: ' + ((run.capability_ids || []).join(', ') || '(none)'),
+      'knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'),
       latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.reviewed_commit ? (' @' + latestReview.reviewed_commit) : '')) : 'review: none',
       run.intervention_needed ? ('intervention: ' + run.intervention_needed.reason) : 'intervention: none',
       'path: ' + (payload.path || '')
