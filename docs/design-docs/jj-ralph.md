@@ -34,7 +34,7 @@
   business-map.json
   RALPH-{slug}-{date}/
   archive/YYYY-MM-DD-{slug}/
-.workflow/handoffs/<HOF-ID>/
+.workflow/ralph/<run_id>/handoff/
 .workflow/dispatch/recommendations/<SNAP-ID>/
 ```
 

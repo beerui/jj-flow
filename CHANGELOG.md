@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.1-beta.30
+
+- 精简 Ralph handoff：交接状态并入 run.handoff（ready/must/targets/source_head），accept/finalize 自动维护。
+- handoff 包改为 run 内薄镜像 `.workflow/ralph/RALPH-*/handoff/handoff.json`；停写外部 handoffs/csv-wave 大包为默认。
+- `$jj-same` 优先消费当前会话 Ralph handoff；用户只说「交接到 …」，不填路径参数。
+- 更新 schema/skill/布局与合约测试（ralph-handoff/1.1）。
+
 ## 0.1.1-beta.29
 
 - 统一全局命名配置：新增 src/namingConfig.mjs，支持读取 D:/a/config/naming.json（schema_version: jj-flow/naming/1.0）。

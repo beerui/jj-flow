@@ -214,9 +214,14 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
 
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'business-map.json')));
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'archive')));
-    const handoffDirs = fs.readdirSync(path.join(cwd, '.workflow', 'handoffs'));
-    assert.ok(handoffDirs.length >= 1);
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'handoffs', handoffDirs[0], 'handoff.json')));
+    const handoffJson = path.join(cwd, '.workflow', 'ralph', runId, 'handoff', 'handoff.json');
+    assert.ok(fs.existsSync(handoffJson));
+    const handoffPkg = JSON.parse(fs.readFileSync(handoffJson, 'utf8'));
+    assert.equal(handoffPkg.schema_version, 'jj-flow/ralph-handoff/1.1');
+    assert.equal(typeof handoffPkg.ready, 'boolean');
+    assert.ok(Array.isArray(handoffPkg.must));
+    const runAfterHandoff = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+    assert.match(runAfterHandoff.artifact_refs.handoff_ref, /RALPH-demo-20260722\/handoff\/handoff\.json$/);
     assert.ok(
       fs.existsSync(
         path.join(cwd, '.workflow', 'dispatch', 'recommendations', `SNAP-demo-20260722`, 'snapshot.json')
@@ -303,6 +308,8 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
 
     const handoff = runNode(['handoff', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, handoff.path, 'handoff.json')));
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/RALPH-.*\/handoff$/);
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/RALPH-.*\/handoff$/);
     const snap = runNode(['dispatch-snapshot', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, snap.path)));
     const prep = runNode(['commit-prep', '--run-id', runId]);

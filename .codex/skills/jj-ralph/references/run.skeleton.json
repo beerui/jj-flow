@@ -5,7 +5,10 @@
   "phase": "ANALYZE",
   "status": "IN_PROGRESS",
   "goal": "一句话目标",
-  "scope": { "in": [], "out": [] },
+  "scope": {
+    "in": [],
+    "out": []
+  },
   "assumptions": [],
   "iteration": 0,
   "max_iterations": 20,
@@ -18,7 +21,9 @@
     "archive": "PENDING"
   },
   "intervention_needed": null,
-  "capability_ids": ["CAP-example"],
+  "capability_ids": [
+    "CAP-example"
+  ],
   "artifact_refs": {
     "analyze": "analyze.md",
     "plan": "plan.md",
@@ -32,5 +37,6 @@
   "handoff": null,
   "dispatch_recommendation": null,
   "created_at": "2026-07-23T00:00:00.000Z",
-  "updated_at": "2026-07-23T00:00:00.000Z"
+  "updated_at": "2026-07-23T00:00:00.000Z",
+  "family": null
 }

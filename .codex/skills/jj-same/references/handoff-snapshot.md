@@ -1,5 +1,10 @@
 # 迁移交接快照
 
+## 优先路径（Ralph）
+
+有领头 Ralph run 时优先：`.workflow/ralph/<run_id>/handoff/handoff.json`。用户只说「交接到 …」。旧 csv-wave 仅兼容读取。
+
+
 Handoff snapshot 用于把一次已经收敛的源需求语义交给多个目标项目。它解决的是“每个目标重新读取完整源会话和需求文档”造成的重复与理解漂移，不替代正式需求，也不缓存目标源码事实。
 
 ## 核心边界

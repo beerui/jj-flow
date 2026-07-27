@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jj-flow/ralph-handoff/1.1",
+  "title": "jj-flow Ralph Handoff (slim)",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "run_id",
+    "ready",
+    "blocked_reasons",
+    "must",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "jj-flow/ralph-handoff/1.1"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "handoff_id": {
+      "type": "string"
+    },
+    "ready": {
+      "type": "boolean"
+    },
+    "blocked_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_head": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "must": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "do_not_port": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targets": {
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "LITE",
+        "FULL"
+      ]
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  }
+}

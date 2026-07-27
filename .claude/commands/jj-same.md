@@ -116,3 +116,7 @@ allowed-tools:
 /jj-same 交接=@D:\path\to\ANL-SOURCE\requirement-baseline\HOF-feature-001\handoff-snapshot.yaml 当前项目=兑接 开始迁移
 /jj-same 更新交接 交接=@D:\path\to\HOF-feature-001\handoff-snapshot.yaml 会话=019f... 源提交=<new-commit> 变更=<需求纠正或 bug fix>
 ```
+
+## 用户说法
+
+只说：`交接到 兑接` / `交接到 兑接 承载`。不要填 handoff 路径。优先用当前会话 Ralph run 的 `handoff/`。

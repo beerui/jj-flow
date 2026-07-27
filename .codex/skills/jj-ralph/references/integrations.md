@@ -1,26 +1,20 @@
-# 与 jj-same / jj-dispatch 的关系
+# 与 jj-same / jj-dispatch
 
-## jj-same（迁移）
+## jj-same
 
-当前仓验收后，若要把同一能力迁到同源其它项目：
+1. Ralph 在 `run.handoff` 维护精简交接（accept 可自动写）
+2. 用户只说：`交接到 兑接` / `交接到 兑接 承载`
+3. same 读当前会话 run/handoff 后迁目标；不重做源分析
+4. 目标实现不在 `.workflow/ralph/` 下写
 
-1. 由 Codex 写 handoff 包到 `.workflow/handoffs/<HOF-ID>/`（至少 `handoff.json`、`source.md`）。
-2. 交接文档引用 ralph 的 analyze/acceptance/business-map。
-3. **目标仓实现**由 `$jj-same` 读取 handoff 后完成；不在 `.workflow/ralph/` 下写迁移代码。
-4. same 可把 handoff 当证据入口，仍按目标原生架构适配。
+## jj-dispatch
 
-## jj-dispatch（多项目调度）
-
-当前仓验收后，若要向其它项目分发实现：
-
-1. 由 Codex 写 `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json`。
-2. 控制项目用 `$jj-dispatch` 读取该快照，创建/批准目标任务。
-3. **dispatch 拥有调度身份**；ralph 只提供推荐快照与证据引用。
+需要控制面时写 dispatch recommendation。dispatch 管 task_key。
 
 ## 边界
 
 | 能力 | 归属 |
 | --- | --- |
-| 单仓闭环、能力地图、归档 | `jj-ralph` |
-| 同源多仓迁移与同步检查点 | `jj-same` |
-| 控制面 task_key / 批准 / 恢复 | `jj-dispatch` |
+| 单仓闭环 + run.handoff | jj-ralph |
+| 跨仓迁移 | jj-same |
+| 调度身份 | jj-dispatch |

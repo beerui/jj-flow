@@ -256,10 +256,12 @@
         },
         {
           "type": "object",
-          "additionalProperties": false,
+          "additionalProperties": true,
           "required": [
-            "handoff_id",
-            "path"
+            "ready",
+            "blocked_reasons",
+            "must",
+            "updated_at"
           ],
           "properties": {
             "handoff_id": {
@@ -268,13 +270,72 @@
             "path": {
               "type": "string"
             },
-            "status": {
+            "ready": {
+              "type": "boolean"
+            },
+            "blocked_reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source_head": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "working_tree": {
+              "type": "string"
+            },
+            "targets": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "must": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "do_not_port": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "mode": {
               "type": "string",
               "enum": [
-                "DRAFT",
-                "READY",
-                "CONSUMED"
+                "LITE",
+                "FULL"
               ]
+            },
+            "thread_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "updated_at": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "execution_readiness": {
+              "type": "string"
+            },
+            "handoff_status": {
+              "type": "string"
             }
           }
         }
@@ -381,6 +442,97 @@
                   },
                   "recorded_at": {
                     "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "family": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "lead_role": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "lead_repo": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "targets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": true,
+                "required": [
+                  "role",
+                  "status"
+                ],
+                "properties": {
+                  "role": {
+                    "type": "string"
+                  },
+                  "repo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "planned_branch": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "decision_hint": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NOT_STARTED",
+                      "READY_TO_PORT",
+                      "IN_PROGRESS",
+                      "DONE",
+                      "BLOCKED",
+                      "N/A"
+                    ]
+                  },
+                  "known_differences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "notes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }

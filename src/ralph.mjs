@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig } from './namingConfig.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
@@ -11,6 +12,8 @@ export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
 export const RALPHS_DIR_REL = RALPH_ROOT_REL;
 export const RALPH_ARCHIVE_DIR_REL = path.join(RALPH_ROOT_REL, 'archive');
 export const RALPH_MAP_REL = path.join(RALPH_ROOT_REL, 'business-map.json');
+export const RALPH_HANDOFF_SCHEMA_VERSION = 'jj-flow/ralph-handoff/1.1';
+/** @deprecated external handoffs dir; new handoffs live under the run */
 export const HANDOFF_ROOT_REL = path.join('.workflow', 'handoffs');
 
 const PHASES = ['ANALYZE', 'PLAN', 'DELIVER', 'ACCEPT', 'ARCHIVE'];
@@ -50,6 +53,7 @@ export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: 
     capability_ids: [...capability_ids],
     artifact_refs: { analyze: 'analyze.md', plan: 'plan.md', acceptance: 'acceptance.md', progress: 'progress.md', handoff_ref: null, dispatch_snapshot_ref: null, latest_review_ref: null },
     review: null,
+    family: null,
     handoff: null,
     dispatch_recommendation: null,
     created_at,
@@ -236,7 +240,7 @@ export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
   const folder = slug || defaultArchiveDirName(run.run_id);
   const destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
   const destAbs = path.join(cwd, destRel);
-  if (fs.existsSync(destAbs)) throw new Error('archive already exists: ' + destRel.replaceAll('\\', '/'));
+  if (fs.existsSync(destAbs)) throw new Error('archive already exists: ' + destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   const sourceAbs = runDir(runId, cwd);
   // Finalize active run first so the frozen archive copy includes COMPLETED state.
   run.phase = 'ARCHIVE';
@@ -251,7 +255,7 @@ export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
       const nextRel = rel ? rel + '/' + entry.name : entry.name;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) walk(full, nextRel);
-      else files.push({ path: nextRel.replaceAll('\\', '/'), sha256: sha256File(full) });
+      else files.push({ path: nextRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)), sha256: sha256File(full) });
     }
   }
   walk(destAbs);
@@ -259,18 +263,23 @@ export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
     schema_version: 'jj-flow/ralph-archive/1.0',
     run_id: run.run_id,
     archived_at: nowIso(),
-    archive_path: destRel.replaceAll('\\', '/'),
+    archive_path: destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
     files
   };
   writeJson(path.join(sourceAbs, 'archive-manifest.json'), manifest);
   writeJson(path.join(destAbs, 'archive-manifest.json'), manifest);
   // refresh in-memory run after manifest write (active tree now has manifest)
   const latest = loadRun(runId, cwd);
-  return { run: latest, archive_path: destRel.replaceAll('\\', '/'), manifest };
+  return { run: latest, archive_path: destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)), manifest };
 }
 
 /** map-merge then archive; default accept-PASS closeout. */
 export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', force = false } = {}) {
+  const runBefore = loadRun(runId, cwd);
+  if (shouldMaintainHandoff(runBefore)) {
+    applyHandoffState(runBefore, { cwd, write_file: true });
+    saveRun(runBefore, cwd);
+  }
   const merged = mapMergeFromRun(runId, { modules, lessons, keywords, acceptance, status, force }, cwd);
   const archived = archiveRun(runId, { cwd, slug });
   return {
@@ -278,13 +287,14 @@ export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], le
     archive_path: archived.archive_path,
     manifest: archived.manifest,
     capability: merged.capability,
-    map_path: RALPH_MAP_REL.replaceAll('\\', '/')
+    map_path: RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    handoff: archived.run.handoff || null
   };
 }
 
 export function capabilityFromRun(run, { modules = [], lessons = [], keywords = [], acceptance = [], status = 'done' } = {}) {
   const id = run.capability_ids?.[0] || ('CAP-' + run.run_id.replace(/^RALPH-/, '').toLowerCase());
-  const defaultAcceptance = path.join(RALPHS_DIR_REL, run.run_id, 'acceptance.md').replaceAll('\\', '/');
+  const defaultAcceptance = path.join(RALPHS_DIR_REL, run.run_id, 'acceptance.md').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   return {
     id,
     title: run.title,
@@ -363,24 +373,98 @@ export function findInMap(map, query, { limit = 10 } = {}) {
 
 export function mapFind(query, { cwd = process.cwd(), limit = 10 } = {}) {
   const map = loadMap(cwd);
-  return { query, matches: findInMap(map, query, { limit }), map_path: fs.existsSync(mapPath(cwd)) ? RALPH_MAP_REL.replaceAll('\\', '/') : null };
+  return { query, matches: findInMap(map, query, { limit }), map_path: fs.existsSync(mapPath(cwd)) ? RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)) : null };
 }
 
-export function writeHandoffPackage(runId, { cwd = process.cwd(), handoff_id, targets_hint = [] } = {}) {
+function readGitSourceFacts(cwd = process.cwd()) {
+  try {
+    const head = execSync('git rev-parse HEAD', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const ref = execSync('git rev-parse --abbrev-ref HEAD', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const dirty = execSync('git status --porcelain', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim().length > 0;
+    return { head: head || null, ref: ref || null, commit_stable: Boolean(head) && !dirty, working_tree: dirty ? 'dirty' : 'clean' };
+  } catch {
+    return { head: null, ref: null, commit_stable: false, working_tree: 'unknown' };
+  }
+}
+
+function normalizeHandoffTargets(targets_hint = [], existingFamily = null) {
+  if (Array.isArray(existingFamily?.targets) && existingFamily.targets.length) {
+    return existingFamily.targets.map((t) => ({ role: t.role, repo: t.repo || null, planned_branch: t.planned_branch || null, decision_hint: t.decision_hint || null, status: t.status || 'NOT_STARTED' }));
+  }
+  return (targets_hint || []).filter(Boolean).map((item) => {
+    if (typeof item === 'string') return { role: item, repo: null, planned_branch: null, decision_hint: null, status: 'NOT_STARTED' };
+    return { role: item.role || String(item), repo: item.repo || null, planned_branch: item.planned_branch || null, decision_hint: item.decision_hint || null, status: item.status || 'NOT_STARTED' };
+  });
+}
+
+function shouldMaintainHandoff(run, { force = false, targets_hint = [] } = {}) {
+  if (force) return true;
+  if (run.handoff) return true;
+  if (run.family?.enabled) return true;
+  if (Array.isArray(run.family?.targets) && run.family.targets.length) return true;
+  if (Array.isArray(targets_hint) && targets_hint.length) return true;
+  const scopeText = [...(run.scope?.in || []), ...(run.scope?.out || []), run.goal || '', run.title || ''].join(' ');
+  return new RegExp('兑接|承载|sibling|交接|迁移|三端|同源').test(scopeText);
+}
+
+export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [], thread_id = null, must = null, do_not_port = null, mode = null, write_file = true } = {}) {
+  const git = readGitSourceFacts(cwd);
+  const acceptPass = run.gates?.accept === 'PASS';
+  const targets = normalizeHandoffTargets(targets_hint, run.family);
+  const family = {
+    enabled: targets.length > 0 || Boolean(run.family?.enabled),
+    lead_role: run.family?.lead_role || null,
+    lead_repo: run.family?.lead_repo || cwd.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    order: Array.isArray(run.family?.order) && run.family.order.length ? run.family.order : targets.map((t) => t.role).filter(Boolean),
+    targets
+  };
+  const mustList = Array.isArray(must) && must.length ? must : (Array.isArray(run.handoff?.must) && run.handoff.must.length ? run.handoff.must : [run.goal].filter(Boolean));
+  const dnpList = Array.isArray(do_not_port) ? do_not_port : (Array.isArray(run.handoff?.do_not_port) ? run.handoff.do_not_port : [...(run.scope?.out || [])]);
+  const blocked_reasons = [];
+  if (!acceptPass) blocked_reasons.push('accept!=PASS');
+  if (!git.commit_stable) blocked_reasons.push('commit_stable=false');
+  if (!git.head) blocked_reasons.push('source_head_missing');
+  const ready = blocked_reasons.length === 0;
+  const handoff_id = run.handoff?.handoff_id || ('HOF-' + run.run_id.replace(/^RALPH-/, ''));
+  const relDir = path.join(RALPH_ROOT_REL, run.run_id, 'handoff').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const portMode = mode || run.handoff?.mode || 'LITE';
+  const updated_at = nowIso();
+  run.family = family.enabled || targets.length ? family : (run.family || null);
+  run.handoff = {
+    handoff_id, path: relDir, ready, blocked_reasons,
+    source_head: git.head, source_ref: git.ref, working_tree: git.working_tree,
+    targets: targets.map((t) => t.role), must: mustList, do_not_port: dnpList,
+    mode: portMode === 'FULL' ? 'FULL' : 'LITE',
+    thread_id: thread_id || run.handoff?.thread_id || null, updated_at,
+    status: ready ? 'READY' : 'DRAFT',
+    execution_readiness: ready ? 'READY' : 'BLOCKED',
+    handoff_status: ready ? 'READY_FOR_HANDOFF' : (acceptPass ? 'PARTIAL_HANDOFF' : 'DRAFT')
+  };
+  run.artifact_refs = { ...run.artifact_refs, handoff_ref: path.join(relDir, 'handoff.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
+  run.updated_at = updated_at;
+  const packageBody = {
+    schema_version: RALPH_HANDOFF_SCHEMA_VERSION, run_id: run.run_id, handoff_id, ready, blocked_reasons,
+    source_head: git.head, source_ref: git.ref, must: mustList, do_not_port: dnpList, targets,
+    mode: run.handoff.mode, thread_id: run.handoff.thread_id, updated_at,
+    execution_readiness: run.handoff.execution_readiness, handoff_status: run.handoff.handoff_status
+  };
+  if (write_file) {
+    const abs = path.join(cwd, relDir);
+    fs.mkdirSync(abs, { recursive: true });
+    writeJson(path.join(abs, 'handoff.json'), packageBody);
+  }
+  return { handoff: run.handoff, path: relDir, package: packageBody, next_user_prompt: ready ? '交接到 <目标角色>' : '提交后说：交接到 <目标角色>' };
+}
+
+export function writeHandoffPackage(runId, { cwd = process.cwd(), handoff_id, targets_hint = [], thread_id = null, parent_handoff_id = null, port_mode = 'LITE', requirement_ledger = null, source_change_map = null, must = null, do_not_port = null } = {}) {
   const run = loadRun(runId, cwd);
-  const id = handoff_id || ('HOF-' + run.run_id.replace(/^RALPH-/, ''));
-  const rel = path.join(HANDOFF_ROOT_REL, id);
-  const abs = path.join(cwd, rel);
-  fs.mkdirSync(abs, { recursive: true });
-  const handoff = { schema_version: 'jj-flow/handoff/1.0', handoff_id: id, run_id: run.run_id, title: run.title, goal: run.goal, scope: run.scope, capability_ids: run.capability_ids, targets_hint, created_at: nowIso() };
-  writeJson(path.join(abs, 'handoff.json'), handoff);
-  const nl = String.fromCharCode(10);
-  fs.writeFileSync(path.join(abs, 'source.md'), ['# Handoff ' + id, '', 'run_id: ' + run.run_id, 'title: ' + run.title, '', '## Goal', run.goal, '', '## Scope in', ...(run.scope.in || []).map((item) => '- ' + item), '', '## Scope out', ...(run.scope.out || []).map((item) => '- ' + item), ''].join(nl), 'utf8');
-  run.handoff = { handoff_id: id, path: rel.replaceAll('\\', '/'), status: 'READY' };
-  run.artifact_refs.handoff_ref = path.join(rel, 'handoff.json').replaceAll('\\', '/');
-  run.updated_at = nowIso();
+  if (handoff_id) run.handoff = { ...(run.handoff || {}), handoff_id };
+  const mustFromLedger = Array.isArray(requirement_ledger?.must) ? requirement_ledger.must.map((item) => item.summary || item.id || String(item)).filter(Boolean) : must;
+  const dnpFromLedger = Array.isArray(requirement_ledger?.do_not_port) ? requirement_ledger.do_not_port.map((item) => item.summary || item.id || String(item)).filter(Boolean) : do_not_port;
+  void parent_handoff_id; void source_change_map;
+  const result = applyHandoffState(run, { cwd, targets_hint, thread_id, must: mustFromLedger, do_not_port: dnpFromLedger, mode: port_mode, write_file: true });
   saveRun(run, cwd);
-  return { handoff: run.handoff, path: rel.replaceAll('\\', '/') };
+  return result;
 }
 
 export function writeDispatchSnapshot(runId, { cwd = process.cwd(), targets_hint = [] } = {}) {
@@ -391,7 +475,7 @@ export function writeDispatchSnapshot(runId, { cwd = process.cwd(), targets_hint
   fs.mkdirSync(abs, { recursive: true });
   const snapshot = { schema_version: 'jj-flow/dispatch-recommendation/1.0', snapshot_id: snapId, run_id: run.run_id, title: run.title, goal: run.goal, targets_hint, created_at: nowIso() };
   writeJson(path.join(abs, 'snapshot.json'), snapshot);
-  run.dispatch_recommendation = { snapshot_path: path.join(rel, 'snapshot.json').replaceAll('\\', '/'), targets_hint };
+  run.dispatch_recommendation = { snapshot_path: path.join(rel, 'snapshot.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)), targets_hint };
   run.artifact_refs.dispatch_snapshot_ref = run.dispatch_recommendation.snapshot_path;
   run.updated_at = nowIso();
   saveRun(run, cwd);
@@ -440,7 +524,7 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
   };
   const errors = validateReviewReport(report);
   if (errors.length) throw new Error('invalid review: ' + errors.join('; '));
-  const relPath = path.join('reviews', id + '.json').replaceAll('\\', '/');
+  const relPath = path.join('reviews', id + '.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   writeJson(path.join(runDir(runId, cwd), relPath), report);
   const entry = { review_id: id, path: relPath, outcome: report.outcome, reviewed_commit: report.reviewed_commit, task_thread_id: report.task_thread_id, review_thread_id: report.review_thread_id, recorded_at: report.recorded_at };
   const previous = run.review && typeof run.review === 'object' ? run.review : { latest_review_id: null, task_thread_id: null, reviews: [] };
@@ -458,7 +542,7 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
   line += nl;
   if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, line, 'utf8');
   else fs.writeFileSync(progressPath, '# Progress' + nl + nl + line, 'utf8');
-  return { run, report, path: path.join(RALPHS_DIR_REL, runId, relPath).replaceAll('\\', '/') };
+  return { run, report, path: path.join(RALPHS_DIR_REL, runId, relPath).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
 }
 
 
@@ -490,26 +574,29 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
       run.phase = 'ARCHIVE';
     }
   }
+  if ((gate === 'accept' || gate === 'archive') && shouldMaintainHandoff(run)) {
+    applyHandoffState(run, { cwd, write_file: true });
+  }
   run.updated_at = nowIso();
   saveRun(run, cwd);
-  return { run, gate, status, phase: run.phase };
+  return { run, gate, status, phase: run.phase, handoff: run.handoff || null };
 }
 
 export function commitPrep(runId, cwd = process.cwd()) {
   const run = loadRun(runId, cwd);
-  const base = path.join(RALPHS_DIR_REL, runId).replaceAll('\\', '/');
+  const base = path.join(RALPHS_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const files = [
-    path.join(base, 'run.json').replaceAll('\\', '/'),
-    path.join(base, run.artifact_refs.analyze).replaceAll('\\', '/'),
-    path.join(base, run.artifact_refs.plan).replaceAll('\\', '/'),
-    path.join(base, run.artifact_refs.progress).replaceAll('\\', '/'),
-    path.join(base, run.artifact_refs.acceptance).replaceAll('\\', '/')
+    path.join(base, 'run.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    path.join(base, run.artifact_refs.analyze).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    path.join(base, run.artifact_refs.plan).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    path.join(base, run.artifact_refs.progress).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    path.join(base, run.artifact_refs.acceptance).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
   ];
-  if (run.artifact_refs?.latest_review_ref) files.push(path.join(base, run.artifact_refs.latest_review_ref).replaceAll('\\', '/'));
-  if (Array.isArray(run.review?.reviews)) for (const item of run.review.reviews) if (item?.path) files.push(path.join(base, item.path).replaceAll('\\', '/'));
+  if (run.artifact_refs?.latest_review_ref) files.push(path.join(base, run.artifact_refs.latest_review_ref).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+  if (Array.isArray(run.review?.reviews)) for (const item of run.review.reviews) if (item?.path) files.push(path.join(base, item.path).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   if (run.handoff?.path) {
-    files.push(path.join(run.handoff.path, 'handoff.json').replaceAll('\\', '/'));
-    files.push(path.join(run.handoff.path, 'source.md').replaceAll('\\', '/'));
+    files.push(path.join(run.handoff.path, 'handoff.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+    files.push(path.join(run.handoff.path, 'source.md').replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   }
   if (run.artifact_refs?.dispatch_snapshot_ref) files.push(run.artifact_refs.dispatch_snapshot_ref);
   const uniqueFiles = unique(files);
@@ -546,12 +633,12 @@ export function renderRalphStatusText(payload) {
 export function getStatus({ runId, cwd = process.cwd() } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
-    return { run, path: path.relative(cwd, runDir(runId, cwd)).replaceAll('\\', '/') };
+    return { run, path: path.relative(cwd, runDir(runId, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
   }
   const runs = listRuns(cwd);
   const mapExists = fs.existsSync(mapPath(cwd));
   const map = mapExists ? loadMap(cwd) : createEmptyMap();
-  return { runs, map_path: mapExists ? RALPH_MAP_REL.replaceAll('\\', '/') : null, map_capabilities: map.capabilities.length };
+  return { runs, map_path: mapExists ? RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)) : null, map_capabilities: map.capabilities.length };
 }
 
 export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';

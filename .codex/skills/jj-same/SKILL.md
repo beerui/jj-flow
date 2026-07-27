@@ -1,11 +1,36 @@
 ---
 name: jj-same
-description: 基于用户给出的 Codex 会话 ID、需求文档、handoff snapshot、功能分支、commit 或 Git diff，在同源但已分叉的 A/B 项目之间首次迁移功能，或建立持续同步关系并按上次成功基线同步后续产品更新、需求增删、bug 修复和回退。用于需要按“稳健、剃刀、精准、最小化、复用”原则还原最终需求、复用共享交接语义、识别项目差异、排除 legacy 和无关改动、生成迁移矩阵，并按目标项目原生架构实施与验证时。
+description: 在同源分叉项目间迁移/同步功能。用户侧只说「交接到 兑接/承载」等自然语言；agent 从当前会话的 Ralph run/handoff 解析目标并实施。也可基于会话、commit、旧 handoff snapshot 工作。按稳健/剃刀/精准/最小化/复用适配目标原生架构。
 ---
 
 # 跨项目精准迁移
 
 同步需求不变量，不复制源项目文件。首次把 A 的功能迁到 B 时建立可验证基线；后续只处理 A 自上次成功同步后的有效增量，再按 B 的真实能力做最窄适配。
+
+## 用户怎么说（只认这个）
+
+用户不会填路径/sha/run_id。当前领头对话里常见说法：
+
+- `交接到 兑接`
+- `交接到 兑接 承载`
+- `开始交接`
+- `提交并交接三端`
+- `继续迁承载`
+
+Agent 必须自己从**当前会话**解析：领头 Ralph run、`handoff_ref`、目标角色、源 commit 是否稳定。
+不要要求用户提供 `交接=@...` / `from-ralph=...`。
+
+## Ralph handoff 优先
+
+1. 先找当前会话刚完成的 `RALPH-*/run.json` → `artifact_refs.handoff_ref`。
+2. 主入口：当前 run 的 `run.handoff`（精简）；镜像文件可选 `.../handoff/handoff.json`。
+3. `run.handoff.ready=true`：直接迁目标；**禁止**重做源分析。
+4. `ready=false` 且仅未提交：先提交源，刷新 handoff，再迁。
+5. 无 Ralph handoff 时再退回旧 snapshot / 会话证据路径。
+6. 默认 `port_profile.mode=LITE`（近同构小改）；明显 ADAPT/多文件/持续同步才 FULL。
+
+内部仍记录 `handoff_ref`；完成报告给人看的是「迁了谁、改了啥、下一步说什么」。
+
 
 ## 项目族
 

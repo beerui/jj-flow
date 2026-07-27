@@ -168,3 +168,7 @@ $jj-same
 - [`jj-dispatch`](command-jj-dispatch.html)：在独立控制项目中预览、派发和恢复跨项目任务。
 - [`jj` CLI](command-cli.html)：安装资产与本地调试输出。
 - [维护说明](maintenance.html)：维护 `jj-flow` 项目本身时运行 `npm run verify`。
+
+## 用户说法
+
+只说：`交接到 兑接` / `交接到 兑接 承载`。不要填 handoff 路径。优先用当前会话 Ralph run 的 `handoff/`。
