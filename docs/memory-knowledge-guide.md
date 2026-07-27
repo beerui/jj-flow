@@ -41,7 +41,7 @@
 
 ## 2. 顶层知识库是什么
 
-路径：`D:/a/knowledge`（随 [jj-portfolio](https://github.com/beerui/jj-portfolio) 版本化；当前 `kb-v0.4.0`）
+路径：`D:/a/knowledge`（随 [jj-portfolio](https://github.com/beerui/jj-portfolio) 版本化；当前 `kb-v0.6.0`）
 
 它是 **跨项目** 的知识与记忆管理系统：
 
@@ -296,6 +296,17 @@ ralph 验收 PASS
 ---
 
 ## 6. Web 管理端怎么用
+
+除表格/审核队列/项目板/记忆健康外，还有 **工程师** 视图：
+
+- 质量矩阵（A/B/C/D）
+- Thin / placeholder 项目决策（仅人工，不静默 promote）
+- Accuracy 门禁
+- 次日审核包与 engineer history
+
+CLI 等价：node kb.mjs engineer-dashboard --markdown 、 node kb.mjs engineer-loop。
+
+详见 portfolio 仓 knowledge/docs/usability-engineer.md。
 
 打开 http://127.0.0.1:8787 后：
 
