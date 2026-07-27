@@ -2,10 +2,15 @@
 
 ## Unreleased
 
-- Grok Host Adapter **Phase 1 契约扩展**：`host_ids` / `handle_kinds` / `host_profiles` 进入 host-action-contract；control-plane intent 支持 `handle_kind`（session handle 写入 `thread_id`）；`validateHostBindAttestation` fail-closed；新增 `tests/grok-host-contract.test.mjs` 与 harness attestation 反例。
-- 完成并归档 Phase 1 exec plan：`docs/exec-plans/completed/2026-07-27-grok-host-adapter.md`（契约扩展；不升 A2；Phase 2/3 另开）。
-- 新增 Grok Host Adapter 设计（Proposed）：Wave 2 可选第二宿主路径（session/worktree attestation），与 Codex 并列；skill 安装不推进 A2。
-- 真实 Host 验收里程碑改为支持 Codex / Grok 双路径；补充本地 `install-skill --platform grok` 使用说明边界。
+## 0.1.1-beta.29
+
+- 统一全局命名配置：新增 src/namingConfig.mjs，支持读取 D:/a/config/naming.json（schema_version: jj-flow/naming/1.0）。
+- jj-same 分支派生规则升级：以领头分支为模板，只替换项目 role；req_suffix / 开发者缩写不得擅自增减；role 从 D:/a/map.md 解析。
+- jj-ralph 新建 run 强制 RALPH-{kebab}-{YYYYMMDD}，archive 目录强制 YYYY-MM-DD-{kebab}；portable lib 同步 namingConfig.mjs。
+- Grok Host Adapter Phase 1 契约扩展：host_ids / handle_kinds / host_profiles 进入 host-action-contract；control-plane intent 支持 handle_kind；validateHostBindAttestation fail-closed；新增 tests/grok-host-contract.test.mjs 与 harness attestation 反例。
+- 完成并归档 Phase 1 exec plan：docs/exec-plans/completed/2026-07-27-grok-host-adapter.md（契约扩展；不升 A2；Phase 2/3 另开）。
+- 新增 Grok Host Adapter 设计（Proposed）：Wave 2 可选第二宿主路径，与 Codex 并列；skill 安装不推进 A2。
+- 真实 Host 验收里程碑改为支持 Codex / Grok 双路径；补充 install-skill --platform grok 使用说明边界。
 
 ## 0.1.1-beta.28
 
