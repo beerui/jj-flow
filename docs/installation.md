@@ -258,6 +258,8 @@ $jj-dispatch PREVIEW origin=B lead=C targets=A,B
 3. 未在 `~/.grok/config.toml` 的 `[skills] disabled` / `ignore` 中屏蔽 `jj-same`。
 4. 仓库根 `AGENTS.md` 会被 Grok 自动加载；它只做地图，不能替代 skill 正文。
 
+安装成功后即可用 `/jj-same`、`/jj-ralph` 等（A1）。**完整 DISPATCH Host 闭环与 A2 升级** 另见 [Grok Host Adapter](design-docs/grok-host-adapter.html) 与 [真实 Host 验收](milestones/real-host-acceptance.html)，与 skill 安装解耦。
+
 ### 为什么还保留 `jj` CLI
 
 `jj` CLI 只做安装和维护调试，例如生成结构化调度结果、跑项目自检测试。普通交付不要在终端运行 `jj-same`；应该在 Codex 中使用 `$jj-same`，在 Claude Code / Grok 中使用 `/jj-same`（或对应 skill）。

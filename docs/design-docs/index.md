@@ -17,6 +17,7 @@
 - [任务分配与反馈的轻量展示设计](task-assignment-ux.html)：以任务主标题驱动快速分配，隐藏文档正文和冗余过程输出。
 - [jj-ralph 单仓全流程闭环](jj-ralph.html)：需求分析 → 计划实施 → 验收归档；能力地图可检索；与 same/dispatch 通过 handoff/快照衔接。
 - [`/jj-evaluated` 真实工作流评估与泛化学习](jj-evaluated.html)：用真实项目 episode、trace、holdout 和 regression 评估承接/兑接/承载工作流，并在人工批准后演进 skill 与 recipe。
+- [Grok Host Adapter](grok-host-adapter.html)：把 Grok Build 定义为 Wave 2 可选第二宿主；session/worktree attestation 与 Codex 路径并列，skill 安装不推进 A2。
 
 复杂实施过程进入 [版本化执行计划](../exec-plans/index.html)，不写入 `AGENTS.md`、聊天或本机隐藏状态。
 

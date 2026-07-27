@@ -55,7 +55,7 @@ $jj-same
 - 已接受的长期决策：[ADR 索引](adr/index.html)
 - M6 已关闭：[M6 验收](milestones/m6-acceptance.html)
 - M7 半真实 Host 闭环已关闭：[M7 验收](milestones/m7-acceptance.html)
-- 真实 Codex App Host 仍为 PENDING：[真实 Host 验收](milestones/real-host-acceptance.html)（不得用半真实报告关闭；`max_unattended_level` 保持 A1）
+- 真实 Host 仍为 PENDING：[真实 Host 验收](milestones/real-host-acceptance.html)（Codex App 或 [Grok Host Adapter](design-docs/grok-host-adapter.html) 等价路径；不得用半真实报告关闭；`max_unattended_level` 保持 A1）
 - H5 持续熵清理已关闭：[H5 验收](milestones/h5-acceptance.html)；`harness:gc` 只读评分并输出维护候选，不自动修复
 - Harness 仓库侧收口已完成：[执行计划](exec-plans/completed/2026-07-18-harness-hardening.html)
 

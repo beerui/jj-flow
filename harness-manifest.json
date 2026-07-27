@@ -173,6 +173,11 @@
         "authority_for": ["real-codex-app-host-pending", "autonomy-upgrade-gate"]
       },
       {
+        "id": "grok-host-adapter-design",
+        "path": "docs/design-docs/grok-host-adapter.md",
+        "authority_for": ["grok-host-adapter-target-state", "multi-host-wave2"]
+      },
+      {
         "id": "host-trial-tests",
         "path": "tests/host-trial.test.mjs",
         "authority_for": ["host-trial-regression-evidence"]

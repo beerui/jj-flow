@@ -9,3 +9,6 @@ dist/
 site/
 .tmp/
 .plans
+# Local install targets (authoritative skills live in package .codex/skills)
+.grok/skills/
+.qoder/skills/

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- 新增 Grok Host Adapter 设计（Proposed）：Wave 2 可选第二宿主路径（session/worktree attestation），与 Codex 并列；skill 安装不推进 A2。
+- 真实 Host 验收里程碑改为支持 Codex / Grok 双路径；补充本地 `install-skill --platform grok` 使用说明边界。
+
 ## 0.1.1-beta.28
 
 - 新增 Grok 平台安装支持：`install-skill --platform grok` 将 skills 安装到 `~/.grok/skills/`（`GROK_HOME` 可覆盖）。

@@ -1,14 +1,20 @@
-# 真实 Codex App Host 验收（PENDING）
+# 真实 Host 验收（PENDING）
 
 > 状态：pending
 >
-> 范围：真实 Codex App project / worktree 上的 create_thread、绑定、sandbox attestation、中断恢复与 Review 返工
+> 范围：在 **已批准宿主** 上完成 create/bind、sandbox attestation、中断恢复与 Review 返工
+>
+> 可选宿主路径：
+> - **Codex App**（既有契约：thread + App sandbox）
+> - **Grok Build**（Proposed 映射：session + worktree attestation，见 [Grok Host Adapter](../design-docs/grok-host-adapter.html)）
 >
 > 关联：半真实证据见 [M7 验收](m7-acceptance.html) 与 `m7-host-trial.json`；Repository Harness 收口见 [Harness 收口计划](../exec-plans/completed/2026-07-18-harness-hardening.html)
 
 ## 目的
 
-把 **真实宿主** 联调与 **半真实 host trial** 永久分开。npm runtime 与 `npm run host:trial` 只能证明本地 Git worktree + 控制面 CAS 闭环；它们 **不能** 签发 Codex App runtime sandbox attestation，也 **不能** 把 `max_unattended_level` 从 `A1` 抬到 `A2`/`A3`。
+把 **真实宿主** 联调与 **半真实 host trial** 永久分开。npm runtime 与 `npm run host:trial` 只能证明本地 Git worktree + 控制面 CAS 闭环；它们 **不能** 签发真实宿主 runtime attestation，也 **不能** 把 `max_unattended_level` 从 `A1` 抬到 `A2`/`A3`。
+
+**任一** 已批准宿主路径达到本文门槛即可评估 A2；不要求 Codex 与 Grok 双满。skill 安装（含 `install-skill --platform grok`）只服务 A1 DX，不关闭本里程碑。
 
 ## 当前已证明（semi-real，非本里程碑）
 
@@ -22,20 +28,27 @@
 
 ## 本里程碑必须由宿主产生的证据
 
-在真实 Codex App project（或等价已批准 Host）中至少完整跑通一条 delivery，并落盘到 **versioned** 路径（建议 `docs/milestones/real-host-trial.json`，schema 可在联调时新增，不得复用 semi-real 的 `mode: "semi-real"` 常量）：
+在真实已批准 Host 中至少完整跑通一条 delivery，并落盘到 **versioned** 路径：
+
+| 路径 | 建议 evidence 文件 | `host_id` / 备注 |
+| --- | --- | --- |
+| Codex App | `docs/milestones/real-host-trial.json` | thread handle；App sandbox |
+| Grok Build | `docs/milestones/real-host-trial-grok.json` | session handle；见 Grok Host Adapter §5 |
+
+schema 可在联调时扩展，**不得** 复用 semi-real 的 `mode: "semi-real"` 常量。
 
 1. **Project / worktree 绑定**  
    - 控制面 `delivery_id`、目标 `project_id`、独占 worktree 路径  
-   - Host 返回的 project/thread 标识（非本地伪造）
+   - Host 返回的 project / **thread 或 session** 标识（非本地伪造）
 
 2. **Create / bind / resume**  
-   - 至少一次 `CREATE_THREAD`（或宿主等价动作）成功并写回 thread id  
-   - 至少一次创建结果不确定 → `RECONCILE_THREAD` → 唯一候选绑定，且 `duplicate_create_count = 0`
+   - 至少一次 create（`CREATE_THREAD` 或 Grok `CREATE_SESSION_TASK` / 等价）成功并写回 handle  
+   - 至少一次 create 结果不确定 → RECONCILE → 唯一候选绑定，且 `duplicate_create_count = 0`
 
 3. **Runtime sandbox attestation**  
-   - 由 **宿主** 签发的 sandbox / environment / agent 证明字段  
+   - 由 **宿主边界** 产生的 sandbox / environment / agent 证明字段（Codex App 签发，或 Grok 路径的可哈希绑定 evidence）  
    - 绑定到具体 `task_key` / intent，可在 receipt 或 control-plane 事件中追溯  
-   - 禁止用本地 runner 合成 attestation 冒充
+   - 禁止用本地 semi-real runner 或模型自述冒充
 
 4. **开发 → 验证 → Review → 返工**  
    - Developer 在批准快照下于独占 worktree 提交  
@@ -49,8 +62,9 @@
 ## 明确禁止
 
 - 用 `mode: "semi-real"` 或 `codex_app_threads: false` 的报告关闭本里程碑  
+- 用「已安装 `~/.grok/skills`」或仅跑通 same/ralph 关闭本里程碑  
 - 在未提交真实 attestation 证据时把 `max_unattended_level` 设为 `A2`/`A3`  
-- 让 Node.js 核心 runtime 直接调用 Codex App API 并伪造宿主身份  
+- 让 Node.js 核心 runtime 直接调用 Codex/Grok 私有 API 并伪造宿主身份  
 - 用聊天、memory、本机 `.workflow` 或未入库 JSON 推进 checkpoint
 
 ## 验收命令（宿主环境）
@@ -69,7 +83,7 @@ npm run host:trial   # 仅 semi-real 回归
 
 | 状态 | 含义 |
 | --- | --- |
-| `pending`（当前） | 无真实 Codex App 证据；无人值守上限保持 `A1` |
+| `pending`（当前） | 无真实宿主证据（Codex 或 Grok 路径皆未完成）；无人值守上限保持 `A1` |
 | `in_progress` | 联调进行中；证据草稿可进 PR，但不得升级 autonomy |
 | `completed` | 宿主证据入库、审查通过；才可评估 A2/A3 |
 | `blocked` | 宿主能力或权限不可用；记录阻塞原因 |
