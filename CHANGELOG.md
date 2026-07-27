@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- 新增 Grok 平台安装支持：`install-skill --platform grok` 将 skills 安装到 `~/.grok/skills/`（`GROK_HOME` 可覆盖）。
+- `--platform all` 现在同时安装 Codex、Claude Code、Qoder 和 Grok 四端资产；`--project` 支持 `./.grok/skills/`。
+- 安装文档补充 Grok skill 发现优先级、AGENTS.md 自动加载与真实 Host 边界说明。
+
 ## 0.1.1-beta.27
 
 - 新增 Qoder 平台安装支持：`install-skill --platform qoder` 将 skills 安装到 `~/.qoder/skills/`。

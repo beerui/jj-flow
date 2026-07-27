@@ -35,7 +35,13 @@ npx @shendu-sdt/jj-flow@beta install-skill
 npx @shendu-sdt/jj-flow@beta install-skill --platform claude
 ```
 
-当前项目同时安装两端资产：
+安装 Grok skills：
+
+```bash
+npx @shendu-sdt/jj-flow@beta install-skill --platform grok
+```
+
+当前项目同时安装全部平台资产（Codex / Claude / Qoder / Grok）：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
@@ -54,7 +60,7 @@ $jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=
 $jj-ralph 目标=登录后密码过期提醒 范围=仅登录成功路径 验收=提示可跳转改密
 ```
 
-Claude Code：
+Claude Code / Grok：
 
 ```text
 /jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台

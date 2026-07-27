@@ -80,6 +80,7 @@ gh run watch
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill
 npx @shendu-sdt/jj-flow@beta install-skill --platform claude
+npx @shendu-sdt/jj-flow@beta install-skill --platform grok
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 ```
 
