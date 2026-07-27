@@ -49,12 +49,13 @@ const NAV_GROUPS = [
       { title: 'jj-ralph 单仓闭环设计', source: 'docs/design-docs/jj-ralph.md', output: 'design-docs/jj-ralph.html' },
       { title: '/jj-evaluated 真实工作流评估', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html' },
       { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },
-      { title: 'Harness 收口计划', source: 'docs/exec-plans/active/2026-07-18-harness-hardening.md', output: 'exec-plans/active/2026-07-18-harness-hardening.html' },
+      { title: 'Harness 收口计划', source: 'docs/exec-plans/completed/2026-07-18-harness-hardening.md', output: 'exec-plans/completed/2026-07-18-harness-hardening.html' },
       { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },
       { title: '项目规划', source: 'docs/project-plan.md', output: 'project-plan.html' },
       { title: 'M6 验收', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },
       { title: 'M7 Host 闭环验收', source: 'docs/milestones/m7-acceptance.md', output: 'milestones/m7-acceptance.html' },
       { title: 'H5 持续熵清理验收', source: 'docs/milestones/h5-acceptance.md', output: 'milestones/h5-acceptance.html' },
+      { title: '真实 Codex App Host 验收', source: 'docs/milestones/real-host-acceptance.md', output: 'milestones/real-host-acceptance.html' },
       { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' },
       { title: 'ADR 0002', source: 'docs/adr/0002-project-family-control-plane.md', output: 'adr-0002-project-family-control-plane.html' }
     ]

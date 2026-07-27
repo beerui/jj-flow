@@ -168,6 +168,11 @@
         "authority_for": ["m7-acceptance-evidence", "host-trial-attention-cost"]
       },
       {
+        "id": "real-host-acceptance",
+        "path": "docs/milestones/real-host-acceptance.md",
+        "authority_for": ["real-codex-app-host-pending", "autonomy-upgrade-gate"]
+      },
+      {
         "id": "host-trial-tests",
         "path": "tests/host-trial.test.mjs",
         "authority_for": ["host-trial-regression-evidence"]
@@ -237,6 +242,10 @@
     {
       "source": "docs/index.md",
       "contains": "milestones/h5-acceptance.html"
+    },
+    {
+      "source": "docs/index.md",
+      "contains": "milestones/real-host-acceptance.html"
     },
     {
       "source": "docs/index.md",

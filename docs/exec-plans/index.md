@@ -11,8 +11,8 @@
 
 ## 活跃计划
 
-- [Harness Engineering 收口与真实 Host 路径](active/2026-07-18-harness-hardening.html)
+暂无。
 
 ## 已完成计划
 
-暂无。
+- [Harness Engineering 收口与真实 Host 路径](completed/2026-07-18-harness-hardening.html)（仓库侧收口完成；真实 Codex App Host 见 [PENDING 里程碑](../milestones/real-host-acceptance.html)）
