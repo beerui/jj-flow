@@ -10,6 +10,14 @@
 - **npm 发布只走 GitHub Actions `NPM Publish` 工作流**（`workflow_dispatch`，tag 通常为 `beta`）；不要用本地 `npm publish`（本机 token 非事实源，易 401/404）。推送版本 commit 到 `main` 后触发 Actions，确认 `run_verify=true` 通过后再发布。
 - 修改调度协议后至少运行 `node --test tests/jj-dispatch-contract.test.mjs`、`npm run verify` 和 `git diff --check`；修改 ralph 后至少运行 `tests/jj-ralph-contract.test.mjs`。
 
+## 核心路径
+
+`src/` 是本项目核心源码目录（控制面、调度运行时、CLI、验证逻辑均在此处）。对 `src/` 下文件的变更必须：
+
+1. 运行 `npm run verify`（含 lint + 全量测试）确认管线通过；
+2. 运行与变更相关的合约测试（如 `tests/jj-dispatch-contract.test.mjs`、`tests/jj-ralph-contract.test.mjs`）；
+3. 在 commit 或 PR 描述中注明受影响的合约测试结果。
+
 ## 任务规范
 1. Break down sessions into separate clear, actionable tasks. Don't try to "draw the owl" in one mega session.
 <!-- 将课程内容分解成一个个清晰、可执行的任务。不要试图在一次大型课程中“画出猫头鹰”。 -->

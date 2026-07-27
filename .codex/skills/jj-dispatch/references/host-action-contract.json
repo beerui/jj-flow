@@ -11,6 +11,79 @@
     "sandbox"
   ],
   "action_types": ["CREATE_THREAD", "RECONCILE_THREAD"],
+  "host_ids": ["codex-app", "grok-build"],
+  "handle_kinds": ["thread", "session"],
+  "host_profiles": {
+    "codex-app": {
+      "host_id": "codex-app",
+      "handle_kind": "thread",
+      "create_action": "CREATE_THREAD",
+      "reconcile_action": "RECONCILE_THREAD",
+      "required_capabilities": [
+        "list_projects",
+        "list_threads",
+        "create_thread",
+        "read_thread",
+        "send_message_to_thread",
+        "worktree",
+        "sandbox"
+      ],
+      "capability_equivalents": {
+        "list_projects": "Codex App project registry (projectId + path)",
+        "list_threads": "Codex App thread listing for the bound project",
+        "create_thread": "CREATE_THREAD against Codex App",
+        "read_thread": "read Codex thread messages / structured receipt",
+        "send_message_to_thread": "send distribution_prompt into Codex thread",
+        "worktree": "exclusive worktree bound at create/bind",
+        "sandbox": "App runtime sandbox attestation fields"
+      },
+      "attestation_required_fields": [
+        "host_id",
+        "handle_kind",
+        "thread_id",
+        "task_key",
+        "agent_name",
+        "sandbox_mode",
+        "effective_sandbox_mode",
+        "sandbox_evidence_ref"
+      ]
+    },
+    "grok-build": {
+      "host_id": "grok-build",
+      "handle_kind": "session",
+      "create_action": "CREATE_THREAD",
+      "reconcile_action": "RECONCILE_THREAD",
+      "required_capabilities": [
+        "list_projects",
+        "list_threads",
+        "create_thread",
+        "read_thread",
+        "send_message_to_thread",
+        "worktree",
+        "sandbox"
+      ],
+      "capability_equivalents": {
+        "list_projects": "control-project path + git identity registry",
+        "list_threads": "local/repo Grok session index or harness session metadata",
+        "create_thread": "CREATE_SESSION_TASK: declare/bind session for task_key",
+        "read_thread": "structured receipt or agreed artifact path for the session",
+        "send_message_to_thread": "inject distribution_prompt into the bound session with audit ref",
+        "worktree": "exclusive git worktree path 1:1 with task_key",
+        "sandbox": "bound attestation JSON (effective boundary), not model prose"
+      },
+      "attestation_required_fields": [
+        "host_id",
+        "handle_kind",
+        "thread_id",
+        "task_key",
+        "agent_name",
+        "sandbox_mode",
+        "effective_sandbox_mode",
+        "sandbox_evidence_ref"
+      ],
+      "evidence_must_declare": ["handle_kind=session"]
+    }
+  },
   "access_profiles": {
     "read": {
       "agent_name": "jj-workflow-reviewer",

@@ -183,6 +183,11 @@
         "authority_for": ["host-trial-regression-evidence"]
       },
       {
+        "id": "grok-host-contract-tests",
+        "path": "tests/grok-host-contract.test.mjs",
+        "authority_for": ["grok-host-phase1-contract", "multi-host-handle-kind"]
+      },
+      {
         "id": "harness-gc-runtime",
         "path": "src/harnessGc.mjs",
         "authority_for": ["entropy-scan", "quality-score"]

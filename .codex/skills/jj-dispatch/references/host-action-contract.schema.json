@@ -4,7 +4,19 @@
   "title": "jj-flow dispatch host action contract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "schema_version", "required_app_capabilities", "action_types", "access_profiles", "actions", "receipt_contract", "control_plane_contract"],
+  "required": [
+    "$schema",
+    "schema_version",
+    "required_app_capabilities",
+    "action_types",
+    "host_ids",
+    "handle_kinds",
+    "host_profiles",
+    "access_profiles",
+    "actions",
+    "receipt_contract",
+    "control_plane_contract"
+  ],
   "properties": {
     "$schema": { "const": "host-action-contract.schema.json" },
     "schema_version": { "const": "jj-flow/dispatch-host-action/1.0" },
@@ -19,6 +31,27 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": { "enum": ["CREATE_THREAD", "RECONCILE_THREAD"] }
+    },
+    "host_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["codex-app", "grok-build"] }
+    },
+    "handle_kinds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["thread", "session"] }
+    },
+    "host_profiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["codex-app", "grok-build"],
+      "properties": {
+        "codex-app": { "$ref": "#/$defs/host_profile" },
+        "grok-build": { "$ref": "#/$defs/host_profile" }
+      }
     },
     "access_profiles": {
       "type": "object",
@@ -75,6 +108,46 @@
         "mode": { "enum": ["read-only", "external-write"] },
         "required_capabilities": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "write_access_capabilities": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "host_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host_id",
+        "handle_kind",
+        "create_action",
+        "reconcile_action",
+        "required_capabilities",
+        "capability_equivalents",
+        "attestation_required_fields"
+      ],
+      "properties": {
+        "host_id": { "enum": ["codex-app", "grok-build"] },
+        "handle_kind": { "enum": ["thread", "session"] },
+        "create_action": { "enum": ["CREATE_THREAD"] },
+        "reconcile_action": { "enum": ["RECONCILE_THREAD"] },
+        "required_capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "capability_equivalents": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "attestation_required_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "evidence_must_declare": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
       }
     }
   }

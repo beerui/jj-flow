@@ -11,8 +11,9 @@
 
 ## 活跃计划
 
-暂无。
+（当前无）
 
 ## 已完成计划
 
+- [Grok Host Adapter Phase 1 — 契约扩展](completed/2026-07-27-grok-host-adapter.html)（契约与纯状态测试完成；Phase 2/3 与设计 Implemented 未启动）
 - [Harness Engineering 收口与真实 Host 路径](completed/2026-07-18-harness-hardening.html)（仓库侧收口完成；真实 Codex App Host 见 [PENDING 里程碑](../milestones/real-host-acceptance.html)）

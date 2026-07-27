@@ -130,7 +130,8 @@ intake 对象（`intake.status=REQUIRED` 时不可 PREVIEW 推进/批准）：
 
 绑定后的 intent 还必须记录：
 
-- `host_id`、`agent_name`
+- `host_id`（已批准：`codex-app` | `grok-build`；试验宿主可用其它 id）、`agent_name`
+- `handle_kind`（`thread` | `session`；Grok 必须 `session`，值写入 `thread_id` 字段）
 - 期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`
 - `environment`、`bound_at`
 

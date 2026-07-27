@@ -32,7 +32,7 @@ description: 在独立控制项目中做多项目族调度：确认 origin/requi
    -> PREVIEW（action=PREVIEW, status=PREVIEW_ONLY）
    -> 只读展示；不写 dispatch_intent；不 create_thread
 
-4. 已批准，但缺 REQUIRED_APP_CAPABILITIES
+4. 已批准，但缺 REQUIRED_APP_CAPABILITIES（或当前 Host 无法证明等价 capability）
    -> DISPATCH 拒绝（action=DISPATCH, ok=false, status=BLOCKED）
    -> plane 保持不变（delivery 可仍为 APPROVED）
    -> 不写 dispatch_intent；不 create_thread；不清空既有批准
@@ -40,6 +40,7 @@ description: 在独立控制项目中做多项目族调度：确认 origin/requi
 
 5. 已批准，且 capability / snapshot / active project 检查通过
    -> DISPATCH：先持久化 intent(PENDING_THREAD)，再 host CREATE_THREAD，再 BIND_THREAD
+   -> 已批准 Host 可为 Codex App（thread）或 Grok Build（session）；见 host-action-contract host_profiles
 
 6. 有 receipt 或需推进已绑定任务
    -> tick/resume（jj dispatch-tick；写盘 CAS，revision 冲突返回 REVISION_CONFLICT）
@@ -140,19 +141,21 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 
 ### `BIND_THREAD`
 
-把已创建 Codex thread 绑到稳定 `task_key`。thread 停止、标题变化或回复“完成”都不是交付证据；必须消费结构化回执、commit、目标测试与 Review 结果。
+把已创建宿主执行身份绑到稳定 `task_key`。handle 停止、标题变化或回复“完成”都不是交付证据；必须消费结构化回执、commit、目标测试与 Review 结果。
 
-绑定必须记录：`host_id`、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。TOML 默认配置不能证明 effective sandbox；拿不到 runtime attestation 必须拒绝绑定。`access=read` 只用 `jj-workflow-reviewer` / `read-only` / `project-read`，不得绑 worktree。
+绑定必须记录：`host_id`、`handle_kind`（`thread` | `session`）、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。`thread_id` 字段存外部 handle 值（Codex thread 或 Grok session）。TOML / skill 默认配置不能证明 effective sandbox；拿不到 runtime attestation 必须拒绝绑定。`access=read` 只用 `jj-workflow-reviewer` / `read-only` / `project-read`，不得绑 worktree。
+
+Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-real host trial 或模型自述冒充 attestation。设计见仓库 `docs/design-docs/grok-host-adapter.md`。
 
 ## Host 执行顺序
 
-allowlist、required capabilities、access profile、receipt 枚举以 [host-action-contract.json](references/host-action-contract.json) 为准；runtime / schema / fixtures 与 skill 须经 `npm run harness:check` 对齐。当前 runtime 只允许输出 `CREATE_THREAD` 与 `RECONCILE_THREAD`。
+allowlist、required capabilities、access profile、receipt 枚举、`host_ids` / `handle_kinds` / `host_profiles` 以 [host-action-contract.json](references/host-action-contract.json) 为准；runtime / schema / fixtures 与 skill 须经 `npm run harness:check` 对齐。当前 runtime 只允许输出 `CREATE_THREAD` 与 `RECONCILE_THREAD`（按 `host_id` 分流实现，不伪造 Codex API）。
 
-1. `list_projects` 解析注册项目的 Codex `projectId`；路径、Git identity、`projectId` 分记。
+1. `list_projects` 解析注册项目（Codex `projectId` 或控制项目 path + git identity）；路径、Git identity、宿主项目标识分记。
 2. 通过 DISPATCH 前置检查后，写入/复用 `dispatch_intents`。
-3. `create_thread`（写责任带独占 worktree；只读责任消费已提交 commit）。
+3. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任带独占 worktree；只读责任消费已提交 commit。
 4. 立即 `BIND_THREAD`；写回失败 → `UNKNOWN`，禁止直接再 create。
-5. `list_threads` / `read_thread` / `send_message_to_thread` 监控与补上下文；自然语言“完成”不能替代 receipt。
+5. `list_threads` / `read_thread` / `send_message_to_thread` 监控与补上下文（Grok 用 session 元数据 / 约定 artifact 等价证明）；自然语言“完成”不能替代 receipt。
 6. `jj dispatch-tick` 消费 receipt，按 `expected_revision` CAS，输出 `actions` / `decision_required` / `next_wait`；对仍为 `PENDING_THREAD` 的 intent 重放 `CREATE_THREAD`。`--write` 文件级 CAS；冲突 → `REVISION_CONFLICT` 且不覆盖。
 
 ### 分发载荷（非 host 步骤）
@@ -242,6 +245,7 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 - 不实现常驻 daemon、数据库或完整多智能体执行引擎
 - 不自动 checkout、merge、push、release
 - 不因 thread 停止或模型文字回复推进检查点
-- 不新增 Claude `/jj-dispatch`；首版只提供 Codex 调度入口
+- 不新增 Claude `/jj-dispatch`；调度入口以已安装 skill 与已批准 Host 为准（Codex App 或 Grok Build 等价路径）
 - 不把控制项目变成业务源项目；业务产物仍归属实际 `requirement_owner` 或目标项目
 - 不在 capability 失败时伪造 host API、写 intent 或“降级为 projectless 任务”
+- 不把 skill 安装或半真实 `host:trial` 当作真实 Host 验收或 A2 升级

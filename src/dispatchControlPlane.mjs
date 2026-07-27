@@ -1,10 +1,25 @@
 /**
- * Pure control-plane protocol for the Codex-only $jj-dispatch skill.
+ * Pure control-plane protocol for the $jj-dispatch skill.
  *
- * This module deliberately does not create threads, switch repositories, or
- * run a daemon. The Codex App host owns those capabilities; this module keeps
- * the durable state transitions deterministic and recoverable.
+ * This module deliberately does not create threads/sessions, switch
+ * repositories, or run a daemon. Approved hosts (Codex App or Grok Build)
+ * own those capabilities; this module keeps durable state transitions
+ * deterministic and recoverable. Host branching uses host_id + handle_kind.
  */
+
+import {
+  HANDLE_KINDS,
+  resolveHandleKind,
+  validateHostBindAttestation
+} from './dispatchHostContract.mjs';
+
+export {
+  HANDLE_KINDS,
+  HOST_IDS,
+  HOST_PROFILES,
+  resolveHandleKind,
+  validateHostBindAttestation
+} from './dispatchHostContract.mjs';
 
 export const CONTROL_PLANE_SCHEMA_VERSION = 'jj-flow/control-plane/1.0';
 
@@ -752,6 +767,7 @@ export function dispatchTasks(plane, deliveryId, {
       status: 'PENDING_THREAD',
       created_at: now,
       thread_id: null,
+      handle_kind: null,
       host_id: hostId,
       worktree: null,
       agent_name: agentNameForTask(task),
@@ -877,7 +893,8 @@ export function bindThread(plane, {
   environment,
   effectiveSandboxMode,
   sandboxEvidenceRef,
-  worktree = null
+  worktree = null,
+  handleKind = null
 } = {}) {
   requireNonEmptyString(threadId, 'threadId');
   requireNonEmptyString(projectId, 'projectId');
@@ -926,6 +943,35 @@ export function bindThread(plane, {
   if (found.intent.access === 'write' && !isNonEmptyString(worktree)) {
     throw new Error(`write task ${taskKey} requires worktree`);
   }
+
+  let resolvedHandleKind;
+  try {
+    resolvedHandleKind = resolveHandleKind(hostId, handleKind ?? found.intent.handle_kind ?? null);
+  } catch (error) {
+    throw new Error(`task ${taskKey} ${error.message}`);
+  }
+  if (found.intent.handle_kind
+    && found.intent.handle_kind !== resolvedHandleKind
+    && found.intent.status === 'BOUND') {
+    throw new Error(`task ${taskKey} is already bound with handle_kind=${found.intent.handle_kind}`);
+  }
+
+  const attestation = validateHostBindAttestation({
+    host_id: hostId,
+    handle_kind: resolvedHandleKind,
+    thread_id: threadId,
+    task_key: taskKey,
+    agent_name: agentName,
+    sandbox_mode: sandboxMode,
+    effective_sandbox_mode: effectiveSandboxMode,
+    sandbox_evidence_ref: sandboxEvidenceRef,
+    worktree,
+    access: found.intent.access
+  });
+  if (!attestation.ok) {
+    throw new Error(`task ${taskKey} bind attestation failed: ${attestation.errors.join('; ')}`);
+  }
+
   for (const delivery of Array.isArray(next.deliveries) ? next.deliveries : []) {
     for (const intent of Array.isArray(delivery?.dispatch_intents) ? delivery.dispatch_intents : []) {
       if (intent.task_key !== taskKey && intent.thread_id === threadId) {
@@ -949,6 +995,7 @@ export function bindThread(plane, {
   }
   found.intent.status = 'BOUND';
   found.intent.thread_id = threadId;
+  found.intent.handle_kind = resolvedHandleKind;
   found.intent.host_id = hostId;
   found.intent.agent_name = agentName;
   found.intent.sandbox_mode = sandboxMode;
@@ -967,7 +1014,14 @@ export function bindThread(plane, {
   if (target) target.status = 'RUNNING';
   refreshDeliveryStatus(found.delivery);
   next.revision += 1;
-  appendEvent(next, 'THREAD_BOUND', { task_key: taskKey, thread_id: threadId, host_id: hostId, agent_name: agentName, sandbox_mode: sandboxMode });
+  appendEvent(next, 'THREAD_BOUND', {
+    task_key: taskKey,
+    thread_id: threadId,
+    handle_kind: resolvedHandleKind,
+    host_id: hostId,
+    agent_name: agentName,
+    sandbox_mode: sandboxMode
+  });
   const outputValidation = validateControlPlane(next);
   if (!outputValidation.ok) {
     throw new Error(`thread binding produced an invalid control plane: ${outputValidation.errors.join('; ')}`);
@@ -993,23 +1047,46 @@ export function reconcileDispatch(plane, { taskKey, candidates = [] } = {}) {
     return { ok: true, status: found.intent.status, action: 'RECONCILE', plane: clone(plane), reason: '任务不处于 UNKNOWN，无需重新创建。' };
   }
 
-  const matches = (Array.isArray(candidates) ? candidates : []).filter((candidate) => (
-    candidate
-    && typeof candidate === 'object'
-    && candidate.task_key === taskKey
-    && candidate.thread_id
-    && candidate.project_id === found.intent.project_id
-    && isNonEmptyString(candidate.thread_id)
-    && isNonEmptyString(candidate.host_id)
-    && candidate.host_id
-    && candidate.agent_name === agentNameForTask(found.intent)
-    && candidate.sandbox_mode === sandboxModeForAccess(found.intent.access)
-    && candidate.environment === environmentForAccess(found.intent.access)
-    && candidate.effective_sandbox_mode === sandboxModeForAccess(found.intent.access)
-    && isNonEmptyString(candidate.sandbox_evidence_ref)
-    && (found.intent.access !== 'read' || !candidate.worktree)
-    && (found.intent.access !== 'write' || candidate.worktree)
-  ));
+  const matches = (Array.isArray(candidates) ? candidates : []).filter((candidate) => {
+    if (!(
+      candidate
+      && typeof candidate === 'object'
+      && candidate.task_key === taskKey
+      && candidate.thread_id
+      && candidate.project_id === found.intent.project_id
+      && isNonEmptyString(candidate.thread_id)
+      && isNonEmptyString(candidate.host_id)
+      && candidate.host_id
+      && candidate.agent_name === agentNameForTask(found.intent)
+      && candidate.sandbox_mode === sandboxModeForAccess(found.intent.access)
+      && candidate.environment === environmentForAccess(found.intent.access)
+      && candidate.effective_sandbox_mode === sandboxModeForAccess(found.intent.access)
+      && isNonEmptyString(candidate.sandbox_evidence_ref)
+      && (found.intent.access !== 'read' || !candidate.worktree)
+      && (found.intent.access !== 'write' || candidate.worktree)
+    )) {
+      return false;
+    }
+    try {
+      resolveHandleKind(candidate.host_id, candidate.handle_kind ?? null);
+      return validateHostBindAttestation({
+        host_id: candidate.host_id,
+        handle_kind: candidate.handle_kind ?? null,
+        thread_id: candidate.thread_id,
+        task_key: taskKey,
+        agent_name: candidate.agent_name,
+        sandbox_mode: candidate.sandbox_mode,
+        effective_sandbox_mode: candidate.effective_sandbox_mode,
+        sandbox_evidence_ref: candidate.sandbox_evidence_ref,
+        worktree: candidate.worktree || null,
+        access: found.intent.access,
+        mode: candidate.mode,
+        codex_app_threads: candidate.codex_app_threads
+      }).ok;
+    } catch {
+      return false;
+    }
+  });
   if (matches.length !== 1) {
     return {
       ok: false,
@@ -1041,7 +1118,8 @@ export function reconcileDispatch(plane, { taskKey, candidates = [] } = {}) {
         environment: matches[0].environment,
         effectiveSandboxMode: matches[0].effective_sandbox_mode,
         sandboxEvidenceRef: matches[0].sandbox_evidence_ref,
-        worktree: matches[0].worktree || null
+        worktree: matches[0].worktree || null,
+        handleKind: matches[0].handle_kind ?? null
       }),
       reason: '已按唯一候选线程恢复绑定。'
     };
@@ -2242,17 +2320,20 @@ function validateIntentResult(intent, responsibility, delivery, errors) {
 
 function validateIntentBinding(intent, errors) {
   const context = `task ${intent.task_key}`;
-  for (const field of ['thread_id', 'host_id', 'worktree', 'bound_at', 'effective_sandbox_mode', 'sandbox_evidence_ref']) {
+  for (const field of ['thread_id', 'host_id', 'handle_kind', 'worktree', 'bound_at', 'effective_sandbox_mode', 'sandbox_evidence_ref']) {
     const value = intent[field];
     if (value !== undefined && value !== null && typeof value !== 'string') {
       errors.push(`${context} ${field} must be a string or null`);
     }
   }
+  if (intent.handle_kind !== undefined && intent.handle_kind !== null && !HANDLE_KINDS.includes(intent.handle_kind)) {
+    errors.push(`${context} handle_kind must be one of ${HANDLE_KINDS.join(', ')}`);
+  }
   if (intent.bound_at !== undefined && intent.bound_at !== null && !isDateTime(intent.bound_at)) {
     errors.push(`${context} bound_at must be a date-time`);
   }
   if (['PENDING_THREAD', 'UNKNOWN', 'SKIPPED'].includes(intent.status)) {
-    for (const field of ['thread_id', 'worktree', 'bound_at', 'effective_sandbox_mode', 'sandbox_evidence_ref']) {
+    for (const field of ['thread_id', 'handle_kind', 'worktree', 'bound_at', 'effective_sandbox_mode', 'sandbox_evidence_ref']) {
       if (intent[field] !== undefined && intent[field] !== null && intent[field] !== '') {
         errors.push(`${context} ${field} must be null before binding`);
       }
@@ -2264,6 +2345,27 @@ function validateIntentBinding(intent, errors) {
   if (!requiresBoundRuntime) return;
   if (!isNonEmptyString(intent.thread_id)) errors.push(`bound task ${intent.task_key} requires thread_id`);
   if (!isNonEmptyString(intent.host_id)) errors.push(`bound task ${intent.task_key} requires host_id`);
+  if (isNonEmptyString(intent.handle_kind)) {
+    try {
+      const expectedKind = resolveHandleKind(intent.host_id, intent.handle_kind);
+      if (intent.handle_kind !== expectedKind) {
+        errors.push(`bound task ${intent.task_key} requires handle_kind=${expectedKind}`);
+      }
+    } catch (error) {
+      errors.push(`bound task ${intent.task_key} ${error.message}`);
+    }
+  } else {
+    // Legacy bound intents without handle_kind default to thread for unknown hosts.
+    // Approved session hosts (grok-build) must declare handle_kind=session.
+    try {
+      const expectedKind = resolveHandleKind(intent.host_id, null);
+      if (expectedKind === 'session') {
+        errors.push(`bound task ${intent.task_key} requires handle_kind=session for host ${intent.host_id}`);
+      }
+    } catch (error) {
+      errors.push(`bound task ${intent.task_key} ${error.message}`);
+    }
+  }
   if (!isDateTime(intent.bound_at)) errors.push(`bound task ${intent.task_key} requires a date-time bound_at`);
   const expectedSandbox = sandboxModeForAccess(intent.access);
   if (intent.effective_sandbox_mode !== expectedSandbox) {
@@ -2277,6 +2379,25 @@ function validateIntentBinding(intent, errors) {
   }
   if (intent.access === 'read' && intent.worktree) {
     errors.push(`read task ${intent.task_key} cannot bind a worktree`);
+  }
+  if (['BOUND', 'COMPLETED'].includes(intent.status) || (intent.status === 'BLOCKED' && isNonEmptyString(intent.thread_id))) {
+    const attestation = validateHostBindAttestation({
+      host_id: intent.host_id,
+      handle_kind: intent.handle_kind,
+      thread_id: intent.thread_id,
+      task_key: intent.task_key,
+      agent_name: intent.agent_name,
+      sandbox_mode: intent.sandbox_mode,
+      effective_sandbox_mode: intent.effective_sandbox_mode,
+      sandbox_evidence_ref: intent.sandbox_evidence_ref,
+      worktree: intent.worktree,
+      access: intent.access
+    });
+    if (!attestation.ok) {
+      for (const error of attestation.errors) {
+        errors.push(`bound task ${intent.task_key} ${error}`);
+      }
+    }
   }
 }
 

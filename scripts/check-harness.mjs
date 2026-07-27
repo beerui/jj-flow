@@ -11,12 +11,16 @@ import {
 } from '../src/dispatchControlPlane.mjs';
 import {
   describeHostAction,
+  HANDLE_KINDS,
   HOST_ACCESS_PROFILES,
   HOST_ACTION_POLICIES,
   HOST_ACTION_SCHEMA_VERSION,
   HOST_ACTION_TYPES,
+  HOST_IDS,
+  HOST_PROFILES,
   RECEIPT_KINDS,
-  RECEIPT_STATUSES
+  RECEIPT_STATUSES,
+  validateHostBindAttestation
 } from '../src/dispatchHostContract.mjs';
 import { TRACE_SCHEMA_VERSION } from '../src/dispatchTrace.mjs';
 import { SCENARIO_IDS, SCENARIO_REPORT_VERSION } from '../src/scenarioRunner.mjs';
@@ -624,6 +628,9 @@ function checkDispatchProtocolContract({ cwd, protocol, addFinding, stats }) {
   checkEqual(contract.schema_version, HOST_ACTION_SCHEMA_VERSION, paths.contract, 'host action schema version', addFinding);
   checkArrayParity(contract.required_app_capabilities, REQUIRED_APP_CAPABILITIES, paths.contract, 'required app capabilities', addFinding);
   checkArrayParity(contract.action_types, HOST_ACTION_TYPES, paths.contract, 'host action types', addFinding);
+  checkArrayParity(contract.host_ids, HOST_IDS, paths.contract, 'host ids', addFinding);
+  checkArrayParity(contract.handle_kinds, HANDLE_KINDS, paths.contract, 'handle kinds', addFinding);
+  checkEqual(contract.host_profiles, HOST_PROFILES, paths.contract, 'host profiles', addFinding);
   checkArrayParity(contract.receipt_contract?.kinds, RECEIPT_KINDS, paths.contract, 'receipt kinds', addFinding);
   checkArrayParity(contract.receipt_contract?.statuses, RECEIPT_STATUSES, paths.contract, 'receipt statuses', addFinding);
   checkArrayParity(contract.receipt_contract?.review_outcomes, REVIEW_OUTCOMES, paths.contract, 'review outcomes', addFinding);
@@ -649,10 +656,13 @@ function checkDispatchProtocolContract({ cwd, protocol, addFinding, stats }) {
     write_access_capabilities: item.write_access_capabilities
   }]));
   checkEqual(contractPolicies, HOST_ACTION_POLICIES, paths.contract, 'host action policies', addFinding);
+  checkHostAttestationInvariants(addFinding, paths.contract);
 
   if (contractSchema) {
     checkEqual(contractSchema.properties?.schema_version?.const, HOST_ACTION_SCHEMA_VERSION, paths.schema, 'contract schema version', addFinding);
     checkArrayParity(contractSchema.properties?.action_types?.items?.enum, HOST_ACTION_TYPES, paths.schema, 'contract schema action types', addFinding);
+    checkArrayParity(contractSchema.properties?.host_ids?.items?.enum, HOST_IDS, paths.schema, 'contract schema host ids', addFinding);
+    checkArrayParity(contractSchema.properties?.handle_kinds?.items?.enum, HANDLE_KINDS, paths.schema, 'contract schema handle kinds', addFinding);
     checkArrayParity(contractSchema.properties?.receipt_contract?.properties?.kinds?.items?.enum, RECEIPT_KINDS, paths.schema, 'contract schema receipt kinds', addFinding);
     checkArrayParity(contractSchema.properties?.receipt_contract?.properties?.statuses?.items?.enum, RECEIPT_STATUSES, paths.schema, 'contract schema receipt statuses', addFinding);
     checkArrayParity(contractSchema.properties?.receipt_contract?.properties?.review_outcomes?.items?.enum, REVIEW_OUTCOMES, paths.schema, 'contract schema review outcomes', addFinding);
@@ -664,6 +674,7 @@ function checkDispatchProtocolContract({ cwd, protocol, addFinding, stats }) {
     checkArrayParity(controlPlaneSchema.$defs?.target_analysis?.properties?.decision?.enum, TARGET_DIFFERENCE_DECISIONS, paths.control_plane_schema, 'control-plane target decisions', addFinding);
     checkArrayParity(controlPlaneSchema.$defs?.review_finding?.properties?.status?.enum, REVIEW_FINDING_STATUSES, paths.control_plane_schema, 'control-plane review finding statuses', addFinding);
     checkArrayParity(controlPlaneSchema.$defs?.review?.properties?.outcome?.enum, REVIEW_OUTCOMES, paths.control_plane_schema, 'control-plane review outcomes', addFinding);
+    checkArrayParity(controlPlaneSchema.$defs?.intent?.properties?.handle_kind?.enum, [...HANDLE_KINDS, null], paths.control_plane_schema, 'control-plane handle_kind', addFinding);
   }
 
   if (receiptSchema) {
@@ -912,6 +923,93 @@ function parseWorkflowPermissions(source) {
     permissions[entry[1]] = entry[2];
   }
   return permissions;
+}
+
+function checkHostAttestationInvariants(addFinding, contractPath) {
+  const missingEvidence = validateHostBindAttestation({
+    host_id: 'grok-build',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: null,
+    worktree: '/tmp/wt',
+    access: 'write'
+  });
+  if (missingEvidence.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-001',
+      contractPath,
+      '缺 sandbox_evidence_ref 的 Grok 绑定被错误通过。',
+      'validateHostBindAttestation 必须 fail-closed。'
+    );
+  }
+
+  const semiRealAsGrok = validateHostBindAttestation({
+    host_id: 'grok-build',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:semi-real:fake',
+    worktree: '/tmp/wt',
+    access: 'write',
+    mode: 'semi-real'
+  });
+  if (semiRealAsGrok.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-002',
+      contractPath,
+      'semi-real 证据被错误接受为 Grok 真实 attestation。',
+      '禁止 mode=semi-real 或 semi-real evidence ref 关闭 Grok 路径。'
+    );
+  }
+
+  const wrongKind = validateHostBindAttestation({
+    host_id: 'grok-build',
+    handle_kind: 'thread',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:GROK:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write'
+  });
+  if (wrongKind.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-003',
+      contractPath,
+      'grok-build + handle_kind=thread 被错误通过。',
+      'Grok 路径必须强制 handle_kind=session。'
+    );
+  }
+
+  const validGrok = validateHostBindAttestation({
+    host_id: 'grok-build',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:GROK:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write'
+  });
+  if (!validGrok.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-004',
+      contractPath,
+      `合法 Grok attestation 被拒绝：${validGrok.errors.join('; ')}`,
+      '修复 validateHostBindAttestation 正向路径。'
+    );
+  }
 }
 
 function checkHostActionFixture(fixture, fixturePath, addFinding) {

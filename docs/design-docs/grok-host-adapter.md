@@ -104,7 +104,7 @@ Grok 无 Codex App 的 project/thread 面。若强行「假装有 thread」，�
 | 写任务角色 | developer + exclusive worktree | 独占 git worktree + write 工具允许写入该路径 |
 | Attestation | App runtime sandbox 字段 | **绑定记录**（见 §5），禁止纯自然语言 |
 
-`dispatch_intent` 已有字段尽量复用：`host_id`、`agent_name`、`sandbox_mode`、`effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。  
+`dispatch_intent` 已有字段尽量复用：`host_id`、`agent_name`、`sandbox_mode`、`effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。
 Grok 路径可把 `thread_id` 语义扩展为 **`external_handle`**（schema 演进时：`thread_id` 兼容别名或 `handle.kind=session|thread`）。首版实现可暂时把 `session_id` 写入现有 `thread_id` 字段并强制 `host_id=grok-build`，但必须在 evidence 中声明 `handle_kind=session`。
 
 ### 4.2 Capability 对照（语义等价，非 API 同名）
@@ -138,28 +138,28 @@ MVP 也可 **复用** `CREATE_THREAD` / `RECONCILE_THREAD` 类型名，仅靠 `h
 
 绑定写盘时必须同时满足：
 
-1. **Identity**  
-   - `host_id=grok-build`  
-   - `session_id`（或 external_handle）  
-   - `task_key`  
+1. **Identity**
+   - `host_id=grok-build`
+   - `session_id`（或 external_handle）
+   - `task_key`
    - `agent_name` 或 skill name（reviewer vs developer）
 
-2. **Filesystem / Git**  
-   - 写任务：`worktree_path` 存在、为 git worktree、与注册 project 的 main worktree 不同路径  
-   - `HEAD` 或 base commit 记录在 bind 时刻  
+2. **Filesystem / Git**
+   - 写任务：`worktree_path` 存在、为 git worktree、与注册 project 的 main worktree 不同路径
+   - `HEAD` 或 base commit 记录在 bind 时刻
    - 读任务：`worktree_policy=forbidden`，不得绑定可写 worktree
 
-3. **Permission boundary**  
-   - 记录期望 `sandbox_mode`：`read-only` | `workspace-write`  
-   - 记录 **effective** 边界来源（例如：Grok capability mode、trusted folder、是否允许 shell 写仓库外）  
+3. **Permission boundary**
+   - 记录期望 `sandbox_mode`：`read-only` | `workspace-write`
+   - 记录 **effective** 边界来源（例如：Grok capability mode、trusted folder、是否允许 shell 写仓库外）
    - 拿不到 effective 边界 → **拒绝 BIND**（与 Codex「TOML 默认不能当证明」一致）
 
-4. **Evidence ref**  
-   - `sandbox_evidence_ref` 指向 versioned 或 CAS 管理的 JSON（控制项目 artifact），含上述字段的 hash  
+4. **Evidence ref**
+   - `sandbox_evidence_ref` 指向 versioned 或 CAS 管理的 JSON（控制项目 artifact），含上述字段的 hash
    - 禁止仅用聊天句「已在 sandbox 中」推进
 
-5. **Non-goals of attestation**  
-   - 不声称跨机器可移植，除非 evidence 含可复现定位信息  
+5. **Non-goals of attestation**
+   - 不声称跨机器可移植，除非 evidence 含可复现定位信息
    - 不把 subagent 临时 id 当作 delivery 级身份，除非它被 bind 为该 task_key 的唯一 handle 且可 RECONCILE
 
 ## 6. 控制流（Grok 路径）
@@ -172,13 +172,13 @@ INTAKE → PREVIEW → APPROVE → DISPATCH → tick/resume → receipts → VER
 
 Grok 分流点仅在 host 执行：
 
-1. DISPATCH 前置检查通过后，intent → `PENDING_THREAD`（状态名可保留；语义=等待宿主绑定）。  
-2. Adapter 执行 `CREATE_SESSION_TASK`：  
-   - 写责任：创建独占 worktree，准备 developer 上下文 + `distribution_prompt`  
-   - 读责任：只读上下文，无 worktree  
-3. 立即 BIND：写入 session handle + attestation；失败 → `UNKNOWN`。  
-4. `UNKNOWN` 只允许 `RECONCILE_SESSION` 或人工 BIND；禁止同 `task_key` 再 create。  
-5. 子任务完成 → 结构化 receipt（`TASK_RESULT` / `REVIEW_RESULT`）→ `jj dispatch-tick --write` CAS。  
+1. DISPATCH 前置检查通过后，intent → `PENDING_THREAD`（状态名可保留；语义=等待宿主绑定）。
+2. Adapter 执行 `CREATE_SESSION_TASK`：
+   - 写责任：创建独占 worktree，准备 developer 上下文 + `distribution_prompt`
+   - 读责任：只读上下文，无 worktree
+3. 立即 BIND：写入 session handle + attestation；失败 → `UNKNOWN`。
+4. `UNKNOWN` 只允许 `RECONCILE_SESSION` 或人工 BIND；禁止同 `task_key` 再 create。
+5. 子任务完成 → 结构化 receipt（`TASK_RESULT` / `REVIEW_RESULT`）→ `jj dispatch-tick --write` CAS。
 6. Review `NEEDS_CHANGES` → `requestRework` 与 Codex 相同。
 
 ## 7. 与 skill 安装的关系
@@ -205,55 +205,55 @@ grok
 
 ### Phase 0 — 文档与门禁（本文）
 
-- [x] Proposed 设计入库并索引  
-- [ ] `real-host-acceptance` 注明 Codex / Grok 双路径  
-- [ ] skill 文案：「Codex-only」改为「dispatch 需已批准 Host；Grok 路径见本设计」
+- [x] Proposed 设计入库并索引
+- [x] `real-host-acceptance` 注明 Codex / Grok 双路径
+- [x] skill 文案：「Codex-only」改为「dispatch 需已批准 Host；Grok 路径见本设计」
 
 ### Phase 1 — 契约扩展
 
-- [ ] host-action-contract：`host_id` 枚举、`handle_kind`、Grok capabilities 映射  
-- [ ] control-plane / receipt 字段兼容 session handle  
-- [ ] harness-check 反例：缺 attestation 不得 PASS 假证据  
-- [ ] 合约测试：`tests/*host*` 或新增 `tests/grok-host-contract.test.mjs`（纯状态，无网络）
+- [x] host-action-contract：`host_id` 枚举、`handle_kind`、Grok capabilities 映射
+- [x] control-plane / receipt 字段兼容 session handle（`thread_id` 存 handle 值 + `handle_kind`）
+- [x] harness-check 反例：缺 attestation 不得 PASS 假证据
+- [x] 合约测试：`tests/grok-host-contract.test.mjs`（纯状态，无网络）
 
 ### Phase 2 — Adapter 实现（宿主边界）
 
-- [ ] 控制项目侧：项目注册表（path + git identity）  
-- [ ] create/bind/reconcile 的可脚本化步骤（优先 CLI + 约定 artifact，少依赖私有 API）  
-- [ ] worktree 生命周期：创建、绑定、清理策略（失败不删证据）  
+- [ ] 控制项目侧：项目注册表（path + git identity）
+- [ ] create/bind/reconcile 的可脚本化步骤（优先 CLI + 约定 artifact，少依赖私有 API）
+- [ ] worktree 生命周期：创建、绑定、清理策略（失败不删证据）
 - [ ] doctor：检测 `grok` 可执行文件与 skill 安装，**不** 因此报告 A2
 
 ### Phase 3 — 真实试跑与验收
 
-- [ ] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）  
-- [ ] 写入 `docs/milestones/real-host-trial-grok.json`（或统一 schema 多 host）  
-- [ ] 更新 `real-host-acceptance` 状态；**单独** 评估是否升 A2  
+- [ ] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）
+- [ ] 写入 `docs/milestones/real-host-trial-grok.json`（或统一 schema 多 host）
+- [ ] 更新 `real-host-acceptance` 状态；**单独** 评估是否升 A2
 - [ ] 半真实 `host:trial` 保持 `codex`/local-git 语义，**不得** 改 `mode=semi-real` 冒充 Grok 真实验收
 
 ## 9. 验收标准
 
 ### 9.1 设计完成（Proposed → Accepted）
 
-- 映射表、attestation 字段、fail-closed 规则无歧义。  
-- 与 M7 半真实边界、A1 默认策略无冲突。  
+- 映射表、attestation 字段、fail-closed 规则无歧义。
+- 与 M7 半真实边界、A1 默认策略无冲突。
 - 文档站与 harness-manifest 可发现。
 
 ### 9.2 实现完成（Accepted → Implemented）
 
-- 合约测试 + harness-check 覆盖 Grok 路径枚举漂移。  
-- 至少一次 **真实 Grok** 试跑 evidence 入库，且：  
-  - `host.adapter` / `host_id` 标明 `grok-build`  
-  - `handle_kind=session`  
-  - 含 worktree + attestation refs  
-  - `codex_app_threads` 不得伪称 true  
-- Review 返工与 RECONCILE 各至少一次成功路径。  
+- 合约测试 + harness-check 覆盖 Grok 路径枚举漂移。
+- 至少一次 **真实 Grok** 试跑 evidence 入库，且：
+  - `host.adapter` / `host_id` 标明 `grok-build`
+  - `handle_kind=session`
+  - 含 worktree + attestation refs
+  - `codex_app_threads` 不得伪称 true
+- Review 返工与 RECONCILE 各至少一次成功路径。
 - `max_unattended_level` 仍为 A1，除非另开变更单明确升级。
 
 ### 9.3 明确失败条件
 
-- 用聊天 session 状态替代 control-plane revision。  
-- 用 subagent 并发写同一项目无 depends_on。  
-- 绑定无 `sandbox_evidence_ref`。  
+- 用聊天 session 状态替代 control-plane revision。
+- 用 subagent 并发写同一项目无 depends_on。
+- 绑定无 `sandbox_evidence_ref`。
 - 把 `npm run host:trial` 的 semi-real 报告改标签交差。
 
 ## 10. 风险与缓解
@@ -268,23 +268,24 @@ grok
 
 ## 11. 决策（Proposed 待接受）
 
-1. **Grok 是第二宿主，不是 Codex 模拟器。**  
-2. **控制面 schema 保持单一**；handle 用 `host_id` + kind 区分。  
-3. **Attestation 必须可哈希、可引用**；模型自述无效。  
-4. **关闭 Wave 2 的 Grok 路径与 Codex 路径等价可选**；任一完成可评估 A2，不要求双满。  
+1. **Grok 是第二宿主，不是 Codex 模拟器。**
+2. **控制面 schema 保持单一**；handle 用 `host_id` + kind 区分。
+3. **Attestation 必须可哈希、可引用**；模型自述无效。
+4. **关闭 Wave 2 的 Grok 路径与 Codex 路径等价可选**；任一完成可评估 A2，不要求双满。
 5. **Skill 安装与 Host adapter 解耦**；安装只服务 A1 DX。
 
 ## 12. 下一步（执行时）
 
-1. 评审本设计 → Accepted 或修订。  
-2. 开 versioned exec plan（建议 `docs/exec-plans/active/YYYY-MM-DD-grok-host-adapter.md`）。  
-3. Phase 1 契约与测试，再 Phase 2 实现。  
+1. Phase 1 契约与纯状态测试已完成，见 `docs/exec-plans/completed/2026-07-27-grok-host-adapter.md`。
+2. 评审本设计 → Accepted 或修订（整体仍为 Proposed，不因 Phase 1 升 Implemented）。
+3. 另开 Phase 2 exec plan：控制项目注册表 + worktree 生命周期 + 可脚本化 create/bind/reconcile + doctor 边界。
 4. Phase 3 真实验收；**禁止** 与 semi-real 证据混用。
+
 
 ## 13. 参考
 
-- `docs/milestones/real-host-acceptance.md`  
-- `docs/milestones/m7-acceptance.md` / `m7-host-trial.json`  
-- `.codex/skills/jj-dispatch/references/host-action-contract.json`  
-- `docs/design-docs/harness-engineering.md` §自主等级  
-- Grok skill 发现：`~/.grok/skills`、`./.grok/skills`、`AGENTS.md`  
+- `docs/milestones/real-host-acceptance.md`
+- `docs/milestones/m7-acceptance.md` / `m7-host-trial.json`
+- `.codex/skills/jj-dispatch/references/host-action-contract.json`
+- `docs/design-docs/harness-engineering.md` §自主等级
+- Grok skill 发现：`~/.grok/skills`、`./.grok/skills`、`AGENTS.md`

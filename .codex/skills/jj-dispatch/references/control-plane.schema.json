@@ -286,6 +286,7 @@
         "status": { "enum": ["PENDING_THREAD", "BOUND", "UNKNOWN", "COMPLETED", "BLOCKED", "SKIPPED"] },
         "created_at": { "type": "string", "format": "date-time" },
         "thread_id": { "type": ["string", "null"] },
+        "handle_kind": { "type": ["string", "null"], "enum": ["thread", "session", null] },
         "host_id": { "type": ["string", "null"] },
         "agent_name": { "type": ["string", "null"] },
         "sandbox_mode": { "enum": ["read-only", "workspace-write"] },
@@ -411,11 +412,27 @@
             "required": ["thread_id", "host_id", "bound_at", "effective_sandbox_mode", "sandbox_evidence_ref"],
             "properties": {
               "thread_id": { "type": "string", "minLength": 1 },
+              "handle_kind": { "type": ["string", "null"], "enum": ["thread", "session", null] },
               "host_id": { "type": "string", "minLength": 1 },
               "bound_at": { "type": "string", "format": "date-time" },
               "effective_sandbox_mode": { "enum": ["read-only", "workspace-write"] },
               "sandbox_evidence_ref": { "type": "string", "minLength": 1 }
-            }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "host_id": { "const": "grok-build" } }, "required": ["host_id"] },
+                "then": {
+                  "required": ["handle_kind"],
+                  "properties": { "handle_kind": { "const": "session" } }
+                }
+              },
+              {
+                "if": { "properties": { "host_id": { "const": "codex-app" } }, "required": ["host_id"] },
+                "then": {
+                  "properties": { "handle_kind": { "enum": ["thread", null] } }
+                }
+              }
+            ]
           }
         },
         {
@@ -479,6 +496,7 @@
             "required": ["result", "thread_id", "host_id", "worktree", "bound_at", "effective_sandbox_mode", "sandbox_evidence_ref"],
             "properties": {
               "thread_id": { "type": "null" },
+              "handle_kind": { "type": "null" },
               "host_id": { "type": "null" },
               "worktree": { "type": "null" },
               "bound_at": { "type": "null" },
