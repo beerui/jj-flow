@@ -50,6 +50,7 @@ $jj-same
 - 本仓库维护：直接改代码并运行 `npm run verify`（见 [维护说明](maintenance.html)）
 - 架构边界：[架构](architecture.html)
 - Agent 可维护性演进：[Harness Engineering 设计](design-docs/harness-engineering.html)
+- 真实工作流评估与泛化学习：[`/jj-evaluated`](design-docs/jj-evaluated.html)
 - 跨模块实施进度：[执行计划](exec-plans/index.html)
 - 已接受的长期决策：[ADR 索引](adr/index.html)
 - M6 已关闭：[M6 验收](milestones/m6-acceptance.html)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "jj-evaluated"
+  short_description: "Evaluate real project traces, time cost, and generalization"
+  default_prompt: "Use $jj-evaluated to evaluate real jj-same, jj-ralph, and jj-dispatch episodes, diagnose time cost, and propose one replay-validated workflow change."

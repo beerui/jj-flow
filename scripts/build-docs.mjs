@@ -47,6 +47,7 @@ const NAV_GROUPS = [
       { title: 'Agent Harness 设计', source: 'docs/design-docs/harness-engineering.md', output: 'design-docs/harness-engineering.html' },
       { title: '任务分配与反馈设计', source: 'docs/design-docs/task-assignment-ux.md', output: 'design-docs/task-assignment-ux.html' },
       { title: 'jj-ralph 单仓闭环设计', source: 'docs/design-docs/jj-ralph.md', output: 'design-docs/jj-ralph.html' },
+      { title: '/jj-evaluated 真实工作流评估', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html' },
       { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },
       { title: 'Harness 收口计划', source: 'docs/exec-plans/active/2026-07-18-harness-hardening.md', output: 'exec-plans/active/2026-07-18-harness-hardening.html' },
       { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },
