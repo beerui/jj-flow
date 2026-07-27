@@ -4,7 +4,7 @@
 >
 > 验收证据：`tests/portfolio-knowledge.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`D:/a/knowledge/tools/tests/policy-dedup.test.mjs`、`npm run verify`
 >
-> 实施边界：外置库 `D:/a/knowledge` + jj-flow 硬接线读取；不替代 control-plane / ralph run checkpoint
+> 实施边界：外置库 `D:/a/knowledge`（git 仓 [jj-portfolio](https://github.com/beerui/jj-portfolio)）+ jj-flow 硬接线读取；不替代 control-plane / ralph run checkpoint
 
 ## 目标
 

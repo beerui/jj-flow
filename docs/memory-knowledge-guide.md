@@ -41,7 +41,7 @@
 
 ## 2. 顶层知识库是什么
 
-路径：`D:/a/knowledge`
+路径：`D:/a/knowledge`（随 [jj-portfolio](https://github.com/beerui/jj-portfolio) 版本化；当前 `kb-v0.4.0`）
 
 它是 **跨项目** 的知识与记忆管理系统：
 
@@ -386,7 +386,8 @@ node D:\a\knowledge\tools\kb.mjs stats
 
 - 命令：[$jj-ralph](command-jj-ralph.html) · [Loop/Graph 上手](loop-graph-guide.html) · [使用说明](usage.html)
 - 设计：[Portfolio Knowledge 设计](design-docs/portfolio-knowledge.html)
-- 外置库文档：`D:/a/knowledge/README.md`、`ARCHITECTURE.md`、`docs/*`
+- 外置库文档：`D:/a/knowledge/README.md`、`VERSIONING.md`、`ARCHITECTURE.md`、`docs/*`
+- 仓库：[beerui/jj-portfolio](https://github.com/beerui/jj-portfolio)（含 `map.md` + `config/` + `knowledge/`）
 - 版本：jj-flow ≥ **0.1.1-beta.31** 含 ralph 硬接线
 
 ## 11. 常见问题
