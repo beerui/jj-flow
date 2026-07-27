@@ -25,18 +25,30 @@
 
 ## 当前示例路径
 
-以下是本次上下文和本机目录能确认的示例，不是永久硬编码：
+路径、角色简称和 aliases **不以本文件硬编码为准**。任务开始时先读全局项目地图：
 
-| 逻辑角色 | 当前示例路径 | 状态 |
-|---|---|---|
-| 承接前台 | `D:\codeup\chengjie\cj-frontend-web` | 用户明确的基本盘示例 |
-| 兑接前台 | `D:\codeup\duijie\dj-frontend-web` | 用户明确的同源改造项目 |
-| 承载前台 | `D:\codeup\chengjie\cj-draft-manager-web` | 当前示例中的第三个前台项目；技术栈差异较大 |
-| 承接后管 | `D:\codeup\chengjie\cj-frontend-admin` | 本机已发现，实际任务仍需用户需求或分支确认 |
-| 兑接后管 | `D:\codeup\duijie\dj-frontend-admin` | 本机已发现，实际任务仍需用户需求或分支确认 |
-| 承载后管 | 未在当前已知路径中确认 | 从用户输入、项目配置或任务上下文获取，禁止猜路径 |
+- 权威文件：`D:\a\map.md`
+- 命中键：中文名称 / aliases / 目录名 / package.name / 远程仓名
+- 命中后以该行 `path`（module/electron-production 时再结合 `host`）为工作目标
+- 历史路径 `D:\codeup\...` 已废弃；出现时只作旧证据，不作为 live path
 
-任务开始时重新验证路径、Git 仓库和项目角色。路径变化时以当前用户输入为准。
+从地图推导分支用的 `role_map`（项目简称）时：
+
+1. 用用户说的产品名或当前仓库命中 `map.md` 一行。
+2. 在该行 `aliases` 中取**最短稳定项目简称**作为 role token（常见：`cj` / `dj` / `cz`；管理端等用 `cj-admin` 等地图已有 alias，不要自造）。
+3. 同一产品线跨仓迁移时，role token 只替换为**目标行**对应简称；path 始终回查地图，不猜目录。
+
+常用前台简称（摘自地图，变更以 `map.md` 为准）：
+
+| 逻辑角色 | 地图中文名示例 | role token | 当前 path（以地图为准） |
+|---|---|---|---|
+| 承接前台 | 承接 ERP | `cj` | `D:\a\cj-web` |
+| 兑接前台 | 兑接 ERP | `dj` | `D:\a\dj-web` |
+| 承载前台 | 承载 | `cz` | `D:\a\cz-broker-web` |
+| 承接后管 | 承接 ERP 管理端 | `cj-admin` | `D:\a\cj-admin` |
+| 兑接后管 | 兑接 ERP 管理端 | `dj-admin` | `D:\a\dj-admin` |
+
+任务开始时重新验证 path、Git 仓库和角色。用户当场给出的路径/角色优先于过期缓存，但仍应回写核对 `map.md`。
 
 ## 角色判断
 
@@ -93,10 +105,60 @@ agent 不得自行跳过顺序进入另一个仓库。用户在当前请求明�
 
 - 领头项目分支由用户创建，`jj-same` 只验证并记录，不替用户创建或改名。
 - agent 自动推进时，仅在前置项目达到 `HANDOFF_READY` 且用户主动触发后，从目标项目本地 `master` 创建开发分支。用户已在当前请求明确指定目标并要求实施时，以该目标 `EXECUTION_READY` 为准。不要自动 pull、更新或改写本地 `master`。
-- 后续分支沿用领头分支的类型、发布日期和任务序号，只替换角色前缀：`feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1`。
-- 任务序号表示同一发布日期下的任务编号，跨项目同步同一任务时保持一致。`-1 / -2` 不能用来表示 `dj / cz` 的项目顺序。
-- 领头分支不符合可判定格式时，先从家族计划、会话和 Git 历史验证。能够按“不扩大范围、只替换角色前缀”得到唯一可回退结果时记录假设并继续；仍存在多个有效解释时标记 `BLOCKED`，记录候选分支、缺失证据和解除条件，不启动额外问答流程。
-- 创建前重新检查目标 repo、origin、工作区、本地 `master` SHA 和目标分支是否已存在；任一事实冲突时标记 `BLOCKED`。
+
+### 命名 grammar
+
+工作分支推荐结构（以领头分支为唯一模板）：
+
+```text
+{type}/{role}-{release_date}[-{req_suffix}][-{developer}]
+```
+
+| 段 | 含义 | 来源 | 例 |
+| --- | --- | --- | --- |
+| `type` | 变更类型 | 领头分支 | `feat` |
+| `role` | 项目简称 | 目标在 `D:\a\map.md` 的 alias/简称 | `cj` / `dj` / `cz` |
+| `release_date` | 计划发布日 | 领头分支；通常 `MMDD` 或 `YYYYMMDD` | `0731`（2026-07-31） |
+| `req_suffix` | **可选**需求后缀；同一天同开发者要拆多条线时才有 | **仅**领头已有或用户/需求明确要求 | `qi` |
+| `developer` | 开发者缩写 | 领头分支；缺省时可读配置项，不写死业务逻辑 | `lyj` |
+
+配置项（可选，不覆盖领头分支事实）：
+
+- 权威文件：`D:/a/config/naming.json` 的 `branch.*`
+- `branch.developer`：默认开发者缩写（当前 `lyj`），用于用户未建分支时的提示/补全
+- `branch.date_format`：默认 `MMDD`
+- `role_map`：**不在 skill 内维护第二份表**；一律从 `D:/a/map.md` 解析（见 `branch.role_map_source`）
+
+### 派生算法
+
+1. 解析领头分支各段；`role` 必须能与 `map.md` 某一行简称对应。
+2. 目标 `role` 从地图解析目标产品后得到。
+3. 派生结果 = 领头模板，**只替换 `role` 段**。
+4. `type` / `release_date` / `req_suffix` / `developer` **原样拷贝**。
+5. 禁止：
+   - 领头没有 `req_suffix` 时自行添加（例如领头 `feat/cj-0731-lyj` 却生成 `feat/dj-0731-qi-lyj`）
+   - 丢掉领头已有的 `req_suffix` 或 `developer`
+   - 用 `-1 / -2` 表示 `dj / cz` 的项目顺序
+6. 创建前必须打印对照并自检：
+
+```text
+lead:     feat/cj-0731-lyj
+planned:  feat/dj-0731-lyj
+diff:     role cj -> dj
+```
+
+`diff` 超出 `role` 时标记 `BLOCKED` 或按领头重算，不得带着多出来的 token 建分支。
+
+### 正例 / 负例
+
+| 领头 | 目标 | 合法派生 | 非法派生 |
+| --- | --- | --- | --- |
+| `feat/cj-0731-lyj` | 兑接 ERP | `feat/dj-0731-lyj` | `feat/dj-0731-qi-lyj`（擅自加 `qi`） |
+| `feat/cj-0731-qi-lyj` | 承载 | `feat/cz-0731-qi-lyj` | `feat/cz-0731-lyj`（丢掉 `qi`） |
+| `feat/cj-0717-1` | 兑接 ERP | `feat/dj-0717-1` | `feat/dj-0717-2`（改序号） |
+
+- 领头分支不符合可判定格式时，先从家族计划、会话和 Git 历史验证。能够按“不扩大范围、只替换 role”得到唯一可回退结果时记录假设并继续；仍存在多个有效解释时标记 `BLOCKED`，记录候选分支、缺失证据和解除条件，不启动额外问答流程。
+- 创建前重新检查目标 repo（`map.md` path/host）、origin、工作区、本地 `master` SHA 和目标分支是否已存在；任一事实冲突时标记 `BLOCKED`。
 
 ### 六项目根因检查
 

@@ -170,7 +170,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /handoff_ref/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /更新交接/);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /REUSE \/ REFRESH_SOURCES \/ REBASELINE \/ BLOCKED/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /feat\/cj-0717-1 -> feat\/dj-0717-1/);
+  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
     /grill-me|grill-with-doc|workflow-grill/
@@ -222,7 +222,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(handoffSchema.allOf[1].then.properties.seal_freshness.const, 'FRESH');
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
-    /feat\/cj-0717-1 -> feat\/dj-0717-1 -> feat\/cz-0717-1/
+    /feat\/cj-0731-lyj/
   );
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),

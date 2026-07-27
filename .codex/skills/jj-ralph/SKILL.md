@@ -12,6 +12,7 @@ description: "在当前单一业务仓库完成需求到验收归档的 Ralph �
 ## 立即动作
 
 1. 无 run 时优先跑 `ralph_ops.mjs init`（路径解析见下）。仅当 skill 损坏/缺 lib 时，才复制 [run.skeleton.json](references/run.skeleton.json) 手建。布局见 [artifact-layout.md](references/artifact-layout.md)。
+1b. 新建命名前读 `D:/a/config/naming.json`（项目定位读 `D:/a/map.md`）。`run_id` 必须是 `RALPH-{kebab-slug}-{YYYYMMDD}`；archive 必须是 `YYYY-MM-DD-{kebab-slug}`。
 2. 做 **map-find**：`ralph_ops.mjs map-find --query "…"`（或读 `.workflow/ralph/business-map.json`）；无命中继续，不补长叙事。规则见 [business-map.md](references/business-map.md)。
 3. 用户已给 `@file:line` 或单点改动时：先读 [tiny-example.md](references/tiny-example.md)；只读目标文件 + 至多 1 个同模块参考。
 4. 按 [phases.md](references/phases.md) 推进 ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE；阶段 PASS 后自动进入下一阶段。优先 `gate` 更新门禁，避免手改 `run.json`。

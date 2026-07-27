@@ -72,8 +72,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     assert.match(skill, new RegExp(marker));
   }
   assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs')));
-  assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs')));
-  assert.equal(
+assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs')));
+  assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/namingConfig.mjs')));
+assert.equal(
     fs.readFileSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/ralph.mjs'), 'utf8')
   );
@@ -325,6 +326,10 @@ test('skill portable lib works without jj-flow in business cwd', () => {
     fs.copyFileSync(
       path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs'),
       path.join(scriptsDir, 'lib', 'ralph.mjs')
+    );
+    fs.copyFileSync(
+      path.join(root, '.codex/skills/jj-ralph/scripts/lib/namingConfig.mjs'),
+      path.join(scriptsDir, 'lib', 'namingConfig.mjs')
     );
     const ops = path.join(scriptsDir, 'ralph_ops.mjs');
     const runNode = (args) => {

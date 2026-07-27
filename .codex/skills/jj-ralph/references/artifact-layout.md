@@ -1,10 +1,17 @@
 # Ralph 产物布局
 
 ```text
+全局命名权威（本机）：
+  D:/a/config/naming.json
+  D:/a/map.md                 # role / path
+```
+
+```text
 .workflow/ralph/
   business-map.json
-  archive/YYYY-MM-DD-{slug}/
-  RALPH-{slug}-{YYYYMMDD}/
+  archive/YYYY-MM-DD-{kebab-slug}/
+  completed/RALPH-{kebab-slug}-{YYYYMMDD}/   # COMPLETED 工作目录归宿（可选）
+  RALPH-{kebab-slug}-{YYYYMMDD}/             # 仅活跃 run
     run.json
     progress.md
     analyze.md
@@ -18,9 +25,13 @@
 ## 规则
 
 1. run 直接挂在 `.workflow/ralph/RALPH-*/`，与 `business-map.json`、`archive/` 同级。
-2. 不使用中间层目录；不创建 `.workflow/jj-ralph/`。
-3. handoff 写 `.workflow/handoffs/<HOF-ID>/`；dispatch 快照写 `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json`。
-4. 创建 JSON 先复制 skeleton，再填字段：
+2. **命名必须遵循** `D:/a/config/naming.json`（缺省时用 skill/代码内置 defaults，但本机应以该文件为准）：
+   - `run_id` = `RALPH-{kebab-slug}-{YYYYMMDD}`（禁止 camelCase、禁止双日期如 `RALPH-0724-foo-20260727`）
+   - archive 目录 = `YYYY-MM-DD-{kebab-slug}`（禁止 `0724-...`、禁止无日期前缀；`_meta/*` 除外）
+   - COMPLETED 后可将工作目录移入 `completed/`，**不改名**；冻结副本仍在 `archive/`
+3. 不使用其它中间层目录；不创建 `.workflow/jj-ralph/`。
+4. handoff 写 `.workflow/handoffs/<HOF-ID>/`；dispatch 快照写 `.workflow/dispatch/recommendations/<SNAP-ID>/snapshot.json`。
+5. 创建 JSON 先复制 skeleton，再填字段：
    - [run.skeleton.json](run.skeleton.json)
    - [archive-manifest.skeleton.json](archive-manifest.skeleton.json)
    - [capability.skeleton.json](capability.skeleton.json)

@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig } from './namingConfig.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -184,6 +185,10 @@ export function listRuns(cwd = process.cwd()) {
 }
 
 export function initRun(options, cwd = process.cwd()) {
+  const naming = loadNamingConfig();
+  if (options?.strict_naming !== false && naming.ralph?.legacy_tolerance?.create_must_follow_config !== false) {
+    assertStrictRalphRunId(options.run_id || options.runId, naming);
+  }
   const run = createRunSkeleton(options);
   const dir = runDir(run.run_id, cwd);
   if (fs.existsSync(dir) && !options.force) throw new Error('run already exists: ' + run.run_id + ' (use --force to overwrite skeleton)');
@@ -222,16 +227,7 @@ function copyTree(src, dest) {
 
 /** Prefer archive dir `YYYY-MM-DD-{name}` without duplicating trailing YYYYMMDD from run_id. */
 export function defaultArchiveDirName(runId, now = new Date()) {
-  const raw = String(runId || '').replace(/^RALPH-/, '');
-  const m = raw.match(/^(.*?)[-_]?([0-9]{8})$/);
-  if (m && m[1]) {
-    const ymd = m[2];
-    const date = `${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`;
-    const name = m[1].replace(/[-_]+$/g, '').toLowerCase() || raw.toLowerCase();
-    return `${date}-${name}`;
-  }
-  const iso = (typeof now === 'string' ? now : now.toISOString()).slice(0, 10);
-  return `${iso}-${raw.toLowerCase()}`;
+  return buildArchiveDirNameFromRunId(runId, now, loadNamingConfig());
 }
 
 export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
@@ -557,3 +553,5 @@ export function getStatus({ runId, cwd = process.cwd() } = {}) {
   const map = mapExists ? loadMap(cwd) : createEmptyMap();
   return { runs, map_path: mapExists ? RALPH_MAP_REL.replaceAll('\\', '/') : null, map_capabilities: map.capabilities.length };
 }
+
+export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';
