@@ -15,10 +15,11 @@
 
 1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex 或 Claude
 2. **[使用说明](usage.html)** — 如何写一条好输入、如何判断完成
-3. **选入口做第一件事**
+3. **[Loop 与 Graph 上手](loop-graph-guide.html)** — 先建立心智模型：外层 Graph、内层 Loop、文件即事实
+4. **选入口做第一件事**
    - 迁移/同步 → **[$jj-same](command-jj-same.html)**
    - 单仓闭环 → **[$jj-ralph](command-jj-ralph.html)**
-   - 多项目派发 → **[$jj-dispatch](command-jj-dispatch.html)**
+   - 多项目派发 → **[-dispatch](command-jj-dispatch.html)** / [交互演示](dispatch-demo.html)
 
 不确定时打开 **[命令总览](commands.html)**。
 
@@ -47,7 +48,8 @@ $jj-same
 
 ## 维护与深入
 
-- 本仓库维护：直接改代码并运行 `npm run verify`（见 [维护说明](maintenance.html)）
+- 本仓库维护：直接改代码并运行 
+pm run verify`（见 [维护说明](maintenance.html)）
 - 架构边界：[架构](architecture.html)
 - Agent 可维护性演进：[Harness Engineering 设计](design-docs/harness-engineering.html)
 - 真实工作流评估与泛化学习：[`/jj-evaluated`](design-docs/jj-evaluated.html)

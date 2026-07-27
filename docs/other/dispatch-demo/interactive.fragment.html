@@ -1,0 +1,85 @@
+<div id="dispatch-demo-app" class="dispatch-demo">
+  <div class="dispatch-demo__toolbar"><div class="dispatch-demo__steps" role="tablist" aria-label="steps"></div><div class="dispatch-demo__nav"><button type="button" class="dispatch-demo__btn" data-action="prev">上一步</button><button type="button" class="dispatch-demo__btn dispatch-demo__btn--primary" data-action="next">下一步</button></div></div>
+  <p class="dispatch-demo__progress" data-progress aria-live="polite"></p>
+  <svg class="dispatch-demo__stage" viewBox="0 0 920 360" width="100%" height="auto" role="img" aria-label="dispatch demo"></svg>
+  <div class="dispatch-demo__panel"><h3 data-title></h3><p data-body></p><div class="dispatch-demo__cmd"><code data-cmd></code><button type="button" class="dispatch-demo__btn" data-action="copy">复制命令</button></div><ul data-facts></ul></div>
+</div>
+<style>
+.dispatch-demo{margin:1.25rem 0 1.75rem;padding:1rem;border:1px solid var(--line,#e5e7eb);border-radius:14px;background:var(--surface,#fff)}
+.dispatch-demo__toolbar{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:space-between;align-items:center}
+.dispatch-demo__steps{display:flex;flex-wrap:wrap;gap:.4rem}
+.dispatch-demo__step{border:1px solid var(--line,#e5e7eb);background:var(--panel,#f3f4f6);color:var(--text,#111827);border-radius:999px;padding:.25rem .65rem;font-size:.85rem;cursor:pointer}
+.dispatch-demo__step[aria-selected="true"]{background:var(--accent-soft,#e0e7ff);border-color:color-mix(in srgb,var(--accent,#4f46e5) 45%,var(--line,#e5e7eb));font-weight:500}
+.dispatch-demo__nav{display:flex;gap:.5rem}
+.dispatch-demo__btn{border:1px solid var(--line,#e5e7eb);background:var(--panel,#f3f4f6);color:var(--text,#111827);border-radius:10px;padding:.4rem .8rem;cursor:pointer}
+.dispatch-demo__btn--primary{background:var(--text,#111827);color:#fff;border-color:transparent}
+.dispatch-demo__btn:disabled{opacity:.45;cursor:not-allowed}
+.dispatch-demo__progress{margin:.75rem 0 .25rem;color:var(--muted,#6b7280);font-size:.9rem}
+.dispatch-demo__stage{display:block;margin-top:.5rem;border-radius:12px;background:#0b1220}
+.dispatch-demo__panel{margin-top:.9rem;padding:.9rem 1rem;border-radius:12px;background:var(--panel,#f3f4f6)}
+.dispatch-demo__panel h3{margin:0 0 .4rem;font-size:1.05rem}
+.dispatch-demo__panel p{margin:0 0 .7rem}
+.dispatch-demo__cmd{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.7rem}
+.dispatch-demo__cmd code{flex:1 1 16rem;display:block;padding:.55rem .7rem;border-radius:8px;background:#111827;color:#dbeafe;white-space:pre-wrap;word-break:break-word}
+.dispatch-demo__panel ul{margin:0;padding-left:1.15rem}
+.dispatch-demo__panel li{margin:.2rem 0;color:var(--muted,#4b5563)}
+.dispatch-demo .lane{fill:#111827;stroke:#1f2937}
+.dispatch-demo .node{fill:#1f2937;stroke:#6b7280;stroke-width:1.5}
+.dispatch-demo .node.active{fill:#172554;stroke:#60a5fa;stroke-width:2.2}
+.dispatch-demo .node.done{fill:#052e1c;stroke:#34d399}
+.dispatch-demo .node.blocked{fill:#3f1d1d;stroke:#f87171}
+.dispatch-demo .edge{fill:none;stroke:#374151;stroke-width:2;opacity:.35}
+.dispatch-demo .edge.active{stroke:#60a5fa;stroke-width:2.8;opacity:1}
+.dispatch-demo .edge.done{stroke:#34d399;opacity:1}
+.dispatch-demo .label{fill:#e5e7eb;font-size:13px;font-family:ui-sans-serif,system-ui,sans-serif}
+.dispatch-demo .sub,.dispatch-demo .zone{fill:#9ca3af;font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif}
+</style>
+<script>
+(() => {
+  const root = document.getElementById("dispatch-demo-app");
+  if (!root || root.dataset.ready === "1") return;
+  root.dataset.ready = "1";
+  const steps = [{"title": "0. 控制仓 vs 业务仓", "body": "多项目调度不在业务仓里喊命令。控制仓只负责 Graph：角色、批准、派发、对账；承接/兑接/承载才改代码。", "cmd": "在控制项目打开对话（不要在 D:\\a\\cj-web 里直接 DISPATCH）", "facts": ["控制仓：调度与 receipt", "业务仓：ralph / same / review 闭环", "D:\\a 例：cj-web / dj-web / cz-broker-web"], "active": {"control": true}, "done": {}, "edges": []}, {"title": "1. PREVIEW 只展示", "body": "先生成完整 task_keys、depends_on、阻塞项。这一步不创建 Codex task。", "cmd": "$jj-dispatch PREVIEW\ndelivery=DEL-password-expire\ntargets=承接,兑接,承载", "facts": ["产出预览表与 task_key 列表", "可反复 PREVIEW", "信息不全时先 INTAKE_REQUIRED"], "active": {"control": true, "keys": true}, "done": {}, "edges": ["c-cj"]}, {"title": "2. 用户明确批准", "body": "你核对名单后明确批准，冻结本轮 task_keys。目标/责任/attempt 一变，旧批准作废。", "cmd": "$jj-dispatch DISPATCH 批准 delivery=DEL-password-expire 的当前 task_keys", "facts": ["批准是硬门槛", "DISPATCH 先写 intent 再建 thread", "worker 不能自批"], "active": {"control": true, "approve": true}, "done": {"keys": true}, "edges": ["c-cj"]}, {"title": "3. 第一波：承接 development", "body": "先派 lead。承接仓内做你熟悉的 Loop：实现 -> 验证 -> 审查。", "cmd": "task_key=DEL-password-expire/cj-web/development/1\n路径=D:\\a\\cj-web", "facts": ["同一 key 幂等", "独占 worktree 写入", "未完成不放行下游"], "active": {"cj": true}, "done": {"control": true, "keys": true, "approve": true}, "edges": ["c-cj"]}, {"title": "4. receipt 回控制仓", "body": "只有 commit / verification / review 引用写回后才算推进。聊天结论不算状态。", "cmd": "control 消费 receipt -> 放行下一 wave", "facts": ["attempt 必须匹配 task_key", "缺证据保持 PENDING/BLOCKED", "可 RECONCILE 对账"], "active": {"control": true, "cj": true}, "done": {"keys": true, "approve": true}, "edges": ["cj-c"]}, {"title": "5. 第二波：兑接 + 承载并行", "body": "依赖满足后并行派 target。节点内可用 same/ralph 做迁移或适配。", "cmd": "DEL-.../dj-web/development/1\nDEL-.../cz-broker-web/development/1", "facts": ["D:\\a\\dj-web 与 D:\\a\\cz-broker-web", "可 DIRECT / ADAPT / BLOCKED", "单 target 失败不替全局完成"], "active": {"dj": true, "cz": true}, "done": {"control": true, "cj": true, "keys": true, "approve": true}, "edges": ["c-dj", "c-cz"]}, {"title": "6. NEEDS_CHANGES 返工", "body": "不要在旧 key 上偷偷续写。升 attempt，重新 PREVIEW -> 批准 -> DISPATCH。", "cmd": "DEL-password-expire/dj-web/development/2", "facts": ["先收口旧下游", "findings 必须可追踪", "新 key 才是合法重试身份"], "active": {"dj": true, "control": true}, "done": {"cj": true, "cz": true, "keys": true}, "edges": ["dj-c", "c-dj"], "blocked": {"dj": true}}, {"title": "7. 全部 VERIFIED", "body": "每个 target 的 terminal writer commit 与 Review PASS 一致后，delivery 才完成。", "cmd": "delivery.status = VERIFIED", "facts": ["成功终态：VERIFIED / NO_CHANGE_REQUIRED", "可导出 handoff / 归档", "恢复只认 artifact，不认聊天"], "active": {}, "done": {"control": true, "cj": true, "dj": true, "cz": true, "keys": true, "approve": true}, "edges": ["c-cj", "c-dj", "c-cz", "cj-c", "dj-c", "cz-c"]}];
+  const labels = {"control": ["控制仓", "dispatch only"], "keys": ["task_keys", "批准快照"], "approve": ["用户批准", "冻结本轮"], "cj": ["承接 cj-web", "D:/a/cj-web"], "dj": ["兑接 dj-web", "D:/a/dj-web"], "cz": ["承载 cz-broker-web", "D:/a/cz-broker-web"]};
+  const nodes = { control:{x:360,y:34,w:170,h:54}, keys:{x:40,y:34,w:150,h:54}, approve:{x:700,y:34,w:150,h:54}, cj:{x:50,y:190,w:200,h:72}, dj:{x:350,y:190,w:200,h:72}, cz:{x:650,y:190,w:210,h:72} };
+  const edgePaths = { "c-cj":"M400 88 C 300 120, 180 150, 150 190", "c-dj":"M445 88 C 445 120, 445 150, 450 190", "c-cz":"M490 88 C 590 120, 700 150, 755 190", "cj-c":"M150 190 C 210 150, 320 120, 400 88", "dj-c":"M450 190 C 450 150, 448 120, 445 88", "cz-c":"M755 190 C 690 150, 560 120, 490 88" };
+  const stage = root.querySelector(".dispatch-demo__stage");
+  const stepsEl = root.querySelector(".dispatch-demo__steps");
+  const progress = root.querySelector("[data-progress]");
+  const titleEl = root.querySelector("[data-title]");
+  const bodyEl = root.querySelector("[data-body]");
+  const cmdEl = root.querySelector("[data-cmd]");
+  const factsEl = root.querySelector("[data-facts]");
+  const prevBtn = root.querySelector('[data-action="prev"]');
+  const nextBtn = root.querySelector('[data-action="next"]');
+  const copyBtn = root.querySelector('[data-action="copy"]');
+  let index = 0;
+  steps.forEach((_, i) => { const btn = document.createElement("button"); btn.type = "button"; btn.className = "dispatch-demo__step"; btn.setAttribute("role", "tab"); btn.textContent = String(i); btn.addEventListener("click", () => { index = i; render(); }); stepsEl.appendChild(btn); });
+  function nodeClass(id, step) { if (step.blocked && step.blocked[id]) return "node blocked"; if (step.active[id]) return "node active"; if (step.done[id]) return "node done"; return "node"; }
+  function edgeClass(id, step) { if (!step.edges.includes(id)) return "edge"; if (step.done.control && step.done.cj && step.done.dj && step.done.cz) return "edge done"; return "edge active"; }
+  function renderStage(step) {
+    let svg = '<defs><marker id="dd-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#60a5fa"></path></marker></defs>';
+    svg += '<rect class="lane" x="20" y="16" width="880" height="90" rx="12"></rect>';
+    svg += '<rect class="lane" x="20" y="160" width="880" height="120" rx="12"></rect>';
+    svg += '<text class="zone" x="32" y="148">Graph \u5c42\uff08\u8c03\u5ea6\uff09</text>';
+    svg += '<text class="zone" x="32" y="308">Loop \u5c42\uff08\u5404\u4e1a\u52a1\u4ed3\u6267\u884c\uff09</text>';
+    Object.entries(edgePaths).forEach(([id, d]) => { svg += '<path class="' + edgeClass(id, step) + '" d="' + d + '" marker-end="url(#dd-arrow)"></path>'; });
+    Object.entries(nodes).forEach(([id, n]) => { const [t1, t2] = labels[id]; svg += '<rect class="' + nodeClass(id, step) + '" x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="12"></rect>'; svg += '<text class="label" x="' + (n.x + 12) + '" y="' + (n.y + 24) + '">' + t1 + '</text>'; svg += '<text class="sub" x="' + (n.x + 12) + '" y="' + (n.y + 44) + '">' + t2 + '</text>'; });
+    stage.innerHTML = svg;
+  }
+  function render() {
+    const step = steps[index];
+    [...stepsEl.children].forEach((btn, i) => btn.setAttribute("aria-selected", i === index ? "true" : "false"));
+    progress.textContent = (index + 1) + " / " + steps.length + " \u00b7 \u7528\u6309\u94ae\u6216\u5de6\u53f3\u65b9\u5411\u952e\u5207\u6362";
+    titleEl.textContent = step.title; bodyEl.textContent = step.body; cmdEl.textContent = step.cmd;
+    factsEl.innerHTML = step.facts.map((f) => "<li>" + f + "</li>").join("");
+    prevBtn.disabled = index === 0; nextBtn.disabled = index === steps.length - 1; renderStage(step);
+  }
+  prevBtn.addEventListener("click", () => { if (index > 0) { index -= 1; render(); } });
+  nextBtn.addEventListener("click", () => { if (index < steps.length - 1) { index += 1; render(); } });
+  copyBtn.addEventListener("click", async () => { try { await navigator.clipboard.writeText(steps[index].cmd); copyBtn.textContent = "\u5df2\u590d\u5236"; setTimeout(() => { copyBtn.textContent = "\u590d\u5236\u547d\u4ee4"; }, 1200); } catch (e) { copyBtn.textContent = "\u590d\u5236\u5931\u8d25"; setTimeout(() => { copyBtn.textContent = "\u590d\u5236\u547d\u4ee4"; }, 1200); } });
+  root.tabIndex = 0;
+  root.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft" && index > 0) { index -= 1; render(); } if (e.key === "ArrowRight" && index < steps.length - 1) { index += 1; render(); } });
+  render();
+})();
+</script>

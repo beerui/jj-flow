@@ -66,3 +66,7 @@
 - `npm`：Node.js 包管理器。
 - `npx`：执行 npm 包内命令的工具。
 - `beta`：预发布标签，当前安装示例使用 `@beta`。
+## 使用心智模型
+
+- `Loop Engineer`：关注单点闭环——行动、反馈、修正、停止条件。对应 `$jj-ralph` / `$jj-review` 与 verification 证据。详见 [Loop 与 Graph 上手](loop-graph-guide.html)。
+- `Graph Engineer`：关注多点编排——角色、依赖、批准、恢复。对应 `$jj-dispatch` 的 `task_key`、批准快照与 receipt。详见 [Loop 与 Graph 上手](loop-graph-guide.html)。

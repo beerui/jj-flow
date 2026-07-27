@@ -1,6 +1,6 @@
 # 使用说明
 
-这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 闭环 + 调度）。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。
+这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 闭环 + 调度）。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。若还没建立整体图景，先读 [Loop 与 Graph 上手](loop-graph-guide.html)：外层 Graph 管秩序，内层 Loop 管做对，文件管算不算发生过。
 
 ## 第一次使用
 
@@ -61,7 +61,7 @@ Agent 应该先寻找已有上下文。只有缺失信息会改变范围、方�
 
 已移除 `$jj-delivery`、`$jj-validate`、`$jj-evolve`。控制面 `delivery_id` 仍用于 `$jj-dispatch` 任务身份。
 
-更完整的选择说明见 [命令总览](commands.html)。
+更完整的选择说明见 [命令总览](commands.html)。心智模型与值班 checklist 见 [Loop 与 Graph 上手](loop-graph-guide.html)。
 
 ## 你会看到的执行过程
 

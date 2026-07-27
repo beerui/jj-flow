@@ -17,6 +17,8 @@ const NAV_GROUPS = [
       { title: '首页', source: 'docs/index.md', output: 'index.html' },
       { title: '安装', source: 'docs/installation.md', output: 'installation.html' },
       { title: '使用说明', source: 'docs/usage.md', output: 'usage.html' },
+      { title: 'Loop 与 Graph 上手', source: 'docs/loop-graph-guide.md', output: 'loop-graph-guide.html' },
+      { title: '多项目调度演示', source: 'docs/dispatch-demo.md', output: 'dispatch-demo.html' },
       { title: '命令总览', source: 'docs/commands.md', output: 'commands.html' }
     ]
   },
@@ -82,7 +84,8 @@ for (const page of PAGES) {
   }
 
   const markdown = fs.readFileSync(sourcePath, 'utf8');
-  const html = renderPage(page, renderMarkdown(markdown));
+  const bodyHtml = renderMarkdownWithEmbeds(markdown);
+  const html = renderPage(page, bodyHtml);
   const outputPath = path.join(OUT_DIR, page.output);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, html);
@@ -215,6 +218,24 @@ function buildTrail(page) {
 </nav>`;
 }
 
+function renderMarkdownWithEmbeds(markdown) {
+  const embedRe = /<!--\s*embed:([^>]+?)\s*-->/g;
+  const parts = [];
+  let last = 0;
+  let match;
+  while ((match = embedRe.exec(markdown)) !== null) {
+    const before = markdown.slice(last, match.index);
+    if (before.trim()) parts.push(renderMarkdown(before));
+    const rel = match[1].trim();
+    const abs = path.isAbsolute(rel) ? rel : path.join(ROOT, rel);
+    if (!fs.existsSync(abs)) throw new Error("Missing embed fragment: " + rel);
+    parts.push(fs.readFileSync(abs, "utf8"));
+    last = match.index + match[0].length;
+  }
+  const rest = markdown.slice(last);
+  if (rest.trim()) parts.push(renderMarkdown(rest));
+  return parts.join("\n");
+}
 function renderMarkdown(markdown) {
   const lines = markdown.replace(/\r\n/g, '\n').split('\n');
   const output = [];
