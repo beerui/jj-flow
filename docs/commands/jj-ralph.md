@@ -47,3 +47,13 @@ $jj-ralph
 - 默认不自动 commit/push
 
 设计细节见 [jj-ralph 设计](../design-docs/jj-ralph.html)。
+
+## 记忆与知识库
+
+从 **0.1.1-beta.31** 起，`jj ralph init` 默认从顶层知识库（`D:/a/knowledge`）自动挂载 `knowledge_refs` / `knowledge_summary`。
+
+- 关闭：`--no-knowledge-refs`
+- 指定检索：`--project <key> --knowledge-query "..."`
+- 任务结束后：更新 business-map → `kb extract --incremental` → promote 高置信条目
+
+完整操作见 [记忆与知识库](../memory-knowledge-guide.html)。设计见 [Portfolio Knowledge](../design-docs/portfolio-knowledge.html)。

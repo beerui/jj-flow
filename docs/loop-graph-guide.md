@@ -12,6 +12,7 @@
 - 多项目调度 → [$jj-dispatch](command-jj-dispatch.html)
 - 同源迁移 → [$jj-same](command-jj-same.html)
 - 第一次怎么写输入 → [使用说明](usage.html)
+- 记忆与顶层知识库 → [记忆与知识库](memory-knowledge-guide.html)
 
 ## 先记住一句话
 

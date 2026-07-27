@@ -18,6 +18,7 @@ const NAV_GROUPS = [
       { title: '安装', source: 'docs/installation.md', output: 'installation.html' },
       { title: '使用说明', source: 'docs/usage.md', output: 'usage.html' },
       { title: 'Loop 与 Graph 上手', source: 'docs/loop-graph-guide.md', output: 'loop-graph-guide.html' },
+      { title: '记忆与知识库', source: 'docs/memory-knowledge-guide.md', output: 'memory-knowledge-guide.html' },
       { title: '多项目调度演示', source: 'docs/dispatch-demo.md', output: 'dispatch-demo.html' },
       { title: '命令总览', source: 'docs/commands.md', output: 'commands.html' }
     ]
@@ -49,6 +50,7 @@ const NAV_GROUPS = [
       { title: 'Agent Harness 设计', source: 'docs/design-docs/harness-engineering.md', output: 'design-docs/harness-engineering.html' },
       { title: '任务分配与反馈设计', source: 'docs/design-docs/task-assignment-ux.md', output: 'design-docs/task-assignment-ux.html' },
       { title: 'jj-ralph 单仓闭环设计', source: 'docs/design-docs/jj-ralph.md', output: 'design-docs/jj-ralph.html' },
+      { title: 'Portfolio Knowledge', source: 'docs/design-docs/portfolio-knowledge.md', output: 'design-docs/portfolio-knowledge.html' },
       { title: '/jj-evaluated 真实工作流评估', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html' },
       { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html' },
       { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },

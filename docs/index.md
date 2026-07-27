@@ -15,11 +15,13 @@
 
 1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex 或 Claude
 2. **[使用说明](usage.html)** — 如何写一条好输入、如何判断完成
-3. **[Loop 与 Graph 上手](loop-graph-guide.html)** — 先建立心智模型：外层 Graph、内层 Loop、文件即事实
+3. **建立心智模型**
+   - **[Loop 与 Graph 上手](loop-graph-guide.html)** — 外层 Graph 管秩序，内层 Loop 管做对
+   - **[记忆与知识库](memory-knowledge-guide.html)** — 顶层 Portfolio KB、ralph 自动挂载、聊天不算记住
 4. **选入口做第一件事**
    - 迁移/同步 → **[$jj-same](command-jj-same.html)**
    - 单仓闭环 → **[$jj-ralph](command-jj-ralph.html)**
-   - 多项目派发 → **[-dispatch](command-jj-dispatch.html)** / [交互演示](dispatch-demo.html)
+   - 多项目派发 → **[$jj-dispatch](command-jj-dispatch.html)** / [交互演示](dispatch-demo.html)
 
 不确定时打开 **[命令总览](commands.html)**。
 
@@ -43,14 +45,15 @@ $jj-same
 | 单仓分析→计划→验收→归档、能力地图 | [$jj-ralph](command-jj-ralph.html) |
 | 单仓轻量审查、会话关联、reviews 报告 | [$jj-review](command-jj-review.html) |
 | 多项目预览、批准、绑定、恢复 | [$jj-dispatch](command-jj-dispatch.html) |
+| 跨项目知识与记忆怎么用 | [记忆与知识库](memory-knowledge-guide.html) |
 | 只说「用 jj-flow」 | [$jj](command-jj.html)（按路由优先级） |
 | 安装 / `ralph *` / `dispatch-tick` / Host 试跑 | [CLI](command-cli.html) · [安装](installation.html) |
 
 ## 维护与深入
 
-- 本仓库维护：直接改代码并运行 
-pm run verify`（见 [维护说明](maintenance.html)）
+- 本仓库维护：直接改代码并运行 `npm run verify`（见 [维护说明](maintenance.html)）
 - 架构边界：[架构](architecture.html)
+- 记忆与顶层知识库：[记忆与知识库](memory-knowledge-guide.html) · [Portfolio Knowledge 设计](design-docs/portfolio-knowledge.html)
 - Agent 可维护性演进：[Harness Engineering 设计](design-docs/harness-engineering.html)
 - 真实工作流评估与泛化学习：[`/jj-evaluated`](design-docs/jj-evaluated.html)
 - 跨模块实施进度：[执行计划](exec-plans/index.html)
@@ -63,4 +66,4 @@ pm run verify`（见 [维护说明](maintenance.html)）
 
 ## 搜索
 
-左侧搜索可查 `handoff`、`sync_key`、`task_key`、`dispatch` 等。桌面按 `/` 聚焦搜索，`Esc` 清空。
+左侧搜索可查 `handoff`、`sync_key`、`task_key`、`dispatch`、`knowledge_refs` 等。桌面按 `/` 聚焦搜索，`Esc` 清空。

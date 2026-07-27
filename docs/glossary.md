@@ -70,3 +70,15 @@
 
 - `Loop Engineer`：关注单点闭环——行动、反馈、修正、停止条件。对应 `$jj-ralph` / `$jj-review` 与 verification 证据。详见 [Loop 与 Graph 上手](loop-graph-guide.html)。
 - `Graph Engineer`：关注多点编排——角色、依赖、批准、恢复。对应 `$jj-dispatch` 的 `task_key`、批准快照与 receipt。详见 [Loop 与 Graph 上手](loop-graph-guide.html)。
+
+## 记忆与知识库
+
+| 术语 | 含义 |
+| --- | --- |
+| Portfolio KB / 顶层知识库 | `D:/a/knowledge` 跨项目知识与记忆库 |
+| knowledge_refs | 挂到 ralph run / plan 的知识条目 id 列表 |
+| candidate / active / deprecated | 知识生命周期：候选 / 已审核 / 退役 |
+| extract / promote | 抽取与审核晋升 |
+| provenance | source_path / run_refs / evidence 等溯源 |
+| doctor | 知识库健康自检（索引、active、Web 等） |
+| human-review | 人工复核队列（策略分不够高的必须过人） |

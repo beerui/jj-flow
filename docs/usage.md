@@ -1,6 +1,6 @@
 # 使用说明
 
-这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 闭环 + 调度）。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。若还没建立整体图景，先读 [Loop 与 Graph 上手](loop-graph-guide.html)：外层 Graph 管秩序，内层 Loop 管做对，文件管算不算发生过。
+这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 闭环 + 调度）。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。若还没建立整体图景，先读 [Loop 与 Graph 上手](loop-graph-guide.html) 与 [记忆与知识库](memory-knowledge-guide.html)：外层 Graph 管秩序，内层 Loop 管做对，文件管算不算发生过。
 
 ## 第一次使用
 
@@ -111,3 +111,11 @@ $jj-dispatch RECONCILE task_key=DEL-password/dj/development/1
 - 目标改动可对应需求账本与迁移决策。
 - 未验证项明确标为 `PENDING` / `BLOCKED` / `N/A`，不伪装成已完成。
 - 多项目任务以 control-plane、Git commit、VRF/REV 为准推进 checkpoint。
+
+## 记忆与知识库
+
+- 顶层知识库在 `D:/a/knowledge`（跨项目，不是某个业务仓的 .workflow）。
+- `jj ralph init` 默认自动挂载 `knowledge_refs`（jj-flow ≥ 0.1.1-beta.31）。
+- 聊天不是持久记忆；要「记住」必须走 extract → review → promote，形成 active 条目。
+- 值班命令：`node D:/a/knowledge/tools/kb.mjs doctor` / `extract --incremental` / `human-review`。
+- 完整说明见 [记忆与知识库](memory-knowledge-guide.html)。
