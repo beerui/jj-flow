@@ -21,7 +21,10 @@ import {
   defaultArchiveDirName,
   archiveRun,
   setGate,
-  finalizeRun
+  finalizeRun,
+  extractLedgerPathRefs,
+  findImplementationPathMismatch,
+  evaluateAcceptArchiveGate
 } from '../src/ralph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -481,6 +484,126 @@ test('cli gate and ops finalize path stay de-duplicated', () => {
     assert.equal(payload.run.status, 'COMPLETED');
     const archived = JSON.parse(fs.readFileSync(path.join(cwd, payload.archive_path, 'run.json'), 'utf8'));
     assert.equal(archived.status, 'COMPLETED');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('product-consistency extracts ledger paths and detects EP-04-style drift', () => {
+  const bt = String.fromCharCode(96);
+  const plan = [
+    '# Plan',
+    `- TASK-1: ${bt}publish-dialog.vue${bt} @closed blur`,
+    `- TASK-2: ${bt}batch-publish-dialog.vue${bt}`
+  ].join('\n');
+  const claimed = extractLedgerPathRefs(plan);
+  assert.deepEqual(claimed, ['publish-dialog.vue', 'batch-publish-dialog.vue']);
+  const mismatch = findImplementationPathMismatch(claimed, [
+    'src/views/pages/draft-manage/InventoryManager.vue'
+  ]);
+  assert.match(mismatch, /InventoryManager\.vue/);
+  assert.equal(
+    findImplementationPathMismatch(['inquiry-card.vue'], [
+      'src/views/components/inquiry-card.vue'
+    ]),
+    null
+  );
+});
+
+test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-consistency-'));
+  try {
+    const runId = 'RALPH-consistency-20260729';
+    initRun({ run_id: runId, title: 'consistency', goal: 'block false complete', capability_ids: ['CAP-consistency'] }, cwd);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    const bt = String.fromCharCode(96);
+    fs.writeFileSync(
+      path.join(runDirPath, 'plan.md'),
+      ['# Plan', `- TASK: ${bt}publish-dialog.vue${bt} blur`].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(runDirPath, 'acceptance.md'),
+      ['# Acceptance', `| blur | PASS | ${bt}publish-dialog.vue${bt} |`].join('\n'),
+      'utf8'
+    );
+
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+
+    assert.throws(
+      () => setGate(runId, {
+        gate: 'accept',
+        status: 'PASS',
+        cwd,
+        diff_paths: ['src/views/pages/draft-manage/InventoryManager.vue']
+      }),
+      /product-consistency gate blocked accept PASS/
+    );
+
+    // Align ledger and diff first, then record a failing review.
+    fs.writeFileSync(
+      path.join(runDirPath, 'plan.md'),
+      ['# Plan', `- TASK: ${bt}InventoryManager.vue${bt} focus-visible`].join('\n'),
+      'utf8'
+    );
+    fs.writeFileSync(
+      path.join(runDirPath, 'acceptance.md'),
+      ['# Acceptance', `| css | PASS | ${bt}InventoryManager.vue${bt} |`].join('\n'),
+      'utf8'
+    );
+    recordReview(runId, {
+      cwd,
+      outcome: 'NEEDS_CHANGES',
+      summary: 'ledger/code still inconsistent historically',
+      findings: [{
+        id: 'F-1',
+        severity: 'medium',
+        file: 'acceptance.md',
+        line: 1,
+        description: 'OPEN drift',
+        status: 'OPEN',
+        acceptance: 'sync ledger'
+      }]
+    });
+
+    assert.throws(
+      () => setGate(runId, {
+        gate: 'accept',
+        status: 'PASS',
+        cwd,
+        diff_paths: ['src/views/pages/draft-manage/InventoryManager.vue']
+      }),
+      /latest review REV-1 is NEEDS_CHANGES/
+    );
+
+    // Direct archive must also refuse when review is NEEDS_CHANGES even if accept was forced earlier.
+    const runPath = path.join(runDirPath, 'run.json');
+    const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+    run.gates.accept = 'PASS';
+    saveRun(run, cwd);
+    assert.throws(() => archiveRun(runId, { cwd }), /archive blocked by product-consistency gate/)
+
+    // force escapes the gate for operator override.
+    const forced = setGate(runId, {
+      gate: 'accept',
+      status: 'PASS',
+      cwd,
+      force: true,
+      diff_paths: ['src/views/pages/draft-manage/InventoryManager.vue']
+    });
+    assert.equal(forced.run.gates.accept, 'PASS');
+    const archived = archiveRun(runId, { cwd, force: true });
+    assert.equal(archived.run.status, 'COMPLETED');
+
+    const evalOk = evaluateAcceptArchiveGate(run, {
+      cwd,
+      force: true,
+      diff_paths: ['src/views/pages/draft-manage/InventoryManager.vue']
+    });
+    assert.equal(evalOk.ok, true);
+    assert.equal(evalOk.forced, true);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

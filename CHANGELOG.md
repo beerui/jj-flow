@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.1-beta.32
+
+- Ralph accept/archive product-consistency gate: block PASS when latest review is NEEDS_CHANGES/BLOCKED or plan/acceptance path set drifts from actual diff (EP-04 false-complete class).
+- Contract tests for ledger path extraction and accept/archive gate refusal.
+- jj-same multi-env collect-port-evidence (Node primary + sh/ps1 wrappers) and tests.
+- jj-evaluated: record 2026-07-29 Grok episodes baseline under docs/evaluations; exclude that tree from docs-site orphan GC.
+- Refresh source-evidence-map paths to D:/a role mapping.
+
 ## 0.1.1-beta.31
 
 - Ralph 硬接线 Portfolio KB: init auto-writes knowledge_refs / knowledge_summary (--no-knowledge-refs / --project / --knowledge-query).

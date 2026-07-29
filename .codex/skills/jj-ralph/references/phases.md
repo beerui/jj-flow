@@ -7,8 +7,8 @@
 | 需求分析 | `ANALYZE` | `analyze.md`、REQ 账本 | MUST/验收可追溯；无阻塞 UNRESOLVED 或已 `BLOCKED` |
 | 计划实施 | `PLAN` | `plan.md`、任务表 | 每 TASK → REQ；范围与不做范围明确 |
 | 实施验证 | `DELIVER` | 代码、`progress.md` 迭代、聚焦验证 | 任务完成且验证非 FAIL；可循环返工 |
-| 验收完成 | `ACCEPT` | `acceptance.md` | 清单项 `PASS` 或 `N/A`+理由；缺证据不得 PASS |
-| 归档 | `ARCHIVE` | `archive-manifest.json`、archive 目录、地图合并 | 写好 archive 冻结副本 + 合并 `business-map.json` |
+| 验收完成 | `ACCEPT` | `acceptance.md` | 清单项 `PASS` 或 `N/A`+理由；缺证据不得 PASS；**product-consistency**：最新 review 不得为 `NEEDS_CHANGES`/`BLOCKED`；若 plan/acceptance 声明了实现文件且工作区有 diff，路径集合必须一致 |
+| 归档 | `ARCHIVE` | `archive-manifest.json`、archive 目录、地图合并 | 写好 archive 冻结副本 + 合并 `business-map.json`；同样受 product-consistency 门禁（含 review 与路径一致性） |
 
 终态：`COMPLETED` | `BLOCKED` | `PAUSED` | `READY_FOR_USER_TEST`。
 
@@ -52,3 +52,8 @@
 
 - 优先 `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS`。
 - PASS 默认推进 phase；`--no-advance` 只改 gate。
+- `accept`/`archive` PASS 会跑 product-consistency：
+  - 最新 review = `NEEDS_CHANGES` 或 `BLOCKED` → 拒绝 PASS
+  - plan/acceptance/`scope.in` 中的实现路径 vs 当前 diff（或显式 `diff_paths`）不一致 → 拒绝 PASS
+  - 策略中途变更时，必须先改写 plan/acceptance 再验收；不要只改代码
+  - 运维覆盖可用 `force: true`（库 API / finalize force），默认对话路径不要用

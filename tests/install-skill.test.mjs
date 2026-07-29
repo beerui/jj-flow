@@ -164,6 +164,9 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'artifact-routing.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'extract_session_evidence.py')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.mjs')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.sh')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.ps1')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);

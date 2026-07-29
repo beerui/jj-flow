@@ -268,9 +268,11 @@ export function defaultArchiveDirName(runId, now = new Date()) {
   return buildArchiveDirNameFromRunId(runId, now, loadNamingConfig());
 }
 
-export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
+export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, diff_paths = null } = {}) {
   const run = loadRun(runId, cwd);
   if (run.gates.accept !== 'PASS') throw new Error('archive requires gates.accept=PASS');
+  const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths });
+  if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
   const folder = slug || defaultArchiveDirName(run.run_id);
   const destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
   const destAbs = path.join(cwd, destRel);
@@ -308,14 +310,14 @@ export function archiveRun(runId, { cwd = process.cwd(), slug } = {}) {
 }
 
 /** map-merge then archive; default accept-PASS closeout. */
-export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', force = false } = {}) {
+export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', force = false, diff_paths = null } = {}) {
   const runBefore = loadRun(runId, cwd);
   if (shouldMaintainHandoff(runBefore)) {
     applyHandoffState(runBefore, { cwd, write_file: true });
     saveRun(runBefore, cwd);
   }
   const merged = mapMergeFromRun(runId, { modules, lessons, keywords, acceptance, status, force }, cwd);
-  const archived = archiveRun(runId, { cwd, slug });
+  const archived = archiveRun(runId, { cwd, slug, force, diff_paths });
   return {
     run: archived.run,
     archive_path: archived.archive_path,
@@ -589,11 +591,191 @@ const GATE_TO_PHASE = {
   archive: 'ARCHIVE'
 };
 
+const LEDGER_CODE_EXT_RE = /\.(?:vue|ts|tsx|js|jsx|mjs|cjs|css|scss|less|sass|json|mdx?)$/i;
+const LEDGER_PATH_EXCLUDE = new Set([
+  'analyze.md', 'plan.md', 'acceptance.md', 'progress.md', 'run.json', 'handoff.json',
+  'archive-manifest.json', 'business-map.json', 'package.json', 'package-lock.json',
+  'pnpm-lock.yaml', 'yarn.lock', 'tsconfig.json', 'jsconfig.json', 'readme.md'
+]);
+
+function normalizeLedgerPathRef(value) {
+  if (!value || typeof value !== 'string') return null;
+  let token = value.trim().replace(/\\/g, '/');
+  if (!token || token.includes('://')) return null;
+  token = token.split(/\s+/)[0].replace(/^['"]|['"]$/g, '').replace(/[,:;]+$/g, '');
+  if (!token || token.includes('=') || token.includes('(') || token.includes(')')) return null;
+  token = token.replace(/^\.\//, '');
+  const base = token.split('/').pop().toLowerCase();
+  if (!base || LEDGER_PATH_EXCLUDE.has(base)) return null;
+  if (!LEDGER_CODE_EXT_RE.test(base)) return null;
+  return token;
+}
+
+/** Extract implementation path refs from plan/acceptance markdown. */
+export function extractLedgerPathRefs(text) {
+  if (!text || typeof text !== 'string') return [];
+  const found = [];
+  for (const match of text.matchAll(/`([^`\n]+)`/g)) {
+    const normalized = normalizeLedgerPathRef(match[1]);
+    if (normalized) found.push(normalized);
+  }
+  for (const match of text.matchAll(/(?<![A-Za-z0-9_./-])((?:src|lib|scripts|tests|packages|apps|components|views|pages)\/[A-Za-z0-9_./@-]+\.[A-Za-z0-9]+)/g)) {
+    const normalized = normalizeLedgerPathRef(match[1]);
+    if (normalized) found.push(normalized);
+  }
+  return unique(found);
+}
+
+function isWorkflowNoisePath(value) {
+  const normalized = String(value || '').replace(/\\/g, '/');
+  return normalized.startsWith('.workflow/') || normalized.includes('/.workflow/') || normalized.startsWith('.git/');
+}
+
+function pathMatchKeys(value) {
+  const full = String(value || '').replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
+  const base = full.split('/').pop();
+  return { full, base };
+}
+
+function pathRefCovers(candidate, target) {
+  const c = pathMatchKeys(candidate);
+  const t = pathMatchKeys(target);
+  if (!c.full || !t.full) return false;
+  return c.full === t.full || c.base === t.base || t.full.endsWith('/' + c.full) || c.full.endsWith('/' + t.full) || t.full.endsWith('/' + c.base) || c.full.endsWith('/' + t.base);
+}
+
+/** Return human-readable mismatch or null when claimed/actual path sets are compatible. */
+export function findImplementationPathMismatch(claimedPaths, actualPaths) {
+  const claimed = unique((claimedPaths || []).map(normalizeLedgerPathRef).filter(Boolean));
+  const actual = unique((actualPaths || []).map((item) => String(item || '').replace(/\\/g, '/')).filter((item) => item && !isWorkflowNoisePath(item)));
+  if (!claimed.length || !actual.length) return null;
+  const missingFromDiff = claimed.filter((item) => !actual.some((pathValue) => pathRefCovers(item, pathValue)));
+  const missingFromLedger = actual.filter((item) => !claimed.some((pathValue) => pathRefCovers(pathValue, item)));
+  if (!missingFromDiff.length && !missingFromLedger.length) return null;
+  const parts = [];
+  if (missingFromLedger.length) parts.push('actual not in plan/acceptance: ' + missingFromLedger.join(', '));
+  if (missingFromDiff.length) parts.push('planned missing from diff: ' + missingFromDiff.join(', '));
+  return parts.join('; ') + ' | claimed=[' + claimed.join(', ') + '] actual=[' + actual.join(', ') + ']';
+}
+
+export function collectGitDiffPaths(cwd = process.cwd()) {
+  try {
+    const output = execSync('git status --porcelain -uall', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const paths = [];
+    for (const line of String(output || '').split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      const body = line.length >= 4 ? line.slice(3).trim() : line.trim();
+      if (!body) continue;
+      const chosen = body.includes(' -> ') ? body.split(' -> ').pop() : body;
+      const normalized = String(chosen || '').replace(/\\/g, '/').replace(/^"|"$/g, '');
+      if (normalized && !isWorkflowNoisePath(normalized)) paths.push(normalized);
+    }
+    return unique(paths);
+  } catch {
+    return null;
+  }
+}
+
+function readRunArtifactText(run, key, cwd) {
+  const rel = run?.artifact_refs?.[key];
+  if (!rel) return '';
+  const abs = path.join(runDir(run.run_id, cwd), rel);
+  if (!fs.existsSync(abs)) return '';
+  return fs.readFileSync(abs, 'utf8');
+}
+
+export function collectClaimedImplementationPaths(run, cwd = process.cwd()) {
+  const claimed = [];
+  if (Array.isArray(run?.scope?.in)) {
+    for (const item of run.scope.in) {
+      const normalized = normalizeLedgerPathRef(item);
+      if (normalized) claimed.push(normalized);
+    }
+  }
+  claimed.push(...extractLedgerPathRefs(readRunArtifactText(run, 'plan', cwd)));
+  claimed.push(...extractLedgerPathRefs(readRunArtifactText(run, 'acceptance', cwd)));
+  return unique(claimed);
+}
+
+export function getLatestReviewRecord(run, cwd = process.cwd()) {
+  if (!run?.review?.latest_review_id) return null;
+  const entry = Array.isArray(run.review.reviews)
+    ? run.review.reviews.find((item) => item.review_id === run.review.latest_review_id) || run.review.reviews[run.review.reviews.length - 1]
+    : null;
+  if (!entry) return null;
+  if (entry.path) {
+    const abs = path.join(runDir(run.run_id, cwd), entry.path);
+    if (fs.existsSync(abs)) {
+      try {
+        return readJson(abs);
+      } catch {
+        // fall through to entry summary
+      }
+    }
+  }
+  return {
+    review_id: entry.review_id,
+    outcome: entry.outcome,
+    reviewed_commit: entry.reviewed_commit || null,
+    findings: []
+  };
+}
+
+/**
+ * Product-consistency gate for ACCEPT/ARCHIVE PASS.
+ * Blocks false completes when latest review is NEEDS_CHANGES/BLOCKED, or when
+ * plan/acceptance implementation paths diverge from the current diff set.
+ */
+export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, check_paths = true } = {}) {
+  const details = {
+    review_outcome: null,
+    review_id: null,
+    claimed_paths: [],
+    actual_paths: [],
+    path_check: 'skipped'
+  };
+  if (force) return { ok: true, forced: true, reasons: [], details: { ...details, path_check: 'forced' } };
+
+  const reasons = [];
+  const latest = getLatestReviewRecord(run, cwd);
+  if (latest) {
+    details.review_outcome = latest.outcome || null;
+    details.review_id = latest.review_id || null;
+    if (latest.outcome === 'NEEDS_CHANGES' || latest.outcome === 'BLOCKED') {
+      reasons.push('latest review ' + latest.review_id + ' is ' + latest.outcome + '; accept/archive PASS forbidden');
+    }
+  }
+
+  if (check_paths) {
+    const claimed = collectClaimedImplementationPaths(run, cwd);
+    const actual = Array.isArray(diff_paths) ? unique(diff_paths.map((item) => String(item || '').replace(/\\/g, '/'))) : collectGitDiffPaths(cwd);
+    details.claimed_paths = claimed;
+    details.actual_paths = Array.isArray(actual) ? actual : [];
+    if (claimed.length && Array.isArray(actual) && actual.length) {
+      details.path_check = 'checked';
+      const mismatch = findImplementationPathMismatch(claimed, actual);
+      if (mismatch) reasons.push(mismatch);
+    } else if (!claimed.length) {
+      details.path_check = 'skipped_no_claims';
+    } else if (actual === null) {
+      details.path_check = 'skipped_no_git';
+    } else {
+      details.path_check = 'skipped_clean_tree';
+    }
+  }
+
+  return { ok: reasons.length === 0, forced: false, reasons, details };
+}
+
 /** Update one gate; on PASS optionally advance phase (default true). */
-export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true } = {}) {
+export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null } = {}) {
   if (!GATE_KEYS.includes(gate)) throw new Error('invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|') + ')');
   if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
   const run = loadRun(runId, cwd);
+  if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
+    const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths });
+    if (!consistency.ok) throw new Error('product-consistency gate blocked ' + gate + ' PASS: ' + consistency.reasons.join('; '));
+  }
   run.gates = { ...run.gates, [gate]: status };
   if (status === 'BLOCKED') {
     run.status = 'BLOCKED';

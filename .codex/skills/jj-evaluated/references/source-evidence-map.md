@@ -62,3 +62,24 @@ Use these warnings as test cases for `clock_quality`, not as reasons to discard
 the episodes. The first high-value optimization hypothesis is handoff reuse with
 successor/freshness validation; reducing repeated source analysis matters more
 than shaving an artifact-write second.
+
+## 2026-07-29 path refresh (Grok episode window)
+
+Absolute paths moved off the deprecated `D:\\codeup\\...` roots. Current map-backed facts:
+
+| Role | Current repository | Sample run / head used in 2026-07-29 baseline |
+| --- | --- | --- |
+| 承接用户端 | `D:\\a\\cj-web` | `RALPH-inquiry-face-checkmark-20260729` @ `860417f90` |
+| 兑接用户端 | `D:\\a\\dj-web` | port head `cb2c38a3e` |
+| 承载用户端 | `D:\\a\\cz-broker-web` | port head `8257da360`; incomplete `RALPH-zf-zj-align-huiyuan-20260729` |
+| 承载草稿管理 | `D:\\a\\cz-draft-manager-web` | ticket-face-close + publish-esc-focus |
+| 承载识票 | `D:\\a\\cz-broker-recognize-web` | adjacent 0731 list-tag port `feat/cz-0731-lyj@1e3fb4726` |
+| independent SDK | `D:\\a\\rd-sdt-tracker` | `RALPH-appcode-logger-20260728` |
+
+Evaluation write-up: `D:\\daji-docs\\jj-flow\\docs\\evaluations\\2026-07-29-grok-episodes-baseline.md`.
+
+Still true:
+
+- host/session fields missing from ralph artifacts (`host=inferred:grok` only);
+- do not treat file mtime or lone `run.json` duration as active work time;
+- protect EP-05 LITE family success as holdout when changing accept/archive gates.

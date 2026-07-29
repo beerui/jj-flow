@@ -277,7 +277,7 @@
       ".codex/skills/jj-dispatch/SKILL.md"
     ],
     "site_builder": "scripts/build-docs.mjs",
-    "excluded_paths": ["docs/other"],
+    "excluded_paths": ["docs/other", "docs/evaluations"],
     "removed_entrypoints": [
       "$jj-delivery",
       "/jj-delivery",

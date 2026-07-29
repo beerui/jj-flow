@@ -103,8 +103,8 @@ Agent 必须自己从**当前会话**解析：领头 Ralph run、`handoff_ref`�
 3. 将当前用户需求置于最高优先级；会话中的后续纠正覆盖早期要求。
 4. assistant 交付摘要只能作为定位线索，必须用 Git 和当前源码验证。
 
-```powershell
-python -X utf8 scripts/extract_session_evidence.py `
+```bash
+python -X utf8 scripts/extract_session_evidence.py \
   --thread-id '019f3a6a-07f2-7c80-a75e-3d40be996901'
 ```
 
@@ -114,8 +114,31 @@ python -X utf8 scripts/extract_session_evidence.py `
 
 1. 确认源仓库、基线 ref 和功能 ref；不要假设当前 checkout 就是源分支。
 2. 用 `merge-base..feature-ref` 按时间查看提交，区分新增、修复、回退和产品反转。
-3. 可运行 [scripts/collect-port-evidence.ps1](scripts/collect-port-evidence.ps1) 比较源变更范围、技术栈和目标同路径文件。
+3. 可运行 [scripts/collect-port-evidence.mjs](scripts/collect-port-evidence.mjs) 比较源变更范围、技术栈和目标同路径文件（Windows / macOS / Linux 共用 Node 实现；`.sh` / `.ps1` 仅为薄启动器，见 [scripts/README.md](scripts/README.md)）。
 4. 继续沿目标调用链分析；同路径文件存在不代表可直接复制。
+
+优先入口（全平台）：
+
+```bash
+node scripts/collect-port-evidence.mjs \
+  --source-repo /path/to/source \
+  --source-base master \
+  --source-ref feat/example \
+  --target-repo /path/to/target \
+  --target-ref HEAD
+```
+
+macOS / Linux 也可：
+
+```bash
+./scripts/collect-port-evidence.sh \
+  --source-repo /path/to/source \
+  --source-base master \
+  --source-ref feat/example \
+  --target-repo /path/to/target
+```
+
+Windows PowerShell 兼容入口：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
