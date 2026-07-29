@@ -32,6 +32,7 @@ import {
   mapMergeFromRun,
   renderRalphStatusText,
   recordReview,
+  recordHostMeta,
   writeDispatchSnapshot,
   writeHandoffPackage
 } from './ralph.mjs';
@@ -499,7 +500,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok 安装写入各自 .skills；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform grok\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok 安装写入各自 .skills；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform grok\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n  jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]\n');
 }
 
@@ -607,6 +608,8 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       cwd,
       outcome: options.outcome,
       reviewed_commit: options.reviewedCommit || null,
+      fix_commit: options.fixCommit || null,
+      review_scope: options.reviewScope || null,
       task_thread_id: options.taskThreadId || null,
       review_thread_id: options.reviewThreadId || null,
       summary: options.summary || '',
@@ -628,6 +631,24 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`gate ${options.gate}=${options.status} phase=${result.phase} (${options.runId})\n`);
+    return 0;
+  }
+
+
+  if (command === 'host-record') {
+    const options = parseRalphHostArgs(args);
+    const result = recordHostMeta(options.runId, {
+      host_id: options.hostId || null,
+      handle_kind: options.handleKind || null,
+      thread_id: options.threadId || null,
+      session_handle: options.sessionHandle || null,
+      model_id: options.modelId || null,
+      export_path: options.exportPath || null
+    }, cwd);
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}
+`);
+    else stdout.write(`host-record ${options.runId} host_id=${result.host?.host_id || 'null'} thread=${result.host?.thread_id || result.host?.session_handle || 'null'}
+`);
     return 0;
   }
 
@@ -691,6 +712,26 @@ function parseRalphInitArgs(args) {
     }
     if (arg === '--knowledge-query') {
       options.knowledge_query = args[++i];
+      continue;
+    }
+    if (arg === '--host-id') {
+      options.host = options.host || {};
+      options.host.host_id = args[++i];
+      continue;
+    }
+    if (arg === '--thread-id') {
+      options.host = options.host || {};
+      options.host.thread_id = args[++i];
+      continue;
+    }
+    if (arg === '--model-id') {
+      options.host = options.host || {};
+      options.host.model_id = args[++i];
+      continue;
+    }
+    if (arg === '--session-export') {
+      options.host = options.host || {};
+      options.host.export_path = args[++i];
       continue;
     }
     throw new Error(`Unknown ralph init option: ${arg}`);
@@ -767,6 +808,24 @@ function parseRalphGateArgs(args) {
   return options;
 }
 
+
+function parseRalphHostArgs(args) {
+  const options = {};
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--host-id') { options.hostId = args[++i]; continue; }
+    if (arg === '--handle-kind') { options.handleKind = args[++i]; continue; }
+    if (arg === '--thread-id') { options.threadId = args[++i]; continue; }
+    if (arg === '--session-handle') { options.sessionHandle = args[++i]; continue; }
+    if (arg === '--model-id') { options.modelId = args[++i]; continue; }
+    if (arg === '--export-path') { options.exportPath = args[++i]; continue; }
+    throw new Error(`Unknown ralph host-record option: ${arg}`);
+  }
+  if (!options.runId) throw new Error('host-record requires --run-id');
+  return options;
+}
+
 function parseRalphReviewArgs(args) {
   const options = { findings: [], evidenceRefs: [] };
   for (let i = 0; i < args.length; i += 1) {
@@ -774,6 +833,8 @@ function parseRalphReviewArgs(args) {
     if (arg === '--run-id') { options.runId = args[++i]; continue; }
     if (arg === '--outcome') { options.outcome = args[++i]; continue; }
     if (arg === '--reviewed-commit') { options.reviewedCommit = args[++i]; continue; }
+    if (arg === '--fix-commit') { options.fixCommit = args[++i]; continue; }
+    if (arg === '--review-scope') { options.reviewScope = args[++i]; continue; }
     if (arg === '--task-thread') { options.taskThreadId = args[++i]; continue; }
     if (arg === '--review-thread') { options.reviewThreadId = args[++i]; continue; }
     if (arg === '--summary') { options.summary = args[++i]; continue; }
@@ -816,7 +877,9 @@ function parseRalphFindArgs(args) {
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--json]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json。\n`);
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--json]
+  jj ralph host-record --run-id RALPH-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
+  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json。\n`);
 }
 
 function printDoctorHelp(stdout) {

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.1-beta.33
+
+- Remove residual Maestro product framing: rename ADR 0001 to external-tool-boundary; scrub reviewer agent wording; docs site paths no longer reference Maestro.
+- Ralph v2: review_scope (working_tree|commit) + fix_commit; ARCHIVE requires commit-scoped PASS review when a review exists.
+- Ralph v4: accept/archive require gates.deliver=PASS/N/A; block deliver-outside-ledger when progress/diff shows deliver while deliver gate pending.
+- Ralph host metadata: optional run.host (host_id/thread_id/model_id/export_path); `jj ralph host-record` + init flags for session binding/evaluation (not a checkpoint).
+- Contract tests covering v2/v4/host; phases.md and ralph-run schema updated.
+
 ## 0.1.1-beta.32
 
 - Ralph accept/archive product-consistency gate: block PASS when latest review is NEEDS_CHANGES/BLOCKED or plan/acceptance path set drifts from actual diff (EP-04 false-complete class).

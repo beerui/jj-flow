@@ -129,6 +129,12 @@ test('installSkill installs global Codex skills and agents under the same CODEX_
   assert.equal(fs.existsSync(path.join(codexHome, 'skills', 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-developer.toml')), true);
+  for (const agent of ['jj-workflow-reviewer.toml', 'jj-workflow-developer.toml']) {
+    assert.doesNotMatch(
+      fs.readFileSync(path.join(codexHome, 'agents', agent), 'utf8'),
+      /[Mm]aestro|maestro explore/
+    );
+  }
   const skillManifest = JSON.parse(fs.readFileSync(path.join(codexHome, 'skills', INSTALL_MANIFEST_FILENAME), 'utf8'));
   assert.equal(skillManifest.schema_version, INSTALL_MANIFEST_VERSION);
   assert.equal(skillManifest.asset, 'skills');

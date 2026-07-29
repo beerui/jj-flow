@@ -346,3 +346,115 @@ Persist on `run.json`: `host_id`, session/thread handle, model id, optional acti
 | Candidate v1 release | **pending commit / npm beta bump / skill install** |
 | Candidate v2 | proposed only |
 | Business repos | untouched |
+
+---
+
+## 11. Iteration-3 re-evaluation (2026-07-29 late)
+
+Fresh `$jj-evaluated` pass after v1 landed on `main`. Read-only over business repos; evaluation authority is this file + git/artifact facts.
+
+### Authority re-check
+
+| Field | Value |
+| --- | --- |
+| jj-flow HEAD | `3dd7624` `feat(ralph): product-consistency gate and multi-env port evidence` |
+| origin/main | same as HEAD (v1 no longer local-only) |
+| Contract tests | `node --test tests/jj-ralph-contract.test.mjs` -> **15/15 PASS** |
+| Host attestation | still missing on all sampled ralph runs |
+
+Role heads at iteration-3:
+
+| Role | Repository | Head |
+| --- | --- | --- |
+| 承接用户端 | `D:\a\cj-web` | `fix/inquiry-face-info-checkmark@860417f90ae4` (clean) |
+| 兑接用户端 | `D:\a\dj-web` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` (clean) |
+| 承载用户端 | `D:\a\cz-broker-web` | `feat-channel-zj@9f4cff5cba51` (clean) **changed from baseline** |
+| 承载草稿管理 | `D:\a\cz-draft-manager-web` | `dev@e4a5ff98ba80` (clean) |
+| 承载识票 | `D:\a\cz-broker-recognize-web` | `feat/cz-0731-lyj@1e3fb4726644` (clean) |
+
+### New episode — EP-20260729-06 order-filter-bizserialid
+
+| Field | Value |
+| --- | --- |
+| run_id | `RALPH-order-filter-bizserialid-20260729` |
+| repo / role | `cz-broker-web` / 承载用户端 |
+| status | COMPLETED / ARCHIVE |
+| created_at -> updated_at | `2026-07-29T09:10:00Z` -> `2026-07-29T09:10:54Z` |
+| wall_span (artifact) | ~0.9 min |
+| active_duration | unknown |
+| clock_quality | inconsistent |
+| timestamp_provenance | artifact (`run.json`) + fabricated progress sequence (`00:00Z`...`00:03Z`) |
+| outcome | gates all PASS; single-file fix committed as `9f4cff5cb` |
+| review | none |
+| tags | `target_native_adaptation`, `clock_inconsistency`, `evidence_gap` (no host/session; synthetic progress clock) |
+| key refs | `run.json#8dea70bf1ace`, `plan.md#e0c4ac4d4c6f`, `acceptance.md#644d6fb164f8`, `progress.md#99092ce43a26`, archive `2026-07-29-order-filter-bizserialid` |
+
+Ledger vs code: plan/acceptance name `sdm-detail-list.vue` and `bizSerialId`; git shows only that file changed (+2/-3). Path consistency would PASS under candidate v1.
+
+Usability note: progress timestamps are placeholder-like and must not be used for active-time comparisons.
+
+### EP-02 drift deepened (still search set)
+
+`RALPH-zf-zj-align-huiyuan-20260729` remains `IN_PROGRESS` / `PLAN` with deliver/accept/archive PENDING, while:
+
+- `progress.md` records DELIVER work and a product-confirmed field change;
+- git has `459e72f39 fix(account): 智付中金额度字段对齐汇元并移除其它虚户分支` on `feat-channel-zj`.
+
+Tags reinforced: `stale_snapshot`, `user_correction` (product field change), `evidence_gap` (run ledger not advanced). This is still the open incomplete multi-step delivery in the window; do not score it as COMPLETED.
+
+### Scorecard delta
+
+| Episode | Prior | Iteration-3 |
+| --- | --- | --- |
+| EP-01..05 | unchanged | unchanged |
+| EP-06 order-filter | n/a | success, path-consistent, no review, synthetic progress clock |
+| EP-02 zf-align | incomplete ledger | still incomplete; deliver commit exists outside ledger |
+
+Aggregate reading:
+
+- Candidate v1 remains the right promotion for EP-04-class false completes.
+- EP-06 shows clean single-file ralph can still archive without review; integrity risk is low here because plan/acceptance/diff align, but host/time data remains unusable.
+- EP-02 is now a stronger example of **deliver-outside-ledger**: code landed, run stayed PLAN.
+- Dominant open evolution debt is no longer commit-v1; it is **run/progress rebinding after mid-run strategy or deliver** (H1) plus **host observability** (H5/v3).
+
+### Split update (still frozen for v1; additive only)
+
+| Split | Episodes | Note |
+| --- | --- | --- |
+| optimization/search | EP-02, EP-03, EP-04 (+ EP-06 clock/progress as secondary) | EP-02 remains primary incomplete-ledger case |
+| holdout | EP-05 | still protected family LITE success |
+| regression | EP-01 + EP-06 (path-consistent no-review archive) + historical handoff-freshness | EP-06 protects matching single-file ledger still archives under v1 |
+
+Do not move EP-05 or EP-04 across splits.
+
+### Candidate status
+
+| Item | Status |
+| --- | --- |
+| Candidate v1 (product-consistency gate) | **committed on main** `3dd7624`; contract 15/15 PASS |
+| Candidate v2 (review_scope / fix_commit) | still proposed; v1 commit gate cleared; implement only with human approval |
+| Candidate v3 (host/session metadata) | still blocked on exports / schema usage |
+| Candidate v4 (proposed) | **run rebinding after deliver**: when progress/commits show deliver work, refuse to leave run at PLAN without explicit supersede/continue record; falsifier = intentional multi-run split with new run_id |
+
+### Next action
+
+1. Keep v1 as regression-protected behavior; no further skill edit without a new approved candidate.
+2. Prefer human decision on v2 vs v4: commit-identity for reviews vs incomplete-run rebinding for mid-flight delivers.
+3. If Grok/Codex session exports for EP-02/EP-06 become available, recompute active/wait times before any host-time optimization.
+4. Business repositories remain evaluation inputs only; no auto-fix of EP-02 ledger from this skill.
+
+
+---
+
+## 12. Candidate v2/v4/host implementation (2026-07-29)
+
+Implemented in jj-flow `src/ralph.mjs` + CLI + schema + phases:
+
+| Candidate | Mechanism | Tests |
+| --- | --- | --- |
+| v2 | `review_scope`/`fix_commit`; ARCHIVE blocks working_tree PASS | contract case pass |
+| v4 | accept/archive require deliver PASS; deliver-outside-ledger detection | contract case pass |
+| v3 data plane | optional `run.host` + `jj ralph host-record` | contract case pass |
+
+`node --test tests/jj-ralph-contract.test.mjs` → 18/18 PASS.
+Promotion still needs human commit/release of this change set; business repos untouched.

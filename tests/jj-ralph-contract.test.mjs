@@ -24,7 +24,10 @@ import {
   finalizeRun,
   extractLedgerPathRefs,
   findImplementationPathMismatch,
-  evaluateAcceptArchiveGate
+  evaluateAcceptArchiveGate,
+  detectDeliverOutsideLedger,
+  recordHostMeta,
+  resolveReviewScope
 } from '../src/ralph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -604,6 +607,118 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
     });
     assert.equal(evalOk.ok, true);
     assert.equal(evalOk.forced, true);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+
+test('archive blocks working_tree PASS review without fix commit (v2)', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-v2-'));
+  try {
+    const runId = 'RALPH-review-scope-20260729';
+    initRun({ run_id: runId, title: 'scope', goal: 'working tree review cannot archive', capability_ids: ['CAP-scope'], attach_knowledge: false }, cwd);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    recordReview(runId, {
+      cwd,
+      outcome: 'PASS',
+      review_scope: 'working_tree',
+      summary: 'looks ok in tree'
+    });
+    setGate(runId, {
+      gate: 'accept',
+      status: 'PASS',
+      cwd,
+      diff_paths: []
+    });
+    assert.throws(
+      () => archiveRun(runId, { cwd, diff_paths: [] }),
+      /review_scope=commit/
+    );
+    recordReview(runId, {
+      cwd,
+      outcome: 'PASS',
+      review_scope: 'commit',
+      fix_commit: 'abcdef1234567',
+      reviewed_commit: 'abcdef1234567',
+      summary: 'landed'
+    });
+    const archived = archiveRun(runId, { cwd, diff_paths: [] });
+    assert.equal(archived.run.status, 'COMPLETED');
+    const latest = archived.run.review.reviews.at(-1);
+    assert.equal(latest.review_scope, 'commit');
+    assert.equal(latest.fix_commit, 'abcdef1234567');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('accept blocked when deliver pending despite progress DELIVER (v4)', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-v4-'));
+  try {
+    const runId = 'RALPH-deliver-drift-20260729';
+    initRun({ run_id: runId, title: 'drift', goal: 'deliver outside ledger', capability_ids: ['CAP-drift'], attach_knowledge: false }, cwd);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    fs.appendFileSync(path.join(runDirPath, 'progress.md'), '- 2026-07-29 DELIVER: changed account.vue\n', 'utf8');
+    const drift = detectDeliverOutsideLedger(
+      JSON.parse(fs.readFileSync(path.join(runDirPath, 'run.json'), 'utf8')),
+      cwd,
+      { diff_paths: ['src/views/account.vue'] }
+    );
+    assert.equal(drift.observed, true);
+    assert.ok(drift.signals.includes('progress_mentions_deliver'));
+    assert.throws(
+      () => setGate(runId, {
+        gate: 'accept',
+        status: 'PASS',
+        cwd,
+        diff_paths: ['src/views/account.vue']
+      }),
+      /gates\.deliver=PASS|deliver work observed/
+    );
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    const ok = setGate(runId, {
+      gate: 'accept',
+      status: 'PASS',
+      cwd,
+      diff_paths: ['src/views/account.vue']
+    });
+    assert.equal(ok.run.gates.accept, 'PASS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('host-record and init host metadata persist on run', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-host-'));
+  try {
+    const runId = 'RALPH-host-meta-20260729';
+    initRun({
+      run_id: runId,
+      title: 'host',
+      goal: 'bind host',
+      capability_ids: ['CAP-host'],
+      attach_knowledge: false,
+      host: { host_id: 'grok-build', thread_id: 'thread-1', model_id: 'grok-x' }
+    }, cwd);
+    let run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    assert.equal(run.host.host_id, 'grok-build');
+    assert.equal(run.host.thread_id, 'thread-1');
+    const updated = recordHostMeta(runId, { export_path: '.workflow/exports/thread-1.jsonl', session_handle: 'sess-9' }, cwd);
+    assert.equal(updated.host.export_path, '.workflow/exports/thread-1.jsonl');
+    assert.equal(updated.host.session_handle, 'sess-9');
+    const stdout = { write: () => {} };
+    assert.equal(runCli(['ralph', 'host-record', '--run-id', runId, '--host-id', 'codex', '--thread-id', '019f', '--json'], { cwd, stdout }), 0);
+    run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    assert.equal(run.host.host_id, 'codex');
+    assert.equal(run.host.thread_id, '019f');
+    assert.equal(resolveReviewScope({ reviewed_commit: 'abcdef1' }), 'commit');
+    assert.equal(resolveReviewScope({}), 'working_tree');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

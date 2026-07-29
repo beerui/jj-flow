@@ -25,4 +25,4 @@ Accepted for Beta
 - **宿主**（Codex / Claude Code / Git）：执行对话、改代码、隔离 worktree。
 - **外部证据工具**：按需接入，不定义产品中心。
 
-当前产品定位见 [架构](../architecture.md) 与 [ADR 0002](0002-project-family-control-plane.html)。
+当前产品定位见 [架构](architecture.html) 与 [ADR 0002](adr-0002-project-family-control-plane.html)。

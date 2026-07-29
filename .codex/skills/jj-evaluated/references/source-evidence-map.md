@@ -83,3 +83,20 @@ Still true:
 - host/session fields missing from ralph artifacts (`host=inferred:grok` only);
 - do not treat file mtime or lone `run.json` duration as active work time;
 - protect EP-05 LITE family success as holdout when changing accept/archive gates.
+
+## 2026-07-29 iteration-3 refresh
+
+| Role | Current repository | Head at iteration-3 |
+| --- | --- | --- |
+| 承接用户端 | `D:\\a\\cj-web` | `fix/inquiry-face-info-checkmark@860417f90ae4` |
+| 兑接用户端 | `D:\\a\\dj-web` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` |
+| 承载用户端 | `D:\\a\\cz-broker-web` | `feat-channel-zj@9f4cff5cba51` (moved off inquiry-face branch) |
+| 承载草稿管理 | `D:\\a\\cz-draft-manager-web` | `dev@e4a5ff98ba80` |
+| 承载识票 | `D:\\a\\cz-broker-recognize-web` | `feat/cz-0731-lyj@1e3fb4726644` |
+
+New search/regression sample:
+
+- `RALPH-order-filter-bizserialid-20260729` on 承载用户端 (COMPLETED; path-consistent; synthetic progress timestamps).
+- EP-02 `RALPH-zf-zj-align-huiyuan-20260729` still PLAN while deliver commit `459e72f39` exists.
+
+Candidate v1 product-consistency gate is on jj-flow `main@3dd7624`.

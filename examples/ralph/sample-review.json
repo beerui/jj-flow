@@ -11,5 +11,7 @@
   "evidence_refs": [
     "tests/auth-login.test.js"
   ],
-  "recorded_at": "2026-07-23T08:00:00.000Z"
+  "recorded_at": "2026-07-23T08:00:00.000Z",
+  "review_scope": "commit",
+  "fix_commit": "abcdef1234567"
 }

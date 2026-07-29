@@ -22,6 +22,8 @@ const GATE_KEYS = ['analyze', 'plan', 'deliver', 'accept', 'archive'];
 const REVIEW_OUTCOMES = ['PASS', 'NEEDS_CHANGES', 'BLOCKED'];
 const FINDING_SEVERITIES = ['high', 'medium', 'low', 'info'];
 const FINDING_STATUSES = ['OPEN', 'RESOLVED', 'WAIVED'];
+export const REVIEW_SCOPES = ['working_tree', 'commit'];
+export const HOST_IDS = ['codex', 'grok-build', 'claude', 'qoder', 'other'];
 
 export function ralphRoot(cwd = process.cwd()) { return path.join(cwd, RALPH_ROOT_REL); }
 export function ralphsDir(cwd = process.cwd()) { return path.join(cwd, RALPHS_DIR_REL); }
@@ -33,7 +35,7 @@ export function nowIso() { return new Date().toISOString(); }
 export function createEmptyMap() { return { schema_version: RALPH_MAP_SCHEMA_VERSION, updated_at: nowIso(), capabilities: [] }; }
 function unique(items) { return [...new Set((items || []).filter(Boolean))]; }
 
-export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: [] }, capability_ids = [], knowledge_refs = [], knowledge_summary = [], max_iterations = 20, created_at = nowIso() } = {}) {
+export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: [] }, capability_ids = [], knowledge_refs = [], knowledge_summary = [], max_iterations = 20, host = null, created_at = nowIso() } = {}) {
   if (!run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run_id)) throw new Error('run_id must match RALPH-<slug> pattern');
   if (!title) throw new Error('title is required');
   if (!goal) throw new Error('goal is required');
@@ -59,6 +61,7 @@ export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: 
     family: null,
     handoff: null,
     dispatch_recommendation: null,
+    host: normalizeHostMeta(host),
     created_at,
     updated_at: created_at
   };
@@ -83,6 +86,15 @@ export function validateRun(run) {
   if (run.knowledge_refs != null && !Array.isArray(run.knowledge_refs)) errors.push('knowledge_refs must be array when present');
   if (Array.isArray(run.knowledge_refs) && run.knowledge_refs.some((ref) => typeof ref !== 'string' || !ref.trim())) errors.push('knowledge_refs must be non-empty strings');
   if (run.knowledge_summary != null && !Array.isArray(run.knowledge_summary)) errors.push('knowledge_summary must be array when present');
+  if (run.host != null) {
+    if (typeof run.host !== 'object' || Array.isArray(run.host)) errors.push('host must be object or null');
+    else {
+      if (run.host.host_id != null && !HOST_IDS.includes(run.host.host_id)) errors.push('invalid host.host_id');
+      for (const key of ['handle_kind', 'thread_id', 'session_handle', 'model_id', 'export_path']) {
+        if (run.host[key] != null && (typeof run.host[key] !== 'string' || !String(run.host[key]).trim())) errors.push('host.' + key + ' must be non-empty string or null');
+      }
+    }
+  }
   if (!run.artifact_refs?.analyze || !run.artifact_refs?.plan || !run.artifact_refs?.acceptance || !run.artifact_refs?.progress) errors.push('artifact_refs incomplete');
   if (run.review != null) {
     if (typeof run.review !== 'object' || Array.isArray(run.review)) errors.push('review must be object or null');
@@ -120,6 +132,9 @@ export function validateReviewReport(report) {
   if (!report.run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(report.run_id)) errors.push('invalid run_id');
   if (!REVIEW_OUTCOMES.includes(report.outcome)) errors.push('invalid outcome');
   if (report.reviewed_commit != null && (typeof report.reviewed_commit !== 'string' || report.reviewed_commit.length < 7)) errors.push('reviewed_commit must be null or >= 7 chars');
+  if (report.fix_commit != null && (typeof report.fix_commit !== 'string' || report.fix_commit.length < 7)) errors.push('fix_commit must be null or >= 7 chars');
+  if (report.review_scope != null && !REVIEW_SCOPES.includes(report.review_scope)) errors.push('review_scope must be working_tree|commit');
+  if (report.review_scope === 'commit' && !(report.fix_commit || report.reviewed_commit)) errors.push('review_scope=commit requires fix_commit or reviewed_commit');
   if (!Array.isArray(report.findings)) errors.push('findings must be array');
   else {
     for (const [i, finding] of report.findings.entries()) {
@@ -271,7 +286,7 @@ export function defaultArchiveDirName(runId, now = new Date()) {
 export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, diff_paths = null } = {}) {
   const run = loadRun(runId, cwd);
   if (run.gates.accept !== 'PASS') throw new Error('archive requires gates.accept=PASS');
-  const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths });
+  const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate: 'archive' });
   if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
   const folder = slug || defaultArchiveDirName(run.run_id);
   const destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
@@ -518,6 +533,65 @@ export function writeDispatchSnapshot(runId, { cwd = process.cwd(), targets_hint
   return { snapshot, path: run.dispatch_recommendation.snapshot_path };
 }
 
+
+export function normalizeHostMeta(host = null) {
+  if (host == null || host === undefined) return null;
+  if (typeof host !== 'object' || Array.isArray(host)) throw new Error('host must be object or null');
+  const normalized = {
+    host_id: host.host_id || null,
+    handle_kind: host.handle_kind || null,
+    thread_id: host.thread_id || null,
+    session_handle: host.session_handle || null,
+    model_id: host.model_id || null,
+    export_path: host.export_path || null
+  };
+  if (normalized.host_id != null && !HOST_IDS.includes(normalized.host_id)) throw new Error('invalid host_id: ' + normalized.host_id);
+  for (const key of ['handle_kind', 'thread_id', 'session_handle', 'model_id', 'export_path']) {
+    if (normalized[key] != null) {
+      const value = String(normalized[key]).trim();
+      normalized[key] = value || null;
+    }
+  }
+  if (!normalized.host_id && !normalized.thread_id && !normalized.session_handle && !normalized.model_id && !normalized.export_path && !normalized.handle_kind) return null;
+  return normalized;
+}
+
+export function recordHostMeta(runId, hostPatch = {}, cwd = process.cwd()) {
+  const run = loadRun(runId, cwd);
+  run.host = normalizeHostMeta({ ...(run.host || {}), ...(hostPatch || {}) });
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  return { run, host: run.host };
+}
+
+export function resolveReviewScope({ review_scope = null, fix_commit = null, reviewed_commit = null } = {}) {
+  if (review_scope === 'working_tree' || review_scope === 'commit') return review_scope;
+  if (fix_commit || reviewed_commit) return 'commit';
+  return 'working_tree';
+}
+
+export function detectDeliverOutsideLedger(run, cwd = process.cwd(), { diff_paths = null } = {}) {
+  const signals = [];
+  const progress = readRunArtifactText(run, 'progress', cwd);
+  if (/(^|\n)\s*[-*]?\s.*\bDELIVER\b/i.test(progress) || /\bphase\s*[:=]\s*DELIVER\b/i.test(progress)) {
+    signals.push('progress_mentions_deliver');
+  }
+  const actual = Array.isArray(diff_paths)
+    ? unique(diff_paths.map((item) => String(item || '').replace(/\\/g, '/')))
+    : collectGitDiffPaths(cwd);
+  if (Array.isArray(actual) && actual.some((item) => item && !isWorkflowNoisePath(item) && LEDGER_CODE_EXT_RE.test(item))) {
+    signals.push('implementation_diff_present');
+  }
+  const deliverGate = run?.gates?.deliver;
+  const deliverPending = deliverGate !== 'PASS' && deliverGate !== 'N/A';
+  return {
+    observed: Boolean(deliverPending && signals.length),
+    signals,
+    phase: run?.phase || null,
+    deliver_gate: deliverGate || null
+  };
+}
+
 function nextReviewId(run) {
   const existing = Array.isArray(run.review?.reviews) ? run.review.reviews : [];
   let max = 0;
@@ -540,17 +614,22 @@ function normalizeFindings(findings = []) {
   }));
 }
 
-export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_commit = null, task_thread_id = null, review_thread_id = null, summary = '', findings = [], evidence_refs = [], review_id } = {}) {
+export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_commit = null, fix_commit = null, review_scope = null, task_thread_id = null, review_thread_id = null, summary = '', findings = [], evidence_refs = [], review_id } = {}) {
   if (!REVIEW_OUTCOMES.includes(outcome)) throw new Error('outcome must be one of ' + REVIEW_OUTCOMES.join(', '));
   const run = loadRun(runId, cwd);
   const id = review_id || nextReviewId(run);
   if (review_id && run.review?.reviews?.some((item) => item.review_id === review_id)) throw new Error('review already exists: ' + review_id);
+  const resolvedFix = fix_commit || null;
+  const resolvedReviewed = reviewed_commit || null;
+  const resolvedScope = resolveReviewScope({ review_scope, fix_commit: resolvedFix, reviewed_commit: resolvedReviewed });
   const report = {
     schema_version: RALPH_REVIEW_SCHEMA_VERSION,
     review_id: id,
     run_id: run.run_id,
     outcome,
-    reviewed_commit: reviewed_commit || null,
+    reviewed_commit: resolvedReviewed,
+    fix_commit: resolvedFix || (resolvedScope === 'commit' ? resolvedReviewed : null),
+    review_scope: resolvedScope,
     task_thread_id: task_thread_id || run.review?.task_thread_id || null,
     review_thread_id: review_thread_id || null,
     summary: summary || '',
@@ -562,7 +641,7 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
   if (errors.length) throw new Error('invalid review: ' + errors.join('; '));
   const relPath = path.join('reviews', id + '.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   writeJson(path.join(runDir(runId, cwd), relPath), report);
-  const entry = { review_id: id, path: relPath, outcome: report.outcome, reviewed_commit: report.reviewed_commit, task_thread_id: report.task_thread_id, review_thread_id: report.review_thread_id, recorded_at: report.recorded_at };
+  const entry = { review_id: id, path: relPath, outcome: report.outcome, reviewed_commit: report.reviewed_commit, fix_commit: report.fix_commit, review_scope: report.review_scope, task_thread_id: report.task_thread_id, review_thread_id: report.review_thread_id, recorded_at: report.recorded_at };
   const previous = run.review && typeof run.review === 'object' ? run.review : { latest_review_id: null, task_thread_id: null, reviews: [] };
   const reviews = Array.isArray(previous.reviews) ? [...previous.reviews, entry] : [entry];
   run.review = { latest_review_id: id, task_thread_id: report.task_thread_id || previous.task_thread_id || null, reviews };
@@ -573,6 +652,8 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
   const nl = String.fromCharCode(10);
   let line = '- ' + report.recorded_at + ' review ' + id + ' ' + outcome;
   if (report.reviewed_commit) line += ' commit=' + report.reviewed_commit;
+  if (report.fix_commit) line += ' fix_commit=' + report.fix_commit;
+  if (report.review_scope) line += ' scope=' + report.review_scope;
   if (report.task_thread_id) line += ' task_thread=' + report.task_thread_id;
   if (report.review_thread_id) line += ' review_thread=' + report.review_thread_id;
   line += nl;
@@ -717,32 +798,63 @@ export function getLatestReviewRecord(run, cwd = process.cwd()) {
     review_id: entry.review_id,
     outcome: entry.outcome,
     reviewed_commit: entry.reviewed_commit || null,
+    fix_commit: entry.fix_commit || null,
+    review_scope: entry.review_scope || null,
     findings: []
   };
 }
 
 /**
  * Product-consistency gate for ACCEPT/ARCHIVE PASS.
- * Blocks false completes when latest review is NEEDS_CHANGES/BLOCKED, or when
- * plan/acceptance implementation paths diverge from the current diff set.
+ * Blocks false completes when latest review is NEEDS_CHANGES/BLOCKED, when
+ * plan/acceptance implementation paths diverge from the current diff set,
+ * when deliver work is observed while gates.deliver is still pending, or when
+ * ARCHIVE would treat a working_tree review PASS as landed commit evidence.
  */
-export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, check_paths = true } = {}) {
+export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, check_paths = true, gate = 'accept' } = {}) {
   const details = {
     review_outcome: null,
     review_id: null,
+    review_scope: null,
+    fix_commit: null,
     claimed_paths: [],
     actual_paths: [],
-    path_check: 'skipped'
+    path_check: 'skipped',
+    deliver_outside_ledger: null
   };
   if (force) return { ok: true, forced: true, reasons: [], details: { ...details, path_check: 'forced' } };
 
   const reasons = [];
+  const deliverGate = run?.gates?.deliver;
+  if (deliverGate !== 'PASS' && deliverGate !== 'N/A') {
+    reasons.push('accept/archive requires gates.deliver=PASS (or N/A); current=' + (deliverGate || 'missing'));
+  }
+
+  const deliverDrift = detectDeliverOutsideLedger(run, cwd, { diff_paths });
+  details.deliver_outside_ledger = deliverDrift;
+  if (deliverDrift.observed) {
+    reasons.push('deliver work observed while gates.deliver is ' + (deliverDrift.deliver_gate || 'PENDING') + '; set deliver PASS or --force. signals=' + deliverDrift.signals.join(','));
+  }
+
   const latest = getLatestReviewRecord(run, cwd);
   if (latest) {
     details.review_outcome = latest.outcome || null;
     details.review_id = latest.review_id || null;
+    const scope = resolveReviewScope({
+      review_scope: latest.review_scope,
+      fix_commit: latest.fix_commit,
+      reviewed_commit: latest.reviewed_commit
+    });
+    const fixSha = latest.fix_commit || latest.reviewed_commit || null;
+    details.review_scope = scope;
+    details.fix_commit = fixSha;
     if (latest.outcome === 'NEEDS_CHANGES' || latest.outcome === 'BLOCKED') {
       reasons.push('latest review ' + latest.review_id + ' is ' + latest.outcome + '; accept/archive PASS forbidden');
+    }
+    if (gate === 'archive' && latest.outcome === 'PASS') {
+      if (scope !== 'commit' || !fixSha) {
+        reasons.push('archive requires latest PASS review with review_scope=commit and fix_commit/reviewed_commit; got scope=' + scope + ' sha=' + (fixSha || 'null'));
+      }
     }
   }
 
@@ -773,7 +885,7 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
   const run = loadRun(runId, cwd);
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
-    const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths });
+    const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate });
     if (!consistency.ok) throw new Error('product-consistency gate blocked ' + gate + ' PASS: ' + consistency.reasons.join('; '));
   }
   run.gates = { ...run.gates, [gate]: status };
@@ -835,7 +947,8 @@ export function renderRalphStatusText(payload) {
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
       'capabilities: ' + ((run.capability_ids || []).join(', ') || '(none)'),
       'knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'),
-      latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.reviewed_commit ? (' @' + latestReview.reviewed_commit) : '')) : 'review: none',
+      latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.review_scope ? (' scope=' + latestReview.review_scope) : '') + ((latestReview.fix_commit || latestReview.reviewed_commit) ? (' @' + (latestReview.fix_commit || latestReview.reviewed_commit)) : '')) : 'review: none',
+      run.host ? ('host: ' + [run.host.host_id, run.host.thread_id || run.host.session_handle, run.host.model_id].filter(Boolean).join(' / ')) : 'host: none',
       run.intervention_needed ? ('intervention: ' + run.intervention_needed.reason) : 'intervention: none',
       'path: ' + (payload.path || '')
     ].join(nl);

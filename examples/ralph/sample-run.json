@@ -71,5 +71,6 @@
   ],
   "knowledge_summary": [
     "cap-sample-login-reminder: 登录密码更新提醒"
-  ]
+  ],
+  "host": null
 }

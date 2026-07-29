@@ -40,5 +40,6 @@
   "updated_at": "2026-07-23T00:00:00.000Z",
   "family": null,
   "knowledge_refs": [],
-  "knowledge_summary": []
+  "knowledge_summary": [],
+  "host": null
 }

@@ -62,7 +62,7 @@ const NAV_GROUPS = [
       { title: 'M7 Host 闭环验收', source: 'docs/milestones/m7-acceptance.md', output: 'milestones/m7-acceptance.html' },
       { title: 'H5 持续熵清理验收', source: 'docs/milestones/h5-acceptance.md', output: 'milestones/h5-acceptance.html' },
       { title: '真实 Codex App Host 验收', source: 'docs/milestones/real-host-acceptance.md', output: 'milestones/real-host-acceptance.html' },
-      { title: 'ADR 0001', source: 'docs/adr/0001-thin-maestro-adapter.md', output: 'adr-0001-thin-maestro-adapter.html' },
+      { title: 'ADR 0001', source: 'docs/adr/0001-external-tool-boundary.md', output: 'adr-0001-external-tool-boundary.html' },
       { title: 'ADR 0002', source: 'docs/adr/0002-project-family-control-plane.md', output: 'adr-0002-project-family-control-plane.html' }
     ]
   }

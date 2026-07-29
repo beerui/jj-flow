@@ -79,7 +79,7 @@ flowchart LR
 
 主调度是唯一可推进控制面 checkpoint 的角色；子任务只回报结构化 receipt。`task_key` 是持久调度身份；临时 subagent 不是。
 
-详细决策见 [ADR 0002](adr-0002-project-family-control-plane.html) 与 [ADR 0001](adr-0001-thin-maestro-adapter.html)。
+详细决策见 [ADR 0002](adr-0002-project-family-control-plane.html) 与 [ADR 0001](adr-0001-external-tool-boundary.html)。
 
 ## 少参数入口
 
