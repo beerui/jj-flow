@@ -4,16 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "npm dist-tag, usually beta for prereleases"
+        description: "npm dist-tag for this publish (usually beta)"
         required: true
         default: beta
+      align_latest:
+        description: "Also point the npm 'latest' dist-tag at this package.json version (fixes package homepage)"
+        required: true
+        type: boolean
+        default: true
+      retag_only:
+        description: "Skip npm publish; only move dist-tags for package.json version (use when version already published)"
+        required: true
+        type: boolean
+        default: false
       dry_run:
         description: "Run npm publish --dry-run without uploading"
         required: true
         type: boolean
         default: false
       run_verify:
-        description: "Run npm run verify before publishing"
+        description: "Run npm run verify before publishing (ignored when retag_only=true)"
         required: true
         type: boolean
         default: true
@@ -33,14 +43,16 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
-      - if: ${{ inputs.run_verify }}
+      - if: ${{ inputs.run_verify && !inputs.retag_only }}
         run: npm run verify
       - name: Publish package
+        if: ${{ !inputs.retag_only }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TAG: ${{ inputs.tag }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
+          set -euo pipefail
           args=(--access public --tag "$NPM_TAG")
           if [ "$DRY_RUN" = "true" ]; then
             args+=(--dry-run)
@@ -48,3 +60,31 @@ jobs:
             args+=(--provenance)
           fi
           npm publish "${args[@]}"
+      - name: Align dist-tags (package homepage uses latest)
+        if: ${{ !inputs.dry_run && (inputs.align_latest || inputs.retag_only) }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ inputs.tag }}
+          ALIGN_LATEST: ${{ inputs.align_latest }}
+          RETAG_ONLY: ${{ inputs.retag_only }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          NAME="$(node -p "require('./package.json').name")"
+          echo "package=$NAME version=$VERSION tag=$NPM_TAG align_latest=$ALIGN_LATEST retag_only=$RETAG_ONLY"
+
+          # When retag_only, also ensure the primary tag (usually beta) points here.
+          if [ "$RETAG_ONLY" = "true" ]; then
+            npm dist-tag add "$NAME@$VERSION" "$NPM_TAG"
+          fi
+
+          # npmjs.com package homepage defaults to the 'latest' dist-tag.
+          # Historical publishes only set --tag beta, so latest was stuck on 0.1.1-beta.0 (Maestro copy).
+          if [ "$ALIGN_LATEST" = "true" ]; then
+            npm dist-tag add "$NAME@$VERSION" latest
+          fi
+
+          echo "dist-tags after:"
+          npm view "$NAME" dist-tags --json
+          echo "latest description:"
+          npm view "$NAME@latest" version description

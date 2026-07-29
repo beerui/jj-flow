@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix npm package homepage: publish workflow now aligns `latest` dist-tag (npmjs.com defaults to `latest`, which was stuck on Maestro-era 0.1.1-beta.0).
+
 ## 0.1.1-beta.33
 
 - Remove residual Maestro product framing: rename ADR 0001 to external-tool-boundary; scrub reviewer agent wording; docs site paths no longer reference Maestro.

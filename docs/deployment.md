@@ -64,6 +64,7 @@ npm run verify
 ```text
 Workflow: NPM Publish
 tag: beta
+align_latest: true
 dry_run: false
 run_verify: true
 ```
@@ -71,8 +72,33 @@ run_verify: true
 CLI 等价：
 
 ```bash
-gh workflow run "NPM Publish" --field tag=beta --field dry_run=false --field run_verify=true
+gh workflow run "NPM Publish" --field tag=beta --field align_latest=true --field dry_run=false --field run_verify=true
 gh run watch
+```
+
+### 为什么 npm 首页还是旧文案？
+
+[npmjs.com 包页](https://www.npmjs.com/package/@shendu-sdt/jj-flow) **默认展示 `latest` dist-tag**，不是 `beta`。
+
+历史上多次发布都用 `--tag beta`，`latest` 一直停在 `0.1.1-beta.0`（含 Maestro 描述）。  
+发布工作流现在默认会在成功后把 `latest` 指到当前 `package.json` 版本。
+
+若版本已发布、只需纠正标签（不重传 tarball）：
+
+```bash
+gh workflow run "NPM Publish" \
+  --field tag=beta \
+  --field align_latest=true \
+  --field retag_only=true \
+  --field dry_run=false \
+  --field run_verify=false
+```
+
+校验：
+
+```bash
+npm view @shendu-sdt/jj-flow dist-tags
+npm view @shendu-sdt/jj-flow@latest version description
 ```
 
 发布成功后，用户可以用：
