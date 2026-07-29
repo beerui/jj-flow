@@ -47,7 +47,7 @@ npm run verify
 
 ## npm 发布流程
 
-**本项目 npm 发布的唯一正式路径是 GitHub Actions `NPM Publish`（`npm-publish.yml`）。**  
+**本项目 npm 发布的唯一正式路径是 GitHub Actions `NPM Publish`（`npm-publish.yml`）。**
 不要用本地 `npm publish` 作为发布手段；本地 token 不是事实源，常见 401/404。
 
 工作流不会自动跟随每次 push 发布，需要维护者手动 `workflow_dispatch`。
@@ -80,7 +80,7 @@ gh run watch
 
 [npmjs.com 包页](https://www.npmjs.com/package/@shendu-sdt/jj-flow) **默认展示 `latest` dist-tag**，不是 `beta`。
 
-历史上多次发布都用 `--tag beta`，`latest` 一直停在 `0.1.1-beta.0`（含 Maestro 描述）。  
+历史上多次发布都用 `--tag beta`，`latest` 一直停在 `0.1.1-beta.0`（含 Maestro 描述）。
 发布工作流现在默认会在成功后把 `latest` 指到当前 `package.json` 版本。
 
 若版本已发布、只需纠正标签（不重传 tarball）：
