@@ -1,6 +1,6 @@
 ---
 name: jj-dispatch
-description: 在业务仓发起多项目调度（有 D:/a 时在其下业务项目）：PREVIEW→批准→DISPATCH→tick/resume。协调状态：有 portfolio 写 D:/a/dispatch-control，否则在工具工作区创建 .jj-flow/。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
+description: 在业务仓发起多项目调度：PREVIEW→批准→DISPATCH→tick/resume。协调状态默认写入用户主目录 ~/.jj-flow（可配置）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
 ---
 
 # jj-dispatch
