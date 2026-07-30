@@ -1,13 +1,18 @@
 # 控制项目约定
 
-控制项目是**项目族级**、可版本化的协调目录。不要求业务源码；职责是保存跨项目协调状态。
+**控制根**是项目族级、可版本化的**状态落盘目录**（不是用户必须打开的工作仓）。职责：保存跨项目协调状态，不写业务源码。
 
-**默认模型：一个顶层控制仓 + 多 delivery 分目录。**  
-不要把「每波 delivery 新建一个控制项目」当成规程。
+| 概念 | 含义 |
+| --- | --- |
+| **发起 cwd** | 用户日常业务仓：承接 / 兑接 / 承载 / 后管…（`D:/a/cj-web` 等） |
+| **control 根** | 默认 `D:/a/dispatch-control`：只存 manifest / task / receipt 引用 |
+| **一波 delivery** | control 根下 `.workflow/dispatch/<DELIVERY_ID>/`，不是新建一个 git 控制仓 |
+
+用户在承接或兑接里发起 `$jj-dispatch` 是一等路径；Agent 自动把状态写到 control 根。
 
 动作语义与门禁优先级见上级 [SKILL.md](../SKILL.md)。本文件是字段、目录、恢复与闭环细则源。权威状态机实现：`src/dispatchControlPlane.mjs`。
 
-## 顶层控制根（推荐）
+## 顶层 control 根（状态落盘，推荐唯一）
 
 | 项 | 值 |
 | --- | --- |
@@ -16,11 +21,11 @@
 | 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
 | 代码解析 | `resolveDispatchControlRoot()` in `src/namingConfig.mjs` |
 
-与 `D:/a/map.md`（项目定位）、`D:/a/knowledge`（Portfolio KB）并列，同属顶层 portfolio，而不是某个 `cj-web` / `cz-broker-web` 业务仓内的临时目录。
+与 `D:/a/map.md`、`D:/a/knowledge` 并列属 portfolio 基建。**不是**「调度专用业务工程」；用户不必为了 dispatch 切换到此目录。
 
 ## 何时读
 
-- 解析控制根 / 注册 projects
+- 解析 control 根 / 注册 projects
 - 写 delivery / responsibility / intake
 - 处理 `UNKNOWN` / rework / checkpoint 字段
 - 校验 intent 绑定元数据
@@ -39,30 +44,27 @@
 
 控制项目自身放在 `control_project`，也可出现在 `projects` 列表，但不得默认当作业务目标。DISPATCH 时 lead/target 必须为 `active`。
 
-## 建议目录（顶层仓内多 delivery）
+## 建议目录（状态落盘；用户仍在业务仓会话）
 
 ```text
-D:/a/dispatch-control/                 # 顶层控制根（唯一推荐）
+# 用户会话 cwd 示例（发起处）
+D:/a/cj-web/                           # 承接里发起 /jj-dispatch  ← 正常
+
+# 状态写入（Agent 解析，用户通常不打开）
+D:/a/dispatch-control/
   README.md
   control-plane.json                   # 可选：项目注册表 / 活跃 delivery 索引
-  events.ndjson                        # 可选审计镜像
+  events.ndjson
   .workflow/
     dispatch/<DELIVERY_ID>/
-      control-plane.json               # 本波 delivery 权威状态（revision 单调）
-      ...
+      control-plane.json               # 本波权威状态（revision 单调）
     tasks/TASK-<DELIVERY_ID>/
-      task.json
-      task.md
-      plan.md
-      progress.md
-      result.md
+      task.md / plan.md / …
 ```
 
-- **一波 delivery = 一个 `delivery_id` 目录**，不是一个新 git 控制仓。
-- 本波 `control-plane.json`：该 delivery 状态唯一真相源；`revision` 每次状态变化递增。
-- MVP 的 `events` 可随 manifest 保存；host 可镜像到 `events.ndjson`，但不得成为第二份手工状态。
-- handoff、reports、receipts 按任务 ID / delivery 分目录。
-- 仅当用户明确要求「隔离控制仓」时才新建第二个控制根；默认禁止。
+- **一波 delivery = 一个 `delivery_id` 目录**，不是一个新控制 git 仓。
+- 本波 `control-plane.json`：该 delivery 状态唯一真相源。
+- 仅当用户明确要求「隔离 control 根」时才新建第二个根；默认禁止。
 
 ## Intake 与 Delivery
 

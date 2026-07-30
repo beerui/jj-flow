@@ -166,7 +166,7 @@ $jj-same
 
 ## 相关命令
 
-- [`jj-dispatch`](command-jj-dispatch.html)：在独立控制项目中预览、派发和恢复跨项目任务。
+- [`jj-dispatch`](command-jj-dispatch.html)：在业务仓发起跨项目预览/派发/恢复；状态落盘顶层 control 根。
 - [`jj` CLI](command-cli.html)：安装资产与本地调试输出。
 - [维护说明](maintenance.html)：维护 `jj-flow` 项目本身时运行 `npm run verify`。
 

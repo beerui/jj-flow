@@ -1,44 +1,51 @@
 ---
 name: jj-dispatch
-description: 在项目族顶层控制仓做多项目调度：确认 origin/requirement_owner/lead/targets，执行 PREVIEW→批准→DISPATCH→tick/resume，维护可恢复 task_key 绑定与 receipt 汇总。默认共用一个顶层控制项目（非每波新建）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
+description: 在业务仓（承接/兑接/承载等）发起多项目调度：确认 origin/requirement_owner/lead/targets，PREVIEW→批准→DISPATCH→tick/resume；协调状态写入项目族共用的顶层 control 目录（非每波新建控制仓）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
 ---
 
 # jj-dispatch
 
-跨项目调度的控制面入口。控制仓只存项目族、任务、thread、状态、决策和 artifact 引用，不复制需求正文、源码或目标验证正文。
+跨项目调度入口。用户在 **业务项目**（承接 / 兑接 / 承载 / 后管等）里说 `$jj-dispatch` / `/jj-dispatch` 即可发起，**不必**先打开或新建一个「控制项目」工作区。
+
+协调状态写入项目族 **共用的顶层 control 根**（默认 `D:/a/dispatch-control`）：只存项目注册、delivery、task、thread 绑定、决策与 artifact 引用；**不写业务源码**，也不替代用户当前业务 cwd。
 
 控制面权威实现是仓库 `src/dispatchControlPlane.mjs` 与 schema；本 skill 描述必须与其状态机一致，不得发明并行枚举。
 
-## 控制项目：默认「一个顶层」，不是每波一个
+## 发起位置 vs 状态落盘（两件事）
 
-**产品默认：** 整个项目族（承接 / 兑接 / 承载及注册表内 sibling）共用 **一个顶层控制项目**。  
-**不要求** 每次 delivery 新建空仓或「先建控制项目才能调度」。
+| | **用户从哪发起** | **状态写到哪** |
+| --- | --- | --- |
+| 是什么 | 业务仓会话 / cwd：承接、兑接、承载… | 顶层 control 根（portfolio 级目录） |
+| 默认 | **当前打开的业务项目**（如 `D:/a/cj-web`） | `D:/a/dispatch-control`（可配置） |
+| 不要 | 要求用户先 `cd` 到 control 根再调度 | 每波 delivery 新建一个控制 git 仓 |
+
+### 发起（业务仓）
+
+1. 用户常在 **origin / lead 业务仓** 发起（例：在承接做完需求后 `$jj-dispatch PREVIEW`）。  
+2. Agent 用 `D:/a/map.md` 解析当前 path → 项目角色，推断 `origin_project` / 默认 `lead` 线索；仍须 intake 确认。  
+3. **不要求** cwd 是 control 根；也不要把 control 根当成「调度专用 IDE 工程」。
+
+### 落盘（顶层 control 根，一个就够）
 
 | 解析顺序 | 来源 |
 | --- | --- |
-| 1 | 用户显式 path / `--manifest` |
-| 2 | 环境变量 `JJ_DISPATCH_CONTROL_ROOT` |
+| 1 | 用户显式 `--manifest` / 路径 |
+| 2 | `JJ_DISPATCH_CONTROL_ROOT` |
 | 3 | `D:/a/config/naming.json` → `dispatch.control_root` |
 | 4 | 默认 `D:/a/dispatch-control` |
 
 ```text
-D:/a/dispatch-control/                    ← 顶层控制仓（推荐唯一）
-  README.md
-  control-plane.json                      ← 可选：汇总索引
-  .workflow/
-    dispatch/<DELIVERY_ID>/
-      control-plane.json                  ← 本波 delivery 权威状态
-    tasks/TASK-<DELIVERY_ID>/
-      task.md / plan.md / …
+D:/a/dispatch-control/                 ← 状态落盘根（用户通常不打开）
+  .workflow/dispatch/<DELIVERY_ID>/
+    control-plane.json                 ← 本波权威状态
+  .workflow/tasks/TASK-<DELIVERY_ID>/
 ```
 
 规则：
 
-1. **默认打开/写入顶层控制根**；多波次 = 多个 `delivery_id` 目录，不是多个控制仓。  
-2. **禁止** 为「这一次迁移」默认再 clone/init 一个新控制项目，除非用户明确要求隔离仓。  
-3. cwd 可以是任意业务仓；Agent 按上表解析控制根，不要求用户先 `cd` 到控制仓。  
-4. 业务代码仍只落在 targets 的 feature 分支（`project-branch` 默认）；控制仓不写业务源码。  
-5. 解析实现：`resolveDispatchControlRoot()`（`src/namingConfig.mjs`）。
+1. **多波次 = 多个 `delivery_id` 目录**，共用同一 control 根；禁止默认每波新建控制仓。  
+2. 业务实现仍在 targets 的 feature 分支（`project-branch` 默认）。  
+3. 解析：`resolveDispatchControlRoot()`（`src/namingConfig.mjs`）。  
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
 
@@ -305,7 +312,7 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 
 | 文件 | 何时读 |
 | --- | --- |
-| [control-project.md](references/control-project.md) | 建控制项目、写 delivery/responsibility、恢复 UNKNOWN、Reviewer/Developer 闭环字段 |
+| [control-project.md](references/control-project.md) | 解析 control 根、写 delivery/responsibility、恢复 UNKNOWN、Reviewer/Developer 闭环字段 |
 | [control-plane.schema.json](references/control-plane.schema.json) | 写/改 `control-plane.json` 前；按下列键检索，勿整文件默读 |
 | [host-action-contract.json](references/host-action-contract.json) | DISPATCH 前置 capability 与 host actions 前 |
 | [host-action-contract.schema.json](references/host-action-contract.schema.json) | 校验 host contract 本身 |
@@ -313,18 +320,19 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 
 `control-plane.schema.json` 常用检索键：`intake`、`approval`、`dispatch_intents`、`responsibilities`、`reviews`、`reference_implementation`、`checkpoint`、`task_mode`。
 
-控制项目最小持久化：`control-plane.json`（唯一权威状态，`revision` 单调递增；MVP 可含 `events`）、可选导出 `events.ndjson`（非第二真相）、`README.md`（注册/批准/恢复说明）。
+control 根最小持久化：每波 `control-plane.json`（该 delivery 权威状态，`revision` 单调递增；MVP 可含 `events`）、可选 `events.ndjson`、`README.md`。
 
 ## 与 `jj-same` 的关系
 
-`$jj-dispatch` 是跨项目控制平面，不是同步实现器。可把已批准目标交给 `$jj-same`，但目标分析、差异适配、验证与 sync checkpoint 仍由 `jj-same` 负责。旧调用 `源=A 目标=B,C` 兼容映射为 `origin=A、requirement_owner=A、lead=A、reference_implementation=null、targets=[B,C]`；仅当已有稳定 commit、snapshot 与 PASS 验证证据时才 materialize 完整 reference。新建控制项目优先显式动态角色。
+`$jj-dispatch` 是跨项目控制平面，不是同步实现器。可把已批准目标交给 `$jj-same`，但目标分析、差异适配、验证与 sync checkpoint 仍由 `jj-same` 负责。旧调用 `源=A 目标=B,C` 兼容映射为 `origin=A、requirement_owner=A、lead=A、reference_implementation=null、targets=[B,C]`；仅当已有稳定 commit、snapshot 与 PASS 验证证据时才 materialize 完整 reference。优先显式动态角色；用户从业务仓发起时用 map 推断线索再 intake 确认。
 
 ## 明确不做
 
+- 不要求用户先打开 control 根或每波新建控制仓才能调度
 - 不实现常驻 daemon、数据库或完整多智能体执行引擎
 - 不自动 checkout、merge、push、release
 - 不因 thread 停止或模型文字回复推进检查点
 - 不新增 Claude `/jj-dispatch`；调度入口以已安装 skill 与已批准 Host 为准（Codex App 或 Grok Build 等价路径）
-- 不把控制项目变成业务源项目；业务产物仍归属实际 `requirement_owner` 或目标项目
+- 不把 control 根当成业务源项目；业务产物仍归属 `requirement_owner` 或目标项目
 - 不在 capability 失败时伪造 host API、写 intent 或“降级为 projectless 任务”
 - 不把 skill 安装或半真实 `host:trial` 当作真实 Host 验收或 A2 升级

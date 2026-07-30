@@ -15,7 +15,7 @@
 
 - `$jj-same` / `/jj-same`：跨同源分叉项目迁移与持续同步入口。用于基于会话、需求、分支、commit、diff 或 handoff 首次迁移功能，并按上次成功检查点同步后续更新、修复和需求变更。
 - `$jj-ralph` / `/jj-ralph`：单仓全流程自治闭环。需求分析 → 计划实施 → 验收完成 → 归档；产物在 `.workflow/ralph/`，能力地图在 `business-map.json`。
-- `$jj-dispatch` / `/jj-dispatch`：多项目调度入口（预览、批准、派发、恢复）。默认共用顶层控制仓（`D:/a/dispatch-control`），按 `delivery_id` 分目录，不要求每波新建控制项目。Codex / Grok / Qoder 可装；**无** Claude 薄命令。宿主绑定：Codex `thread` 或 Grok `session`。
+- `$jj-dispatch` / `/jj-dispatch`：多项目调度入口（预览、批准、派发、恢复）。在 **业务仓会话** 发起；协调状态写入顶层 control 根（默认 `D:/a/dispatch-control`，按 `delivery_id` 分目录）。不要求打开或每波新建控制仓。Codex / Grok / Qoder 可装；**无** Claude 薄命令。宿主绑定：Codex `thread` 或 Grok `session`。
 - `delivery_id`：控制平面里一次跨项目交付任务的稳定身份，不是对话命令名。
 - `Handoff snapshot`：源侧不可变迁移交接清单。ralph 完成后可把交接包写到 `.workflow/handoffs/` 供 same 读取；迁移实现不在 `.workflow/ralph/` 下完成。
 - `Ralph run`：一次单仓闭环实例，身份为 `RALPH-*`，状态在 `run.json`。

@@ -18,7 +18,7 @@
 
 1. 同源多仓迁移 / handoff / 持续同步 → same
 2. 单仓闭环 / ralph / 归档 / 能力地图 → ralph
-3. 控制项目多目标调度 → dispatch（Codex / Grok / Qoder；Claude 无薄命令）
+3. 业务仓发起的多目标调度 → dispatch（Codex / Grok / Qoder；Claude 无薄命令）
 4. 不确定 → 默认 same
 
 ## 你需要给什么
@@ -40,10 +40,10 @@ $jj 在当前仓库完成密码过期提醒并归档
 预期路由到 `$jj-ralph`。
 
 ```text
-$jj 在控制项目预览 DEL-password 的多项目任务
+$jj 在承接仓预览 DEL-password 的多项目任务
 ```
 
-预期路由到 `$jj-dispatch`（Codex / Grok / Qoder）。
+预期路由到 `$jj-dispatch`（Codex / Grok / Qoder；状态仍写入顶层 control 根）。
 
 ## 执行过程
 

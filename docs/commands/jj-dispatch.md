@@ -1,8 +1,10 @@
 # `jj-dispatch` 多项目任务调度
 
-`jj-dispatch` 是跨项目控制入口。它负责保存动态项目角色、预览任务、获得批准、创建/绑定宿主任务句柄、汇总结构化回执和恢复中断状态；实际需求实现、bug 修复和同源迁移仍交给其它 `jj-*` 命令。
+`jj-dispatch` 是跨项目控制入口。它负责预览任务、获得批准、创建/绑定宿主任务句柄、汇总结构化回执和恢复中断状态；实际需求实现、bug 修复和同源迁移仍交给其它 `jj-*` 命令。
 
-**默认共用项目族顶层控制仓**（`D:/a/dispatch-control`，可经 `naming.json` / `JJ_DISPATCH_CONTROL_ROOT` 覆盖），**不要求**每波 delivery 新建控制项目。多波次 = 顶层仓内多个 `delivery_id` 目录。cwd 可以是任意业务仓；Agent 解析顶层控制根即可。
+**从哪发起：** 用户在 **承接 / 兑接 / 承载等业务仓** 的会话里直接 `$jj-dispatch` / `/jj-dispatch`（例：在承接做完需求后预览多端派发）。**不要求**先打开或新建「控制项目」工作区。
+
+**状态写哪：** 协调状态写入项目族 **共用的顶层 control 根**（默认 `D:/a/dispatch-control`，可经 `naming.json` / `JJ_DISPATCH_CONTROL_ROOT` 覆盖）。多波次 = 该根下多个 `delivery_id` 目录，不是每波一个控制仓。Agent 自动解析 control 根；用户 cwd 保持业务仓即可。
 
 ### 平台支持
 
