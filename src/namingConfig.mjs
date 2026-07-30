@@ -35,12 +35,13 @@ export const DEFAULT_NAMING_CONFIG = {
     }
   },
   /**
-   * Portfolio root is D:/a (all managed projects live under it).
-   * dispatch.control_root is only state storage under that portfolio, not the user workspace.
+   * Preferred portfolio: D:/a (all managed projects under it).
+   * If that portfolio is absent, fall back to {workspace}/.jj-flow for dispatch state.
    */
   dispatch: {
     portfolio_root: 'D:/a',
     control_root: 'D:/a/dispatch-control',
+    workspace_fallback_dirname: '.jj-flow',
     layout: {
       plane: 'control-plane.json',
       delivery_dir: '.workflow/dispatch/{delivery_id}',
@@ -48,11 +49,12 @@ export const DEFAULT_NAMING_CONFIG = {
       tasks: '.workflow/tasks'
     },
     notes: [
-      'Portfolio top-level is D:/a; all controlled business projects are children of D:/a',
-      'Users launch jj-dispatch from a business project under D:/a (e.g. cj-web / dj-web)',
-      'dispatch.control_root stores coordination state only; not a required IDE cwd',
+      'Portfolio top-level is D:/a when present; all controlled business projects are children of D:/a',
+      'Users launch jj-dispatch from a business project under the portfolio',
+      'Preferred state dir: dispatch.control_root under portfolio (not a required IDE cwd)',
+      'If portfolio/control_root unavailable: use {host_workspace}/.jj-flow and create it when writing',
       'Do not create a new control repo per delivery wave',
-      'Override control_root with JJ_DISPATCH_CONTROL_ROOT or explicit --manifest path'
+      'Override with JJ_DISPATCH_CONTROL_ROOT or explicit --manifest path'
     ]
   }
 };
@@ -107,19 +109,70 @@ export function loadNamingConfig({ configDir = resolveGlobalConfigDir(), require
 }
 
 /**
- * Resolve the portfolio-level dispatch control root.
- * Order: explicit arg → JJ_DISPATCH_CONTROL_ROOT → naming.json dispatch.control_root → default.
+ * Resolve where jj-dispatch stores coordination state.
+ *
+ * Order:
+ * 1. explicit path / --manifest parent
+ * 2. JJ_DISPATCH_CONTROL_ROOT
+ * 3. naming.json dispatch.control_root if portfolio or that path already exists
+ * 4. fallback: {cwd}/.jj-flow  (host tool workspace; create on write)
  */
 export function resolveDispatchControlRoot({
   explicit = null,
+  cwd = process.cwd(),
   configDir = resolveGlobalConfigDir()
 } = {}) {
   if (explicit && String(explicit).trim()) return path.resolve(String(explicit).trim());
   const fromEnv = process.env.JJ_DISPATCH_CONTROL_ROOT;
   if (fromEnv && String(fromEnv).trim()) return path.resolve(String(fromEnv).trim());
+
   const cfg = loadNamingConfig({ configDir, required: false });
-  const root = cfg?.dispatch?.control_root || DEFAULT_NAMING_CONFIG.dispatch.control_root;
-  return path.resolve(root);
+  const preferred = path.resolve(
+    cfg?.dispatch?.control_root || DEFAULT_NAMING_CONFIG.dispatch.control_root
+  );
+  const portfolio = path.resolve(
+    cfg?.dispatch?.portfolio_root || DEFAULT_NAMING_CONFIG.dispatch.portfolio_root
+  );
+  if (fs.existsSync(preferred) || fs.existsSync(portfolio)) {
+    return preferred;
+  }
+
+  const fallbackName =
+    cfg?.dispatch?.workspace_fallback_dirname
+    || DEFAULT_NAMING_CONFIG.dispatch.workspace_fallback_dirname
+    || '.jj-flow';
+  return path.resolve(cwd || process.cwd(), fallbackName);
+}
+
+/**
+ * Ensure the control root directory exists (mkdir -p).
+ * Call before first write of control-plane / task assets.
+ */
+export function ensureDispatchControlRoot(options = {}) {
+  const root = resolveDispatchControlRoot(options);
+  fs.mkdirSync(root, { recursive: true });
+  const readme = path.join(root, 'README.md');
+  if (!fs.existsSync(readme)) {
+    fs.writeFileSync(
+      readme,
+      [
+        '# .jj-flow (dispatch control data)',
+        '',
+        'This directory holds jj-dispatch coordination state for this workspace',
+        '(control-plane, task docs, delivery folders under `.workflow/`).',
+        '',
+        'Created automatically because no portfolio control root (e.g. D:/a) was found.',
+        'Override with `JJ_DISPATCH_CONTROL_ROOT` or `naming.json` `dispatch.control_root`.',
+        '',
+        'Business source code does not belong here.',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+  }
+  const workflow = path.join(root, '.workflow', 'dispatch');
+  fs.mkdirSync(workflow, { recursive: true });
+  return root;
 }
 
 export function normalizeRalphSlug(input) {

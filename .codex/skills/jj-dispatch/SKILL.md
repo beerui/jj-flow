@@ -1,6 +1,6 @@
 ---
 name: jj-dispatch
-description: 在 D:/a 项目族内业务仓（承接/兑接/承载等）发起多项目调度：确认 origin/requirement_owner/lead/targets，PREVIEW→批准→DISPATCH→tick/resume；协调状态写入 D:/a 下共用的 dispatch 状态目录（非每波新建）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
+description: 在业务仓发起多项目调度（有 D:/a 时在其下业务项目）：PREVIEW→批准→DISPATCH→tick/resume。协调状态：有 portfolio 写 D:/a/dispatch-control，否则在工具工作区创建 .jj-flow/。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
 ---
 
 # jj-dispatch
@@ -32,26 +32,32 @@ D:/a/                          ← 项目族顶层（map / naming / 全部受控
 2. Agent 用 `D:/a/map.md` 把 cwd 解析成项目角色，推断 `origin` / lead 线索；仍须 intake 确认。  
 3. **不要求** cwd 是 `dispatch-control`。
 
-### 落盘（`D:/a` 下的状态子目录，一个就够）
+### 落盘（状态根解析）
 
-| 解析顺序 | 来源 |
+| 顺序 | 来源 |
 | --- | --- |
 | 1 | 用户显式 `--manifest` / 路径 |
 | 2 | `JJ_DISPATCH_CONTROL_ROOT` |
-| 3 | `D:/a/config/naming.json` → `dispatch.control_root` |
-| 4 | 默认 `D:/a/dispatch-control` |
+| 3 | 若本机存在 portfolio（如 `D:/a`）或已有 `dispatch.control_root` → 用配置的 control 根（默认 `D:/a/dispatch-control`） |
+| 4 | **否则**：宿主工具当前工作区下的 **`.jj-flow/`**（无则 **创建**） |
 
 ```text
-D:/a/dispatch-control/
+# 有 D:/a 时（本机 portfolio）
+D:/a/dispatch-control/.workflow/dispatch/<DELIVERY_ID>/control-plane.json
+
+# 无 portfolio 时（通用用户）
+{host_workspace}/.jj-flow/
+  README.md
   .workflow/dispatch/<DELIVERY_ID>/control-plane.json
   .workflow/tasks/TASK-<DELIVERY_ID>/
 ```
 
 规则：
 
-1. 多波次 = 多个 `delivery_id` 目录，共用同一状态根。  
-2. 业务代码只在 `D:/a` 下各业务仓 feature 分支（`project-branch` 默认）。  
-3. 解析：`resolveDispatchControlRoot()`（`src/namingConfig.mjs`）。  
+1. 多波次 = 同一状态根下多个 `delivery_id`；禁止默认每波新建控制仓。  
+2. 业务代码只在业务仓 feature 分支（`project-branch` 默认）。  
+3. 首次写入前调用 `ensureDispatchControlRoot()`（`src/namingConfig.mjs`）：解析 + `mkdir` + 必要时写 README。  
+4. 工作区 `.jj-flow/` 是否入库由用户决定；本地工具数据可 `.gitignore`。  
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
 
@@ -245,12 +251,13 @@ Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-re
 
 allowlist、required capabilities、access profile、receipt 枚举、`host_ids` / `handle_kinds` / `host_profiles` 以 [host-action-contract.json](references/host-action-contract.json) 为准；runtime / schema / fixtures 与 skill 须经 `npm run harness:check` 对齐。当前 runtime 只允许输出 `CREATE_THREAD` 与 `RECONCILE_THREAD`（按 `host_id` 分流实现，不伪造 Codex API）。
 
-1. `list_projects` 解析注册项目（Codex `projectId` 或控制项目 path + git identity）；路径、Git identity、宿主项目标识分记。
-2. 通过 DISPATCH 前置检查后，写入/复用 `dispatch_intents`。
-3. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任默认 project-branch workspace；仅 isolation 条件满足时独占 worktree；只读责任消费已提交 commit。
-4. 立即 `BIND_THREAD`；写回失败 → `UNKNOWN`，禁止直接再 create。
-5. `list_threads` / `read_thread` / `send_message_to_thread` 监控与补上下文（Grok 用 session 元数据 / 约定 artifact 等价证明）；自然语言“完成”不能替代 receipt。
-6. `jj dispatch-tick` 消费 receipt，按 `expected_revision` CAS，输出 `actions` / `decision_required` / `next_wait`；对仍为 `PENDING_THREAD` 的 intent 重放 `CREATE_THREAD`。`--write` 文件级 CAS；冲突 → `REVISION_CONFLICT` 且不覆盖。
+1. 解析状态根：`ensureDispatchControlRoot({ cwd })`（有 `D:/a` 用 portfolio 状态目录，否则工作区 `.jj-flow/`）。
+2. `list_projects` 解析注册项目（Codex `projectId` 或 map/path + git identity）；路径、Git identity、宿主项目标识分记。
+3. 通过 DISPATCH 前置检查后，写入/复用 `dispatch_intents`（写入状态根下 `.workflow/dispatch/<DELIVERY_ID>/`）。
+4. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任默认 project-branch workspace；仅 isolation 条件满足时独占 worktree；只读责任消费已提交 commit。
+5. 立即 `BIND_THREAD`；写回失败 → `UNKNOWN`，禁止直接再 create。
+6. `list_threads` / `read_thread` / `send_message_to_thread` 监控与补上下文（Grok 用 session 元数据 / 约定 artifact 等价证明）；自然语言“完成”不能替代 receipt。
+7. `jj dispatch-tick` 消费 receipt，按 `expected_revision` CAS，输出 `actions` / `decision_required` / `next_wait`；对仍为 `PENDING_THREAD` 的 intent 重放 `CREATE_THREAD`。`--write` 文件级 CAS；冲突 → `REVISION_CONFLICT` 且不覆盖。
 
 ### 分发载荷（非 host 步骤）
 
