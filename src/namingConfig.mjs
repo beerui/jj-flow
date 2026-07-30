@@ -33,6 +33,21 @@ export const DEFAULT_NAMING_CONFIG = {
       create_must_follow_config: true,
       rename_existing_requires_explicit_cleanup: true
     }
+  },
+  /** Portfolio-level dispatch control home (not per-delivery empty repos). */
+  dispatch: {
+    control_root: 'D:/a/dispatch-control',
+    layout: {
+      plane: 'control-plane.json',
+      delivery_dir: '.workflow/dispatch/{delivery_id}',
+      delivery_plane: '.workflow/dispatch/{delivery_id}/control-plane.json',
+      tasks: '.workflow/tasks'
+    },
+    notes: [
+      'Prefer one top-level control project for the whole project family',
+      'Do not require creating a new control project per delivery wave',
+      'Override with JJ_DISPATCH_CONTROL_ROOT or explicit --manifest path'
+    ]
   }
 };
 
@@ -72,9 +87,33 @@ export function loadNamingConfig({ configDir = resolveGlobalConfigDir(), require
         ...((raw.ralph && raw.ralph.legacy_tolerance) || {})
       }
     },
+    dispatch: {
+      ...DEFAULT_NAMING_CONFIG.dispatch,
+      ...(raw.dispatch || {}),
+      layout: {
+        ...DEFAULT_NAMING_CONFIG.dispatch.layout,
+        ...((raw.dispatch && raw.dispatch.layout) || {})
+      }
+    },
     source: 'file',
     path: filePath
   };
+}
+
+/**
+ * Resolve the portfolio-level dispatch control root.
+ * Order: explicit arg → JJ_DISPATCH_CONTROL_ROOT → naming.json dispatch.control_root → default.
+ */
+export function resolveDispatchControlRoot({
+  explicit = null,
+  configDir = resolveGlobalConfigDir()
+} = {}) {
+  if (explicit && String(explicit).trim()) return path.resolve(String(explicit).trim());
+  const fromEnv = process.env.JJ_DISPATCH_CONTROL_ROOT;
+  if (fromEnv && String(fromEnv).trim()) return path.resolve(String(fromEnv).trim());
+  const cfg = loadNamingConfig({ configDir, required: false });
+  const root = cfg?.dispatch?.control_root || DEFAULT_NAMING_CONFIG.dispatch.control_root;
+  return path.resolve(root);
 }
 
 export function normalizeRalphSlug(input) {

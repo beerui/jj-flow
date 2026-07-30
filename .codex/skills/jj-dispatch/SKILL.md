@@ -1,13 +1,46 @@
 ---
 name: jj-dispatch
-description: 在独立控制项目中做多项目族调度：确认 origin/requirement_owner/lead/targets，执行 PREVIEW→批准→DISPATCH→tick/resume，维护可恢复 task_key 绑定与 receipt 汇总。在跨项目派发、控制面 delivery、多目标同步编排、TASK-ID 恢复、多仓状态汇总时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。不替代迁移执行。
+description: 在项目族顶层控制仓做多项目调度：确认 origin/requirement_owner/lead/targets，执行 PREVIEW→批准→DISPATCH→tick/resume，维护可恢复 task_key 绑定与 receipt 汇总。默认共用一个顶层控制项目（非每波新建）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
 ---
 
 # jj-dispatch
 
-在独立控制项目中做跨项目调度。控制项目可为空仓或不承担本轮业务开发的仓库；只存项目族、任务、thread、状态、决策和 artifact 引用，不复制需求正文、源码或目标验证正文。
+跨项目调度的控制面入口。控制仓只存项目族、任务、thread、状态、决策和 artifact 引用，不复制需求正文、源码或目标验证正文。
 
 控制面权威实现是仓库 `src/dispatchControlPlane.mjs` 与 schema；本 skill 描述必须与其状态机一致，不得发明并行枚举。
+
+## 控制项目：默认「一个顶层」，不是每波一个
+
+**产品默认：** 整个项目族（承接 / 兑接 / 承载及注册表内 sibling）共用 **一个顶层控制项目**。  
+**不要求** 每次 delivery 新建空仓或「先建控制项目才能调度」。
+
+| 解析顺序 | 来源 |
+| --- | --- |
+| 1 | 用户显式 path / `--manifest` |
+| 2 | 环境变量 `JJ_DISPATCH_CONTROL_ROOT` |
+| 3 | `D:/a/config/naming.json` → `dispatch.control_root` |
+| 4 | 默认 `D:/a/dispatch-control` |
+
+```text
+D:/a/dispatch-control/                    ← 顶层控制仓（推荐唯一）
+  README.md
+  control-plane.json                      ← 可选：汇总索引
+  .workflow/
+    dispatch/<DELIVERY_ID>/
+      control-plane.json                  ← 本波 delivery 权威状态
+    tasks/TASK-<DELIVERY_ID>/
+      task.md / plan.md / …
+```
+
+规则：
+
+1. **默认打开/写入顶层控制根**；多波次 = 多个 `delivery_id` 目录，不是多个控制仓。  
+2. **禁止** 为「这一次迁移」默认再 clone/init 一个新控制项目，除非用户明确要求隔离仓。  
+3. cwd 可以是任意业务仓；Agent 按上表解析控制根，不要求用户先 `cd` 到控制仓。  
+4. 业务代码仍只落在 targets 的 feature 分支（`project-branch` 默认）；控制仓不写业务源码。  
+5. 解析实现：`resolveDispatchControlRoot()`（`src/namingConfig.mjs`）。
+
+字段与目录细则见 [control-project.md](references/control-project.md)。
 
 ## 用户主线 vs 门禁优先
 

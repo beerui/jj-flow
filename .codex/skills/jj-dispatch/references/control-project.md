@@ -1,12 +1,26 @@
 # 控制项目约定
 
-控制项目是独立、可版本化的目录。不要求业务源码；职责是保存跨项目协调状态。
+控制项目是**项目族级**、可版本化的协调目录。不要求业务源码；职责是保存跨项目协调状态。
+
+**默认模型：一个顶层控制仓 + 多 delivery 分目录。**  
+不要把「每波 delivery 新建一个控制项目」当成规程。
 
 动作语义与门禁优先级见上级 [SKILL.md](../SKILL.md)。本文件是字段、目录、恢复与闭环细则源。权威状态机实现：`src/dispatchControlPlane.mjs`。
 
+## 顶层控制根（推荐）
+
+| 项 | 值 |
+| --- | --- |
+| 默认 path | `D:/a/dispatch-control` |
+| 配置 | `D:/a/config/naming.json` → `dispatch.control_root` |
+| 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
+| 代码解析 | `resolveDispatchControlRoot()` in `src/namingConfig.mjs` |
+
+与 `D:/a/map.md`（项目定位）、`D:/a/knowledge`（Portfolio KB）并列，同属顶层 portfolio，而不是某个 `cj-web` / `cz-broker-web` 业务仓内的临时目录。
+
 ## 何时读
 
-- 注册/更新 projects
+- 解析控制根 / 注册 projects
 - 写 delivery / responsibility / intake
 - 处理 `UNKNOWN` / rework / checkpoint 字段
 - 校验 intent 绑定元数据
@@ -25,27 +39,30 @@
 
 控制项目自身放在 `control_project`，也可出现在 `projects` 列表，但不得默认当作业务目标。DISPATCH 时 lead/target 必须为 `active`。
 
-## 建议目录
+## 建议目录（顶层仓内多 delivery）
 
 ```text
-control-project/
+D:/a/dispatch-control/                 # 顶层控制根（唯一推荐）
   README.md
-  control-plane.json
-  events.ndjson
+  control-plane.json                   # 可选：项目注册表 / 活跃 delivery 索引
+  events.ndjson                        # 可选审计镜像
   .workflow/
-    tasks/<TASK-ID>/
+    dispatch/<DELIVERY_ID>/
+      control-plane.json               # 本波 delivery 权威状态（revision 单调）
+      ...
+    tasks/TASK-<DELIVERY_ID>/
       task.json
       task.md
       plan.md
       progress.md
       result.md
-    dispatch/<DELIVERY_ID>/
-      ...
 ```
 
-- `control-plane.json`：当前状态唯一真相源；`revision` 每次状态变化递增。
-- MVP 的 `events` 审计数组可随 manifest 保存；host 可镜像到 `events.ndjson`，但不得成为第二份手工状态。
-- handoff、dispatch、reports、receipts 必须按任务 ID / delivery 分目录。
+- **一波 delivery = 一个 `delivery_id` 目录**，不是一个新 git 控制仓。
+- 本波 `control-plane.json`：该 delivery 状态唯一真相源；`revision` 每次状态变化递增。
+- MVP 的 `events` 可随 manifest 保存；host 可镜像到 `events.ndjson`，但不得成为第二份手工状态。
+- handoff、reports、receipts 按任务 ID / delivery 分目录。
+- 仅当用户明确要求「隔离控制仓」时才新建第二个控制根；默认禁止。
 
 ## Intake 与 Delivery
 
