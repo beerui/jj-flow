@@ -249,6 +249,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 确认入口模式：准备交接、消费 `handoff_ref`、更新交接、无 snapshot 首次迁移或按 `sync_key` 后续同步。
 - 确认源项目、目标项目、共享 blueprint 的产物归属仓库、证据入口和是否要求提交/推送。
 - 确认领头项目、默认或用户指定的交付顺序、领头分支、目标派生分支和家族交付计划归属；承接领头时默认 `cj -> dj -> cz`。
+- **分支用途 preflight（硬门，开干前必做）**：读取 [references/branch-purpose-preflight.md](references/branch-purpose-preflight.md)。在写业务代码或创建目标分支前，用当前仓库 `git branch --show-current` / HEAD 回答：任务用途、当前分支用途、意图工作分支、本回合 integration、以及（若用户问发布内容）**tip 树**是否含目标能力。任务用途与当前分支用途不一致时标记 `BLOCKED`，只允许切换/创建正确分支或记录用户显式「就落在此 train 分支」的覆盖；禁止因 checkout 顺手把需求接到发布火车或无关 feature 线（回归：EP-20260730-S1）。
 - 持续同步时确认 `sync_key`、源 ref、触发模式和上一次成功检查点；缺失检查点且无法验证初始基线时保持 `BLOCKED`。
 - 用户只要求分析时，无有效 handoff snapshot 才生成 `ANL-SOURCE` 和 `BLP`；已有有效 snapshot 时只完成 freshness gate 与当前目标 `ANL-TARGET`，不写业务代码。
 - 用户要求迁移或修改时，完成分析后继续实施；未明确时不擅自提交或推送。
@@ -355,6 +356,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 ## 参考
 
 - 处理项目角色、路径和迁移方向时读取 [references/project-family.md](references/project-family.md)。
+- 开干前分支用途核对与错误分支恢复读取 [references/branch-purpose-preflight.md](references/branch-purpose-preflight.md)。
 - 生成需求、分析、计划、实施和评审文档时读取 [references/artifact-routing.md](references/artifact-routing.md)。
 - 准备或消费跨项目交接快照时读取 [references/handoff-snapshot.md](references/handoff-snapshot.md)。
 - 建立持续同步关系或同步后续更新、bug 修复和回退时读取 [references/continuous-sync.md](references/continuous-sync.md)。

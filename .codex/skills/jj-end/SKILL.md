@@ -56,6 +56,9 @@ git fetch <remote> --prune
 | `dirty` | 是否有本任务未提交改动 |
 | `ahead` / `behind` | 相对 `@{u}` 或 `origin/<work_branch>` |
 | `integration` | 合入目标 |
+| `branch_purpose` | 一句话：本任务是否**意图**落在 `work_branch`（非顺手 checkout） |
+
+若本回合改动明显属于另一条 feature/发布线（例如埋点接到发布火车分支），**先停并报告**，建议切到正确 work 分支再收工；不要把错线提交默默 merge 进 integration。判定细则见同包 `jj-same` 的 `references/branch-purpose-preflight.md`（收工侧只做保护，不负责建迁移分支）。
 
 Hard-stop（报告后停止，不改仓库）：
 

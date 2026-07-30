@@ -100,3 +100,17 @@ New search/regression sample:
 - EP-02 `RALPH-zf-zj-align-huiyuan-20260729` still PLAN while deliver commit `459e72f39` exists.
 
 Candidate v1 product-consistency gate is on jj-flow `main@3dd7624`.
+
+## 2026-07-30 Grok window
+
+Live paths (unchanged map roots under `D:\\a\\...`). Evaluation write-up:
+`D:\\daji-docs\\jj-flow\\docs\\evaluations\\2026-07-30-grok-episodes.md`.
+
+| Sample | Evidence |
+| --- | --- |
+| EP-H1 harness | Grok thread `019fb1e2-…`; jj-flow commits `f547935` / `35a878c` (beta.34) |
+| EP-B1 sale-draft | `D:\\a\\cz-broker-web\\.workflow\\ralph\\RALPH-sale-draft-pay-channel-20260730` |
+| EP-S1 tracker same | `D:\\a\\cz-broker-recognize-web\\.workflow\\handoffs\\HOF-aliyun-tracker-20260729-2` + branch mis-attach recovery |
+| EP-K1 SDK Node14 | `D:\\a\\rd-sdt-tracker` postinstall `0.6.3` + static compat test |
+
+Candidate v5 (branch purpose preflight) lives in `jj-same` skill SSOT; protect EP-S1 golden table and EP-B1 holdout.

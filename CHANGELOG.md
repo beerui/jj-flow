@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `$jj-same`：开干前强制 **branch purpose preflight**（任务用途 vs 当前分支用途）；新增 `references/branch-purpose-preflight.md` 与 EP-20260730-S1 五题 golden（错误 train 分支、恢复、staging tip 树判定）。
+- `$jj-end`：记录 `branch_purpose`；明显落错 feature/发布线时停并报告，避免错线 merge 进 integration。
+- jj-evaluated：记录 `docs/evaluations/2026-07-30-grok-episodes.md`（今日 Grok episode 标签、split、candidate v5 晋升状态）。
+- `docs/commands/jj-same.md`：执行过程补充分支用途 preflight。
+
 ## 0.1.1-beta.34
 
 - Fix npm package homepage: publish workflow now aligns `latest` dist-tag (npmjs.com defaults to `latest`, which was stuck on Maestro-era 0.1.1-beta.0).

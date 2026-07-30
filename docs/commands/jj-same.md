@@ -109,12 +109,13 @@ $jj-same
 
 1. 确认本轮是首次迁移、准备交接、消费交接、更新交接还是按 `sync_key` 继续同步。
 2. 核对源/目标仓库、业务角色、分支、`HEAD`、工作区和当前授权范围；业务角色不能只根据仓库名或技术栈猜测。
-3. 从当前需求、会话、需求文档、Git 和源码交叉还原最终需求，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
-4. 有 `handoff_ref` 时先做 freshness gate；有效快照只复用共享源需求引用，目标仍重新验证自己的入口、API、状态、权限和 legacy。
-5. 为当前目标建立能力矩阵，对每项能力标记 `DIRECT / ADAPT / EXTEND / BLOCKED / N/A`，并给出最小文件范围和剃刀排除项。
-6. 达到 `EXECUTION_READY` 后生成最窄计划；当前请求已明确要求实施时，在同一轮进入业务代码和聚焦测试修改。
-7. 运行 `git diff --check`、目标文件 lint、聚焦单元测试或契约测试。默认不运行 build、浏览器或 E2E；确有运行时风险且静态证据不足时，输出最小人工测试清单。
-8. 目标实现、验证和 review 满足完成门禁后，记录目标 commit、artifact refs 和同步检查点；失败时保留旧基线。
+3. **分支用途 preflight**：任务用途与当前分支用途不一致时不得开干（切换/创建正确 work 分支或记录用户显式覆盖）；问「合到 staging 会不会带某能力」时查 **tip 树**，不单看历史 commit。
+4. 从当前需求、会话、需求文档、Git 和源码交叉还原最终需求，区分 `MUST`、`TARGET-ONLY`、`DO-NOT-PORT` 和 `UNRESOLVED`。
+5. 有 `handoff_ref` 时先做 freshness gate；有效快照只复用共享源需求引用，目标仍重新验证自己的入口、API、状态、权限和 legacy。
+6. 为当前目标建立能力矩阵，对每项能力标记 `DIRECT / ADAPT / EXTEND / BLOCKED / N/A`，并给出最小文件范围和剃刀排除项。
+7. 达到 `EXECUTION_READY` 后生成最窄计划；当前请求已明确要求实施时，在同一轮进入业务代码和聚焦测试修改。
+8. 运行 `git diff --check`、目标文件 lint、聚焦单元测试或契约测试。默认不运行 build、浏览器或 E2E；确有运行时风险且静态证据不足时，输出最小人工测试清单。
+9. 目标实现、验证和 review 满足完成门禁后，记录目标 commit、artifact refs 和同步检查点；失败时保留旧基线。
 
 ## 输出/完成标准
 
