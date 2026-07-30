@@ -188,6 +188,35 @@ test('analysis receipt is consumed before gating and one ready target can advanc
   assert.equal(validateControlPlane(result.plane).ok, true);
 });
 
+test('host actions honor intent exclusive-worktree environment upgrade', () => {
+  const initial = firstTick(makeRuntimePlane({ leadProject: 'A' }));
+  const bound = bindAnalysis(initial.plane, 'A');
+  const advanced = tickDispatch(bound, {
+    deliveryId: 'DEL-001',
+    expectedRevision: bound.revision,
+    receipts: [analysisReceipt('A', 'DIRECT', { auto: true })],
+    capabilities: CAPABILITIES,
+    now: NOW
+  });
+  const plane = advanced.plane;
+  const intent = plane.deliveries[0].dispatch_intents.find((item) => item.task_key === 'DEL-001/A/development/1');
+  assert.ok(intent);
+  intent.environment = 'exclusive-worktree';
+  // First wave already created PENDING_THREAD; next tick reuses as RECONCILE/CREATE
+  const writeAction = advanced.actions.find((action) => action.task_key === 'DEL-001/A/development/1');
+  assert.equal(writeAction.environment, 'project-branch');
+  const result = tickDispatch(plane, {
+    deliveryId: 'DEL-001',
+    expectedRevision: plane.revision,
+    capabilities: CAPABILITIES,
+    now: NOW
+  });
+  const action = result.actions.find((item) => item.task_key === 'DEL-001/A/development/1');
+  assert.ok(action, JSON.stringify(result.actions, null, 2));
+  assert.equal(action.environment, 'exclusive-worktree');
+  assert.equal(action.worktree_policy, 'exclusive-worktree-when-isolation');
+});
+
 test('human ADAPT decision pauses only that target until scheduler approval', () => {
   const initial = firstTick(makeRuntimePlane({ leadProject: 'A' }));
   const bound = bindAnalysis(initial.plane, 'A');

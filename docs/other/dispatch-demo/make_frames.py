@@ -32,7 +32,7 @@ bodies = [
   "\u5404 target Review PASS \u4e14 commit \u4e00\u81f4\u540e\u5b8c\u6210",
 ]
 cmds = [
-  "\u6253\u5f00\u63a7\u5236\u9879\u76ee\uff0c\u4e0d\u8981\u5728 cj-web \u91cc\u76f4\u63a5 DISPATCH",
+  "\u5728\u4e1a\u52a1\u4ed3 $jj-dispatch\uff1b\u72b6\u6001\u5199 control_root\uff08\u9ed8\u8ba4 ~/.jj-flow\uff09",
   "$jj-dispatch PREVIEW delivery=DEL-password-expire",
   "$jj-dispatch DISPATCH \u6279\u51c6 delivery=DEL-password-expire \u7684\u5f53\u524d task_keys",
   "task_key=DEL-password-expire/cj-web/development/1",

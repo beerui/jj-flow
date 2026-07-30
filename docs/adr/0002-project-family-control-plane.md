@@ -28,7 +28,7 @@ Beta 只做可恢复协议和 Codex App host 适配边界，不把 App thread AP
 1. `PREVIEW` 默认只读；用户明确批准后才进入 `DISPATCH`。
 2. 创建 thread 前先落盘 `dispatch_intent`，用 `delivery/project/responsibility/attempt` 生成稳定 `task_key`。
 3. 创建成功但绑定失败时进入 `UNKNOWN`，只能唯一 `RECONCILE` 或人工 `BIND_THREAD`，禁止盲目重试。
-4. 每个写任务使用目标项目独占 worktree；测试和 Review 消费已提交 commit。
+4. 写任务默认目标项目 project-branch（命名 feature 分支主路径）；isolation 时用独占 worktree；测试和 Review 消费已提交 commit。
 5. `reference_implementation` 初始为 `null`，只有 lead 或已授权目标的稳定 commit 和 PASS 验证证据存在时才能设置。
 6. 目标失败不推进该目标的同步 checkpoint，也不替其它目标宣告完成。
 

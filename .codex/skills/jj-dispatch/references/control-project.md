@@ -1,27 +1,48 @@
 # 控制项目约定
 
-## 项目族顶层是 `D:/a`
+## 目录与配置（用户可指定）
 
-| 概念 | 含义 |
-| --- | --- |
-| **顶层 / portfolio 根** | `D:/a`：地图、命名配置、知识库、**全部受控业务项目目录** |
-| **受控项目** | `D:/a` 下的业务仓（`cj-web`、`dj-web`、`cz-broker-web`…），见 `D:/a/map.md` |
-| **发起 cwd** | 用户日常在这些业务仓之一打开会话并发起 `$jj-dispatch` |
-| **dispatch 状态根** | 默认 `D:/a/dispatch-control`：只存 manifest / task / receipt 引用（**不是**用户工作仓） |
-| **一波 delivery** | 状态根下 `.workflow/dispatch/<DELIVERY_ID>/`，不是每波新建一个控制 git 仓 |
+调度**不强制**本机有 `D:/a`。产品默认状态在用户主目录；有项目族时用配置指到 portfolio。
 
-用户在承接或兑接里发起调度是一等路径；Agent 把协调状态写入 `D:/a` 下共用的状态根。
+| 概念 | 含义 | 配置 |
+| --- | --- | --- |
+| **配置文件** | 全局命名与目录 SSOT | `$JJ_GLOBAL_CONFIG_DIR/naming.json`（Windows 未设 env 时默认识别 `D:/a/config/naming.json`） |
+| **portfolio 根** | 业务仓 / map / knowledge 所在顶层树 | `dispatch.portfolio_root` 或 `JJ_PORTFOLIO_ROOT`（例：`D:/a`） |
+| **受控项目** | portfolio 下业务仓，见 `project_map` | `project_map` / `JJ_PROJECT_MAP` |
+| **发起 cwd** | 业务仓会话里 `$jj-dispatch` | 不要求是 control 目录 |
+| **dispatch 状态根** | 只存 manifest / task / receipt（**不是**业务工作仓） | **`dispatch.control_root` 默认 `~/.jj-flow`**；可改为如 `D:/a/dispatch-control` |
+| **知识库** | Portfolio KB | `dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT`（默认可推 `{portfolio_root}/knowledge`） |
+| **一波 delivery** | 状态根下 `.workflow/dispatch/<DELIVERY_ID>/` | 不是每波新建控制 git 仓 |
 
-动作语义与门禁优先级见上级 [SKILL.md](../SKILL.md)。本文件是字段、目录、恢复与闭环细则源。权威状态机实现：`src/dispatchControlPlane.mjs`。
+用户在承接或兑接里发起调度是一等路径；Agent 把协调状态写入**解析后的 control_root**（`jj doctor` 可核对）。
+
+### `naming.json` 示例（本机 portfolio）
+
+```json
+{
+  "schema_version": "jj-flow/naming/1.0",
+  "project_map": "D:/a/map.md",
+  "dispatch": {
+    "portfolio_root": "D:/a",
+    "control_root": "D:/a/dispatch-control",
+    "knowledge_root": "D:/a/knowledge"
+  }
+}
+```
+
+动作语义与门禁优先级见上级 [SKILL.md](../SKILL.md)。本文件是字段、目录、恢复与闭环细则源。权威状态机实现：`src/dispatchControlPlane.mjs`；解析实现：`src/namingConfig.mjs`。
 
 ## dispatch 状态根（落盘，用户通常不打开）
 
 | 项 | 值 |
 | --- | --- |
 | **产品默认** | **`~/.jj-flow`**（用户主目录，不存在则创建） |
-| 本机可选覆盖 | 如 `D:/a/dispatch-control`（仅 `naming.json` / env 配置时） |
+| **配置项** | `naming.json` → `dispatch.control_root` |
+| 本机可选覆盖 | 如 `D:/a/dispatch-control`（须写进 naming.json 或 env） |
 | 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
+| CLI 覆盖 | `--control-root` / `--manifest` |
 | 解析 / 创建 | `resolveDispatchControlRoot()` / `ensureDispatchControlRoot()` |
+| 诊断 | `jj doctor` → `paths.control_root` |
 
 ## 何时读
 
@@ -44,20 +65,26 @@
 
 控制项目自身放在 `control_project`，也可出现在 `projects` 列表，但不得默认当作业务目标。DISPATCH 时 lead/target 必须为 `active`。
 
-## 建议目录（`D:/a` 顶层 + 业务仓发起）
+## 建议目录
 
 ```text
-# 默认（所有用户）
+# 产品默认 control_root（所有用户，无配置时）
 ~/.jj-flow/
   .workflow/dispatch/<DELIVERY_ID>/control-plane.json
+  .workflow/tasks/TASK-<DELIVERY_ID>/
 
-# 业务仓发起（cwd 示例；状态仍写 ~/.jj-flow 除非配置覆盖）
-D:/a/cj-web/     # 或任意业务仓库
+# 可选 portfolio（须 naming.json 配置 portfolio_root / control_root 等）
+D:/a/
+  config/naming.json
+  map.md
+  knowledge/
+  cj-web/   # 业务仓 cwd 发起
+  dispatch-control/   # 若 control_root 指到这里
 ```
 
 - **一波 delivery = 一个 `delivery_id` 目录**。
 - 本波 `control-plane.json`：该 delivery 状态唯一真相源。
-- Agent 首次写入前创建 `~/.jj-flow`（或配置路径）。
+- Agent / CLI 首次写入前 `ensureDispatchControlRoot()`（默认 `~/.jj-flow` 或配置路径）。
 
 ## Intake 与 Delivery
 

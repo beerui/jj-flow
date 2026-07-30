@@ -69,7 +69,7 @@ $jj-dispatch PREVIEW delivery=DEL-…
 ```
 
 **`jj-dispatch` 与 Grok：** skill 与 host 契约（Phase 1）已支持 Grok；PREVIEW / 计划 / CAS tick 不绑死 Codex。  
-完整 DISPATCH 绑定仍要求 **可验证 sandbox attestation + 独占 worktree**（Grok 走 session 句柄，见 [Grok Host Adapter](design-docs/grok-host-adapter.html)）。真实 Host 闭环验收仍为 PENDING，不得用半真实 `host:trial` 冒充。
+完整 DISPATCH 绑定仍要求 **可验证 sandbox attestation**；写任务 workspace 默认 **`project-branch`**（命名 feature 分支 + 项目主路径），**独占 worktree 仅 isolation 时**（Grok 走 session 句柄，见 [Grok Host Adapter](design-docs/grok-host-adapter.html)）。真实 Host 闭环验收仍为 PENDING，不得用半真实 `host:trial` 冒充。
 
 ## 状态怎么理解
 

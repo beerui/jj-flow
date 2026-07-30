@@ -2,11 +2,13 @@
 
 `jj-dispatch` 是跨项目控制入口。它负责预览任务、获得批准、创建/绑定宿主任务句柄、汇总结构化回执和恢复中断状态；实际需求实现、bug 修复和同源迁移仍交给其它 `jj-*` 命令。
 
-**项目族顶层（若有）：** `D:/a`（其下是全部受控业务项目与 `map.md` / `config` / `knowledge`）。
+**目录可配置：** 全局配置文件为 **`$JJ_GLOBAL_CONFIG_DIR/naming.json`**（Windows 未设 env 时默认识别 `D:/a/config/naming.json`）。关键键：`dispatch.control_root`（默认 `~/.jj-flow`）、`dispatch.portfolio_root`、`dispatch.knowledge_root`、`project_map`。用 `jj doctor` 查看当前解析结果。
 
-**从哪发起：** 用户在业务仓会话里直接 `$jj-dispatch` / `/jj-dispatch`（有 `D:/a` 时即其下的承接/兑接/承载等）。**不要求**先打开「控制项目」。
+**项目族顶层（若有）：** 由 `dispatch.portfolio_root` 指定（本机常配 `D:/a`，其下是业务项目与 `map.md` / `config` / `knowledge`）。
 
-**状态写哪：** 默认 **`~/.jj-flow`**（用户主目录；不存在则创建）。可用 `JJ_DISPATCH_CONTROL_ROOT` 或 `naming.json` `dispatch.control_root` 覆盖（本机 portfolio 可配成 `D:/a/dispatch-control`）。多波次 = 同一状态根下多个 `delivery_id`。用户 cwd 保持业务仓。
+**从哪发起：** 用户在业务仓会话里直接 `$jj-dispatch` / `/jj-dispatch`。**不要求**先打开「控制项目」。
+
+**状态写哪：** 默认 **`~/.jj-flow`**。可用 `JJ_DISPATCH_CONTROL_ROOT`、`naming.json` `dispatch.control_root`、或 CLI `--control-root` / `--manifest` 覆盖。多波次 = 同一状态根下多个 `delivery_id`。用户 cwd 保持业务仓。
 
 ### 平台支持
 
@@ -33,7 +35,7 @@ DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型�
 - 一个需求需要由一个主任务统一管理多个已注册项目和多种责任。
 - 需求最先出现的项目、正式需求持有项目、领头实施项目和目标项目不是同一个仓库。
 - 同一项目包含 development、verification、review 等有依赖的任务，需要稳定 `task_key` 和可恢复状态。
-- 需要保证同一项目同时最多一个 active writer，并让写任务使用独占 worktree。
+- 需要保证同一项目同时最多一个 active writer；写任务默认落命名 feature 分支主工作区（`project-branch`），必要时再独占 worktree。
 - 主调度任务中断后，需要根据已持久化的 intent、thread 和回执恢复进度。
 
 ## 何时不用

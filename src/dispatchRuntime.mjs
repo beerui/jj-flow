@@ -510,14 +510,23 @@ function collectHostActions(dispatch, allowedTaskKeys) {
 }
 
 function threadAction(type, intent) {
+  const base = describeHostAction(type, intent.access);
+  // Intent may upgrade write workspace to exclusive-worktree (isolation); host must see same truth.
+  if (intent.access === 'write' && intent.environment) {
+    base.environment = intent.environment;
+    base.worktree_policy = intent.environment === 'exclusive-worktree'
+      ? 'exclusive-worktree-when-isolation'
+      : 'project-branch-default';
+  }
   return {
-    ...describeHostAction(type, intent.access),
+    ...base,
     type,
     action_id: `${type}:${intent.task_key}`,
     task_key: intent.task_key,
     project_id: intent.project_id,
     responsibility: intent.responsibility,
     access: intent.access,
+    environment: intent.environment || base.environment,
     worktree: intent.worktree || null,
     distribution_prompt: intent.distribution_prompt || null,
     initial_prompt: renderInitialPrompt(intent)

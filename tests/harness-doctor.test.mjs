@@ -15,6 +15,9 @@ test('doctor reports the current repository from versioned Harness truth', () =>
   assert.equal(result.repository.git.available, true);
   assert.equal(result.autonomy.available_level, 'A1');
   assert.ok(result.capabilities.some((item) => item.id === 'harness-check'));
+  assert.ok(result.paths);
+  assert.ok(result.paths.control_root);
+  assert.match(renderDoctorText(result), /control_root:/);
 });
 
 test('doctor blocks when a forbidden local state path exists', () => {

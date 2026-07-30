@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { checkHarnessRepository } from '../scripts/check-harness.mjs';
+import { describePathConfig } from './namingConfig.mjs';
 
 export const DOCTOR_SCHEMA_VERSION = 'jj-flow/doctor/1.0';
 
@@ -12,6 +13,7 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
   const manifest = readJson(path.join(root, 'harness-manifest.json'));
   const packageJson = readJson(path.join(root, 'package.json'));
   const git = inspectGit(root, runCommand);
+  const pathConfig = describePathConfig();
   const hostCapabilities = ['git', 'codex', 'claude'].map((command) => ({
     id: command,
     available: command === 'git' ? git.available : commandAvailable(command, runCommand)
@@ -47,6 +49,7 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
       status: harness.status,
       stats: harness.stats
     },
+    paths: pathConfig,
     capabilities: Array.isArray(manifest?.capabilities)
       ? manifest.capabilities.map(({ id, command, mode, evidence }) => ({ id, command, mode, evidence }))
       : [],
@@ -70,6 +73,13 @@ export function renderDoctorText(result) {
     `git: ${renderGit(result.repository.git)}`,
     `autonomy: ${result.autonomy.available_level}`
   ];
+  if (result.paths) {
+    lines.push(`control_root: ${result.paths.control_root}${result.paths.control_root_exists ? '' : ' (missing)'}`);
+    lines.push(`portfolio_root: ${result.paths.portfolio_root || '(none)'}`);
+    lines.push(`knowledge_root: ${result.paths.knowledge_root || '(none)'}`);
+    lines.push(`project_map: ${result.paths.project_map || '(none)'}`);
+    lines.push(`naming_config: ${result.paths.naming_config_path || '(defaults)'} [${result.paths.naming_config_source}]`);
+  }
   if (result.findings.length) {
     lines.push('findings:');
     for (const finding of result.findings) {

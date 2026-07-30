@@ -140,7 +140,8 @@ function executeTrial(tempRoot) {
       sandbox_mode: action.sandbox_mode,
       effective_sandbox_mode: action.sandbox_mode,
       sandbox_evidence_ref: `SANDBOX:H4:${action.task_key}`,
-      environment: action.environment,
+      // Trial uses a temp exclusive worktree for write binds — label matches shape.
+      environment: action.access === 'write' ? 'exclusive-worktree' : action.environment,
       worktree: action.access === 'write' ? normalizePath(worktree) : null
     };
   };

@@ -74,7 +74,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 2. 控制项目引用业务产物，但不拥有产物正文。需求、源码、diff 和详细验证结果留在产生它们的业务仓库。
 3. 控制平面只有一个写者。Worker 返回 receipt，不直接修改批准快照或推进检查点。
 4. `task_key` 是可恢复的调度身份。临时 subagent 和 task/thread 的展示状态不能替代它。
-5. Reviewer 保持只读。Developer 只在当前任务获批目标的独占 worktree 中写入。
+5. Reviewer 保持只读。Developer 只在当前任务获批目标的写工作区中写入（默认 project-branch；isolation 时 exclusive-worktree）。
 6. 缺少证据时输出 `PENDING` 或 `BLOCKED`，不能推断为 `PASS`。一个目标失败时，不能推进自身检查点，也不能替其他目标宣告完成。
 7. `jj-same` 负责迁移、目标适配和同步检查点；`jj-ralph` 负责单仓闭环与能力地图；`jj-dispatch` 负责项目选择、批准、任务身份、派发和恢复。三者不重写彼此的职责。ralph 完成后可导出 handoff（给 same）或推荐快照（给 dispatch），迁移实现不在 `.workflow/ralph/` 内完成。
 8. 外部副作用属于宿主。dispatch 核心代码只计算和校验状态转换，不创建 task，不 merge、push、release，也不运行后台服务。ralph 的 `commit-prep` 同样不自动 commit/push。

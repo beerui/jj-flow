@@ -61,7 +61,7 @@ Grok 无 Codex App 的 project/thread 面。若强行「假装有 thread」，�
 
 1. 定义 Grok 侧 **host_id / capability / action** 与 Codex 侧的对照表，控制面 intent 字段保持同一 schema。
 2. 用 **可验证证据**（路径、git、权限模式、session 元数据）绑定 `task_key`，支持 RECONCILE。
-3. 写责任必须走 **独占 worktree**；读责任禁止 worktree 写入。
+3. 写责任默认 **project-branch**（命名 feature 分支 + 项目主路径）；**isolation 时** 才独占 worktree；读责任禁止 worktree 写入。
 4. 产出 versioned 试跑报告（建议 `docs/milestones/real-host-trial-grok.json`），可与 Codex 试跑并列。
 5. 保持 npm 核心 runtime **不** 直连 Grok 私有 API；adapter 留在宿主边界（与 Codex 相同原则）。
 
@@ -101,7 +101,7 @@ Grok 无 Codex App 的 project/thread 面。若强行「假装有 thread」，�
 | 可恢复执行身份 | `thread_id` | `session_id`（主会话或明确声明的 child session） |
 | 项目注册 | App `projectId` + path | **绝对路径 + git remote/identity** 注册表（控制项目内 versioned） |
 | 读任务角色 | `jj-workflow-reviewer` read-only | 只读 skill / read-only capability mode / 无 write worktree |
-| 写任务角色 | developer + exclusive worktree | 独占 git worktree + write 工具允许写入该路径 |
+| 写任务角色 | developer + project-branch（默认）/ exclusive-worktree（隔离） | 主仓 feature 分支或独占 git worktree；工具允许写入该路径 |
 | Attestation | App runtime sandbox 字段 | **绑定记录**（见 §5），禁止纯自然语言 |
 
 `dispatch_intent` 已有字段尽量复用：`host_id`、`agent_name`、`sandbox_mode`、`effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。
@@ -116,7 +116,7 @@ Grok 路径可把 `thread_id` 语义扩展为 **`external_handle`**（schema 演
 | `create_thread` | 为 `task_key` **创建或声明** 绑定会话（主会话分段 / 明确 child session），写入 intent `PENDING`→bind |
 | `read_thread` | 可读该 session 的结构化 receipt 或约定 artifact 路径 |
 | `send_message_to_thread` | 向该 session 注入 `distribution_prompt` / 后续指令（工具或工作流），并留下可审计引用 |
-| `worktree` | 写任务绑定独占 worktree 路径；路径与 `task_key` 1:1 |
+| `worktree` | 写任务绑定 workspace 路径（project.path 或独占 worktree）；路径与 `task_key` 1:1 |
 | `sandbox` | 见 §5 attestation，非 TOML 默认值 |
 
 任一等价证明缺失 → DISPATCH **BLOCKED**，plane 不变（与 Codex 缺 capability 相同 fail-closed）。
@@ -174,7 +174,7 @@ Grok 分流点仅在 host 执行：
 
 1. DISPATCH 前置检查通过后，intent → `PENDING_THREAD`（状态名可保留；语义=等待宿主绑定）。
 2. Adapter 执行 `CREATE_SESSION_TASK`：
-   - 写责任：创建独占 worktree，准备 developer 上下文 + `distribution_prompt`
+   - 写责任：准备 project-branch 主工作区（或 isolation 时独占 worktree）+ developer 上下文 + `distribution_prompt`
    - 读责任：只读上下文，无 worktree
 3. 立即 BIND：写入 session handle + attestation；失败 → `UNKNOWN`。
 4. `UNKNOWN` 只允许 `RECONCILE_SESSION` 或人工 BIND；禁止同 `task_key` 再 create。

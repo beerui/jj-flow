@@ -36,6 +36,11 @@ import {
   writeDispatchSnapshot,
   writeHandoffPackage
 } from './ralph.mjs';
+import {
+  ensureDispatchControlRoot,
+  resolveDeliveryManifestPath,
+  resolveDispatchControlRoot
+} from './namingConfig.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -181,31 +186,84 @@ function runHarnessGcCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 
 function runTaskCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
-    stdout.write('jj task\n\n用法：\n  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--task TASK-ID] [--root dir] [--json]\n  jj task assign --task TASK-ID [--root dir] [--manifest control-plane.json] [--delivery DELIVERY_ID] [--json]\n  jj task status --task TASK-ID [--root dir] [--manifest control-plane.json] [--json]\n  jj task context --task TASK-ID [--root dir] [--manifest control-plane.json] [--json]\n\n说明：\n  task.json 是任务 ID 的持久索引；新会话只需提供 TASK-ID，即可解析任务文档、控制面和最新状态。\n');
+    stdout.write('jj task\n\n用法：\n  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--task TASK-ID] [--root dir] [--json]\n  jj task assign --task TASK-ID [--root dir] [--manifest path] [--delivery DELIVERY_ID] [--control-root dir] [--json]\n  jj task status --task TASK-ID [--root dir] [--manifest path] [--control-root dir] [--json]\n  jj task context --task TASK-ID [--root dir] [--manifest path] [--control-root dir] [--json]\n\n说明：\n  task.json 是任务 ID 的持久索引。业务仓 cwd 下可只传 --delivery：默认解析 control_root（~/.jj-flow 或 naming.json）。\n  目录配置：naming.json dispatch.control_root / portfolio_root / knowledge_root；env JJ_DISPATCH_CONTROL_ROOT。\n');
     return 0;
   }
   const command = rawArgs.shift();
   if (!['scaffold', 'assign', 'status', 'context'].includes(command)) throw new Error('task requires scaffold, assign, status, or context');
-  const options = { manifest: null, deliveryId: null, taskId: null, root: cwd, json: false };
+  const options = {
+    manifest: null,
+    deliveryId: null,
+    taskId: null,
+    root: null,
+    controlRoot: null,
+    json: false
+  };
   while (rawArgs.length) {
     const arg = rawArgs.shift();
     if (arg === '--manifest') options.manifest = rawArgs.shift();
     else if (arg === '--delivery') options.deliveryId = rawArgs.shift();
     else if (arg === '--task') options.taskId = rawArgs.shift();
-    else if (arg === '--root') options.root = rawArgs.shift() || cwd;
+    else if (arg === '--root') options.root = rawArgs.shift() || null;
+    else if (arg === '--control-root') options.controlRoot = rawArgs.shift() || null;
     else if (arg === '--json') options.json = true;
     else throw new Error(`Unknown task option: ${arg}`);
   }
-  const root = path.resolve(cwd, options.root);
+
+  // Root defaults:
+  // - explicit --root wins
+  // - --control-root or delivery-only (no --manifest) → resolved control_root
+  // - legacy --manifest / --task from cwd → cwd
+  const resolvedControlRoot = resolveDispatchControlRoot({ explicit: options.controlRoot });
+  let root;
+  if (options.root) {
+    root = path.resolve(cwd, options.root);
+  } else if (options.controlRoot || (options.deliveryId && !options.manifest)) {
+    if (command === 'scaffold' || options.controlRoot) {
+      ensureDispatchControlRoot({ explicit: options.controlRoot });
+    }
+    root = resolvedControlRoot;
+  } else {
+    root = path.resolve(cwd);
+  }
+
   let resolved = null;
   if (options.taskId && (!options.manifest || !options.deliveryId)) {
-    resolved = resolveTask({ root, taskId: options.taskId, manifestPath: options.manifest });
-    options.manifest = path.relative(root, resolved.manifestPath) || path.basename(resolved.manifestPath);
-    options.deliveryId = resolved.delivery.delivery_id;
+    const rootsToTry = [root];
+    if (root !== resolvedControlRoot) rootsToTry.push(resolvedControlRoot);
+    if (root !== path.resolve(cwd)) rootsToTry.push(path.resolve(cwd));
+    let lastErr = null;
+    for (const tryRoot of rootsToTry) {
+      try {
+        resolved = resolveTask({ root: tryRoot, taskId: options.taskId, manifestPath: options.manifest });
+        root = tryRoot;
+        options.manifest = path.relative(root, resolved.manifestPath) || path.basename(resolved.manifestPath);
+        options.deliveryId = resolved.delivery.delivery_id;
+        lastErr = null;
+        break;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (lastErr && !options.deliveryId && !options.manifest) throw lastErr;
   }
-  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path, unless --task points to task.json');
+  if (!options.manifest && options.deliveryId) {
+    const manifestAbs = resolveDeliveryManifestPath(options.deliveryId, {
+      explicit: options.controlRoot,
+      ensure: command === 'scaffold'
+    });
+    root = resolvedControlRoot;
+    options.manifest = path.relative(root, manifestAbs) || manifestAbs;
+    if (command === 'scaffold') {
+      ensureDispatchControlRoot({ explicit: options.controlRoot });
+      fs.mkdirSync(path.dirname(manifestAbs), { recursive: true });
+    }
+  }
+  if (!options.manifest) throw new Error('--manifest 或 --delivery 至少提供一个（--delivery 默认解析 control_root 下 control-plane.json）');
   if (!options.deliveryId) throw new Error('--delivery requires a delivery_id');
-  const manifestPath = path.resolve(root, options.manifest);
+  const manifestPath = path.isAbsolute(options.manifest)
+    ? options.manifest
+    : path.resolve(root, options.manifest);
   const plane = resolved?.plane || JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const delivery = resolved?.delivery || plane.deliveries?.find((item) => item.delivery_id === options.deliveryId);
   if (!delivery) throw new Error(`Unknown delivery_id: ${options.deliveryId}`);
@@ -350,6 +408,19 @@ function runUninstallSkill(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 }
 
 function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    stdout.write(
+      'jj dispatch-tick\n\n'
+      + '用法：\n'
+      + '  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt r.json] [--write] [--json]\n\n'
+      + '说明：\n'
+      + '  未给 --manifest 时，从 control_root 解析：\n'
+      + '  {control_root}/.workflow/dispatch/<DELIVERY_ID>/control-plane.json\n'
+      + '  control_root 顺序：--control-root > JJ_DISPATCH_CONTROL_ROOT > naming.json dispatch.control_root > ~/.jj-flow\n'
+      + '  配置文件：$JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 D:/a/config/naming.json）\n'
+    );
+    return 0;
+  }
   const options = parseDispatchTickArgs(rawArgs, cwd);
   const plane = JSON.parse(fs.readFileSync(options.manifest, 'utf8'));
   const receipts = options.receipts.flatMap(readJsonItems);
@@ -383,11 +454,14 @@ function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   } else {
     result.persisted = false;
   }
+  result.control_root = options.controlRootResolved;
+  result.manifest_path = options.manifest;
   if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else {
     let title = null;
+    const taskRoot = options.controlRootResolved || cwd;
     try {
-      title = readTaskTitle({ root: cwd, taskId: `TASK-${options.deliveryId}` });
+      title = readTaskTitle({ root: taskRoot, taskId: `TASK-${options.deliveryId}` });
     } catch {
       // 任务文档可能尚未生成；调度仍可输出状态摘要。
     }
@@ -406,6 +480,7 @@ function parseDispatchTickArgs(rawArgs, cwd) {
   const options = {
     manifest: null,
     deliveryId: null,
+    controlRoot: null,
     expectedRevision: null,
     receipts: [],
     approvals: [],
@@ -417,6 +492,7 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     const arg = rest.shift();
     if (arg === '--manifest') options.manifest = rest.shift();
     else if (arg === '--delivery') options.deliveryId = rest.shift();
+    else if (arg === '--control-root') options.controlRoot = rest.shift();
     else if (arg === '--expected-revision') options.expectedRevision = Number(rest.shift());
     else if (arg === '--receipt') options.receipts.push(rest.shift());
     else if (arg === '--approval') options.approvals.push(rest.shift());
@@ -428,9 +504,24 @@ function parseDispatchTickArgs(rawArgs, cwd) {
     else if (arg === '--json') options.json = true;
     else throw new Error(`Unknown dispatch-tick option: ${arg}`);
   }
-  if (!options.manifest) throw new Error('--manifest requires a control-plane.json path');
   if (!options.deliveryId) throw new Error('--delivery requires a delivery_id');
+  if (!options.manifest) {
+    options.manifest = resolveDeliveryManifestPath(options.deliveryId, {
+      explicit: options.controlRoot,
+      ensure: false
+    });
+  } else if (!path.isAbsolute(options.manifest)) {
+    options.manifest = path.resolve(cwd, options.manifest);
+  }
+  if (!fs.existsSync(options.manifest)) {
+    const controlRoot = resolveDispatchControlRoot({ explicit: options.controlRoot });
+    throw new Error(
+      `control-plane not found: ${options.manifest}\n`
+      + `control_root=${controlRoot} (set naming.json dispatch.control_root, JJ_DISPATCH_CONTROL_ROOT, or --control-root / --manifest)`
+    );
+  }
   options.manifest = fs.realpathSync(options.manifest);
+  options.controlRootResolved = resolveDispatchControlRoot({ explicit: options.controlRoot });
   return options;
 }
 
@@ -500,8 +591,8 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --manifest control-plane.json --delivery DELIVERY_ID [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok 安装写入各自 .skills；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest 和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。控制面中的 delivery_id 是任务身份，不是已移除的 $jj-delivery 入口。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform grok\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
-  stdout.write('  jj task scaffold --manifest control-plane.json --delivery DELIVERY_ID [--root dir] [--json]\n  jj task assign --manifest control-plane.json --delivery DELIVERY_ID --task TASK-ID [--root dir] [--json]\n');
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok 安装写入各自 .skills；真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 D:/a/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @shendu-sdt/jj-flow@beta install-skill\n  npx @shendu-sdt/jj-flow@beta install-skill --platform grok\n  npx @shendu-sdt/jj-flow@beta uninstall-skill --dry-run\n  npx @shendu-sdt/jj-flow@beta doctor --json\n  npx @shendu-sdt/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
 
 function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout } = {}) {

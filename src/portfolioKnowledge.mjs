@@ -1,11 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
-const DEFAULT_ROOTS = [
-  process.env.PORTFOLIO_KB_ROOT,
-  'D:/a/knowledge',
-  'D:\\a\\knowledge'
-].filter(Boolean);
+import { resolveKnowledgeRoot, resolvePortfolioRoot } from './namingConfig.mjs';
 
 function readJson(file, fallback = null) {
   try {
@@ -16,14 +11,32 @@ function readJson(file, fallback = null) {
   }
 }
 
+function looksLikeKbRoot(root) {
+  return fs.existsSync(path.join(root, 'index', 'search.json'))
+    || fs.existsSync(path.join(root, 'catalog.json'));
+}
+
+/**
+ * Resolve Portfolio KB root from config (naming.json / env) then legacy D:/a fallbacks.
+ */
 export function resolvePortfolioKbRoot(explicitRoot = null) {
-  const candidates = [explicitRoot, ...DEFAULT_ROOTS].filter(Boolean);
+  const configured = resolveKnowledgeRoot({ explicit: explicitRoot });
+  const portfolio = resolvePortfolioRoot();
+  const candidates = [
+    explicitRoot,
+    configured,
+    process.env.PORTFOLIO_KB_ROOT,
+    portfolio ? path.join(portfolio, 'knowledge') : null,
+    'D:/a/knowledge',
+    'D:\\a\\knowledge'
+  ].filter(Boolean);
+
+  const seen = new Set();
   for (const root of candidates) {
     const normalized = path.resolve(root);
-    if (fs.existsSync(path.join(normalized, 'index', 'search.json'))
-      || fs.existsSync(path.join(normalized, 'catalog.json'))) {
-      return normalized;
-    }
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    if (looksLikeKbRoot(normalized)) return normalized;
   }
   return null;
 }
@@ -73,7 +86,7 @@ export function attachKnowledgeRefs({
       knowledge_refs: [],
       knowledge_summary: [],
       knowledge_items: [],
-      reason: 'portfolio knowledge root not found (set PORTFOLIO_KB_ROOT or create D:/a/knowledge)'
+      reason: 'portfolio knowledge root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT / portfolio_root, or create knowledge under portfolio)'
     };
   }
 

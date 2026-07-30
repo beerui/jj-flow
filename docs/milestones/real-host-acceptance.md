@@ -20,7 +20,7 @@
 
 | 能力 | 证据 | 是否可替代真实 Host |
 | --- | --- | --- |
-| 独占 worktree 产生 commit | `docs/milestones/m7-host-trial.json` | 否 |
+| 写 workspace（project-branch 或 exclusive-worktree）产生 commit | `docs/milestones/m7-host-trial.json` | 否 |
 | 模拟 sandbox 字段写入 intent 绑定 | 同上，`host.codex_app_threads=false` | 否 |
 | RECONCILE 恢复、不重复 create | 同上 | 否 |
 | Review `NEEDS_CHANGES` → 返工 → `PASS` | 同上 | 否 |
@@ -37,8 +37,8 @@
 
 schema 可在联调时扩展，**不得** 复用 semi-real 的 `mode: "semi-real"` 常量。
 
-1. **Project / worktree 绑定**  
-   - 控制面 `delivery_id`、目标 `project_id`、独占 worktree 路径  
+1. **Project / workspace 绑定**  
+   - 控制面 `delivery_id`、目标 `project_id`、写任务 workspace 路径（默认 project-branch 主路径；isolation 时独占 worktree）  
    - Host 返回的 project / **thread 或 session** 标识（非本地伪造）
 
 2. **Create / bind / resume**  
@@ -51,7 +51,7 @@ schema 可在联调时扩展，**不得** 复用 semi-real 的 `mode: "semi-real
    - 禁止用本地 semi-real runner 或模型自述冒充
 
 4. **开发 → 验证 → Review → 返工**  
-   - Developer 在批准快照下于独占 worktree 提交  
+   - Developer 在批准快照下于绑定 workspace（project-branch 或 exclusive-worktree）提交  
    - Reviewer 只读 findings；至少一轮 `NEEDS_CHANGES` 再 `PASS`（或明确记录无返工原因）  
    - 控制面 CAS 持久化与最终 `VERIFIED`（或失败路径的 fail-closed 记录）
 

@@ -7,56 +7,80 @@ description: 在业务仓发起多项目调度：PREVIEW→批准→DISPATCH→t
 
 跨项目调度入口。
 
-## 项目族顶层：`D:/a`
+## 目录配置（用户可改）
 
-**顶层设计是 `D:/a` 目录**（portfolio 根）：其下是所有受控业务项目与基建，不是「先有一个控制 git 仓再调度」。
+**产品默认调度状态根是 `~/.jj-flow`**，不是任何机器上的 `D:/a`。  
+项目族顶层（portfolio）、知识库、地图、调度状态**都是配置项**，写在全局 `naming.json` 或环境变量里。
 
-```text
-D:/a/                          ← 项目族顶层（map / naming / 全部受控项目）
-  map.md
-  config/naming.json
-  knowledge/                   ← Portfolio KB
-  cj-web/  dj-web/  cz-broker-web/  …   ← 受控业务项目（用户日常 cwd）
-  dispatch-control/            ← 仅调度状态落盘（可选子目录，用户通常不打开）
+### 配置文件在哪
+
+| 项 | 值 |
+| --- | --- |
+| 配置目录 | `$JJ_GLOBAL_CONFIG_DIR` 或 `$DAJI_CONFIG_DIR`；未设时 Windows 默认识别 `D:/a/config` |
+| 配置文件 | **`<configDir>/naming.json`**（例：`D:/a/config/naming.json`） |
+| 查看当前解析 | `jj doctor`（打印 `control_root` / `portfolio_root` / `knowledge_root` / `project_map`） |
+
+### 一等配置项（`naming.json`）
+
+```json
+{
+  "schema_version": "jj-flow/naming/1.0",
+  "project_map": "D:/a/map.md",
+  "dispatch": {
+    "portfolio_root": "D:/a",
+    "control_root": "D:/a/dispatch-control",
+    "knowledge_root": "D:/a/knowledge"
+  }
+}
 ```
+
+| 配置键 | 含义 | 产品默认 | 环境变量 |
+| --- | --- | --- | --- |
+| `dispatch.control_root` | 调度状态根（plane / task / receipt） | **`~/.jj-flow`** | `JJ_DISPATCH_CONTROL_ROOT` |
+| `dispatch.portfolio_root` | 项目族顶层（业务仓所在树） | 无（null） | `JJ_PORTFOLIO_ROOT` |
+| `dispatch.knowledge_root` | Portfolio KB | `{portfolio_root}/knowledge` 或无 | `PORTFOLIO_KB_ROOT` |
+| `project_map` | 项目地图 | 无（可写绝对路径） | `JJ_PROJECT_MAP` |
+
+CLI 也可单次覆盖：`--control-root <dir>`、`--manifest <plane.json>`。
+
+### 发起 vs 落盘
 
 | | **用户从哪发起** | **状态写到哪** |
 | --- | --- | --- |
-| 是什么 | `D:/a` 下某个 **业务项目** 会话 | `D:/a` 下 **共用** 的 dispatch 状态目录 |
-| 默认 | 如 `D:/a/cj-web`（承接）、`D:/a/dj-web`（兑接） | 默认 `D:/a/dispatch-control`（`naming.json` 可改） |
+| 是什么 | **业务项目** 会话（承接/兑接/承载等） | 解析后的 **control_root**（不是用户 cwd） |
+| 产品默认 | 任意业务仓 cwd | **`~/.jj-flow`** |
+| 本机 portfolio 例 | `D:/a/cj-web` 等 | 仅当 `naming.json` 配置后如 `D:/a/dispatch-control` |
 | 不要 | 要求用户先打开「控制项目」才能调度 | 每波 delivery 再建一个控制仓 |
 
-### 发起（业务仓，一等路径）
-
-1. 用户在 **承接 / 兑接 / 承载等业务仓** 直接 `$jj-dispatch` / `/jj-dispatch`（例：在承接做完需求后 PREVIEW 多端）。  
-2. Agent 用 `D:/a/map.md` 把 cwd 解析成项目角色，推断 `origin` / lead 线索；仍须 intake 确认。  
-3. **不要求** cwd 是 `dispatch-control`。
-
-### 落盘（状态根解析）
-
-| 顺序 | 来源 |
-| --- | --- |
-| 1 | 用户显式 `--manifest` / 路径 |
-| 2 | `JJ_DISPATCH_CONTROL_ROOT` |
-| 3 | `naming.json` → `dispatch.control_root`（**产品默认 `~/.jj-flow`**） |
-| 4 | 仍无配置 → `~/.jj-flow`（用户主目录） |
-
 ```text
-# 产品默认（所有用户）
+# 产品默认（无 naming 覆盖）
 ~/.jj-flow/
-  README.md
   .workflow/dispatch/<DELIVERY_ID>/control-plane.json
   .workflow/tasks/TASK-<DELIVERY_ID>/
 
-# 可选：本机 portfolio 覆盖（例）
-# naming.json: "dispatch": { "control_root": "D:/a/dispatch-control", "portfolio_root": "D:/a" }
+# 本机 portfolio 示例（须 naming.json 显式配置）
+D:/a/
+  map.md
+  config/naming.json          ← 顶层配置 SSOT
+  knowledge/                  ← knowledge_root
+  cj-web/  dj-web/  …         ← 业务仓（发起 cwd）
+  dispatch-control/           ← control_root（可选覆盖）
 ```
+
+### 落盘解析顺序（control_root）
+
+| 顺序 | 来源 |
+| --- | --- |
+| 1 | 显式 `--control-root` / `--manifest` |
+| 2 | `JJ_DISPATCH_CONTROL_ROOT` |
+| 3 | `naming.json` → `dispatch.control_root` |
+| 4 | 产品默认 **`~/.jj-flow`** |
 
 规则：
 
-1. **默认永远是用户主目录 `~/.jj-flow`**，不是 `D:/a`。`D:/a` 仅作本机 map/业务项目布局；若要把状态写到 `D:/a/dispatch-control`，须在 `naming.json` 显式配置。  
+1. **默认永远是用户主目录 `~/.jj-flow`**。portfolio 布局（如 `D:/a`）只通过配置启用，不是全局硬编码默认。  
 2. 多波次 = 同一状态根下多个 `delivery_id`。  
-3. 首次写入前 `ensureDispatchControlRoot()`：解析 + 创建目录 + README。  
+3. 首次写入前 `ensureDispatchControlRoot()`；CLI：`jj dispatch-tick --delivery …`、`jj task scaffold --delivery …` 会解析 control root。  
 4. 业务代码只在业务仓 feature 分支。  
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
@@ -316,11 +340,12 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 
 | 目的 | 命令 |
 | --- | --- |
-| 生成任务目录 | `jj task scaffold --manifest ... --delivery ...` |
+| 查看解析后的目录 | `jj doctor`（含 control_root / portfolio_root / knowledge_root） |
+| 生成任务目录 | `jj task scaffold --delivery …`（默认识别 control_root；或 `--manifest` / `--control-root`） |
 | 恢复最小上下文 | `jj task context --task TASK-ID` |
 | 结构化状态 | `jj task status --task TASK-ID --json` |
-| 轻量分配确认 | `jj task assign --manifest ... --delivery ... --task ...` |
-| 消费回执推进 | `jj dispatch-tick`（写盘加 `--write`） |
+| 轻量分配确认 | `jj task assign --delivery … --task …` |
+| 消费回执推进 | `jj dispatch-tick --delivery …`（可加 `--write`；可省略 `--manifest`） |
 | 契约一致性 | `npm run harness:check` |
 
 ## References 何时读
