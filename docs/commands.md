@@ -9,7 +9,7 @@
 | [$jj-same](command-jj-same.html) | 同源迁移、handoff、持续同步 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
 | [$jj-ralph](command-jj-ralph.html) | 单仓全流程：分析 → 计划 → 验收 → 归档 + 能力地图 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
 | [$jj-review](command-jj-review.html) | 宿主 review 映射为 ralph `REV-*` | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
-| [$jj-dispatch](command-jj-dispatch.html) | 在业务仓发起多项目预览/批准/绑定/恢复；状态落盘顶层 control 根（默认 `D:/a/dispatch-control`） | Codex `$` · Grok `/` · Qoder `/`（**无** Claude 薄命令） |
+| [$jj-dispatch](command-jj-dispatch.html) | 在 `D:/a` 下业务仓发起多项目调度；状态落盘 `D:/a/dispatch-control`（可配置） | Codex `$` · Grok `/` · Qoder `/`（**无** Claude 薄命令） |
 | `$jj-end` / `/jj-end` | 收工：同步、提交、合入 integration | Codex · Claude · Grok · Qoder（skill，无独立文档页） |
 | [$jj](command-jj.html) | 不确定时的兼容路由 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
 

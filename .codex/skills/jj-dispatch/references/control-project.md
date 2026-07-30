@@ -1,27 +1,27 @@
 # 控制项目约定
 
-**控制根**是项目族级、可版本化的**状态落盘目录**（不是用户必须打开的工作仓）。职责：保存跨项目协调状态，不写业务源码。
+## 项目族顶层是 `D:/a`
 
 | 概念 | 含义 |
 | --- | --- |
-| **发起 cwd** | 用户日常业务仓：承接 / 兑接 / 承载 / 后管…（`D:/a/cj-web` 等） |
-| **control 根** | 默认 `D:/a/dispatch-control`：只存 manifest / task / receipt 引用 |
-| **一波 delivery** | control 根下 `.workflow/dispatch/<DELIVERY_ID>/`，不是新建一个 git 控制仓 |
+| **顶层 / portfolio 根** | `D:/a`：地图、命名配置、知识库、**全部受控业务项目目录** |
+| **受控项目** | `D:/a` 下的业务仓（`cj-web`、`dj-web`、`cz-broker-web`…），见 `D:/a/map.md` |
+| **发起 cwd** | 用户日常在这些业务仓之一打开会话并发起 `$jj-dispatch` |
+| **dispatch 状态根** | 默认 `D:/a/dispatch-control`：只存 manifest / task / receipt 引用（**不是**用户工作仓） |
+| **一波 delivery** | 状态根下 `.workflow/dispatch/<DELIVERY_ID>/`，不是每波新建一个控制 git 仓 |
 
-用户在承接或兑接里发起 `$jj-dispatch` 是一等路径；Agent 自动把状态写到 control 根。
+用户在承接或兑接里发起调度是一等路径；Agent 把协调状态写入 `D:/a` 下共用的状态根。
 
 动作语义与门禁优先级见上级 [SKILL.md](../SKILL.md)。本文件是字段、目录、恢复与闭环细则源。权威状态机实现：`src/dispatchControlPlane.mjs`。
 
-## 顶层 control 根（状态落盘，推荐唯一）
+## dispatch 状态根（落盘，用户通常不打开）
 
 | 项 | 值 |
 | --- | --- |
-| 默认 path | `D:/a/dispatch-control` |
+| 默认 path | `D:/a/dispatch-control`（位于顶层 `D:/a` 之下） |
 | 配置 | `D:/a/config/naming.json` → `dispatch.control_root` |
 | 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
 | 代码解析 | `resolveDispatchControlRoot()` in `src/namingConfig.mjs` |
-
-与 `D:/a/map.md`、`D:/a/knowledge` 并列属 portfolio 基建。**不是**「调度专用业务工程」；用户不必为了 dispatch 切换到此目录。
 
 ## 何时读
 
@@ -44,27 +44,24 @@
 
 控制项目自身放在 `control_project`，也可出现在 `projects` 列表，但不得默认当作业务目标。DISPATCH 时 lead/target 必须为 `active`。
 
-## 建议目录（状态落盘；用户仍在业务仓会话）
+## 建议目录（`D:/a` 顶层 + 业务仓发起）
 
 ```text
-# 用户会话 cwd 示例（发起处）
-D:/a/cj-web/                           # 承接里发起 /jj-dispatch  ← 正常
-
-# 状态写入（Agent 解析，用户通常不打开）
-D:/a/dispatch-control/
-  README.md
-  control-plane.json                   # 可选：项目注册表 / 活跃 delivery 索引
-  events.ndjson
-  .workflow/
-    dispatch/<DELIVERY_ID>/
-      control-plane.json               # 本波权威状态（revision 单调）
-    tasks/TASK-<DELIVERY_ID>/
-      task.md / plan.md / …
+D:/a/                                  # 项目族顶层
+  map.md
+  config/naming.json
+  knowledge/
+  cj-web/                              # 承接：用户在此发起 /jj-dispatch  ← 正常
+  dj-web/                              # 兑接
+  cz-broker-web/                       # 承载
+  dispatch-control/                    # 仅状态落盘（Agent 写，用户通常不打开）
+    .workflow/dispatch/<DELIVERY_ID>/control-plane.json
+    .workflow/tasks/TASK-<DELIVERY_ID>/
 ```
 
 - **一波 delivery = 一个 `delivery_id` 目录**，不是一个新控制 git 仓。
 - 本波 `control-plane.json`：该 delivery 状态唯一真相源。
-- 仅当用户明确要求「隔离 control 根」时才新建第二个根；默认禁止。
+- 仅当用户明确要求隔离状态根时才另建路径；默认禁止。
 
 ## Intake 与 Delivery
 

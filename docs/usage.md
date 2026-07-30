@@ -20,7 +20,7 @@ Claude Code 中把 `$` 换成 `/`：
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 ```
 
-多项目波次可在 **承接/兑接/承载等业务仓** 直接用 `$jj-dispatch`（Codex）或 `/jj-dispatch`（Grok / Qoder；无 Claude 薄命令）。不必打开控制仓；协调状态默认写入 `D:/a/dispatch-control`（可配置）：
+多项目波次：在 `D:/a` 下 **承接/兑接/承载等业务仓** 直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。项目族顶层是 `D:/a`；协调状态默认写入 `D:/a/dispatch-control`（可配置），不必打开该目录：
 
 ```text
 $jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台

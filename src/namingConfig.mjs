@@ -34,8 +34,12 @@ export const DEFAULT_NAMING_CONFIG = {
       rename_existing_requires_explicit_cleanup: true
     }
   },
-  /** Portfolio-level dispatch control home (not per-delivery empty repos). */
+  /**
+   * Portfolio root is D:/a (all managed projects live under it).
+   * dispatch.control_root is only state storage under that portfolio, not the user workspace.
+   */
   dispatch: {
+    portfolio_root: 'D:/a',
     control_root: 'D:/a/dispatch-control',
     layout: {
       plane: 'control-plane.json',
@@ -44,9 +48,11 @@ export const DEFAULT_NAMING_CONFIG = {
       tasks: '.workflow/tasks'
     },
     notes: [
-      'Prefer one top-level control project for the whole project family',
-      'Do not require creating a new control project per delivery wave',
-      'Override with JJ_DISPATCH_CONTROL_ROOT or explicit --manifest path'
+      'Portfolio top-level is D:/a; all controlled business projects are children of D:/a',
+      'Users launch jj-dispatch from a business project under D:/a (e.g. cj-web / dj-web)',
+      'dispatch.control_root stores coordination state only; not a required IDE cwd',
+      'Do not create a new control repo per delivery wave',
+      'Override control_root with JJ_DISPATCH_CONTROL_ROOT or explicit --manifest path'
     ]
   }
 };

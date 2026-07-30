@@ -7,7 +7,7 @@
 - 文档：明确 `jj-dispatch` 支持 Grok（`/jj-dispatch`，`host_id=grok-build` / session）；命令总览补全多端平台列，删除「已移除（非活入口）」段落。
 - **dispatch write workspace 默认改为 `project-branch`**（与 same 一致：命名 feature 分支 + 项目主路径）；`exclusive-worktree` 仅在并发写 / 主仓脏 / 用户显式隔离时启用。host-action-contract + control-plane 校验与 skill 同步（EP-20260730 worktree transfer 负例）。
 - **dispatch 分支/workspace 不确定时先问再派**：PREVIEW 输出判断表；`NEEDS_CONFIRM` 时禁止 DISPATCH / create_thread / 写 intent，用户确认后以用户改判为准。
-- **dispatch 发起 vs 落盘**：用户在 **承接/兑接/承载等业务仓** 发起；协调状态写入共用顶层 control 根（默认 `D:/a/dispatch-control`，可配置）；非每波新建控制仓、也不必打开 control 目录；`resolveDispatchControlRoot()`。
+- **dispatch 与 `D:/a` 顶层**：项目族顶层为 `D:/a`（其下全部受控业务项目）；用户在业务仓发起；协调状态写入 `D:/a/dispatch-control`（可配置）；`naming.json` 增加 `dispatch.portfolio_root` 说明。
 
 ## 0.1.1-beta.36 — 2026-07-30 17:26
 

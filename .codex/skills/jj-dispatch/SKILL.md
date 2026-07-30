@@ -1,31 +1,38 @@
 ---
 name: jj-dispatch
-description: 在业务仓（承接/兑接/承载等）发起多项目调度：确认 origin/requirement_owner/lead/targets，PREVIEW→批准→DISPATCH→tick/resume；协调状态写入项目族共用的顶层 control 目录（非每波新建控制仓）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
+description: 在 D:/a 项目族内业务仓（承接/兑接/承载等）发起多项目调度：确认 origin/requirement_owner/lead/targets，PREVIEW→批准→DISPATCH→tick/resume；协调状态写入 D:/a 下共用的 dispatch 状态目录（非每波新建）。跨项目派发、delivery、TASK-ID 恢复时使用。单仓闭环用 jj-ralph；迁移实现用 jj-same；单仓审查用 jj-review。
 ---
 
 # jj-dispatch
 
-跨项目调度入口。用户在 **业务项目**（承接 / 兑接 / 承载 / 后管等）里说 `$jj-dispatch` / `/jj-dispatch` 即可发起，**不必**先打开或新建一个「控制项目」工作区。
+跨项目调度入口。
 
-协调状态写入项目族 **共用的顶层 control 根**（默认 `D:/a/dispatch-control`）：只存项目注册、delivery、task、thread 绑定、决策与 artifact 引用；**不写业务源码**，也不替代用户当前业务 cwd。
+## 项目族顶层：`D:/a`
 
-控制面权威实现是仓库 `src/dispatchControlPlane.mjs` 与 schema；本 skill 描述必须与其状态机一致，不得发明并行枚举。
+**顶层设计是 `D:/a` 目录**（portfolio 根）：其下是所有受控业务项目与基建，不是「先有一个控制 git 仓再调度」。
 
-## 发起位置 vs 状态落盘（两件事）
+```text
+D:/a/                          ← 项目族顶层（map / naming / 全部受控项目）
+  map.md
+  config/naming.json
+  knowledge/                   ← Portfolio KB
+  cj-web/  dj-web/  cz-broker-web/  …   ← 受控业务项目（用户日常 cwd）
+  dispatch-control/            ← 仅调度状态落盘（可选子目录，用户通常不打开）
+```
 
 | | **用户从哪发起** | **状态写到哪** |
 | --- | --- | --- |
-| 是什么 | 业务仓会话 / cwd：承接、兑接、承载… | 顶层 control 根（portfolio 级目录） |
-| 默认 | **当前打开的业务项目**（如 `D:/a/cj-web`） | `D:/a/dispatch-control`（可配置） |
-| 不要 | 要求用户先 `cd` 到 control 根再调度 | 每波 delivery 新建一个控制 git 仓 |
+| 是什么 | `D:/a` 下某个 **业务项目** 会话 | `D:/a` 下 **共用** 的 dispatch 状态目录 |
+| 默认 | 如 `D:/a/cj-web`（承接）、`D:/a/dj-web`（兑接） | 默认 `D:/a/dispatch-control`（`naming.json` 可改） |
+| 不要 | 要求用户先打开「控制项目」才能调度 | 每波 delivery 再建一个控制仓 |
 
-### 发起（业务仓）
+### 发起（业务仓，一等路径）
 
-1. 用户常在 **origin / lead 业务仓** 发起（例：在承接做完需求后 `$jj-dispatch PREVIEW`）。  
-2. Agent 用 `D:/a/map.md` 解析当前 path → 项目角色，推断 `origin_project` / 默认 `lead` 线索；仍须 intake 确认。  
-3. **不要求** cwd 是 control 根；也不要把 control 根当成「调度专用 IDE 工程」。
+1. 用户在 **承接 / 兑接 / 承载等业务仓** 直接 `$jj-dispatch` / `/jj-dispatch`（例：在承接做完需求后 PREVIEW 多端）。  
+2. Agent 用 `D:/a/map.md` 把 cwd 解析成项目角色，推断 `origin` / lead 线索；仍须 intake 确认。  
+3. **不要求** cwd 是 `dispatch-control`。
 
-### 落盘（顶层 control 根，一个就够）
+### 落盘（`D:/a` 下的状态子目录，一个就够）
 
 | 解析顺序 | 来源 |
 | --- | --- |
@@ -35,19 +42,20 @@ description: 在业务仓（承接/兑接/承载等）发起多项目调度：�
 | 4 | 默认 `D:/a/dispatch-control` |
 
 ```text
-D:/a/dispatch-control/                 ← 状态落盘根（用户通常不打开）
-  .workflow/dispatch/<DELIVERY_ID>/
-    control-plane.json                 ← 本波权威状态
+D:/a/dispatch-control/
+  .workflow/dispatch/<DELIVERY_ID>/control-plane.json
   .workflow/tasks/TASK-<DELIVERY_ID>/
 ```
 
 规则：
 
-1. **多波次 = 多个 `delivery_id` 目录**，共用同一 control 根；禁止默认每波新建控制仓。  
-2. 业务实现仍在 targets 的 feature 分支（`project-branch` 默认）。  
+1. 多波次 = 多个 `delivery_id` 目录，共用同一状态根。  
+2. 业务代码只在 `D:/a` 下各业务仓 feature 分支（`project-branch` 默认）。  
 3. 解析：`resolveDispatchControlRoot()`（`src/namingConfig.mjs`）。  
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
+
+控制面权威实现是仓库 `src/dispatchControlPlane.mjs` 与 schema；本 skill 描述必须与其状态机一致，不得发明并行枚举。
 
 ## 用户主线 vs 门禁优先
 
