@@ -26,7 +26,7 @@ test('docs:check exits 0 and enforces primary path + nested assets', () => {
   assert.match(result.stdout, /docs site built/);
 });
 
-test('built site home exposes install, usage, same, dispatch paths', () => {
+test('built site home exposes install, usage, changelog, github header and command paths', () => {
   const build = spawnSync(process.execPath, ['scripts/build-docs.mjs'], {
     cwd: root,
     encoding: 'utf8',
@@ -38,6 +38,8 @@ test('built site home exposes install, usage, same, dispatch paths', () => {
   for (const required of [
     'installation.html',
     'usage.html',
+    'changelog.html',
+    'https://github.com/beerui/jj-flow',
     'command-jj-same.html',
     'command-jj-ralph.html',
     'command-jj-dispatch.html',
@@ -45,6 +47,14 @@ test('built site home exposes install, usage, same, dispatch paths', () => {
   ]) {
     assert.match(home, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+
+  // Header quick links: install / usage / changelog / GitHub (not same/dispatch labels)
+  const quick = home.match(/<nav class="header-quick"[^>]*>[\s\S]*?<\/nav>/);
+  assert.ok(quick, 'header-quick nav missing');
+  assert.match(quick[0], /changelog\.html/);
+  assert.match(quick[0], /github\.com\/beerui\/jj-flow/);
+  assert.doesNotMatch(quick[0], />same</);
+  assert.doesNotMatch(quick[0], />dispatch</);
 
   for (const bad of ['command-jj-delivery.html', 'command-jj-validate.html', 'command-jj-evolve.html']) {
     assert.doesNotMatch(home, new RegExp(`href=["'][^"']*${bad.replace('.', '\\.')}`));

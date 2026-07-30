@@ -8,6 +8,7 @@ const CHECK_MODE = process.argv.includes('--check');
 const CHECK_OUT_DIR = `docs-site-check-${process.pid}`;
 const OUT_DIR = path.join(ROOT, CHECK_MODE ? path.join('.tmp', CHECK_OUT_DIR) : 'site');
 const SITE_URL = 'https://beerui.github.io/jj-flow/';
+const GITHUB_URL = 'https://github.com/beerui/jj-flow';
 
 /** @type {{ title: string, pages: { title: string, source: string, output: string }[] }[]} */
 const NAV_GROUPS = [
@@ -38,6 +39,7 @@ const NAV_GROUPS = [
     pages: [
       { title: 'CLI 调度与自动化', source: 'docs/commands/cli.md', output: 'command-cli.html' },
       { title: '维护说明', source: 'docs/maintenance.md', output: 'maintenance.html' },
+      { title: 'Changelog', source: 'CHANGELOG.md', output: 'changelog.html' },
       { title: 'GitHub Pages 部署', source: 'docs/deployment.md', output: 'deployment.html' }
     ]
   },
@@ -152,7 +154,7 @@ ${links}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="jj-flow：项目族编排工作流（same 同源迁移 + dispatch 多项目调度）">
+  <meta name="description" content="jj-flow：项目族编排工作流（同源迁移、单仓闭环、多项目调度）">
   <title>${escapeHtml(page.title)} · jj-flow</title>
   <link rel="canonical" href="${escapeAttribute(new URL(page.output, SITE_URL).href)}">
   <link rel="stylesheet" href="${escapeAttribute(root('assets/styles.css'))}">
@@ -163,13 +165,13 @@ ${links}
     <div class="header-inner">
       <div class="brand-block">
         <a class="brand" href="${escapeAttribute(root('index.html'))}">jj-flow</a>
-        <p class="tagline">项目族编排工作流 · same / dispatch</p>
+        <p class="tagline">项目族编排工作流</p>
       </div>
       <nav class="header-quick" aria-label="快速入口">
         <a href="${escapeAttribute(root('installation.html'))}">安装</a>
         <a href="${escapeAttribute(root('usage.html'))}">使用</a>
-        <a href="${escapeAttribute(root('command-jj-same.html'))}">same</a>
-        <a href="${escapeAttribute(root('command-jj-dispatch.html'))}">dispatch</a>
+        <a href="${escapeAttribute(root('changelog.html'))}">Changelog</a>
+        <a class="header-external" href="${escapeAttribute(GITHUB_URL)}" target="_blank" rel="noopener noreferrer">GitHub</a>
       </nav>
     </div>
   </header>
@@ -761,6 +763,13 @@ a {
 .header-quick a:hover {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
   background: var(--accent-soft);
+}
+
+.header-quick a.header-external::after {
+  content: '↗';
+  margin-left: 4px;
+  font-size: 0.75em;
+  opacity: 0.7;
 }
 
 .page-shell {
