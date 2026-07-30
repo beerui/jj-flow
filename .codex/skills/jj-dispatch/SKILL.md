@@ -14,7 +14,10 @@ description: 在独立控制项目中做多项目族调度：确认 origin/requi
 用户可见 happy path：
 
 ```text
-读取 TASK-ID 主标题 -> PREVIEW -> 用户批准 -> DISPATCH -> tick/resume
+读取 TASK-ID 主标题 -> PREVIEW（含分支/workspace 判断）
+  -> 用户批准 task_keys
+  ->（若分支/workspace 仍不确定）展示判断并询问 -> 用户确认
+  -> DISPATCH -> tick/resume
 ```
 
 异常与门禁**优先于**主线。下列规则按序号先匹配先生效：
@@ -32,17 +35,22 @@ description: 在独立控制项目中做多项目族调度：确认 origin/requi
    -> PREVIEW（action=PREVIEW, status=PREVIEW_ONLY）
    -> 只读展示；不写 dispatch_intent；不 create_thread
 
-4. 已批准，但缺 REQUIRED_APP_CAPABILITIES（或当前 Host 无法证明等价 capability）
+4. 写责任的目标分支 / workspace 模式不确定（见「分支与 workspace 确认」）
+   -> 先输出自检判断表，向用户确认
+   -> 用户确认前：不 DISPATCH、不 create_thread、不写 dispatch_intent
+   -> 用户可改判 project-branch / exclusive-worktree / 目标分支名
+
+5. 已批准，但缺 REQUIRED_APP_CAPABILITIES（或当前 Host 无法证明等价 capability）
    -> DISPATCH 拒绝（action=DISPATCH, ok=false, status=BLOCKED）
    -> plane 保持不变（delivery 可仍为 APPROVED）
    -> 不写 dispatch_intent；不 create_thread；不清空既有批准
    -> 返回 missing_capabilities
 
-5. 已批准，且 capability / snapshot / active project 检查通过
+6. 已批准，分支/workspace 已确认（或明确无疑义），且 capability / snapshot / active project 检查通过
    -> DISPATCH：先持久化 intent(PENDING_THREAD)，再 host CREATE_THREAD，再 BIND_THREAD
    -> 已批准 Host 可为 Codex App（thread）或 Grok Build（session）；见 host-action-contract host_profiles
 
-6. 有 receipt 或需推进已绑定任务
+7. 有 receipt 或需推进已绑定任务
    -> tick/resume（jj dispatch-tick；写盘 CAS，revision 冲突返回 REVISION_CONFLICT）
 ```
 
@@ -97,19 +105,55 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 
 - intake 未完成：`action=PREVIEW`, `status=INTAKE_REQUIRED`，`tasks=[]`
 - intake 完成：`action=PREVIEW`, `status=PREVIEW_ONLY`，展示角色映射、目标、task plans、依赖与阻塞项
+- **写任务额外展示**「分支与 workspace 判断表」（见下）；不确定项标 `NEEDS_CONFIRM`，不得假装已决
 
 不创建 thread，不写 `dispatch_intent`，不改目标项目，不把任务降级为 projectless。
 
+### 分支与 workspace 确认（写责任，DISPATCH 前）
+
+对每个 **access=write** 的目标，Agent 必须先形成并展示自己的判断，**不确定则先问用户，确认后再 DISPATCH**。
+
+| 列 | 内容 |
+| --- | --- |
+| project / path | 注册 path |
+| intended_branch | 任务/领头派生/用户指定的 feature 分支 |
+| current_branch @ path | `git branch --show-current`（主工作区） |
+| dirty | 是否有**非本任务**脏改动 |
+| active_write | 同项目是否已有 active write intent |
+| proposed_mode | `project-branch`（默认）或 `exclusive-worktree` |
+| confidence | `high` / `low` |
+| action | `READY` 或 `NEEDS_CONFIRM` |
+
+**何时必须停问（`NEEDS_CONFIRM`，禁止静默 DISPATCH）：**
+
+- 目标分支名缺失、冲突或多解（含与 branch purpose 不一致）
+- 主工作区当前分支 ≠ intended_branch，且无法安全快进到该分支
+- 是否 isolation 拿不准（脏主仓是否「无关」、是否值得独占 worktree）
+- 用户此前要求「合到当前分支」或曾发生 worktree transfer 纠错
+
+**问法（只问决策，不拷问需求正文）：**
+
+```text
+我的判断：
+- cz-broker-web: branch=feat/cz-0731-jmb, mode=project-branch, cwd=主仓 path, confidence=high|low
+- 不确定点：…
+请确认：是否按此分发？或指定 branch / mode=exclusive-worktree。
+```
+
+用户确认前：**不** `DISPATCH`、**不** `create_thread`、**不**写 `dispatch_intent`。  
+用户改判后以用户为准；默认仍遵循 project-branch 规则（见 host-action-contract `workspace_mode_policy`）。
+
 ### `DISPATCH`
 
-仅在用户明确批准本轮任务集合后**尝试**执行。批准记录必须冻结本次 `task_keys` 与 approval tasks 快照；新增项目、责任或重试 attempt 后必须重新 `PREVIEW` 并批准。
+仅在用户明确批准本轮任务集合、且写责任分支/workspace **已确认或无疑义**后**尝试**执行。批准记录必须冻结本次 `task_keys` 与 approval tasks 快照；新增项目、责任或重试 attempt 后必须重新 `PREVIEW` 并批准。
 
 **前置检查（全部通过才允许改 plane）：**
 
 1. `approval.status=APPROVED`
 2. 当前 task plans 的 `task_keys` / approval tasks 与批准快照完全一致
 3. 本轮 lead/target 对应 project 均为 `active`
-4. `REQUIRED_APP_CAPABILITIES` 全满足（见 [host-action-contract.json](references/host-action-contract.json)）：
+4. 写责任：intended_branch + workspace mode 已确认（或 PREVIEW 中均为 `READY`/`high` 且无冲突事实）
+5. `REQUIRED_APP_CAPABILITIES` 全满足（见 [host-action-contract.json](references/host-action-contract.json)）：
    `list_projects`, `list_threads`, `create_thread`, `read_thread`, `send_message_to_thread`, `worktree`, `sandbox`
 
 任一前置失败：

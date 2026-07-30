@@ -149,6 +149,13 @@ TOML 默认配置不能替代 runtime sandbox attestation；无 attestation 拒�
 2. 仅当「同项目已有 active write」「主仓无关脏改动不可污染」「用户显式要求隔离」→ `exclusive-worktree`。  
 3. 落地规则：代码事实必须在**命名分支 tip**；不得只在 detached 树留活补丁。
 
+**不确定则先问再 DISPATCH（硬规程）**
+
+- PREVIEW / 批准后、CREATE 前：对每个 write 目标输出判断表（intended_branch、current_branch、dirty、proposed_mode、confidence）。
+- `confidence=low` 或事实冲突 → `NEEDS_CONFIRM`：展示判断、询问用户；**确认前不写 intent、不 create_thread**。
+- 用户可改 branch 或 mode；改后以用户为准。
+- 禁止静默选择 detached exclusive worktree 或静默切到非任务分支。
+
 Review 回执写入 `delivery.reviews`：
 
 - 结果只能是 `PASS` 或 `NEEDS_CHANGES`

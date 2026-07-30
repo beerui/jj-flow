@@ -13,6 +13,7 @@
 
 DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型自述或半真实 `host:trial` 冒充）。  
 写责任 **默认 `project-branch`**（与 same 一致：命名 feature 分支上的项目主工作区）；**独占 worktree 仅当** 同项目已有 active write、主仓有无关脏改动、或用户显式要求隔离。禁止默认 detached worktree 再要求用户「合到当前分支」。  
+**分支 / workspace 不确定时**：Agent 先给出判断表，**问用户确认后再 `DISPATCH`**；确认前不写 intent、不 create thread。  
 控制面状态机、`delivery_id` / `task_key`、CAS tick **不随宿主改写**；只换 host adapter 实现。
 
 控制项目第一次接收需求要先完成 intake：确认需求归属项目、来源项目、领头项目、目标集合、是否多目标和 `quick/standard` 模式。信息不完整时只返回 `INTAKE_REQUIRED`，不会直接进入 PREVIEW。
@@ -162,8 +163,8 @@ jj task assign --manifest .workflow/dispatch/DEL-xxx/control-plane.json \
 
 ### `PREVIEW` 与 `DISPATCH`
 
-- `PREVIEW` 是默认动作，只读、不创建 task、不修改目标项目。
-- `DISPATCH` 必须由用户明确批准。批准冻结本轮完整 `task_keys`；新增项目、责任、依赖或重试 attempt 后，旧批准失效。
+- `PREVIEW` 是默认动作，只读、不创建 task、不修改目标项目；写任务应附带分支/workspace 判断表。
+- `DISPATCH` 必须由用户明确批准 task_keys；若分支或 workspace 模式仍不确定，须先确认判断再派发。批准冻结本轮完整 `task_keys`；新增项目、责任、依赖或重试 attempt 后，旧批准失效。
 
 ### 主要状态
 

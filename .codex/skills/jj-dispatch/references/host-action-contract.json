@@ -106,6 +106,13 @@
       "main project worktree is dirty with unrelated changes that must not be polluted",
       "user explicitly requests exclusive isolation"
     ],
+    "confirm_before_dispatch_when": [
+      "intended_branch missing, ambiguous, or conflicts with current checkout / branch purpose",
+      "workspace mode confidence is low (dirty-main vs isolation unclear)",
+      "main checkout branch != intended_branch and cannot safely align",
+      "prior worktree-transfer or user said land on current branch"
+    ],
+    "confirm_rule": "Agent states its judgment first; if uncertain, ask user; no DISPATCH / create_thread / dispatch_intent until confirmed.",
     "exclusive_environment": "exclusive-worktree",
     "exclusive_worktree_policy": "required-at-bind",
     "landing_rule": "Code facts must land on a named branch tip; never leave live patches only on a detached exclusive worktree without transfer."
