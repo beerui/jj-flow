@@ -43,7 +43,7 @@ $jj 在当前仓库完成密码过期提醒并归档
 $jj 在承接仓预览 DEL-password 的多项目任务
 ```
 
-预期路由到 `$jj-dispatch`（Codex / Grok / Qoder；状态写入 `D:/a/dispatch-control`，cwd 仍在业务仓）。
+预期路由到 `$jj-dispatch`（Codex / Grok / Qoder；状态默认 `~/.jj-flow`，cwd 仍在业务仓）。
 
 ## 执行过程
 

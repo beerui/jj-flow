@@ -4,29 +4,28 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  defaultDispatchControlRoot,
   ensureDispatchControlRoot,
+  expandUserPath,
   resolveDispatchControlRoot
 } from '../src/namingConfig.mjs';
 
-test('resolveDispatchControlRoot falls back to workspace .jj-flow when portfolio missing', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-dispatch-root-'));
+test('defaultDispatchControlRoot is ~/.jj-flow', () => {
+  assert.equal(defaultDispatchControlRoot(), path.join(os.homedir(), '.jj-flow'));
+  assert.equal(expandUserPath('~/.jj-flow'), path.join(os.homedir(), '.jj-flow'));
+});
+
+test('resolveDispatchControlRoot defaults to ~/.jj-flow when no env override', () => {
   const prev = process.env.JJ_DISPATCH_CONTROL_ROOT;
   const prevConfig = process.env.JJ_GLOBAL_CONFIG_DIR;
   try {
     delete process.env.JJ_DISPATCH_CONTROL_ROOT;
-    // Force no global config dir so defaults are used, but portfolio D:/a may still exist on this machine.
-    // Pass a non-existent configDir; resolution still checks portfolio path existence on disk.
-    process.env.JJ_GLOBAL_CONFIG_DIR = path.join(tmp, 'no-config');
+    // Avoid loading D:/a/config/naming.json which may override control_root
+    process.env.JJ_GLOBAL_CONFIG_DIR = path.join(os.tmpdir(), 'jj-no-config-dir-missing');
     const root = resolveDispatchControlRoot({
-      cwd: tmp,
-      configDir: path.join(tmp, 'no-config')
+      configDir: path.join(os.tmpdir(), 'jj-no-config-dir-missing')
     });
-    // On machines with D:/a, preferred portfolio wins; otherwise .jj-flow under tmp.
-    if (fs.existsSync('D:\\a') || fs.existsSync('D:/a')) {
-      assert.match(root.replace(/\\/g, '/'), /dispatch-control$/);
-    } else {
-      assert.equal(root, path.resolve(tmp, '.jj-flow'));
-    }
+    assert.equal(root, path.join(os.homedir(), '.jj-flow'));
   } finally {
     if (prev === undefined) delete process.env.JJ_DISPATCH_CONTROL_ROOT;
     else process.env.JJ_DISPATCH_CONTROL_ROOT = prev;
@@ -35,24 +34,12 @@ test('resolveDispatchControlRoot falls back to workspace .jj-flow when portfolio
   }
 });
 
-test('ensureDispatchControlRoot creates .jj-flow under explicit cwd fallback', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-dispatch-ensure-'));
-  const prev = process.env.JJ_DISPATCH_CONTROL_ROOT;
-  try {
-    // Force fallback path by explicit control via env pointing at tmp/.jj-flow after delete env...
-    // Use explicit option instead.
-    const root = ensureDispatchControlRoot({
-      explicit: path.join(tmp, '.jj-flow'),
-      cwd: tmp
-    });
-    assert.equal(root, path.resolve(tmp, '.jj-flow'));
-    assert.ok(fs.existsSync(root));
-    assert.ok(fs.existsSync(path.join(root, 'README.md')));
-    assert.ok(fs.existsSync(path.join(root, '.workflow', 'dispatch')));
-  } finally {
-    if (prev === undefined) delete process.env.JJ_DISPATCH_CONTROL_ROOT;
-    else process.env.JJ_DISPATCH_CONTROL_ROOT = prev;
-  }
+test('ensureDispatchControlRoot creates home .jj-flow layout', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ensure-home-'));
+  const root = ensureDispatchControlRoot({ explicit: path.join(tmp, '.jj-flow') });
+  assert.ok(fs.existsSync(root));
+  assert.ok(fs.existsSync(path.join(root, 'README.md')));
+  assert.ok(fs.existsSync(path.join(root, '.workflow', 'dispatch')));
 });
 
 test('JJ_DISPATCH_CONTROL_ROOT wins over defaults', () => {
@@ -61,7 +48,7 @@ test('JJ_DISPATCH_CONTROL_ROOT wins over defaults', () => {
   const prev = process.env.JJ_DISPATCH_CONTROL_ROOT;
   try {
     process.env.JJ_DISPATCH_CONTROL_ROOT = target;
-    assert.equal(resolveDispatchControlRoot({ cwd: tmp }), path.resolve(target));
+    assert.equal(resolveDispatchControlRoot(), path.resolve(target));
   } finally {
     if (prev === undefined) delete process.env.JJ_DISPATCH_CONTROL_ROOT;
     else process.env.JJ_DISPATCH_CONTROL_ROOT = prev;

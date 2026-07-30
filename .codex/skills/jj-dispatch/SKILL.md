@@ -38,26 +38,26 @@ D:/a/                          ← 项目族顶层（map / naming / 全部受控
 | --- | --- |
 | 1 | 用户显式 `--manifest` / 路径 |
 | 2 | `JJ_DISPATCH_CONTROL_ROOT` |
-| 3 | 若本机存在 portfolio（如 `D:/a`）或已有 `dispatch.control_root` → 用配置的 control 根（默认 `D:/a/dispatch-control`） |
-| 4 | **否则**：宿主工具当前工作区下的 **`.jj-flow/`**（无则 **创建**） |
+| 3 | `naming.json` → `dispatch.control_root`（**产品默认 `~/.jj-flow`**） |
+| 4 | 仍无配置 → `~/.jj-flow`（用户主目录） |
 
 ```text
-# 有 D:/a 时（本机 portfolio）
-D:/a/dispatch-control/.workflow/dispatch/<DELIVERY_ID>/control-plane.json
-
-# 无 portfolio 时（通用用户）
-{host_workspace}/.jj-flow/
+# 产品默认（所有用户）
+~/.jj-flow/
   README.md
   .workflow/dispatch/<DELIVERY_ID>/control-plane.json
   .workflow/tasks/TASK-<DELIVERY_ID>/
+
+# 可选：本机 portfolio 覆盖（例）
+# naming.json: "dispatch": { "control_root": "D:/a/dispatch-control", "portfolio_root": "D:/a" }
 ```
 
 规则：
 
-1. 多波次 = 同一状态根下多个 `delivery_id`；禁止默认每波新建控制仓。  
-2. 业务代码只在业务仓 feature 分支（`project-branch` 默认）。  
-3. 首次写入前调用 `ensureDispatchControlRoot()`（`src/namingConfig.mjs`）：解析 + `mkdir` + 必要时写 README。  
-4. 工作区 `.jj-flow/` 是否入库由用户决定；本地工具数据可 `.gitignore`。  
+1. **默认永远是用户主目录 `~/.jj-flow`**，不是 `D:/a`。`D:/a` 仅作本机 map/业务项目布局；若要把状态写到 `D:/a/dispatch-control`，须在 `naming.json` 显式配置。  
+2. 多波次 = 同一状态根下多个 `delivery_id`。  
+3. 首次写入前 `ensureDispatchControlRoot()`：解析 + 创建目录 + README。  
+4. 业务代码只在业务仓 feature 分支。  
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
 
@@ -251,7 +251,7 @@ Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-re
 
 allowlist、required capabilities、access profile、receipt 枚举、`host_ids` / `handle_kinds` / `host_profiles` 以 [host-action-contract.json](references/host-action-contract.json) 为准；runtime / schema / fixtures 与 skill 须经 `npm run harness:check` 对齐。当前 runtime 只允许输出 `CREATE_THREAD` 与 `RECONCILE_THREAD`（按 `host_id` 分流实现，不伪造 Codex API）。
 
-1. 解析状态根：`ensureDispatchControlRoot({ cwd })`（有 `D:/a` 用 portfolio 状态目录，否则工作区 `.jj-flow/`）。
+1. 解析状态根：`ensureDispatchControlRoot()`（默认 `~/.jj-flow`；可被 env / naming.json 覆盖）。
 2. `list_projects` 解析注册项目（Codex `projectId` 或 map/path + git identity）；路径、Git identity、宿主项目标识分记。
 3. 通过 DISPATCH 前置检查后，写入/复用 `dispatch_intents`（写入状态根下 `.workflow/dispatch/<DELIVERY_ID>/`）。
 4. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任默认 project-branch workspace；仅 isolation 条件满足时独占 worktree；只读责任消费已提交 commit。

@@ -18,9 +18,8 @@
 
 | 项 | 值 |
 | --- | --- |
-| 有 portfolio（如 `D:/a`） | 默认 `D:/a/dispatch-control` |
-| 无 portfolio | **`{工具工作区}/.jj-flow/`**（不存在则创建） |
-| 配置 | `naming.json` → `dispatch.control_root` / `workspace_fallback_dirname` |
+| **产品默认** | **`~/.jj-flow`**（用户主目录，不存在则创建） |
+| 本机可选覆盖 | 如 `D:/a/dispatch-control`（仅 `naming.json` / env 配置时） |
 | 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
 | 解析 / 创建 | `resolveDispatchControlRoot()` / `ensureDispatchControlRoot()` |
 
@@ -48,21 +47,17 @@
 ## 建议目录（`D:/a` 顶层 + 业务仓发起）
 
 ```text
-# A) 有 D:/a portfolio（推荐）
-D:/a/
-  map.md  config/  knowledge/
-  cj-web/  dj-web/  cz-broker-web/     # 业务仓发起
-  dispatch-control/                    # 状态落盘
+# 默认（所有用户）
+~/.jj-flow/
+  .workflow/dispatch/<DELIVERY_ID>/control-plane.json
 
-# B) 无 portfolio：宿主工作区
-{workspace}/                           # 用户当前工具打开的仓库/工作区
-  .jj-flow/                            # 自动创建的状态根
-    .workflow/dispatch/<DELIVERY_ID>/control-plane.json
+# 业务仓发起（cwd 示例；状态仍写 ~/.jj-flow 除非配置覆盖）
+D:/a/cj-web/     # 或任意业务仓库
 ```
 
-- **一波 delivery = 一个 `delivery_id` 目录**，不是一个新控制 git 仓。
+- **一波 delivery = 一个 `delivery_id` 目录**。
 - 本波 `control-plane.json`：该 delivery 状态唯一真相源。
-- 无 `D:/a` 时 Agent 必须在工作区创建 `.jj-flow/` 再写状态，不得要求用户先搭 portfolio。
+- Agent 首次写入前创建 `~/.jj-flow`（或配置路径）。
 
 ## Intake 与 Delivery
 

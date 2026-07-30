@@ -6,12 +6,7 @@
 
 **从哪发起：** 用户在业务仓会话里直接 `$jj-dispatch` / `/jj-dispatch`（有 `D:/a` 时即其下的承接/兑接/承载等）。**不要求**先打开「控制项目」。
 
-**状态写哪：**
-
-1. 有 portfolio（如存在 `D:/a`）→ 默认 `D:/a/dispatch-control`（可配置）。  
-2. **否则** → 当前工具工作区下的 **`.jj-flow/`**（不存在则 Agent 创建）。  
-
-多波次 = 同一状态根下多个 `delivery_id`。用户 cwd 保持业务仓。
+**状态写哪：** 默认 **`~/.jj-flow`**（用户主目录；不存在则创建）。可用 `JJ_DISPATCH_CONTROL_ROOT` 或 `naming.json` `dispatch.control_root` 覆盖（本机 portfolio 可配成 `D:/a/dispatch-control`）。多波次 = 同一状态根下多个 `delivery_id`。用户 cwd 保持业务仓。
 
 ### 平台支持
 
