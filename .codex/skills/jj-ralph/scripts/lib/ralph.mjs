@@ -23,6 +23,9 @@ const REVIEW_OUTCOMES = ['PASS', 'NEEDS_CHANGES', 'BLOCKED'];
 const FINDING_SEVERITIES = ['high', 'medium', 'low', 'info'];
 const FINDING_STATUSES = ['OPEN', 'RESOLVED', 'WAIVED'];
 export const REVIEW_SCOPES = ['working_tree', 'commit'];
+/** Provenance for host-first jj-review adapter; optional on REV reports. */
+export const REVIEW_SOURCES = ['host_builtin', 'user_provided', 'fallback_inline'];
+export const HOST_REVIEW_METHODS = ['skill', 'command', 'subagent', 'user_provided', 'fallback_inline'];
 export const HOST_IDS = ['codex', 'grok-build', 'claude', 'qoder', 'other'];
 
 export function ralphRoot(cwd = process.cwd()) { return path.join(cwd, RALPH_ROOT_REL); }
@@ -150,6 +153,21 @@ export function validateReviewReport(report) {
   if (report.outcome === 'PASS' && report.findings?.some((item) => item.status === 'OPEN')) errors.push('PASS cannot keep OPEN findings');
   if (report.outcome === 'NEEDS_CHANGES' && !report.findings?.some((item) => item.status === 'OPEN')) errors.push('NEEDS_CHANGES requires at least one OPEN finding');
   if (!report.recorded_at) errors.push('recorded_at required');
+  if (report.source != null && !REVIEW_SOURCES.includes(report.source)) {
+    errors.push('source must be one of ' + REVIEW_SOURCES.join(', '));
+  }
+  if (report.host_review != null) {
+    if (typeof report.host_review !== 'object' || Array.isArray(report.host_review)) {
+      errors.push('host_review must be an object when present');
+    } else {
+      if (report.host_review.method != null && !HOST_REVIEW_METHODS.includes(report.host_review.method)) {
+        errors.push('host_review.method must be one of ' + HOST_REVIEW_METHODS.join(', '));
+      }
+      if (report.host_review.artifact_paths != null && !Array.isArray(report.host_review.artifact_paths)) {
+        errors.push('host_review.artifact_paths must be array when present');
+      }
+    }
+  }
   return errors;
 }
 
@@ -614,14 +632,59 @@ function normalizeFindings(findings = []) {
   }));
 }
 
-export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_commit = null, fix_commit = null, review_scope = null, task_thread_id = null, review_thread_id = null, summary = '', findings = [], evidence_refs = [], review_id } = {}) {
+export function normalizeHostReview(host_review = null) {
+  if (host_review == null || host_review === '') return null;
+  if (typeof host_review === 'string') {
+    try {
+      host_review = JSON.parse(host_review);
+    } catch {
+      throw new Error('host_review must be a JSON object or object string');
+    }
+  }
+  if (typeof host_review !== 'object' || Array.isArray(host_review)) {
+    throw new Error('host_review must be an object when present');
+  }
+  const method = host_review.method != null && String(host_review.method).trim()
+    ? String(host_review.method).trim()
+    : null;
+  if (method && !HOST_REVIEW_METHODS.includes(method)) {
+    throw new Error('host_review.method must be one of ' + HOST_REVIEW_METHODS.join(', '));
+  }
+  return {
+    method,
+    entry: host_review.entry != null && String(host_review.entry).trim() ? String(host_review.entry).trim() : null,
+    artifact_paths: unique(Array.isArray(host_review.artifact_paths) ? host_review.artifact_paths.map(String) : []),
+    note: host_review.note != null && String(host_review.note).trim() ? String(host_review.note) : null
+  };
+}
+
+export function recordReview(runId, {
+  cwd = process.cwd(),
+  outcome,
+  reviewed_commit = null,
+  fix_commit = null,
+  review_scope = null,
+  task_thread_id = null,
+  review_thread_id = null,
+  summary = '',
+  findings = [],
+  evidence_refs = [],
+  review_id,
+  source = null,
+  host_review = null
+} = {}) {
   if (!REVIEW_OUTCOMES.includes(outcome)) throw new Error('outcome must be one of ' + REVIEW_OUTCOMES.join(', '));
+  if (source != null && source !== '' && !REVIEW_SOURCES.includes(source)) {
+    throw new Error('source must be one of ' + REVIEW_SOURCES.join(', '));
+  }
   const run = loadRun(runId, cwd);
   const id = review_id || nextReviewId(run);
   if (review_id && run.review?.reviews?.some((item) => item.review_id === review_id)) throw new Error('review already exists: ' + review_id);
   const resolvedFix = fix_commit || null;
   const resolvedReviewed = reviewed_commit || null;
   const resolvedScope = resolveReviewScope({ review_scope, fix_commit: resolvedFix, reviewed_commit: resolvedReviewed });
+  const resolvedSource = source != null && source !== '' ? source : null;
+  const resolvedHostReview = normalizeHostReview(host_review);
   const report = {
     schema_version: RALPH_REVIEW_SCHEMA_VERSION,
     review_id: id,
@@ -637,11 +700,24 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
     evidence_refs: unique(evidence_refs),
     recorded_at: nowIso()
   };
+  if (resolvedSource) report.source = resolvedSource;
+  if (resolvedHostReview) report.host_review = resolvedHostReview;
   const errors = validateReviewReport(report);
   if (errors.length) throw new Error('invalid review: ' + errors.join('; '));
   const relPath = path.join('reviews', id + '.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   writeJson(path.join(runDir(runId, cwd), relPath), report);
-  const entry = { review_id: id, path: relPath, outcome: report.outcome, reviewed_commit: report.reviewed_commit, fix_commit: report.fix_commit, review_scope: report.review_scope, task_thread_id: report.task_thread_id, review_thread_id: report.review_thread_id, recorded_at: report.recorded_at };
+  const entry = {
+    review_id: id,
+    path: relPath,
+    outcome: report.outcome,
+    reviewed_commit: report.reviewed_commit,
+    fix_commit: report.fix_commit,
+    review_scope: report.review_scope,
+    task_thread_id: report.task_thread_id,
+    review_thread_id: report.review_thread_id,
+    recorded_at: report.recorded_at
+  };
+  if (report.source) entry.source = report.source;
   const previous = run.review && typeof run.review === 'object' ? run.review : { latest_review_id: null, task_thread_id: null, reviews: [] };
   const reviews = Array.isArray(previous.reviews) ? [...previous.reviews, entry] : [entry];
   run.review = { latest_review_id: id, task_thread_id: report.task_thread_id || previous.task_thread_id || null, reviews };
@@ -654,6 +730,7 @@ export function recordReview(runId, { cwd = process.cwd(), outcome, reviewed_com
   if (report.reviewed_commit) line += ' commit=' + report.reviewed_commit;
   if (report.fix_commit) line += ' fix_commit=' + report.fix_commit;
   if (report.review_scope) line += ' scope=' + report.review_scope;
+  if (report.source) line += ' source=' + report.source;
   if (report.task_thread_id) line += ' task_thread=' + report.task_thread_id;
   if (report.review_thread_id) line += ' review_thread=' + report.review_thread_id;
   line += nl;

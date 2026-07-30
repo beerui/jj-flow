@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Portable CLI for Codex $jj-ralph mechanical steps.
+ * Portable CLI for jj-ralph mechanical steps.
  *
  * Source of truth for library logic: jj-flow `src/ralph.mjs`
  * Portable copy shipped with skill: `scripts/lib/ralph.mjs` (npm run ralph:sync)
@@ -79,7 +79,7 @@ Commands:
   handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
   dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
   commit-prep --run-id RALPH-x [--cwd DIR]
-  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--cwd DIR]
+  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
 `);
 }
 
@@ -353,6 +353,17 @@ async function main() {
       const runId = args['run-id'];
       const outcome = args.outcome;
       if (!runId || !outcome) die('review-record needs --run-id --outcome');
+      let hostReview = null;
+      if (args['host-review-json']) {
+        try {
+          hostReview = JSON.parse(args['host-review-json']);
+        } catch {
+          die('--host-review-json must be valid JSON object');
+        }
+        if (hostReview == null || typeof hostReview !== 'object' || Array.isArray(hostReview)) {
+          die('--host-review-json must be a JSON object');
+        }
+      }
       const result = recordReview(runId, {
         cwd,
         outcome,
@@ -360,6 +371,8 @@ async function main() {
         task_thread_id: args['task-thread'] || null,
         review_thread_id: args['review-thread'] || null,
         summary: args.summary || '',
+        source: args.source || null,
+        host_review: hostReview,
       });
       printJson({
         ok: true,
@@ -367,6 +380,7 @@ async function main() {
         run_id: runId,
         review_id: result.report.review_id,
         outcome: result.report.outcome,
+        source: result.report.source || null,
         path: result.path,
         resolved,
       });

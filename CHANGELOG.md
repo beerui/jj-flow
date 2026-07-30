@@ -3,6 +3,8 @@
 ## Unreleased
 
 - Fix npm package homepage: publish workflow now aligns `latest` dist-tag (npmjs.com defaults to `latest`, which was stuck on Maestro-era 0.1.1-beta.0).
+- `$jj-review` / `/jj-review` 改为宿主内置 review 优先的适配器：发现并调用当前宿主 review/code-review，将结论映射为 `reviews/REV-*.json`（`source`/`host_review` 溯源）；仅在宿主不可用时最小内联回退。
+- `jj ralph review-record` / `ralph_ops review-record` 支持 `--source` 与 `--host-review-json`，progress 写入 `source=`；校验可选 provenance 枚举。
 
 ## 0.1.1-beta.33
 

@@ -6,7 +6,7 @@
 
 - **同源迁移与持续同步** → `$jj-same` / `/jj-same`
 - **单仓全流程闭环** → `$jj-ralph` / `/jj-ralph`
-- **单仓轻量审查** → `$jj-review` / `/jj-review`
+- **单仓审查适配（宿主 review → REV）** → `$jj-review` / `/jj-review`
 - **多项目调度** → `$jj-dispatch`（Codex）
 
 控制面、ralph run ledger、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。产品中心是 **项目编排**。
@@ -43,7 +43,7 @@ $jj-same
 |------------|------|
 | 同源迁移、handoff、持续同步 | [$jj-same](command-jj-same.html) |
 | 单仓分析→计划→验收→归档、能力地图 | [$jj-ralph](command-jj-ralph.html) |
-| 单仓轻量审查、会话关联、reviews 报告 | [$jj-review](command-jj-review.html) |
+| 宿主 review 映射落盘、会话关联、reviews 报告 | [$jj-review](command-jj-review.html) |
 | 多项目预览、批准、绑定、恢复 | [$jj-dispatch](command-jj-dispatch.html) |
 | 跨项目知识与记忆怎么用 | [记忆与知识库](memory-knowledge-guide.html) |
 | 只说「用 jj-flow」 | [$jj](command-jj.html)（按路由优先级） |

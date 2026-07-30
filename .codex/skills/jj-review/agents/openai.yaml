@@ -1,4 +1,4 @@
 interface:
   display_name: "jj-review"
-  short_description: "只读审查并写 REV 报告"
-  default_prompt: "$jj-review 评审当前 commit，关联到最新 ralph run"
+  short_description: "宿主 review 映射为 REV 报告"
+  default_prompt: "$jj-review 用宿主内置 review 评审当前 commit，结果记到最新 ralph run"

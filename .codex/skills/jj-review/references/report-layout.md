@@ -17,6 +17,16 @@
   2. 并列比 `run_id` 降序
 - 无任何 run → BLOCKED，禁止 init / 手建空 run。
 
+## 审查来源（优先）
+
+1. 用户提供的审查结果 → 映射 → 落盘（`source=user_provided`）
+2. 宿主内置 review → 映射 → 落盘（`source=host_builtin`）
+3. 仅当 1/2 不可用：最小内联审查（`source=fallback_inline`）
+
+细则见 [host-review.md](host-review.md)。**禁止**在宿主审查已给出结论后再做第二套平行自审覆盖结果（除非用户明确要求复审）。
+
+维护路径与对话路径同 schema：`jj ralph review-record --source … [--host-review-json …]` 会写入溯源字段；勿再假设 CLI 会丢掉 provenance。
+
 ## REV 报告字段
 
 | 字段 | 规则 |
@@ -28,10 +38,12 @@
 | reviewed_commit | PASS/NEEDS_CHANGES 必填 ≥7 位；BLOCKED 可 null |
 | task_thread_id | 可选 |
 | review_thread_id | 可选 |
-| summary | 一句话 |
+| summary | 一句话（可含宿主结论摘要） |
 | findings | 数组；见下表 |
-| evidence_refs | 可选路径列表 |
+| evidence_refs | 可选路径列表；宜含宿主 review 产物 |
 | recorded_at | ISO-8601 |
+| source | 推荐：`host_builtin` \| `user_provided` \| `fallback_inline` |
+| host_review | 推荐对象：method / entry / artifact_paths / note |
 
 ### finding
 
@@ -77,10 +89,11 @@
 `progress.md` 追加一行：
 
 ```text
-- <iso> review REV-1 PASS commit=<sha> task_thread=<id> review_thread=<id>
+- <iso> review REV-1 PASS commit=<sha> source=host_builtin task_thread=<id> review_thread=<id>
 ```
 
 ## 边界
 
 - 不替代 dispatch 的正式 VERIFIED 审查门禁。
-- 维护场景可选既有 `jj ralph review-record`；对话执行默认直接写文件。
+- 不替代宿主审查引擎；本 skill 负责绑定 run 与契约落盘。
+- 维护场景可选既有 `jj ralph review-record`；对话执行默认可直接写文件。

@@ -30,7 +30,7 @@
 - 单点/单文件：ANALYZE/PLAN 只写最短 MUST、文件列表、验收；跟随 [tiny-example.md](tiny-example.md)。
 - 已定位文件后直接 DELIVER；不要为完整而重复检索。
 - 同一工具/策略失败 2 次必须换法。
-- 全部步骤由 Codex 直接读写约定路径完成。
+- 全部步骤由当前会话直接读写约定路径完成（不绑定特定宿主）。
 - 未要求 commit/push 时给 commit-prep 建议或完成报告即可。
 
 ## 用户介入（仅此）

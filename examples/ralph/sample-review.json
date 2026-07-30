@@ -13,5 +13,12 @@
   ],
   "recorded_at": "2026-07-23T08:00:00.000Z",
   "review_scope": "commit",
-  "fix_commit": "abcdef1234567"
+  "fix_commit": "abcdef1234567",
+  "source": "host_builtin",
+  "host_review": {
+    "method": "skill",
+    "entry": "review",
+    "artifact_paths": [],
+    "note": null
+  }
 }

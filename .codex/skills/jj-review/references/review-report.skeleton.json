@@ -6,8 +6,15 @@
   "reviewed_commit": "abcdef1234567",
   "task_thread_id": null,
   "review_thread_id": null,
-  "summary": "一句话审查结论",
+  "summary": "一句话审查结论（宜摘要宿主 review）",
   "findings": [],
   "evidence_refs": [],
-  "recorded_at": "2026-07-23T00:00:00.000Z"
+  "recorded_at": "2026-07-23T00:00:00.000Z",
+  "source": "host_builtin",
+  "host_review": {
+    "method": "skill",
+    "entry": "review",
+    "artifact_paths": [],
+    "note": null
+  }
 }

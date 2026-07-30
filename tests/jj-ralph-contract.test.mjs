@@ -271,6 +271,47 @@ test('review-record associates task/review threads on ralph run', () => {
   }
 });
 
+test('review-record persists source and host_review provenance', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-prov-'));
+  const chunks = [];
+  const stdout = { write: (text) => chunks.push(text) };
+  try {
+    const runId = 'RALPH-review-prov-20260730';
+    assert.equal(runCli(['ralph', 'init', '--run-id', runId, '--title', 'review provenance', '--goal', 'keep host source', '--json'], { cwd, stdout }), 0);
+    chunks.length = 0;
+    const hostJson = JSON.stringify({
+      method: 'skill',
+      entry: 'review',
+      artifact_paths: ['tmp/host-review.md'],
+      note: 'mapped from host builtin'
+    });
+    assert.equal(runCli([
+      'ralph', 'review-record',
+      '--run-id', runId,
+      '--outcome', 'PASS',
+      '--reviewed-commit', 'abcdef1234567',
+      '--summary', 'host mapped',
+      '--source', 'host_builtin',
+      '--host-review-json', hostJson,
+      '--json'
+    ], { cwd, stdout }), 0);
+    const payload = JSON.parse(chunks[chunks.length - 1]);
+    assert.equal(payload.report.source, 'host_builtin');
+    assert.equal(payload.report.host_review.method, 'skill');
+    assert.equal(payload.report.host_review.entry, 'review');
+    assert.deepEqual(payload.report.host_review.artifact_paths, ['tmp/host-review.md']);
+    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'reviews', 'REV-1.json'), 'utf8'));
+    assert.equal(disk.source, 'host_builtin');
+    assert.equal(disk.host_review.entry, 'review');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /source=host_builtin/);
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    assert.equal(run.review.reviews[0].source, 'host_builtin');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 
 test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + map-find', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-ops-'));
