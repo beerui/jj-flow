@@ -1,8 +1,18 @@
 # `jj-dispatch` 多项目任务调度
 
-`jj-dispatch` 是运行在独立控制项目中的跨项目控制入口。它负责保存动态项目角色、预览任务、获得批准、创建 Codex task、绑定 thread、汇总结构化回执和恢复中断状态；实际需求实现、bug 修复和同源迁移仍交给其它 `jj-*` 命令。
+`jj-dispatch` 是运行在独立控制项目中的跨项目控制入口。它负责保存动态项目角色、预览任务、获得批准、创建/绑定宿主任务句柄、汇总结构化回执和恢复中断状态；实际需求实现、bug 修复和同源迁移仍交给其它 `jj-*` 命令。
 
-`jj-dispatch` 当前是 **Codex-only**：只提供 `$jj-dispatch`，没有 Claude Code 的 `/jj-dispatch`。它依赖 Codex App 的 project、thread、worktree 和 sandbox attestation 能力。
+### 平台支持
+
+| 宿主 | 入口 | 任务句柄 | 状态 |
+|------|------|----------|------|
+| **Codex App** | `$jj-dispatch` | `handle_kind=thread`（`host_id=codex-app`） | 首实现路径 |
+| **Grok Build** | `/jj-dispatch`（`install-skill --platform grok`） | `handle_kind=session`（`host_id=grok-build`） | **已支持**：skill + host 契约 Phase 1；真实 attestation 闭环见 [Grok Host Adapter](../design-docs/grok-host-adapter.html) |
+| **Qoder** | `/jj-dispatch` | 与 skill 同源；绑定仍按已批准 Host 配置 | skill 可装 |
+| **Claude Code** | — | — | **无** `/jj-dispatch` 薄命令（清单 `claude_command: null`） |
+
+DISPATCH 绑定一律要求：独占 worktree（写责任）+ **runtime sandbox attestation**（不得用模型自述或半真实 `host:trial` 冒充）。  
+控制面状态机、`delivery_id` / `task_key`、CAS tick **不随宿主改写**；只换 host adapter 实现。
 
 控制项目第一次接收需求要先完成 intake：确认需求归属项目、来源项目、领头项目、目标集合、是否多目标和 `quick/standard` 模式。信息不完整时只返回 `INTAKE_REQUIRED`，不会直接进入 PREVIEW。
 
@@ -21,8 +31,8 @@
 ## 何时不用
 
 - 同源项目的具体差异分析、迁移实现和同步检查点使用 [`jj-same`](command-jj-same.html)。
-- 不需要创建 Codex task，只想手工维护一份计划时，不必引入控制项目。
-- Codex App 缺少 project/thread/worktree 或 runtime sandbox 证明时，只能停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目、无 worktree 的任务。
+- 不需要创建宿主 task/session，只想手工维护一份计划时，不必引入控制项目。
+- 已批准 Host（Codex App 或 Grok Build）缺少 list/create/read、worktree 或 runtime sandbox 证明时，只能停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目、无 worktree 的任务。
 
 ## 输入模板
 
@@ -88,10 +98,10 @@ $jj-dispatch DISPATCH 批准 delivery=DEL-payment 的当前 task_keys
 $jj-dispatch RECONCILE task_key=DEL-payment/chengjie-web/development/1
 ```
 
-调度器会查找与该 intent 唯一匹配的 Codex thread：
+调度器会查找与该 intent 唯一匹配的宿主句柄（Codex `thread` 或 Grok `session`）：
 
-- 恰好一个候选：绑定 thread，补齐 `host_id`、实际 sandbox、environment 和绑定时间，然后继续监控结构化回执。
-- 零个或多个候选：本次返回 `BLOCKED`，持久化 intent 继续保持 `UNKNOWN`，不会重复创建 task。
+- 恰好一个候选：绑定句柄，补齐 `host_id`、`handle_kind`、实际 sandbox、environment 和绑定时间，然后继续监控结构化回执。
+- 零个或多个候选：本次返回 `BLOCKED`，持久化 intent 继续保持 `UNKNOWN`，不会重复 create。
 
 若已确认旧 thread 无法找回，后续操作应明确记录原因，把旧 intent 转为 `BLOCKED`，将 responsibility 的 `attempt` 从 `1` 增到 `2`，重新执行 `PREVIEW` 和批准：
 
@@ -109,12 +119,12 @@ $jj-dispatch 恢复 delivery=DEL-payment，检查所有已绑定任务，消费�
 
 ## 执行过程
 
-1. 读取控制项目的 `control-plane.json`，核对已注册项目、路径、Git identity 和 Codex `projectId`。
+1. 读取控制项目的 `control-plane.json`，核对已注册项目、路径、Git identity，以及可选的 Codex `projectId` / Grok 控制仓绑定。
 2. 根据本轮动态角色和 responsibilities 生成稳定 `task_key`：`delivery_id / project_id / responsibility / attempt`。
 3. 执行 `PREVIEW`，展示完整任务集合、依赖、访问方式、阻塞项和将冻结的批准快照；此时不创建 task。
-4. 用户明确批准后执行 `DISPATCH`：先持久化 `dispatch_intent`，再由 Codex App host 创建目标 project task。
+4. 用户明确批准后执行 `DISPATCH`：先持久化 `dispatch_intent`，再由已批准 Host（Codex App 或 Grok Build）创建目标 task/session。
 5. 写责任绑定目标项目独占 worktree；只读责任只消费已提交 commit，不携带 worktree。
-6. 创建成功后立即绑定 thread，并记录 host、agent、实际 sandbox 和环境证明。绑定失败时进入 `UNKNOWN`，禁止盲目重试。
+6. 创建成功后立即绑定句柄（thread 或 session），并记录 host、`handle_kind`、agent、实际 sandbox 和环境证明。绑定失败时进入 `UNKNOWN`，禁止盲目重试。
 7. 子任务只返回结构化回执。主调度器核对 attempt、commit、依赖、worktree、验证和 Review 证据后，单写更新控制 manifest。
 8. Review 为 `NEEDS_CHANGES` 时，先收口旧下游任务，再统一递增相关 attempt，重新 `PREVIEW`、批准和派发。
 
@@ -182,7 +192,7 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 - `UNKNOWN` 后再次创建同一 `task_key`，造成重复任务。应先 `RECONCILE`。
 - 把 agent TOML 的期望 sandbox 当成运行时证明。绑定必须记录 host 返回的实际 sandbox attestation。
 - 把 `$jj-dispatch` 当成同步实现器或常驻 daemon。具体迁移交给 `$jj-same`，主调度关闭后需要显式恢复。
-- 在 Claude Code 中尝试 `/jj-dispatch`。首版只支持 Codex `$jj-dispatch`。
+- 在 Claude Code 中尝试 `/jj-dispatch`（未提供薄命令）。应使用 Codex `$jj-dispatch` 或 Grok/Qoder `/jj-dispatch`。
 
 ## 单次 tick / resume
 
@@ -204,4 +214,4 @@ jj dispatch-tick --manifest control-plane.json --delivery DEL-001 \
 ## 相关命令
 
 - [`jj-same`](command-jj-same.html)：执行具体同源迁移、差异适配和同步检查点。
-- [`jj` CLI](command-cli.html)：`dispatch-tick` 与本地调度建议，不替代 Codex App 的 project task 调度。
+- [`jj` CLI](command-cli.html)：`dispatch-tick` 与本地调度建议，不替代宿主侧 create/bind；配合 Codex 或 Grok 已批准 Host 使用。

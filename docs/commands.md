@@ -6,22 +6,21 @@
 
 | 入口 | 何时用 | 平台 |
 |------|--------|------|
-| [$jj-same](command-jj-same.html) | 同源迁移、handoff、持续同步 | Codex `$` / Claude `/` |
-| [$jj-ralph](command-jj-ralph.html) | 单仓全流程：分析 → 计划 → 验收 → 归档 + 能力地图 | Codex `$` / Claude `/` |
-| [$jj-dispatch](command-jj-dispatch.html) | 控制项目上多项目预览、批准、绑定、恢复 | **仅 Codex** |
+| [$jj-same](command-jj-same.html) | 同源迁移、handoff、持续同步 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
+| [$jj-ralph](command-jj-ralph.html) | 单仓全流程：分析 → 计划 → 验收 → 归档 + 能力地图 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
+| [$jj-review](command-jj-review.html) | 宿主 review 映射为 ralph `REV-*` | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
+| [$jj-dispatch](command-jj-dispatch.html) | 控制项目上多项目预览、批准、绑定、恢复 | Codex `$` · Grok `/` · Qoder `/`（**无** Claude 薄命令） |
+| `$jj-end` / `/jj-end` | 收工：同步、提交、合入 integration | Codex · Claude · Grok · Qoder（skill，无独立文档页） |
+| [$jj](command-jj.html) | 不确定时的兼容路由 | Codex `$` · Claude `/` · Grok `/` · Qoder `/` |
 
-**不确定：** 多仓迁移用 same；单仓闭环用 ralph。兼容路由见 [$jj](command-jj.html)。
+**不确定：** 多仓迁移用 same；单仓闭环用 ralph；多仓调度用 dispatch。兼容路由见 [$jj](command-jj.html)。
+
+控制面 **`delivery_id`** 是调度任务身份（manifest 字段），不是对话命令名。
 
 ## 维护与自动化
 
 - [CLI](command-cli.html)：`install-skill`、`uninstall-skill`、`doctor`、`scenario`、`host-trial`、`harness-gc`、`dispatch-tick`、`ralph *`
-- 维护本仓：`npm run verify`（无 `$jj-validate` / `$jj-evolve` 对话入口）
-
-## 已移除（非活入口）
-
-勿再安装或当作主 CTA：`$jj-delivery`、`$jj-validate`、`$jj-evolve`，以及更早的 feat/fix/knowhow/auto/review。
-
-控制面 **`delivery_id`** = 调度任务身份，不是对话命令。
+- 维护本仓：`npm run verify`
 
 ## 通用输入模板
 
@@ -55,16 +54,22 @@ $jj-ralph
 
 ## 平台差异
 
-Codex 使用 `$jj-*`，Claude Code 使用 `/jj-*`。例如：
+| 宿主 | 调用形态 | 备注 |
+|------|----------|------|
+| Codex | `$jj-*` | dispatch 宿主 `host_id=codex-app`，`handle_kind=thread` |
+| Claude Code | `/jj-*` | 仅薄命令：same / ralph / review / end / 兼容 `jj`；**无** `/jj-dispatch` |
+| Grok Build | `/jj-*`（skill `user-invocable`） | 含 `/jj-dispatch`；宿主 `host_id=grok-build`，`handle_kind=session` |
+| Qoder | `/jj-*` | 与 Grok 同源 skill 安装，含 dispatch |
 
 ```text
 $jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
-$jj-ralph 目标=… 验收=…
-/jj-ralph 目标=… 验收=…
+$jj-dispatch PREVIEW delivery=DEL-…
+/jj-dispatch PREVIEW delivery=DEL-…
 ```
 
-`$jj-dispatch` 依赖 Codex App 的 task、thread 和 worktree 能力，当前没有对应的 `/jj-dispatch`。
+**`jj-dispatch` 与 Grok：** skill 与 host 契约（Phase 1）已支持 Grok；PREVIEW / 计划 / CAS tick 不绑死 Codex。  
+完整 DISPATCH 绑定仍要求 **可验证 sandbox attestation + 独占 worktree**（Grok 走 session 句柄，见 [Grok Host Adapter](design-docs/grok-host-adapter.html)）。真实 Host 闭环验收仍为 PENDING，不得用半真实 `host:trial` 冒充。
 
 ## 状态怎么理解
 
@@ -80,7 +85,7 @@ $jj-ralph 目标=… 验收=…
 
 ## 安装与卸载命令
 
-安装 Codex skills 或 Claude commands 使用 `install-skill`，完整参数和冲突处理见 [安装](installation.html)：
+安装使用 `install-skill`（Codex / Claude / Grok / Qoder），完整参数见 [安装](installation.html)：
 
 ```bash
 npx @shendu-sdt/jj-flow@beta install-skill --platform all --dry-run --json

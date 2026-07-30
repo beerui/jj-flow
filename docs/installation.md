@@ -32,7 +32,12 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project --force
 - Qoder：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-dispatch`、`/jj-end`、兼容入口 `/jj`
 - Grok：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-dispatch`、`/jj-end`、`/jj-evaluated`、兼容入口 `/jj`（slash 来自 skill `user-invocable`）
 
-`$jj-dispatch` 的完整 host 闭环目前以 Codex 宿主为主；其他平台可加载同一 skill 协议做分析与计划，但 create_thread / 真实 sandbox attestation 仍依赖部署环境（见 [真实 Host 验收](milestones/real-host-acceptance.html)）。
+`jj-dispatch` skill 可装到 Codex / Grok / Qoder（Claude 无薄命令）。宿主绑定：
+
+- **Codex App**：`host_id=codex-app`，`handle_kind=thread`（首实现）
+- **Grok Build**：`host_id=grok-build`，`handle_kind=session`（契约 Phase 1 已支持；真实 Host 闭环见 [Grok Host Adapter](design-docs/grok-host-adapter.html) 与 [真实 Host 验收](milestones/real-host-acceptance.html)）
+
+PREVIEW / 控制面 CAS 不绑死宿主；DISPATCH 绑定仍要求 worktree + runtime sandbox attestation，禁止半真实 `host:trial` 冒充。
 
 `.codex/agents/` 提供 Reviewer / Developer 角色期望。首次使用后请将项目标为 trusted，重启或新建任务，并确认角色与 sandbox attestation 可用后再 `BIND_THREAD`。
 

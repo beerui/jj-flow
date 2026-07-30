@@ -20,10 +20,11 @@ Claude Code 中把 `$` 换成 `/`：
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 ```
 
-多项目波次、批准与恢复时，在控制项目使用 `$jj-dispatch`（仅 Codex）：
+多项目波次、批准与恢复时，在控制项目使用 `$jj-dispatch`（Codex）或 `/jj-dispatch`（Grok / Qoder；无 Claude 薄命令）：
 
 ```text
 $jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
+/jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
 ```
 
 单仓从需求做到验收归档时，用 `$jj-ralph` / `/jj-ralph`：
@@ -59,9 +60,7 @@ Agent 应该先寻找已有上下文。只有缺失信息会改变范围、方�
 - 多项目任务调度：[$jj-dispatch](command-jj-dispatch.html)
 - 不确定：[$jj](command-jj.html) 兼容入口（迁移优先 same；单仓闭环走 ralph）
 
-已移除 `$jj-delivery`、`$jj-validate`、`$jj-evolve`。控制面 `delivery_id` 仍用于 `$jj-dispatch` 任务身份。
-
-更完整的选择说明见 [命令总览](commands.html)。心智模型与值班 checklist 见 [Loop 与 Graph 上手](loop-graph-guide.html)。
+控制面 `delivery_id` 是调度任务身份，不是对话命令名。更完整的选择说明见 [命令总览](commands.html)。心智模型与值班 checklist 见 [Loop 与 Graph 上手](loop-graph-guide.html)。
 
 ## 你会看到的执行过程
 

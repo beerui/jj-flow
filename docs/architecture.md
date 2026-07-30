@@ -45,8 +45,8 @@ flowchart LR
 
 - `.codex/skills/jj-same/`：同源迁移与持续同步（handoff、项目族、证据脚本）。
 - `.codex/skills/jj-ralph/`：单仓分析→计划→验收→归档与能力地图；`src/ralph.mjs` 提供机械 CLI。
-- `.codex/skills/jj-dispatch/`：控制项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD），Codex-only。
-- `.codex/skills/jj/`、`.claude/commands/`：兼容路由与 Claude 入口。
+- `.codex/skills/jj-dispatch/`：控制项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD）；宿主 Codex App（thread）或 Grok Build（session）；无 Claude 薄命令。
+- `.codex/skills/jj/`、`.claude/commands/`：兼容路由与 Claude 薄入口。
 - `.codex/agents/*.toml`：Reviewer（read-only）与 Developer 角色期望；运行时 sandbox 以 host attestation 为准。
 - `src/dispatchHostContract.mjs` 与 `.codex/skills/jj-dispatch/references/host-action-contract.json`：host action allowlist、capability、sandbox 和 worktree policy；`npm run harness:check` 负责跨 runtime/schema/skill/fixture parity。
 - `src/scenarioRunner.mjs`、`src/dispatchTrace.mjs` 与 `src/handoffContract.mjs`：固定场景、统一 report、语义 hash、纯 replay 和 handoff snapshot 校验；`npm run scenario:check` 不执行真实 host action。

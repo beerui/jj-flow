@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- 文档：明确 `jj-dispatch` 支持 Grok（`/jj-dispatch`，`host_id=grok-build` / session）；命令总览补全多端平台列，删除「已移除（非活入口）」段落。
+
 ## 0.1.1-beta.36 — 2026-07-30 17:26
 
 - 文档站全局顶栏：快捷入口改为「安装 / 使用 / Changelog / GitHub」；移除 same / dispatch 快捷标签。

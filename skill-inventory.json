@@ -53,7 +53,7 @@
       "claude_command": null,
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok"],
-      "note": "CREATE_THREAD / host attestation still Codex-first; no Claude slash until host parity."
+      "note": "Platforms: codex/qoder/grok (no Claude slash). Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation (Phase 1 contract; Wave2 real-host still PENDING)."
     },
     {
       "id": "jj-evaluated",

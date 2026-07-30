@@ -11,14 +11,14 @@
 
 - 已经确定是同源迁移时，直接用 [`$jj-same`](command-jj-same.html) 或 `/jj-same`。
 - 已经确定是单仓全流程闭环时，直接用 [`$jj-ralph`](command-jj-ralph.html) 或 `/jj-ralph`。
-- 已经确定是多项目调度时，直接用 [`$jj-dispatch`](command-jj-dispatch.html)（Codex）。
+- 已经确定是多项目调度时，直接用 [`$jj-dispatch`](command-jj-dispatch.html)（Codex `$` / Grok·Qoder `/`）。
 - 需要安装命令资产或机械步骤时，使用 [`jj` CLI](command-cli.html)，不要在 shell 中运行 `jj-same` 等名字指望它改业务代码。
 
 ## 路由优先级
 
 1. 同源多仓迁移 / handoff / 持续同步 → same
 2. 单仓闭环 / ralph / 归档 / 能力地图 → ralph
-3. 控制项目多目标调度 → dispatch（Codex）
+3. 控制项目多目标调度 → dispatch（Codex / Grok / Qoder；Claude 无薄命令）
 4. 不确定 → 默认 same
 
 ## 你需要给什么
@@ -43,7 +43,7 @@ $jj 在当前仓库完成密码过期提醒并归档
 $jj 在控制项目预览 DEL-password 的多项目任务
 ```
 
-预期路由到 `$jj-dispatch`（仅 Codex）。
+预期路由到 `$jj-dispatch`（Codex / Grok / Qoder）。
 
 ## 执行过程
 
@@ -53,4 +53,8 @@ $jj 在控制项目预览 DEL-password 的多项目任务
 
 ## 平台差异
 
-Codex 支持 `$jj-same` / `$jj-ralph` / `$jj-dispatch`。Claude Code 支持 `/jj-same` / `/jj-ralph`；无 `/jj-dispatch`。
+| 宿主 | same / ralph / review / end | dispatch |
+|------|-----------------------------|----------|
+| Codex | `$jj-*` | `$jj-dispatch` |
+| Grok / Qoder | `/jj-*` | `/jj-dispatch` |
+| Claude Code | `/jj-*`（含 end） | **无** `/jj-dispatch` |

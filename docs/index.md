@@ -2,18 +2,18 @@
 
 `jj-flow` 是面向 **项目族** 的 AI **编排工作流**。
 
-在 Codex / Claude Code 里用对话入口完成：
+在 Codex / Claude / Grok / Qoder 里用对话入口完成：
 
 - **同源迁移与持续同步** → `$jj-same` / `/jj-same`
 - **单仓全流程闭环** → `$jj-ralph` / `/jj-ralph`
 - **单仓审查适配（宿主 review → REV）** → `$jj-review` / `/jj-review`
-- **多项目调度** → `$jj-dispatch`（Codex）
+- **多项目调度** → `$jj-dispatch` / `/jj-dispatch`（Codex · Grok · Qoder；无 Claude 薄命令）
 
 控制面、ralph run ledger、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。产品中心是 **项目编排**。
 
 ## 3 步开始
 
-1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex 或 Claude
+1. **[安装](installation.html)** — 把 skill / slash command 装到 Codex、Claude、Grok 或 Qoder
 2. **[使用说明](usage.html)** — 如何写一条好输入、如何判断完成
 3. **建立心智模型**
    - **[Loop 与 Graph 上手](loop-graph-guide.html)** — 外层 Graph 管秩序，内层 Loop 管做对
