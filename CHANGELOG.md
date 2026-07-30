@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.1-beta.36
+
+- 文档站全局顶栏：快捷入口改为「安装 / 使用 / Changelog / GitHub」；移除 same / dispatch 快捷标签。
+- 新增站内 `changelog.html`（由根目录 `CHANGELOG.md` 生成）；GitHub 外链 `https://github.com/beerui/jj-flow`。
+
 ## 0.1.1-beta.35
 
 - `$jj-same`：开干前强制 **branch purpose preflight**（任务用途 vs 当前分支用途）；新增 `references/branch-purpose-preflight.md` 与 EP-20260730-S1 五题 golden（错误 train 分支、恢复、staging tip 树判定）。
