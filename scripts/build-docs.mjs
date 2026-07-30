@@ -56,6 +56,7 @@ const NAV_GROUPS = [
       { title: '/jj-evaluated 真实工作流评估', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html' },
       { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html' },
       { title: '执行计划', source: 'docs/exec-plans/index.md', output: 'exec-plans/index.html' },
+      { title: 'Grok dispatch Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html' },
       { title: 'Grok Host Adapter Phase 1', source: 'docs/exec-plans/completed/2026-07-27-grok-host-adapter.md', output: 'exec-plans/completed/2026-07-27-grok-host-adapter.html' },
       { title: 'Harness 收口计划', source: 'docs/exec-plans/completed/2026-07-18-harness-hardening.md', output: 'exec-plans/completed/2026-07-18-harness-hardening.html' },
       { title: 'ADR 索引', source: 'docs/adr/index.md', output: 'adr/index.html' },

@@ -146,8 +146,19 @@ intake 对象（`intake.status=REQUIRED` 时不可 PREVIEW 推进/批准）：
 
 | 状态 | 要求 |
 | --- | --- |
-| `VERIFIED` | 完成当前 attempt 责任；terminal writer 持久 Review PASS；目标 commit == reviewed commit |
+| `VERIFIED` | 完成当前 attempt 责任；terminal writer 持久 Review PASS；目标 commit == reviewed commit == development `produced_commit` |
 | `NO_CHANGE_REQUIRED` | analysis 产出 `ANL-TARGET`；`difference_ref`、目标 HEAD、`unresolved=[]`；未派发 development/verification/review 标 `SKIPPED`；不伪造 Developer commit/VRF/Review |
+| `EVIDENCE_READY` | 工作区或 artifact 已有证据但 **尚不满足 VERIFIED**（常见：未 commit、review 未对照 sha）；**用户说「已合并」也不能跳过证据直接升 VERIFIED** |
+
+#### Agent 手写 plane（用户不跑 CLI）
+
+用户不操作 control 根、不跑 `dispatch-tick`。Agent 直接改 `control-plane.json` 时：
+
+1. **状态天花板**：无 `produced_commit` → 禁止 target/delivery `VERIFIED`；最多 `EVIDENCE_READY`。
+2. **git 自取 sha**：`git rev-parse` / `log -1` 写入 intent 与 checkpoint，不问用户要 commit。
+3. **真 session**：Grok 用当前真实 session id；可同会话多目标共享；禁止 `session-<slug>-YYYYMMDD`。
+4. **合 integration**：优先 task-scoped commit cherry-pick；整支 feature merge 前确认 tip 不含会冲掉其它功能的 revert/历史（负例：承兑人标签整支合 dev 冲掉 aliyun tracker）。
+5. 可选自检：`node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest <plane.json>`（给 Agent，不给用户手册）。
 
 存在 `sync_key` 或 `handoff_ref` 时，成功 checkpoint 还必须保存：
 

@@ -4,7 +4,12 @@
 
 ## Unreleased
 
-- 文档：安装/使用/术语/架构/CLI/记忆知识库/README 对齐 beta.37——目录可配置、业务仓发起、project-branch 默认；补充 `naming.json` 示例与 `jj doctor` paths。
+## 0.1.1-beta.38 — 2026-07-30 19:30
+
+- **Grok dispatch Mode S（skill MVP）**：默认单会话串行 + project-branch；缺多 session API 时降级 Mode S，禁止合成 session id；用户不跑 CLI。
+- 新增 `.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`（PREFLIGHT / attestation / receipt / Mode S·W·P / 与 Workflow 边界）。
+- Agent 写 plane 硬门禁（C3）：无 `produced_commit` 最多 `EVIDENCE_READY`；`scripts/plane-self-check.mjs` + 合约测试。
+- 文档：`docs/commands/jj-dispatch.md`、`usage`、`grok-host-adapter` 脚注；exec plan `docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md`；评估 `docs/evaluations/2026-07-30-acceptor-tag-color-dispatch.md`。
 
 ## 0.1.1-beta.37 — 2026-07-30 18:29
 

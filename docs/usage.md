@@ -20,7 +20,7 @@ Claude Code 中把 `$` 换成 `/`：
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 ```
 
-多项目波次：在**业务仓**直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。**不要求**先打开控制仓。协调状态默认写入用户主目录 **`~/.jj-flow/`**；本机 portfolio 用 `naming.json` 覆盖（见 [安装 · 本机目录配置](installation.html)）。写任务默认 **`project-branch`**（与 same 一样落命名 feature 分支主工作区）；分支/workspace 不确定时 Agent 先问再 `DISPATCH`。
+多项目波次：在**业务仓**直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。**不要求**先打开控制仓，**不要求**用户跑 CLI。协调状态默认写入用户主目录 **`~/.jj-flow/`**；本机 portfolio 用 `naming.json` 覆盖（见 [安装 · 本机目录配置](installation.html)）。写任务默认 **`project-branch`**；分支/workspace 不确定时 Agent 先问再 `DISPATCH`。**Grok 默认 Mode S**（单会话串行完成多 task_key；不必开多 session，也不必用 Workflow 收口）——见 [jj-dispatch 命令页](command-jj-dispatch.html)。
 
 ```text
 $jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台

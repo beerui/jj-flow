@@ -114,3 +114,27 @@ Live paths (unchanged map roots under `D:\\a\\...`). Evaluation write-up:
 | EP-K1 SDK Node14 | `D:\\a\\rd-sdt-tracker` postinstall `0.6.3` + static compat test |
 
 Candidate v5 (branch purpose preflight) lives in `jj-same` skill SSOT; protect EP-S1 golden table and EP-B1 holdout.
+
+## 2026-07-30 formal dispatch (acceptor-tag-color)
+
+First live multi-target delivery with real control-plane files under
+`D:/a/dispatch-control` (not the null-plane preference-modified export).
+
+| Field | Value |
+| --- | --- |
+| delivery_id | `DEL-acceptor-tag-color-20260730` |
+| task_id | `TASK-DEL-acceptor-tag-color-20260730` |
+| control-plane | `D:/a/dispatch-control/.workflow/dispatch/DEL-acceptor-tag-color-20260730/control-plane.json` |
+| lead / 兑接 | `D:/a/dj-web` @ `feat/dj-0731-lyj` style `5af0b1c6b` |
+| target / 承接 | `D:/a/cj-web` @ `feat/cj-0731-lyj` style `f68b7043f` |
+| target / 承载识票 | `D:/a/cz-broker-recognize-web` @ `feat/cz-0731-lyj` style `493db28c5` |
+| thread | Grok `019fb288-5e92-7a73-bb0a-b6d6edfe1420` (cwd dj-web) |
+| evaluation | `docs/evaluations/2026-07-30-acceptor-tag-color-dispatch.md` |
+
+Caveats recorded in that evaluation: PREVIEW + project-branch + ADAPT succeeded;
+`VERIFIED` was hand-written without `produced_commit`; synthetic session ids;
+scheduler implemented targets in the same session.
+
+**C3 promoted (agent-path, no user CLI):** jj-dispatch skill hard gates +
+`scripts/plane-self-check.mjs` — same-session OK with real session id; no synthetic
+`session-*-YYYYMMDD`; no VERIFIED without git `produced_commit`.

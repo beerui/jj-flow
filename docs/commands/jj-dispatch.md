@@ -15,7 +15,7 @@
 | 宿主 | 入口 | 任务句柄 | 状态 |
 |------|------|----------|------|
 | **Codex App** | `$jj-dispatch` | `handle_kind=thread`（`host_id=codex-app`） | 首实现路径 |
-| **Grok Build** | `/jj-dispatch`（`install-skill --platform grok`） | `handle_kind=session`（`host_id=grok-build`） | **已支持**：skill + host 契约 Phase 1；真实 attestation 闭环见 [Grok Host Adapter](../design-docs/grok-host-adapter.html) |
+| **Grok Build** | `/jj-dispatch`（`install-skill --platform grok`） | `handle_kind=session`（`host_id=grok-build`） | **日常默认 Mode S**（单会话串行 + project-branch；skill `grok-dispatch-execution`）；**不要求**多 session 或 Grok Workflow 才能收口。真 Host Wave 2 attestation 见 [Grok Host Adapter](../design-docs/grok-host-adapter.html)（Proposed） |
 | **Qoder** | `/jj-dispatch` | 与 skill 同源；绑定仍按已批准 Host 配置 | skill 可装 |
 | **Claude Code** | — | — | **无** `/jj-dispatch` 薄命令（清单 `claude_command: null`） |
 
@@ -42,7 +42,8 @@ DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型�
 
 - 同源项目的具体差异分析、迁移实现和同步检查点使用 [`jj-same`](command-jj-same.html)。
 - 不需要创建宿主 task/session，只想手工维护一份计划时，不必引入控制项目。
-- 已批准 Host（Codex App 或 Grok Build）缺少 list/create/read、worktree 或 runtime sandbox 证明时，只能停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目、无 worktree 的任务。
+- Codex App 缺少 list/create/read、worktree 或 runtime sandbox 证明时，停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目任务。
+- **Grok** 缺少多 session create/list 时：**不**整波假 BLOCKED；进入 **Mode S**（当前真实 session + project-branch + attestation/receipt 文件）。禁止合成 session id；无 `produced_commit` 不得 `VERIFIED`。Grok Workflow（Rhai）可辅助探索，**不能**单独推进控制面 checkpoint。
 
 ## 输入模板
 

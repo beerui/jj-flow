@@ -11,7 +11,7 @@
 
 ## 活跃计划
 
-（当前无）
+- [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html)（skill MVP 部分完成；下一波真实 delivery 验收）
 
 ## 已完成计划
 

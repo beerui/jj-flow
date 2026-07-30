@@ -2,13 +2,19 @@
 
 > 状态：Proposed
 >
+> 范围：真 Host attestation / Wave 2。日常 Grok 分发 Mode S skill MVP 见
+> [`.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`](../../.codex/skills/jj-dispatch/references/grok-dispatch-execution.md)
+> 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)，**不**等同关闭本文验收。
+>
 > 关联：
 > - [真实 Host 验收（PENDING）](../milestones/real-host-acceptance.md)
 > - [Agent Harness 设计](harness-engineering.html)
 > - [Harness 收口计划（completed）](../exec-plans/completed/2026-07-18-harness-hardening.html)
 > - ADR 0001 薄宿主边界；dispatch host-action-contract
 >
-> 实施边界：本文只定目标状态与验收门槛；**不** 因 skill 安装或本设计进入 Proposed 而提升 `max_unattended_level`
+> 实施边界：本文只定目标状态与验收门槛；**不** 因 skill 安装或 Mode S 日常可用而提升 `max_unattended_level`
+>
+> **默认 workspace 裁决（与 skill 对齐）**：Grok 写责任默认 **project-branch**（命名 feature + 主仓 path）；**exclusive-worktree 仅 isolation**。早期「必须独占 worktree」表述以本裁决与 skill 为准。
 
 ## 1. 摘要
 

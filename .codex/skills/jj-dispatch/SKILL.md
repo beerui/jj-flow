@@ -9,7 +9,7 @@ description: 在业务仓发起多项目调度：PREVIEW→批准→DISPATCH→t
 
 ## 目录配置（用户可改）
 
-**产品默认调度状态根是 `~/.jj-flow`**，不是任何机器上的 `D:/a`。  
+**产品默认调度状态根是 `~/.jj-flow`**，不是任何机器上的 `D:/a`。
 项目族顶层（portfolio）、知识库、地图、调度状态**都是配置项**，写在全局 `naming.json` 或环境变量里。
 
 ### 配置文件在哪
@@ -78,10 +78,10 @@ D:/a/
 
 规则：
 
-1. **默认永远是用户主目录 `~/.jj-flow`**。portfolio 布局（如 `D:/a`）只通过配置启用，不是全局硬编码默认。  
-2. 多波次 = 同一状态根下多个 `delivery_id`。  
-3. 首次写入前 `ensureDispatchControlRoot()`；CLI：`jj dispatch-tick --delivery …`、`jj task scaffold --delivery …` 会解析 control root。  
-4. 业务代码只在业务仓 feature 分支。  
+1. **默认永远是用户主目录 `~/.jj-flow`**。portfolio 布局（如 `D:/a`）只通过配置启用，不是全局硬编码默认。
+2. 多波次 = 同一状态根下多个 `delivery_id`。
+3. 首次写入前 `ensureDispatchControlRoot()`；CLI：`jj dispatch-tick --delivery …`、`jj task scaffold --delivery …` 会解析 control root。
+4. 业务代码只在业务仓 feature 分支。
 
 字段与目录细则见 [control-project.md](references/control-project.md)。
 
@@ -118,21 +118,90 @@ D:/a/
    -> 用户确认前：不 DISPATCH、不 create_thread、不写 dispatch_intent
    -> 用户可改判 project-branch / exclusive-worktree / 目标分支名
 
-5. 已批准，但缺 REQUIRED_APP_CAPABILITIES（或当前 Host 无法证明等价 capability）
-   -> DISPATCH 拒绝（action=DISPATCH, ok=false, status=BLOCKED）
-   -> plane 保持不变（delivery 可仍为 APPROVED）
-   -> 不写 dispatch_intent；不 create_thread；不清空既有批准
-   -> 返回 missing_capabilities
+5. 已批准，但缺 REQUIRED_APP_CAPABILITIES
+   -> Codex App：DISPATCH 拒绝（ok=false, BLOCKED），plane 不变，不写 intent
+   -> **Grok Build**：不因「无多 session create/list」整波假 BLOCKED；
+      **降级 Mode S**（单会话串行 + project-branch），见 [grok-dispatch-execution.md](references/grok-dispatch-execution.md)
+   -> 仍禁止伪造 capability 或合成 session 伪装 BOUND
 
-6. 已批准，分支/workspace 已确认（或明确无疑义），且 capability / snapshot / active project 检查通过
-   -> DISPATCH：先持久化 intent(PENDING_THREAD)，再 host CREATE_THREAD，再 BIND_THREAD
-   -> 已批准 Host 可为 Codex App（thread）或 Grok Build（session）；见 host-action-contract host_profiles
+6. 已批准，分支/workspace 已确认（或明确无疑义），且（Codex 能力齐 / 或 Grok Mode S 降级路径）通过
+   -> DISPATCH：先持久化 intent(PENDING_THREAD)
+   -> Codex：CREATE_THREAD → BIND_THREAD
+   -> Grok：**默认 Mode S** — 绑定**当前真实 session id**（多 task_key 可共享）+ 写 attestation 文件；不强制多 session
 
 7. 有 receipt 或需推进已绑定任务
-   -> tick/resume（jj dispatch-tick；写盘 CAS，revision 冲突返回 REVISION_CONFLICT）
+   -> tick/resume（有 CLI 时用 jj dispatch-tick；**无 CLI 时 Agent 直接改 plane，但必须遵守「Agent 写 plane 硬门禁」**）
+
+8. 要把 target/delivery 标成 VERIFIED（或 development 标 DONE）
+   -> 先满足「终端态证据」清单（git commit / review / 真 session id）
+   -> 不满足：最多写到 EVIDENCE_READY / RUNNING；禁止因用户说「好了/已合并」而写 VERIFIED
 ```
 
-有 `TASK-ID` 时先 `jj task context/status` 恢复索引与 manifest，再套用以上门禁。
+有 `TASK-ID` 时先恢复索引与 manifest（有 CLI 用 `jj task context/status`；无 CLI 直接读 control_root 下 task 目录与 plane），再套用以上门禁。
+
+## Agent 写 plane 硬门禁（用户不跑 CLI）
+
+**前提：** 用户只说自然语言（分发 / 批准 / 提交 / 已合并）。Agent 自己落盘 `control-plane.json` 与 task 文档；**不得**要求用户执行 `jj dispatch-tick` 或任何 CLI 才能收口。
+
+权威状态机仍以 `src/dispatchControlPlane.mjs` 为准。Agent 手写 plane 时等价于替 runtime 写盘，必须自检下列规则；**违反则禁止写盘，改报告阻塞原因。**
+
+### A. 状态天花板
+
+| 事实 | 允许的最高 status |
+| --- | --- |
+| 代码已改、未 commit | delivery/target ≤ `EVIDENCE_READY`；development result 可 `DONE` 但 **`produced_commit` 必须 null** 并在 progress 写明 dirty |
+| 已有 feature commit，Review 未 PASS 或未对照 commit | ≤ `EVIDENCE_READY` / `RUNNING` |
+| development 有 `produced_commit`（≥7 位 sha）且 Review PASS 且 reviewed == produced | target 才可 `VERIFIED` |
+| 用户只说「好了 / 已合并 / ok」 | **不是**证据；先 `git` 核对 commit 是否在 intended 分支 / 是否进 integration，再决定是否升 `VERIFIED` |
+
+禁止：
+
+- 聊天收口直接把 delivery/target 写成 `VERIFIED`
+- 空 `reviews`、空 findings、与 bind **同一时间戳**的假 Review PASS 充当门禁
+- development `outcome=DONE` 且目标已 `VERIFIED` 但 `produced_commit` 仍为 null
+
+### B. `produced_commit` 与 git（Agent 自取，不问用户要 sha）
+
+写 development 完成或升 `VERIFIED` 前，对每个 write 目标：
+
+1. `git -C <path> rev-parse HEAD` 与 `git log -1 --oneline`（intended feature 分支 tip）
+2. 确认本任务改动已在 tip（或记录 task-scoped cherry-pick sha）
+3. 写入 intent：`result.produced_commit = <full or ≥7 sha>`
+4. target / checkpoint / last_result：`commit` 与 `reviewed_commit` **相同且非空**（`VERIFIED` 时）
+5. 工作区仍 dirty 且 dirty 属于本任务 → 先 commit 或明确停在 `EVIDENCE_READY`，不得 `VERIFIED`
+
+### C. session / thread 绑定（禁止合成 ID）
+
+| Host | `thread_id` 必须是 |
+| --- | --- |
+| Grok Build | 真实 session id（形如 `019f…-…` 的宿主 id）；**禁止** `session-<slug>-YYYYMMDD` 等占位符 |
+| Codex App | 真实 thread id |
+
+**同会话实施（Grok 常见、合法）：** 宿主无法/未建多 session 时，调度 Agent 可在**当前会话**内改各目标仓，但：
+
+1. 所有本波 intent 的 `thread_id` 填**当前真实 session id**（可相同）
+2. `host_id=grok-build`，`handle_kind=session`
+3. `sandbox_evidence_ref` 写可核对来源（如 `host:grok-build:session:<real-id>`），禁止无意义的 `session-bound` 套话
+4. progress 注明 `execution=same-session`；仍须按 A/B 填 commit 后才 `VERIFIED`
+5. **禁止**为凑 4 个 task_key 伪造 4 个假 session
+
+拿不到真实 handle → intent 保持 `PENDING_THREAD` 或只记 progress，**不要**写 `BOUND` 假绑定。
+
+### D. 落盘前自检清单（每次改 plane 默念）
+
+```text
+[ ] intake / approval 与本轮 task_keys 一致
+[ ] 写任务 environment=project-branch（或已确认的 exclusive-worktree）+ intended_branch
+[ ] 无合成 thread_id
+[ ] 若 status≥EVIDENCE_READY：changed_files / summary 与 git diff 一致
+[ ] 若 status=VERIFIED：produced_commit + commit + reviewed_commit 齐全且一致
+[ ] 若用户说「已合并」：git 已核对 feature 与 integration，而非只信聊天
+[ ] 承载等多 feature 合 dev：优先 task-scoped cherry-pick，避免整支 tip 覆盖无关提交（见 EP-S1 / acceptor-tag 负例）
+```
+
+可选（Agent 自跑，**不**教用户）：在 jj-flow 仓执行
+`node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest <control-plane.json>`
+非 0 退出则禁止宣称 VERIFIED。
 
 ## 角色字段
 
@@ -218,7 +287,7 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 请确认：是否按此分发？或指定 branch / mode=exclusive-worktree。
 ```
 
-用户确认前：**不** `DISPATCH`、**不** `create_thread`、**不**写 `dispatch_intent`。  
+用户确认前：**不** `DISPATCH`、**不** `create_thread`、**不**写 `dispatch_intent`。
 用户改判后以用户为准；默认仍遵循 project-branch 规则（见 host-action-contract `workspace_mode_policy`）。
 
 ### `DISPATCH`
@@ -231,27 +300,26 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 2. 当前 task plans 的 `task_keys` / approval tasks 与批准快照完全一致
 3. 本轮 lead/target 对应 project 均为 `active`
 4. 写责任：intended_branch + workspace mode 已确认（或 PREVIEW 中均为 `READY`/`high` 且无冲突事实）
-5. `REQUIRED_APP_CAPABILITIES` 全满足（见 [host-action-contract.json](references/host-action-contract.json)）：
-   `list_projects`, `list_threads`, `create_thread`, `read_thread`, `send_message_to_thread`, `worktree`, `sandbox`
+5. 宿主能力：
+   - **Codex App**：`REQUIRED_APP_CAPABILITIES` 全满足（见 [host-action-contract.json](references/host-action-contract.json)）
+   - **Grok Build**：允许 **Mode S 降级**（无多 session create/list 不整波 BLOCKED）；仍须可写 control_root 与真实 session id
 
-任一前置失败：
+Codex 能力前置失败：
 
 - 返回 DISPATCH 拒绝（`ok=false`, `status=BLOCKED`）
-- **plane 不变**
-- **不写** `dispatch_intent`
-- **不** `create_thread`
-- 能力缺失时附带 `missing_capabilities`；批准快照保留
+- **plane 不变**；**不写** `dispatch_intent`；**不** `create_thread`
+- 附带 `missing_capabilities`；批准快照保留
 
-前置通过后的执行序（与 runtime 一致）：
+前置通过后的执行序：
 
 1. 为每个可派发 task 持久化 `dispatch_intent`（`status=PENDING_THREAD`）。同一 `task_key` 已存在则复用，禁止第二份 intent。
 2. 依赖未完成：`WAITING_DEPENDENCY` / `deferred`，不提前建 thread。
 3. 同项目多个 write responsibility 必须经 `depends_on` 串行；运行时同项目最多一个 active write。
-4. **写任务 workspace（默认同 same）**：绑任务指定 **命名 feature 分支** 下的 **项目主工作区**（`environment=project-branch`，`worktree` 字段填 project.path）。**禁止**默认 detached 独占 worktree 再要求用户「合到当前分支」。
-5. **独占 worktree 仅当 isolation 需要**：同项目已有 active write、主仓有无关脏改动且不可污染、或用户显式要求隔离 → `environment=exclusive-worktree`，且必须挂在**命名分支 tip**（禁止静默 detached 开干）；结束后代码事实须在命名分支 tip。
-6. 产品 / 测试 / Review 默认只读，只消费已提交 commit；`access=read` 禁止 worktree。
-7. host `CREATE_THREAD`；成功后立即 `BIND_THREAD`。
-8. create 成功但绑定失败：intent → `UNKNOWN`；后续只能 `RECONCILE` 或人工 `BIND_THREAD`，禁止同 key 再 create。
+4. **写任务 workspace（默认同 same）**：`environment=project-branch`，`worktree`=project.path。**禁止**默认 detached 独占 worktree。
+5. **独占 worktree 仅 isolation**（Mode W）：命名分支 tip；禁止静默 detached。
+6. 产品 / 测试 / Review 默认只读；`access=read` 禁止 worktree。
+7. **Codex**：`CREATE_THREAD` → `BIND_THREAD`。**Grok Mode S**：绑定当前真实 session（多 task 可共享）+ attestation 文件；不强制多 session。
+8. create 成功但绑定失败：intent → `UNKNOWN`；禁止同 key 再 create。
 
 稳定 `task_key`：`delivery_id / project_id / responsibility / attempt`。
 
@@ -269,7 +337,7 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 
 绑定必须记录：`host_id`、`handle_kind`（`thread` | `session`）、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`（write 默认 `project-branch`，隔离时 `exclusive-worktree`）、`bound_at`、写责任的 workspace 路径（`worktree` 字段：主仓 path 或独占 worktree path）。`thread_id` 字段存外部 handle 值（Codex thread 或 Grok session）。TOML / skill 默认配置不能证明 effective sandbox；拿不到 runtime attestation 必须拒绝绑定。`access=read` 只用 `jj-workflow-reviewer` / `read-only` / `project-read`，不得绑 worktree。
 
-Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-real host trial 或模型自述冒充 attestation。设计见仓库 `docs/design-docs/grok-host-adapter.md`。
+Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-real host trial 或模型自述冒充 attestation；禁止合成 `session-<task>-日期` 占位 id（见「Agent 写 plane 硬门禁」C）。同会话实施时多个 task_key 可共享**同一个真实** session id。设计见仓库 `docs/design-docs/grok-host-adapter.md`。
 
 ## Host 执行顺序
 
@@ -332,9 +400,29 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 - 任一目标失败：保留其原同步 checkpoint，不推进整个项目族基线。
 - 源项目完成并验证后：默认只生成推荐下一步，不自动扩大目标集合。推荐须逐项目列 `DIRECT / ADAPT / BLOCKED`、source/target HEAD、风险、confidence、`handoff_ref`、可携带 `distribution_prompt`。用户选择后重新 PREVIEW + APPROVE；禁止复用旧 approval 或静默建目标 thread。
 - 目标回执：`VERIFIED` 或 `NO_CHANGE_REQUIRED`。
-  - `VERIFIED`：terminal writer 当前 Review PASS 的新 commit、source head、验证证据。
+  - `VERIFIED`：terminal writer 当前 Review PASS 的新 commit、source head、验证证据；**intent.`produced_commit` 与 target commit/reviewed_commit 一致**。用户不提供 sha 时 Agent 用 git 自取。无 commit → 停在 `EVIDENCE_READY`。
   - `NO_CHANGE_REQUIRED`：planning/analysis 的 `ANL-TARGET`、`difference_ref`、目标 HEAD、`unresolved=[]`；未派发 development/verification/review 标 `SKIPPED`；不伪造 Developer commit / VRF / Review。
 - 同步目标两种成功态都须 `FRESH` handoff、snapshot ref/hash、source/target branch 与 HEAD、差异决策引用；缺字段或 `STALE` 不得推进 checkpoint。
+- **用户自然语言不能单独推进 checkpoint**（含「已合并」「完成」「ok」）；只作为触发 Agent 去读 git / plane 的信号。
+
+## Grok 执行（host_id=grok-build）
+
+**默认 Mode S**：一个 coordinator 会话串行完成各 `task_key`，workspace=`project-branch`。
+完整规格：[grok-dispatch-execution.md](references/grok-dispatch-execution.md)。
+
+| 问题 | 答案 |
+| --- | --- |
+| 协议是否多任务？ | 是（多 task_key） |
+| 默认是否多 Grok session？ | **否**（Mode S）；Mode P 后置 |
+| 是否必须用 Grok Workflow（Rhai）？ | **否**。Workflow 可并行只读/探索，**不能**推进 checkpoint |
+| 用户是否跑 CLI？ | **否**。Agent 写 attestation/receipt/plane |
+
+Grok DISPATCH 最小动作：
+
+1. PREFLIGHT：源 `source_head` 已 commit；分支已确认。
+2. 各 write intent：`thread_id`=**当前真实 session id**（可相同）；写 `{control_root}/.workflow/dispatch/<DEL>/attestations/<task_key_safe>.json`。
+3. 串行实施 → receipt 落 `.../receipts/<task_key_safe>.json` → git `produced_commit`。
+4. 仅证据齐才 `VERIFIED`（C3）；可选 `plane-self-check.mjs`。
 
 ## CLI 命令矩阵
 
@@ -345,7 +433,8 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 | 恢复最小上下文 | `jj task context --task TASK-ID` |
 | 结构化状态 | `jj task status --task TASK-ID --json` |
 | 轻量分配确认 | `jj task assign --delivery … --task …` |
-| 消费回执推进 | `jj dispatch-tick --delivery …`（可加 `--write`；可省略 `--manifest`） |
+| 消费回执推进 | `jj dispatch-tick --delivery …`（可加 `--write`；**用户不跑**，Agent 可选） |
+| plane 终端自检 | `node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`（Agent） |
 | 契约一致性 | `npm run harness:check` |
 
 ## References 何时读
@@ -353,6 +442,7 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 | 文件 | 何时读 |
 | --- | --- |
 | [control-project.md](references/control-project.md) | 解析 control 根、写 delivery/responsibility、恢复 UNKNOWN、Reviewer/Developer 闭环字段 |
+| [grok-dispatch-execution.md](references/grok-dispatch-execution.md) | **Grok 宿主**：Mode S/W/P、PREFLIGHT、attestation/receipt、与 Workflow 边界 |
 | [control-plane.schema.json](references/control-plane.schema.json) | 写/改 `control-plane.json` 前；按下列键检索，勿整文件默读 |
 | [host-action-contract.json](references/host-action-contract.json) | DISPATCH 前置 capability 与 host actions 前 |
 | [host-action-contract.schema.json](references/host-action-contract.schema.json) | 校验 host contract 本身 |
@@ -369,9 +459,12 @@ control 根最小持久化：每波 `control-plane.json`（该 delivery 权威�
 ## 明确不做
 
 - 不要求用户先打开 control 根或每波新建控制仓才能调度
+- **不要求用户跑 CLI 才能 PREVIEW / 批准 / 收口**（CLI 仅 Agent 可选自检）
 - 不实现常驻 daemon、数据库或完整多智能体执行引擎
-- 不自动 checkout、merge、push、release
+- 不自动 checkout、merge、push、release（除非用户明确要求收工/提交类 skill）
 - 不因 thread 停止或模型文字回复推进检查点
+- 不手写 `VERIFIED` 却缺少 `produced_commit` / 真 session id
+- 不合成 `session-…` 占位 thread 伪装 BOUND
 - 不新增 Claude `/jj-dispatch`；调度入口以已安装 skill 与已批准 Host 为准（Codex App 或 Grok Build 等价路径）
 - 不把 control 根当成业务源项目；业务产物仍归属 `requirement_owner` 或目标项目
 - 不在 capability 失败时伪造 host API、写 intent 或“降级为 projectless 任务”
