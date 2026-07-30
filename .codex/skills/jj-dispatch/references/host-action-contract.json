@@ -34,7 +34,7 @@
         "create_thread": "CREATE_THREAD against Codex App",
         "read_thread": "read Codex thread messages / structured receipt",
         "send_message_to_thread": "send distribution_prompt into Codex thread",
-        "worktree": "exclusive worktree bound at create/bind",
+        "worktree": "write workspace path: project root (project-branch default) or exclusive worktree when isolation required",
         "sandbox": "App runtime sandbox attestation fields"
       },
       "attestation_required_fields": [
@@ -68,7 +68,7 @@
         "create_thread": "CREATE_SESSION_TASK: declare/bind session for task_key",
         "read_thread": "structured receipt or agreed artifact path for the session",
         "send_message_to_thread": "inject distribution_prompt into the bound session with audit ref",
-        "worktree": "exclusive git worktree path 1:1 with task_key",
+        "worktree": "write workspace path: project root on named branch (default) or exclusive worktree when isolation required",
         "sandbox": "bound attestation JSON (effective boundary), not model prose"
       },
       "attestation_required_fields": [
@@ -94,9 +94,21 @@
     "write": {
       "agent_name": "jj-workflow-developer",
       "sandbox_mode": "workspace-write",
-      "environment": "exclusive-worktree",
-      "worktree_policy": "required-at-bind"
+      "environment": "project-branch",
+      "worktree_policy": "project-branch-default"
     }
+  },
+  "workspace_mode_policy": {
+    "default_write": "project-branch",
+    "description": "Default same-style: bind developer to the task named feature branch at project.path (main checkout). Exclusive worktree only when isolation is required.",
+    "isolation_required_when": [
+      "same project already has another active write task_key",
+      "main project worktree is dirty with unrelated changes that must not be polluted",
+      "user explicitly requests exclusive isolation"
+    ],
+    "exclusive_environment": "exclusive-worktree",
+    "exclusive_worktree_policy": "required-at-bind",
+    "landing_rule": "Code facts must land on a named branch tip; never leave live patches only on a detached exclusive worktree without transfer."
   },
   "actions": [
     {

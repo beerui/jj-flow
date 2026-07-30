@@ -30,8 +30,8 @@
       "required_capabilities": ["create_thread", "sandbox", "worktree"],
       "agent_name": "jj-workflow-developer",
       "sandbox_mode": "workspace-write",
-      "environment": "exclusive-worktree",
-      "worktree_policy": "required-at-bind"
+      "environment": "project-branch",
+      "worktree_policy": "project-branch-default"
     },
     {
       "host_action_schema_version": "jj-flow/dispatch-host-action/1.0",
@@ -62,8 +62,8 @@
       "required_capabilities": ["list_threads", "read_thread", "sandbox", "worktree"],
       "agent_name": "jj-workflow-developer",
       "sandbox_mode": "workspace-write",
-      "environment": "exclusive-worktree",
-      "worktree_policy": "required-at-bind"
+      "environment": "project-branch",
+      "worktree_policy": "project-branch-default"
     }
   ]
 }

@@ -475,7 +475,7 @@
               "agent_name": { "const": "jj-workflow-developer" },
               "sandbox_mode": { "const": "workspace-write" },
               "effective_sandbox_mode": { "const": "workspace-write" },
-              "environment": { "const": "exclusive-worktree" }
+              "environment": { "enum": ["project-branch", "exclusive-worktree"] }
             }
           }
         },

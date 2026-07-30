@@ -137,10 +137,17 @@ intake 对象（`intake.status=REQUIRED` 时不可 PREVIEW 推进/批准）：
 
 TOML 默认配置不能替代 runtime sandbox attestation；无 attestation 拒绝绑定。
 
-| access | agent | sandbox | environment | worktree |
+| access | agent | sandbox | environment | workspace (`worktree` 字段) |
 | --- | --- | --- | --- | --- |
-| read | `jj-workflow-reviewer` | `read-only` | `project-read` | 禁止 |
-| write | `jj-workflow-developer` | `workspace-write` | `exclusive-worktree` | 独占 worktree |
+| read | `jj-workflow-reviewer` | `read-only` | `project-read` | 禁止（必须 null） |
+| write（默认） | `jj-workflow-developer` | `workspace-write` | `project-branch` | 项目主路径 + **命名 feature 分支**（与 same 一致） |
+| write（隔离） | 同上 | 同上 | `exclusive-worktree` | 独占 worktree，**必须挂名分支 tip**；禁止静默 detached 开干 |
+
+**workspace 选择（EP-20260730 负例：detached worktree → 用户「合到当前分支」）**
+
+1. 默认 `project-branch`：任务指定分支已存在且可在 `project.path` 检出/已检出 → 直接绑主工作区。  
+2. 仅当「同项目已有 active write」「主仓无关脏改动不可污染」「用户显式要求隔离」→ `exclusive-worktree`。  
+3. 落地规则：代码事实必须在**命名分支 tip**；不得只在 detached 树留活补丁。
 
 Review 回执写入 `delivery.reviews`：
 

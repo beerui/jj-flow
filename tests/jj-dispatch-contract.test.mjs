@@ -1212,7 +1212,7 @@ function bindingCandidate(task, { threadId, worktree = null } = {}) {
     sandbox_mode: sandboxMode,
     effective_sandbox_mode: sandboxMode,
     sandbox_evidence_ref: `APP-SANDBOX:${threadId}`,
-    environment: writer ? 'exclusive-worktree' : 'project-read',
+    environment: writer ? 'project-branch' : 'project-read',
     worktree
   };
 }

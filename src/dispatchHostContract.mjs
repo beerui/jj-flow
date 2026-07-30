@@ -39,7 +39,7 @@ export const HOST_PROFILES = Object.freeze({
       create_thread: 'CREATE_THREAD against Codex App',
       read_thread: 'read Codex thread messages / structured receipt',
       send_message_to_thread: 'send distribution_prompt into Codex thread',
-      worktree: 'exclusive worktree bound at create/bind',
+      worktree: 'write workspace path: project root (project-branch default) or exclusive worktree when isolation required',
       sandbox: 'App runtime sandbox attestation fields'
     }),
     attestation_required_fields: Object.freeze([
@@ -73,7 +73,7 @@ export const HOST_PROFILES = Object.freeze({
       create_thread: 'CREATE_SESSION_TASK: declare/bind session for task_key',
       read_thread: 'structured receipt or agreed artifact path for the session',
       send_message_to_thread: 'inject distribution_prompt into the bound session with audit ref',
-      worktree: 'exclusive git worktree path 1:1 with task_key',
+      worktree: 'write workspace path: project root on named branch (default) or exclusive worktree when isolation required',
       sandbox: 'bound attestation JSON (effective boundary), not model prose'
     }),
     attestation_required_fields: Object.freeze([
@@ -90,6 +90,11 @@ export const HOST_PROFILES = Object.freeze({
   })
 });
 
+/**
+ * Write default is project-branch (same-style: named feature branch at project path).
+ * exclusive-worktree only when isolation is required (concurrent write / dirty main / user opt-in).
+ * See jj-dispatch workspace_mode policy (EP-20260730 preference-modified transfer cost).
+ */
 export const HOST_ACCESS_PROFILES = Object.freeze({
   read: Object.freeze({
     agent_name: 'jj-workflow-reviewer',
@@ -100,10 +105,12 @@ export const HOST_ACCESS_PROFILES = Object.freeze({
   write: Object.freeze({
     agent_name: 'jj-workflow-developer',
     sandbox_mode: 'workspace-write',
-    environment: 'exclusive-worktree',
-    worktree_policy: 'required-at-bind'
+    environment: 'project-branch',
+    worktree_policy: 'project-branch-default'
   })
 });
+
+export const WRITE_ENVIRONMENTS = Object.freeze(['project-branch', 'exclusive-worktree']);
 
 export const HOST_ACTION_POLICIES = Object.freeze({
   CREATE_THREAD: Object.freeze({

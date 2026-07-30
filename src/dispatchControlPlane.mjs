@@ -467,15 +467,17 @@ export function validateControlPlane(plane) {
       if (['read', 'write'].includes(intent.access)) {
         const expectedAgent = agentNameForTask(intent);
         const expectedSandbox = sandboxModeForAccess(intent.access);
-        const expectedEnvironment = environmentForAccess(intent.access);
+        const allowedEnvironments = allowedEnvironmentsForAccess(intent.access);
         if (intent.agent_name !== expectedAgent) {
           errors.push(`task ${intent.task_key} requires agent ${expectedAgent}`);
         }
         if (intent.sandbox_mode !== expectedSandbox) {
           errors.push(`task ${intent.task_key} requires ${expectedSandbox} sandbox`);
         }
-        if (intent.environment !== expectedEnvironment) {
-          errors.push(`task ${intent.task_key} requires ${expectedEnvironment} environment`);
+        if (intent.environment != null && !allowedEnvironments.includes(intent.environment)) {
+          errors.push(
+            `task ${intent.task_key} environment must be one of ${allowedEnvironments.join('|')}`
+          );
         }
       }
       if (intent.created_at && !isDateTime(intent.created_at)) {
@@ -923,15 +925,17 @@ export function bindThread(plane, {
   assertDependenciesCompleted(next, found.intent);
   const expectedAgent = agentNameForTask(found.intent);
   const expectedSandbox = sandboxModeForAccess(found.intent.access);
-  const expectedEnvironment = environmentForAccess(found.intent.access);
+  const allowedEnvironments = allowedEnvironmentsForAccess(found.intent.access);
   if (!agentName || agentName !== expectedAgent) {
     throw new Error(`task ${taskKey} requires agent ${expectedAgent}`);
   }
   if (!sandboxMode || sandboxMode !== expectedSandbox) {
     throw new Error(`task ${taskKey} requires ${expectedSandbox} sandbox`);
   }
-  if (!environment || environment !== expectedEnvironment) {
-    throw new Error(`task ${taskKey} requires ${expectedEnvironment} environment`);
+  if (!environment || !allowedEnvironments.includes(environment)) {
+    throw new Error(
+      `task ${taskKey} environment must be one of ${allowedEnvironments.join('|')}`
+    );
   }
   if (!effectiveSandboxMode || effectiveSandboxMode !== expectedSandbox) {
     throw new Error(`task ${taskKey} requires effective ${expectedSandbox} sandbox attestation`);
@@ -940,8 +944,11 @@ export function bindThread(plane, {
   if (found.intent.access === 'read' && worktree) {
     throw new Error(`read task ${taskKey} cannot bind a worktree`);
   }
+  // write: workspace path required — project root (project-branch) or exclusive worktree path
   if (found.intent.access === 'write' && !isNonEmptyString(worktree)) {
-    throw new Error(`write task ${taskKey} requires worktree`);
+    throw new Error(
+      `write task ${taskKey} requires workspace path (project-branch root or exclusive worktree)`
+    );
   }
 
   let resolvedHandleKind;
@@ -1059,7 +1066,7 @@ export function reconcileDispatch(plane, { taskKey, candidates = [] } = {}) {
       && candidate.host_id
       && candidate.agent_name === agentNameForTask(found.intent)
       && candidate.sandbox_mode === sandboxModeForAccess(found.intent.access)
-      && candidate.environment === environmentForAccess(found.intent.access)
+      && allowedEnvironmentsForAccess(found.intent.access).includes(candidate.environment)
       && candidate.effective_sandbox_mode === sandboxModeForAccess(found.intent.access)
       && isNonEmptyString(candidate.sandbox_evidence_ref)
       && (found.intent.access !== 'read' || !candidate.worktree)
@@ -2571,8 +2578,14 @@ function sandboxModeForAccess(access) {
   return access === 'read' ? 'read-only' : 'workspace-write';
 }
 
+/** Default write environment: same-style named branch at project path. */
 function environmentForAccess(access) {
-  return access === 'read' ? 'project-read' : 'exclusive-worktree';
+  return access === 'read' ? 'project-read' : 'project-branch';
+}
+
+/** Write may upgrade to exclusive-worktree when isolation is required. */
+function allowedEnvironmentsForAccess(access) {
+  return access === 'read' ? ['project-read'] : ['project-branch', 'exclusive-worktree'];
 }
 
 function agentNameForTask(task = {}) {

@@ -85,6 +85,23 @@
         "target_difference_decisions": { "type": "array", "uniqueItems": true, "items": { "enum": ["DIRECT", "ADAPT", "SYNC", "NO_CHANGE_REQUIRED", "BLOCKED"] } },
         "review_finding_statuses": { "type": "array", "uniqueItems": true, "items": { "enum": ["OPEN", "RESOLVED", "WAIVED"] } }
       }
+    },
+    "workspace_mode_policy": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["default_write", "isolation_required_when", "exclusive_environment", "landing_rule"],
+      "properties": {
+        "default_write": { "const": "project-branch" },
+        "description": { "type": "string" },
+        "isolation_required_when": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "exclusive_environment": { "const": "exclusive-worktree" },
+        "exclusive_worktree_policy": { "const": "required-at-bind" },
+        "landing_rule": { "type": "string", "minLength": 1 }
+      }
     }
   },
   "$defs": {
@@ -95,8 +112,8 @@
       "properties": {
         "agent_name": { "type": "string", "minLength": 1 },
         "sandbox_mode": { "enum": ["read-only", "workspace-write"] },
-        "environment": { "enum": ["project-read", "exclusive-worktree"] },
-        "worktree_policy": { "enum": ["forbidden", "required-at-bind"] }
+        "environment": { "enum": ["project-read", "project-branch", "exclusive-worktree"] },
+        "worktree_policy": { "enum": ["forbidden", "project-branch-default", "required-at-bind"] }
       }
     },
     "action_policy": {

@@ -124,10 +124,12 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 
 1. 为每个可派发 task 持久化 `dispatch_intent`（`status=PENDING_THREAD`）。同一 `task_key` 已存在则复用，禁止第二份 intent。
 2. 依赖未完成：`WAITING_DEPENDENCY` / `deferred`，不提前建 thread。
-3. 同项目多个 write responsibility 必须经 `depends_on` 串行；运行时同项目最多一个 active write；写任务用独占 worktree。
-4. 产品 / 测试 / Review 默认只读，只消费已提交 commit。
-5. host `CREATE_THREAD`；成功后立即 `BIND_THREAD`。
-6. create 成功但绑定失败：intent → `UNKNOWN`；后续只能 `RECONCILE` 或人工 `BIND_THREAD`，禁止同 key 再 create。
+3. 同项目多个 write responsibility 必须经 `depends_on` 串行；运行时同项目最多一个 active write。
+4. **写任务 workspace（默认同 same）**：绑任务指定 **命名 feature 分支** 下的 **项目主工作区**（`environment=project-branch`，`worktree` 字段填 project.path）。**禁止**默认 detached 独占 worktree 再要求用户「合到当前分支」。
+5. **独占 worktree 仅当 isolation 需要**：同项目已有 active write、主仓有无关脏改动且不可污染、或用户显式要求隔离 → `environment=exclusive-worktree`，且必须挂在**命名分支 tip**（禁止静默 detached 开干）；结束后代码事实须在命名分支 tip。
+6. 产品 / 测试 / Review 默认只读，只消费已提交 commit；`access=read` 禁止 worktree。
+7. host `CREATE_THREAD`；成功后立即 `BIND_THREAD`。
+8. create 成功但绑定失败：intent → `UNKNOWN`；后续只能 `RECONCILE` 或人工 `BIND_THREAD`，禁止同 key 再 create。
 
 稳定 `task_key`：`delivery_id / project_id / responsibility / attempt`。
 
@@ -143,7 +145,7 @@ jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
 
 把已创建宿主执行身份绑到稳定 `task_key`。handle 停止、标题变化或回复“完成”都不是交付证据；必须消费结构化回执、commit、目标测试与 Review 结果。
 
-绑定必须记录：`host_id`、`handle_kind`（`thread` | `session`）、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`、`bound_at`。`thread_id` 字段存外部 handle 值（Codex thread 或 Grok session）。TOML / skill 默认配置不能证明 effective sandbox；拿不到 runtime attestation 必须拒绝绑定。`access=read` 只用 `jj-workflow-reviewer` / `read-only` / `project-read`，不得绑 worktree。
+绑定必须记录：`host_id`、`handle_kind`（`thread` | `session`）、`agent_name`、期望 `sandbox_mode`、实际 `effective_sandbox_mode`、`sandbox_evidence_ref`、`environment`（write 默认 `project-branch`，隔离时 `exclusive-worktree`）、`bound_at`、写责任的 workspace 路径（`worktree` 字段：主仓 path 或独占 worktree path）。`thread_id` 字段存外部 handle 值（Codex thread 或 Grok session）。TOML / skill 默认配置不能证明 effective sandbox；拿不到 runtime attestation 必须拒绝绑定。`access=read` 只用 `jj-workflow-reviewer` / `read-only` / `project-read`，不得绑 worktree。
 
 Grok 路径：`host_id=grok-build` 且 `handle_kind=session`；禁止用 semi-real host trial 或模型自述冒充 attestation。设计见仓库 `docs/design-docs/grok-host-adapter.md`。
 
@@ -153,7 +155,7 @@ allowlist、required capabilities、access profile、receipt 枚举、`host_ids`
 
 1. `list_projects` 解析注册项目（Codex `projectId` 或控制项目 path + git identity）；路径、Git identity、宿主项目标识分记。
 2. 通过 DISPATCH 前置检查后，写入/复用 `dispatch_intents`。
-3. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任带独占 worktree；只读责任消费已提交 commit。
+3. `create_thread`（语义：Codex 建 thread；Grok 为 task_key 声明/绑定 session）。写责任默认 project-branch workspace；仅 isolation 条件满足时独占 worktree；只读责任消费已提交 commit。
 4. 立即 `BIND_THREAD`；写回失败 → `UNKNOWN`，禁止直接再 create。
 5. `list_threads` / `read_thread` / `send_message_to_thread` 监控与补上下文（Grok 用 session 元数据 / 约定 artifact 等价证明）；自然语言“完成”不能替代 receipt。
 6. `jj dispatch-tick` 消费 receipt，按 `expected_revision` CAS，输出 `actions` / `decision_required` / `next_wait`；对仍为 `PENDING_THREAD` 的 intent 重放 `CREATE_THREAD`。`--write` 文件级 CAS；冲突 → `REVISION_CONFLICT` 且不覆盖。

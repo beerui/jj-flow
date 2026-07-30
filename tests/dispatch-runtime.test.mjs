@@ -181,8 +181,8 @@ test('analysis receipt is consumed before gating and one ready target can advanc
   const writeAction = result.actions.find((action) => action.task_key === 'DEL-001/A/development/1');
   assert.equal(writeAction.agent_name, 'jj-workflow-developer');
   assert.equal(writeAction.sandbox_mode, 'workspace-write');
-  assert.equal(writeAction.environment, 'exclusive-worktree');
-  assert.equal(writeAction.worktree_policy, 'required-at-bind');
+  assert.equal(writeAction.environment, 'project-branch');
+  assert.equal(writeAction.worktree_policy, 'project-branch-default');
   assert.deepEqual(writeAction.required_capabilities, ['create_thread', 'sandbox', 'worktree']);
   assert.ok(result.decision_required.some((item) => item.project_id === 'B'));
   assert.equal(validateControlPlane(result.plane).ok, true);

@@ -11,7 +11,8 @@
 | **Qoder** | `/jj-dispatch` | 与 skill 同源；绑定仍按已批准 Host 配置 | skill 可装 |
 | **Claude Code** | — | — | **无** `/jj-dispatch` 薄命令（清单 `claude_command: null`） |
 
-DISPATCH 绑定一律要求：独占 worktree（写责任）+ **runtime sandbox attestation**（不得用模型自述或半真实 `host:trial` 冒充）。  
+DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型自述或半真实 `host:trial` 冒充）。  
+写责任 **默认 `project-branch`**（与 same 一致：命名 feature 分支上的项目主工作区）；**独占 worktree 仅当** 同项目已有 active write、主仓有无关脏改动、或用户显式要求隔离。禁止默认 detached worktree 再要求用户「合到当前分支」。  
 控制面状态机、`delivery_id` / `task_key`、CAS tick **不随宿主改写**；只换 host adapter 实现。
 
 控制项目第一次接收需求要先完成 intake：确认需求归属项目、来源项目、领头项目、目标集合、是否多目标和 `quick/standard` 模式。信息不完整时只返回 `INTAKE_REQUIRED`，不会直接进入 PREVIEW。
@@ -123,8 +124,8 @@ $jj-dispatch 恢复 delivery=DEL-payment，检查所有已绑定任务，消费�
 2. 根据本轮动态角色和 responsibilities 生成稳定 `task_key`：`delivery_id / project_id / responsibility / attempt`。
 3. 执行 `PREVIEW`，展示完整任务集合、依赖、访问方式、阻塞项和将冻结的批准快照；此时不创建 task。
 4. 用户明确批准后执行 `DISPATCH`：先持久化 `dispatch_intent`，再由已批准 Host（Codex App 或 Grok Build）创建目标 task/session。
-5. 写责任绑定目标项目独占 worktree；只读责任只消费已提交 commit，不携带 worktree。
-6. 创建成功后立即绑定句柄（thread 或 session），并记录 host、`handle_kind`、agent、实际 sandbox 和环境证明。绑定失败时进入 `UNKNOWN`，禁止盲目重试。
+5. 写责任默认绑目标项目 **命名 feature 分支 / 主工作区**（`project-branch`）；仅 isolation 条件满足时用独占 worktree。只读责任只消费已提交 commit，不携带 worktree。
+6. 创建成功后立即绑定句柄（thread 或 session），并记录 host、`handle_kind`、agent、实际 sandbox、`environment` 与 workspace 路径。绑定失败时进入 `UNKNOWN`，禁止盲目重试。
 7. 子任务只返回结构化回执。主调度器核对 attempt、commit、依赖、worktree、验证和 Review 证据后，单写更新控制 manifest。
 8. Review 为 `NEEDS_CHANGES` 时，先收口旧下游任务，再统一递增相关 attempt，重新 `PREVIEW`、批准和派发。
 

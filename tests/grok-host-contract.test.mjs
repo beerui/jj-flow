@@ -144,7 +144,7 @@ test('bindThread stores session handle for grok-build and rejects wrong kind', (
     handleKind: 'thread',
     agentName: 'jj-workflow-developer',
     sandboxMode: 'workspace-write',
-    environment: 'exclusive-worktree',
+    environment: 'project-branch',
     effectiveSandboxMode: 'workspace-write',
     sandboxEvidenceRef: 'SANDBOX:GROK:session-c-dev-1',
     worktree: '/tmp/wt-c'
@@ -158,7 +158,7 @@ test('bindThread stores session handle for grok-build and rejects wrong kind', (
     handleKind: 'session',
     agentName: 'jj-workflow-developer',
     sandboxMode: 'workspace-write',
-    environment: 'exclusive-worktree',
+    environment: 'project-branch',
     effectiveSandboxMode: 'workspace-write',
     sandboxEvidenceRef: null,
     worktree: '/tmp/wt-c'
@@ -172,7 +172,7 @@ test('bindThread stores session handle for grok-build and rejects wrong kind', (
     handleKind: 'session',
     agentName: 'jj-workflow-developer',
     sandboxMode: 'workspace-write',
-    environment: 'exclusive-worktree',
+    environment: 'project-branch',
     effectiveSandboxMode: 'workspace-write',
     sandboxEvidenceRef: 'SANDBOX:GROK:session-c-dev-1',
     worktree: '/tmp/wt-c'
@@ -207,7 +207,7 @@ test('reconcileDispatch accepts a unique grok session candidate and rejects fake
       agent_name: 'jj-workflow-developer',
       sandbox_mode: 'workspace-write',
       effective_sandbox_mode: 'workspace-write',
-      environment: 'exclusive-worktree',
+      environment: 'project-branch',
       sandbox_evidence_ref: 'SANDBOX:semi-real:fake',
       worktree: '/tmp/wt-c',
       mode: 'semi-real'
@@ -227,7 +227,7 @@ test('reconcileDispatch accepts a unique grok session candidate and rejects fake
       agent_name: 'jj-workflow-developer',
       sandbox_mode: 'workspace-write',
       effective_sandbox_mode: 'workspace-write',
-      environment: 'exclusive-worktree',
+      environment: 'project-branch',
       sandbox_evidence_ref: 'SANDBOX:GROK:session-c-dev-1',
       worktree: '/tmp/wt-c'
     }]
@@ -255,7 +255,7 @@ test('control plane rejects persisted grok bound intent without handle_kind=sess
   intent.agent_name = 'jj-workflow-developer';
   intent.sandbox_mode = 'workspace-write';
   intent.effective_sandbox_mode = 'workspace-write';
-  intent.environment = 'exclusive-worktree';
+  intent.environment = 'project-branch';
   intent.sandbox_evidence_ref = 'SANDBOX:GROK:session-c-dev-1';
   intent.worktree = '/tmp/wt-c';
   intent.bound_at = '2026-07-27T00:00:00.000Z';
