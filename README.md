@@ -1,12 +1,14 @@
 # jj-flow
 
-`jj-flow` 是面向 **项目族** 的 AI **编排工作流**：在 Codex / Claude Code 里用对话入口，把同源迁移、持续同步和多项目调度做成可恢复、可验证的流程。
+`jj-flow` 是面向 **项目族** 的 AI **编排工作流**：在 Codex / Claude / Grok / Qoder 里用对话入口，把同源迁移、持续同步和多项目调度做成可恢复、可验证的流程。
 
 主入口：
 
 - **`$jj-same` / `/jj-same`**：同源分叉项目之间的功能迁移、handoff 与持续同步
 - **`$jj-ralph` / `/jj-ralph`**：单仓全流程闭环（分析 → 计划 → 验收 → 归档）与能力地图
-- **`$jj-dispatch`（Codex）**：独立控制项目上的多项目任务预览、批准、派发与恢复
+- **`$jj-dispatch` / `/jj-dispatch`**：在**业务仓**发起多项目预览、批准、派发与恢复（Codex / Grok / Qoder；无 Claude 薄命令）
+
+协调状态默认写 **`~/.jj-flow`**；本机 portfolio（如 `D:/a`）用 `$JJ_GLOBAL_CONFIG_DIR/naming.json` 配置 `dispatch.control_root` / `portfolio_root` / `knowledge_root`。`jj doctor` 可查看解析结果。
 
 它解决的是「单仓如何可追溯地做完一件事」以及「多个已分叉项目如何协同改同一能力」。**产品定位是项目编排协议与工作流**。事实来源是 run ledger、control-plane、Git commit 与验证证据，不是聊天状态。
 

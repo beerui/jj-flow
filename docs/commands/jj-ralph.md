@@ -50,7 +50,7 @@ $jj-ralph
 
 ## 记忆与知识库
 
-从 **0.1.1-beta.31** 起，`jj ralph init` 默认从顶层知识库（`D:/a/knowledge`）自动挂载 `knowledge_refs` / `knowledge_summary`。
+从 **0.1.1-beta.31** 起，`jj ralph init` 默认从顶层知识库自动挂载 `knowledge_refs` / `knowledge_summary`。知识库路径可配置（`dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT` / `{portfolio_root}/knowledge`；本机 portfolio 例 `D:/a/knowledge`），见 [安装 · 本机目录配置](installation.html)。
 
 - 关闭：`--no-knowledge-refs`
 - 指定检索：`--project <key> --knowledge-query "..."`

@@ -82,7 +82,7 @@ ANALYZE → PLAN → DELIVER ⇄ VERIFY → ACCEPT → ARCHIVE
 | 你的情况 | 先开哪个 | 然后呢 |
 | --- | --- | --- |
 | 就一个仓库，要把需求做到可验收 | `$jj-ralph` | 需要审查时加 `$jj-review`；做完可 `handoff` / `dispatch-snapshot` |
-| 多个固定项目要一起推进、批准、恢复 | `$jj-dispatch`（Codex 控制项目） | 每个 target 节点内再跑 ralph / same / review |
+| 多个固定项目要一起推进、批准、恢复 | `$jj-dispatch`（业务仓发起；状态默认 `~/.jj-flow`） | 每个 target 节点内再跑 ralph / same / review |
 | 功能已在 A 项目做完，迁到同源 B/C | `$jj-same` | 有 handoff 更好；多仓波次仍可由 dispatch 管身份 |
 | 完全不知道选啥 | `$jj` | 兼容路由；迁移优先 same，单仓闭环走 ralph |
 
@@ -121,7 +121,7 @@ $jj-ralph
 先看可点的交互演示：[多项目调度演示](dispatch-demo.html)（承接 / 兑接 / 承载）。
 
 
-在**独立控制项目**（不是随便一个业务仓）里：
+在**业务仓**会话里直接发起（不必先打开控制仓）。协调状态写入 **`control_root`**（默认 `~/.jj-flow`，可用 `naming.json` 配置）：
 
 ```text
 $jj-dispatch PREVIEW
@@ -129,6 +129,8 @@ delivery=DEL-password
 目标=承接前台,兑接前台,承载前台
 验收：各目标有稳定 commit；verification 有证据；terminal writer 当前 commit 获 Review PASS
 ```
+
+写任务默认 **`project-branch`**（命名 feature 分支主工作区）；分支/workspace 不确定时先确认再 `DISPATCH`。
 
 核对预览无误后：
 
@@ -144,7 +146,7 @@ $jj-dispatch RECONCILE task_key=DEL-password/dj/development/1
 
 纪律：
 
-1. 先 `PREVIEW`，再明确批准，再 `DISPATCH`
+1. 先 `PREVIEW`，再明确批准，再 `DISPATCH`（不确定分支/workspace 先问用户）
 2. 只派当前 wave 里依赖已满足的 key
 3. worker 只回 receipt，不直接改 control-plane
 4. 缺证据就 `PENDING` / `BLOCKED`，绝不猜 `PASS`
@@ -164,16 +166,19 @@ $jj-same
 
 ## 事实源：什么文件算“发生过”
 
-### 控制仓（Graph）
+### 控制状态根 control_root（Graph）
+
+默认 `~/.jj-flow/`（或 `naming.json` 配置的路径）。用户通常不打开：
 
 ```text
-.workflow/dispatch/DEL-xxx/control-plane.json
-.workflow/tasks/TASK-DEL-xxx/
-  task.md
-  plan.md
-  progress.md
-  result.md
-.workflow/receipts/...
+{control_root}/
+  .workflow/dispatch/DEL-xxx/control-plane.json
+  .workflow/tasks/TASK-DEL-xxx/
+    task.md
+    plan.md
+    progress.md
+    result.md
+  .workflow/receipts/...
 ```
 
 ### 业务仓（Loop）
@@ -263,7 +268,7 @@ review = NEEDS_CHANGES
 ## 你现在就可以做的下一件事
 
 1. 若只有一个仓库一件需求：复制路径 1 的 `$jj-ralph` 输入，改成你的目标/范围/验收。
-2. 若是多项目交付：先建/进入控制项目，复制路径 2 的 `PREVIEW`，看完整 `task_keys` 再决定是否批准。
+2. 若是多项目交付：在业务仓复制路径 2 的 `PREVIEW`，看完整 `task_keys` 再决定是否批准（状态自动写 control_root）。
 3. 若是“A 已做完，迁到 B/C”：走路径 3 的 `$jj-same`，并坚持证据可追溯。
 
 第一次用时，宁可多 `PREVIEW` 一次，也不要无批准快照就开写。

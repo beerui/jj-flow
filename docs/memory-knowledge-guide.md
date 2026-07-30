@@ -6,9 +6,10 @@
 
 | 层 | 位置 | 权威吗 | 用来干什么 |
 | --- | --- | --- | --- |
-| 顶层知识库 Portfolio KB | `D:/a/knowledge` | **是**（`active` + provenance） | 跨项目能力、规范、模式、教训、域知识 |
+| 顶层知识库 Portfolio KB | 可配置：`knowledge_root` / `PORTFOLIO_KB_ROOT`（本机例 `D:/a/knowledge`） | **是**（`active` + provenance） | 跨项目能力、规范、模式、教训、域知识 |
+| 调度状态 | 可配置：`control_root`（默认 **`~/.jj-flow`**） | **是**（control-plane / receipt） | 跨项目 delivery / task_key / 批准 |
 | 单仓工作流记忆 | `.workflow/ralph/**`、`business-map.json`、verification/review | **是**（run / checkpoint） | 这一次任务有没有真的发生 |
-| 聊天 / thread memory | Codex 会话 | **否** | 触发动作、解释现状，**不能**推进 checkpoint |
+| 聊天 / thread memory | Codex / Grok 会话 | **否** | 触发动作、解释现状，**不能**推进 checkpoint |
 
 口令：
 
@@ -21,13 +22,13 @@
 ### 1.1 做单仓需求（Loop / ralph）
 
 1. 在业务仓开 `$jj-ralph`
-2. `jj ralph init` **会自动**从 Portfolio KB 挂 `knowledge_refs`（若本机有 `D:/a/knowledge`）
+2. `jj ralph init` **会自动**从 Portfolio KB 挂 `knowledge_refs`（若解析到 knowledge_root）
 3. 实现与验收仍写在 `.workflow/ralph/RALPH-*/`
 4. 验收后 `map-merge` / finalize，让 `business-map.json` 更新——下次 **extract** 才能把新能力抽进知识库
 
 ### 1.2 做多项目调度（Graph / dispatch）
 
-1. 控制仓跑 `$jj-dispatch`
+1. 在**业务仓**跑 `$jj-dispatch` / `/jj-dispatch`（状态写入 `control_root`，默认 `~/.jj-flow`）
 2. 每个 target 的 worker 在各自业务仓跑 ralph / same
 3. 跨项目复用的规范、识票规则、历史 capability 从 Portfolio KB 查，不要靠“我记得上次……”
 
@@ -41,7 +42,18 @@
 
 ## 2. 顶层知识库是什么
 
-路径：`D:/a/knowledge`（随 [jj-portfolio](https://github.com/beerui/jj-portfolio) 版本化；当前 `kb-v0.6.0`）
+**路径可配置**，不硬编码：
+
+| 来源 | 说明 |
+| --- | --- |
+| `dispatch.knowledge_root` | `naming.json` 配置 |
+| `PORTFOLIO_KB_ROOT` | 环境变量 |
+| `{portfolio_root}/knowledge` | 设了 `portfolio_root` 时的默认推算 |
+| 本机常见布局 | `D:/a/knowledge`（portfolio 示例，非产品全局默认） |
+
+解析实现：`src/portfolioKnowledge.mjs` + `src/namingConfig.mjs`。配置文件见 [安装 · 本机目录配置](installation.html)。
+
+知识库本体随 [jj-portfolio](https://github.com/beerui/jj-portfolio) 版本化（当前常见 `kb-v0.6.0`）。
 
 它是 **跨项目** 的知识与记忆管理系统：
 
@@ -375,31 +387,35 @@ jj-flow 负责 **编排与交付事实**；Portfolio KB 负责 **跨项目可复
 
 | 现象 | 可能原因 | 处理 |
 | --- | --- | --- |
-| ralph init 的 knowledge_refs 为空 | 无 `D:/a/knowledge` 或无 active 命中 | 建库 / extract / promote；或检查 `PORTFOLIO_KB_ROOT` |
+| ralph init 的 knowledge_refs 为空 | 未解析到 knowledge_root 或无 active 命中 | 配置 `knowledge_root` / `PORTFOLIO_KB_ROOT`；建库 / extract / promote；`jj doctor` 看 paths |
 | 全是 candidate、没有有用 active | 从未审核 | `policy` + `human-review` + promote |
 | Web 打不开 | 服务未 start | `kb.mjs status` / `start` |
 | 抽取不到某项目 | map 无该行或源文件不存在 | 查 `D:/a/map.md` 与 `.workflow/**` |
 | 去重想合并空壳 Entries | 已防护 | 正常；真重复看 dry-run groups |
 | skill 里没有 portfolioKnowledge | 旧 skill | `jj install-skill --force` 或升级 `@shendu-sdt/jj-flow@beta` |
 
-自检：
+自检（路径换成你的 `knowledge_root`；本机 portfolio 例）：
 
 ```powershell
-node D:\a\knowledge\tools\kb.mjs doctor
-node D:\a\knowledge\tools\kb.mjs validate
-node D:\a\knowledge\tools\kb.mjs test
-node D:\a\knowledge\tools\kb.mjs stats
+# 先确认解析结果
+jj doctor
+# 再对 knowledge 本体
+node <knowledge_root>\tools\kb.mjs doctor
+node <knowledge_root>\tools\kb.mjs validate
+node <knowledge_root>\tools\kb.mjs test
+node <knowledge_root>\tools\kb.mjs stats
+# 例：node D:\a\knowledge\tools\kb.mjs doctor
 ```
 
 ---
 
 ## 10. 相关链接
 
-- 命令：[$jj-ralph](command-jj-ralph.html) · [Loop/Graph 上手](loop-graph-guide.html) · [使用说明](usage.html)
+- 命令：[$jj-ralph](command-jj-ralph.html) · [Loop/Graph 上手](loop-graph-guide.html) · [使用说明](usage.html) · [安装 · 本机目录配置](installation.html)
 - 设计：[Portfolio Knowledge 设计](design-docs/portfolio-knowledge.html)
-- 外置库文档：`D:/a/knowledge/README.md`、`VERSIONING.md`、`ARCHITECTURE.md`、`docs/*`
+- 外置库文档：`<knowledge_root>/README.md`、`VERSIONING.md`、`ARCHITECTURE.md`、`docs/*`（本机例 `D:/a/knowledge/`）
 - 仓库：[beerui/jj-portfolio](https://github.com/beerui/jj-portfolio)（含 `map.md` + `config/` + `knowledge/`）
-- 版本：jj-flow ≥ **0.1.1-beta.31** 含 ralph 硬接线
+- 版本：jj-flow ≥ **0.1.1-beta.31** 含 ralph 硬接线；≥ **0.1.1-beta.37** 目录配置一等公民（`naming.json` / env）
 
 ## 11. 常见问题
 
@@ -407,7 +423,7 @@ node D:\a\knowledge\tools\kb.mjs stats
 
 有，而且分两层：
 
-1. **顶层 Portfolio KB**（`D:/a/knowledge`）：跨项目可复用知识；Web + CLI + Agent API；审核后才 active。
+1. **顶层 Portfolio KB**（可配置 `knowledge_root`，本机常 `D:/a/knowledge`）：跨项目可复用知识；Web + CLI + Agent API；审核后才 active。
 2. **项目工作流记忆**（各仓 `.workflow/ralph/**`、business-map、verification/review）：这一次任务是否真的发生过。
 
 **没有**把聊天 thread 当作系统记忆。Codex 会话记忆只能触发动作，不能推进 checkpoint。

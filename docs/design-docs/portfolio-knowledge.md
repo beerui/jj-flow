@@ -23,8 +23,9 @@
 
 | 层 | 路径 | 权威 |
 | --- | --- | --- |
-| L0 注册表 | `D:/a/map.md`、`D:/a/config/naming.json` | 项目定位 |
-| L1 Portfolio KB | `D:/a/knowledge/**` | active entries |
+| L0 注册表 | `project_map`（例 `D:/a/map.md`）、`$JJ_GLOBAL_CONFIG_DIR/naming.json` | 项目定位与目录配置 |
+| L1 Portfolio KB | `knowledge_root/**`（可配；例 `D:/a/knowledge/**`） | active entries |
+| L1b 调度状态 | `control_root`（默认 `~/.jj-flow`） | delivery / task_key |
 | L2 项目工作流 | 各仓 `.workflow/**` | 单次交付事实 |
 
 ## 数据模型

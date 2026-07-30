@@ -12,7 +12,7 @@
 
 ## 1. 原始问题
 
-`jj-flow` 已经有较强的编排协议：稳定 `task_key`、control-plane manifest、revision CAS、结构化 receipt、只读 Reviewer、独占 worktree 和 fail-closed 门禁。问题不在于再加一层“更聪明”的调度，而在于这些能力能否被未来的 Agent 稳定发现、正确使用并持续维护。
+`jj-flow` 已经有较强的编排协议：稳定 `task_key`、control-plane manifest、revision CAS、结构化 receipt、只读 Reviewer、写工作区策略（默认 project-branch，isolation 时 exclusive-worktree）和 fail-closed 门禁。问题不在于再加一层“更聪明”的调度，而在于这些能力能否被未来的 Agent 稳定发现、正确使用并持续维护。
 
 当前最直接的风险是知识没有统一的机器索引：`README.md`、`AGENTS.md`、`ARCHITECTURE.md`、design docs、schemas 和 tests 各自正确，但 Agent 仍需自行判断应该先读什么、哪些规则具有权威性。继续提高自治会放大导航错误，而不是提高可靠性。
 
@@ -186,7 +186,7 @@ Doctor 不修复、不安装、不派发，只提供确定性诊断。
 | --- | --- | --- |
 | A0 Inspect | 读取仓库、doctor、解释状态 | 自动允许 |
 | A1 Propose | 分析、计划、PREVIEW、生成候选 actions | 自动允许，不产生外部写入 |
-| A2 Isolated Execute | 在获批目标独占 worktree 中修改并验证 | 需要批准快照、sandbox attestation 和 rollback 路径 |
+| A2 Isolated Execute | 在获批目标写工作区（project-branch 或 exclusive-worktree）中修改并验证 | 需要批准快照、sandbox attestation 和 rollback 路径 |
 | A3 Review Loop | Reviewer/Developer 自动返工直到 PASS 或预算耗尽 | 需要稳定 scenario、最大 attempt 和明确 escalation |
 | A4 Integrate | merge、push、release | 默认关闭；必须有显式策略和不可逆操作批准 |
 
@@ -289,7 +289,7 @@ Doctor 不修复、不安装、不派发，只提供确定性诊断。
 
 1. 新 Agent 从 fresh clone 出发，不依赖聊天或本机 memory，就能定位系统边界、当前入口和验证方式。
 2. 权威文档缺失、链接断裂或禁止的本地状态出现时，机械门禁失败，不允许错误上下文静默进入执行。
-3. 每个可写任务都有批准快照、独占 worktree、sandbox attestation、验证和 rollback 路径。
+3. 每个可写任务都有批准快照、写工作区绑定（默认 project-branch）、sandbox attestation、验证和 rollback 路径。
 4. dispatch 的完整 happy path、中断恢复和部分失败都能在临时环境一键重放。
 5. 每次状态推进都能从 trace 关联到输入、action、receipt、commit 和 evidence。
 6. Agent 能自行处理测试、审查和可恢复错误，只在 `decision_required` 出现时请求人类判断。

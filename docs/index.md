@@ -7,9 +7,9 @@
 - **同源迁移与持续同步** → `$jj-same` / `/jj-same`
 - **单仓全流程闭环** → `$jj-ralph` / `/jj-ralph`
 - **单仓审查适配（宿主 review → REV）** → `$jj-review` / `/jj-review`
-- **多项目调度** → `$jj-dispatch` / `/jj-dispatch`（Codex · Grok · Qoder；无 Claude 薄命令）
+- **多项目调度** → `$jj-dispatch` / `/jj-dispatch`（业务仓发起；状态默认 `~/.jj-flow`；Codex · Grok · Qoder；无 Claude 薄命令）
 
-控制面、ralph run ledger、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。产品中心是 **项目编排**。
+控制面、ralph run ledger、证据门禁和可恢复 `task_key` 是事实来源，不是会话记忆。产品中心是 **项目编排**。本机目录（control / portfolio / knowledge）用 `naming.json` 配置，见 [安装](installation.html)。
 
 ## 3 步开始
 

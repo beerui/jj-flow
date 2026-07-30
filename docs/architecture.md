@@ -27,14 +27,14 @@ flowchart LR
   D --> I[scenario trace / pure replay]
 ```
 
-跨项目调度使用独立控制平面：
+跨项目调度使用独立 **control_root** 落盘（默认 `~/.jj-flow`，可配置）；用户从**业务仓**发起：
 
 ```mermaid
 flowchart LR
-  U[用户与调度任务] --> CP[控制项目 control-plane.json]
-  CP --> T1[项目 A Codex task/worktree]
-  CP --> T2[项目 B Codex task/worktree]
-  CP --> T3[项目 C Codex task/worktree]
+  U[业务仓会话 jj-dispatch] --> CP[control_root control-plane.json]
+  CP --> T1[项目 A project-branch 或 isolation worktree]
+  CP --> T2[项目 B project-branch 或 isolation worktree]
+  CP --> T3[项目 C project-branch 或 isolation worktree]
   T1 --> E[commit / snapshot / VRF / REV 引用]
   T2 --> E
   T3 --> E
@@ -45,7 +45,8 @@ flowchart LR
 
 - `.codex/skills/jj-same/`：同源迁移与持续同步（handoff、项目族、证据脚本）。
 - `.codex/skills/jj-ralph/`：单仓分析→计划→验收→归档与能力地图；`src/ralph.mjs` 提供机械 CLI。
-- `.codex/skills/jj-dispatch/`：控制项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD）；宿主 Codex App（thread）或 Grok Build（session）；无 Claude 薄命令。
+- `.codex/skills/jj-dispatch/`：多项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD）；业务仓发起，状态默认 `~/.jj-flow`；写任务默认 project-branch；宿主 Codex App（thread）或 Grok Build（session）；无 Claude 薄命令。
+- `src/namingConfig.mjs`：`control_root` / `portfolio_root` / `knowledge_root` / `project_map` 解析；`jj doctor` 输出 paths。
 - `.codex/skills/jj/`、`.claude/commands/`：兼容路由与 Claude 薄入口。
 - `.codex/agents/*.toml`：Reviewer（read-only）与 Developer 角色期望；运行时 sandbox 以 host attestation 为准。
 - `src/dispatchHostContract.mjs` 与 `.codex/skills/jj-dispatch/references/host-action-contract.json`：host action allowlist、capability、sandbox 和 worktree policy；`npm run harness:check` 负责跨 runtime/schema/skill/fixture parity。
@@ -71,9 +72,9 @@ flowchart LR
 
 不重写外部执行引擎，不重做通用 intent 引擎，不实现 daemon/数据库/自动 merge。控制协议与证据契约留在 jj-flow；重执行仍交给 coding agent 与既有工具。
 
-### 控制项目与业务产物分离
+### 控制状态根与业务产物分离
 
-控制项目只存角色、task、thread、状态与 artifact 引用；需求正文、源码与验证正文归属业务仓。
+`control_root`（默认 `~/.jj-flow`）只存角色、task、thread、状态与 artifact 引用；需求正文、源码与验证正文归属业务仓。用户不必打开状态目录即可在业务仓发起调度。
 
 ### 单写者与可恢复身份
 

@@ -37,9 +37,35 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project --force
 - **Codex App**：`host_id=codex-app`，`handle_kind=thread`（首实现）
 - **Grok Build**：`host_id=grok-build`，`handle_kind=session`（契约 Phase 1 已支持；真实 Host 闭环见 [Grok Host Adapter](design-docs/grok-host-adapter.html) 与 [真实 Host 验收](milestones/real-host-acceptance.html)）
 
-PREVIEW / 控制面 CAS 不绑死宿主；DISPATCH 绑定仍要求 worktree + runtime sandbox attestation，禁止半真实 `host:trial` 冒充。
+PREVIEW / 控制面 CAS 不绑死宿主。DISPATCH 绑定要求 **runtime sandbox attestation**；写任务 workspace 默认 **`project-branch`**（命名 feature 分支 + 项目主路径），**独占 worktree 仅 isolation 时**。禁止半真实 `host:trial` 冒充真实 Host。
 
 `.codex/agents/` 提供 Reviewer / Developer 角色期望。首次使用后请将项目标为 trusted，重启或新建任务，并确认角色与 sandbox attestation 可用后再 `BIND_THREAD`。
+
+## 本机目录配置（可选）
+
+调度状态与知识库路径可配置，**产品默认不依赖 `D:/a`**。
+
+| 项 | 默认 | 如何改 |
+| --- | --- | --- |
+| 调度状态根 `control_root` | **`~/.jj-flow`** | `naming.json` → `dispatch.control_root`，或 `JJ_DISPATCH_CONTROL_ROOT`，或 CLI `--control-root` |
+| 项目族顶层 `portfolio_root` | 无 | `dispatch.portfolio_root` / `JJ_PORTFOLIO_ROOT` |
+| 知识库 `knowledge_root` | `{portfolio_root}/knowledge` 或无 | `dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT` |
+| 项目地图 `project_map` | 无 | `project_map` / `JJ_PROJECT_MAP` |
+| 配置文件 | — | **`$JJ_GLOBAL_CONFIG_DIR/naming.json`**（Windows 未设 env 时默认识别 `D:/a/config/naming.json`） |
+
+```json
+{
+  "schema_version": "jj-flow/naming/1.0",
+  "project_map": "D:/a/map.md",
+  "dispatch": {
+    "portfolio_root": "D:/a",
+    "control_root": "D:/a/dispatch-control",
+    "knowledge_root": "D:/a/knowledge"
+  }
+}
+```
+
+核对当前解析：`npx @shendu-sdt/jj-flow@beta doctor`（或仓库内 `jj doctor`）。详见 [$jj-dispatch](command-jj-dispatch.html) 与 [记忆与知识库](memory-knowledge-guide.html)。
 
 ## 安装后下一步
 

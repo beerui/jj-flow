@@ -20,7 +20,7 @@ Claude Code 中把 `$` 换成 `/`：
 /jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
 ```
 
-多项目波次：在业务仓直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。协调状态默认写入用户主目录 **`~/.jj-flow/`**（可配置）：
+多项目波次：在**业务仓**直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。**不要求**先打开控制仓。协调状态默认写入用户主目录 **`~/.jj-flow/`**；本机 portfolio 用 `naming.json` 覆盖（见 [安装 · 本机目录配置](installation.html)）。写任务默认 **`project-branch`**（与 same 一样落命名 feature 分支主工作区）；分支/workspace 不确定时 Agent 先问再 `DISPATCH`。
 
 ```text
 $jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
@@ -113,8 +113,8 @@ $jj-dispatch RECONCILE task_key=DEL-password/dj/development/1
 
 ## 记忆与知识库
 
-- 顶层知识库在 `D:/a/knowledge`（跨项目，不是某个业务仓的 .workflow）。
-- `jj ralph init` 默认自动挂载 `knowledge_refs`（jj-flow ≥ 0.1.1-beta.31）。
+- 顶层知识库（Portfolio KB）路径可配置：`dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT`；有 portfolio 时常为 `{portfolio_root}/knowledge`（本机例：`D:/a/knowledge`）。跨项目，不是某个业务仓的 `.workflow`。
+- `jj ralph init` 默认自动挂载 `knowledge_refs`（jj-flow ≥ 0.1.1-beta.31；解析实现见 `src/portfolioKnowledge.mjs`）。
 - 聊天不是持久记忆；要「记住」必须走 extract → review → promote，形成 active 条目。
-- 值班命令：`node D:/a/knowledge/tools/kb.mjs doctor` / `extract --incremental` / `human-review`。
+- 值班命令（路径以本机 knowledge_root 为准）：`node <knowledge_root>/tools/kb.mjs doctor` / `extract --incremental` / `human-review`。
 - 完整说明见 [记忆与知识库](memory-knowledge-guide.html)。

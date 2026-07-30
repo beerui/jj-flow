@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- 文档：安装/使用/术语/架构/CLI/记忆知识库/README 对齐 beta.37——目录可配置、业务仓发起、project-branch 默认；补充 `naming.json` 示例与 `jj doctor` paths。
+
 ## 0.1.1-beta.37 — 2026-07-30 18:29
 
 - **目录配置一等公民**：`naming.json` 支持 `dispatch.control_root` / `portfolio_root` / `knowledge_root` 与 `project_map`；产品默认 control_root=`~/.jj-flow`。解析顺序：CLI `--control-root`/`--manifest` → env → naming.json → 默认。`jj doctor` 打印 paths；`jj dispatch-tick --delivery` / `jj task scaffold --delivery` 可省略 `--manifest`。
