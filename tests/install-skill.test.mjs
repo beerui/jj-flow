@@ -65,6 +65,22 @@ test('release log parser supports Release Please headings', () => {
   assert.equal(extractVersionLog(changelog, '1.2.3'), '- 新增安装后版本日志。');
 });
 
+test('release log parser supports stamped YYYY-MM-DD HH:mm headings', () => {
+  const changelog = [
+    '# Changelog',
+    '',
+    '## 0.1.1-beta.36 — 2026-07-30 17:26',
+    '',
+    '- stamped notes',
+    '',
+    '## 0.1.1-beta.35 — 2026-07-30 17:11',
+    '',
+    '- older'
+  ].join('\n');
+
+  assert.equal(extractVersionLog(changelog, '0.1.1-beta.36'), '- stamped notes');
+});
+
 test('default skill target points to Codex skill directory', () => {
   const target = defaultSkillTarget({ homeDir: '/home/example', codexHome: '' });
   assert.equal(target, path.join('/home/example', '.codex', 'skills'));

@@ -21,8 +21,20 @@ export function loadCurrentReleaseLog({
 export function extractVersionLog(changelog, version) {
   const lines = String(changelog).split(/\r?\n/);
   const escapedVersion = escapeRegExp(version);
+  // Accept Keep-a-Changelog / Release Please / stamped local times:
+  // ## 0.1.1-beta.36
+  // ## [0.1.1-beta.36] - 2026-07-30
+  // ## [1.2.3](https://…/tag/v1.2.3) (2026-07-13)
+  // ## 0.1.1-beta.36 — 2026-07-30 17:26
   const versionHeading = new RegExp(
-    `^##\\s+(?:\\[)?${escapedVersion}(?:\\])?(?:\\([^)]*\\))?(?:\\s+\\([^)]*\\))?\\s*$`
+    `^##\\s+(?:\\[)?${escapedVersion}(?:\\])?` +
+      `(?:\\([^)]*\\))?` +
+      `(?:` +
+        `\\s*[—\\-–]\\s*\\d{4}-\\d{2}-\\d{2}(?:[ T]\\d{2}:\\d{2}(?::\\d{2})?)?` +
+        `|` +
+        `\\s+\\([^)]*\\)` +
+      `)?` +
+      `\\s*$`
   );
   const start = lines.findIndex((line) => versionHeading.test(line.trim()));
 

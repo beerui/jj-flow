@@ -56,6 +56,7 @@ npm run verify
 
 - 版本 commit 已推到 `main`（含 `package.json` / `CHANGELOG.md`）。
 - `package.json` 的版本是预发布版本，例如 `0.1.1-beta.26`。
+- `CHANGELOG.md` 版本标题带发布时间：`## 0.1.1-beta.N — YYYY-MM-DD HH:mm`（本地时区；`install-skill` 版本日志解析支持该格式）。
 - GitHub 仓库 secret 已配置 `NPM_TOKEN`。
 - `npm run verify` 在本地或 CI 中通过。
 
