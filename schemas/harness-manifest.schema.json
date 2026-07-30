@@ -115,6 +115,19 @@
         }
       }
     },
+    "skill_inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "schema", "checker", "canonical_skills_root", "claude_commands_root"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repositoryPath" },
+        "schema": { "$ref": "#/$defs/repositoryPath" },
+        "checker": { "$ref": "#/$defs/repositoryPath" },
+        "canonical_skills_root": { "$ref": "#/$defs/repositoryPath" },
+        "claude_commands_root": { "$ref": "#/$defs/repositoryPath" },
+        "note": { "type": "string" }
+      }
+    },
     "scenarios": { "$ref": "#/$defs/scenarioSet" },
     "host_trial": { "$ref": "#/$defs/hostTrial" },
     "maintenance": {

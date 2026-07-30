@@ -18,7 +18,7 @@ description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $
 2. 控制项目多目标预览/批准/派发/恢复、`delivery_id` → `$jj-dispatch`（仅 Codex）
 3. 单仓全流程闭环、ralph、归档、能力地图、从需求做到验收 → `$jj-ralph`
 4. 单仓轻量审查、关联任务/审查会话、写 reviews 报告 → `$jj-review`
-5. 单仓任务收尾：提交、推送、合并到 dev/develop、切回工作分支 → `$jj-end`
+5. 单仓任务收尾：fetch 同步 → 提交 → 推送 work → 合入 integration（dev/develop/main）→ 推送 → 切回 → `$jj-end`
 6. 不确定：默认 `$jj-same`（兼容历史）
 
 ## 执行契约

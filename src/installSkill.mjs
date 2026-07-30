@@ -6,6 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
+/**
+ * Universal skill SSOT for Codex / Qoder / Grok install.
+ * Path is historical (.codex/); do not treat it as Codex-only source.
+ * Qoder/Grok jobs default sourceDir to this tree. Never edit .grok/skills or .qoder/skills as source.
+ */
+export const CANONICAL_SKILLS_ROOT_REL = '.codex/skills';
+export const CLAUDE_COMMANDS_ROOT_REL = '.claude/commands';
 const DEFAULT_CODEX_SOURCE_DIR = path.join(PROJECT_ROOT, '.codex', 'skills');
 const DEFAULT_CODEX_AGENTS_SOURCE_DIR = path.join(PROJECT_ROOT, '.codex', 'agents');
 const DEFAULT_CLAUDE_SOURCE_DIR = path.join(PROJECT_ROOT, '.claude', 'commands');

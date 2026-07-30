@@ -1,6 +1,6 @@
 {
   "name": "@shendu-sdt/jj-flow",
-  "version": "0.1.1-beta.33",
+  "version": "0.1.1-beta.34",
   "description": "Project-family orchestration workflow: same migration, ralph single-repo loop, multi-project dispatch.",
   "type": "module",
   "repository": {
@@ -21,6 +21,7 @@
     "scripts/check-harness.mjs",
     "schemas/",
     "harness-manifest.json",
+    "skill-inventory.json",
     "workflows/",
     "examples/",
     "docs/",

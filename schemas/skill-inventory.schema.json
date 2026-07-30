@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/beerui/jj-flow/schemas/skill-inventory.schema.json",
+  "title": "jj-flow skill inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "canonical_skills_root",
+    "claude_commands_root",
+    "install_discipline",
+    "skills"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "jj-flow/skill-inventory/1.0"
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "canonical_skills_root": {
+      "type": "string",
+      "const": ".codex/skills"
+    },
+    "canonical_skills_root_note": {
+      "type": "string"
+    },
+    "claude_commands_root": {
+      "type": "string",
+      "const": ".claude/commands"
+    },
+    "install_targets": {
+      "type": "object"
+    },
+    "install_discipline": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "user_invocable", "platforms"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^jj(-[a-z0-9]+)*$"
+          },
+          "claude_command": {
+            "type": ["string", "null"],
+            "pattern": "^jj(-[a-z0-9]+)*\\.md$"
+          },
+          "user_invocable": {
+            "type": "boolean"
+          },
+          "platforms": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": ["codex", "qoder", "grok", "claude"]
+            },
+            "uniqueItems": true
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

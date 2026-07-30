@@ -1,13 +1,34 @@
 # 安装
 
-把 **项目族编排工作流** 的对话入口装到本机或当前项目：主能力是 **same（迁移）** 与 **dispatch（调度）**。`npx` 只复制资产，不在终端里替你改业务代码。
+把 **项目族编排工作流** 的对话入口装到本机或当前项目：主能力是 **same（迁移）**、**ralph（单仓闭环）**、**dispatch（调度）** 与 **end（收工）**。`npx` 只复制资产，不在终端里替你改业务代码。
+
+## 权威源与安装纪律（必读）
+
+| 角色 | 路径 | 说明 |
+|------|------|------|
+| **Skill 权威源（SSOT）** | `.codex/skills/` | **唯一**应编辑的完整 skill 正文。路径名含 `codex` 是历史原因；**Qoder / Grok 安装同源**。 |
+| **Claude 薄入口** | `.claude/commands/` | 只放短命令路由，**禁止**复制整份 skill 规程。 |
+| **安装产物（非源）** | `~/.grok/skills`、`./.grok/skills`、`~/.qoder/skills`、`./.qoder/skills` 等 | 由 `install-skill` 写入；**禁止**当编辑源；仓库 `.gitignore` 已忽略项目级 skills 副本。 |
+
+清单与对账：仓库根 `skill-inventory.json`（schema：`schemas/skill-inventory.schema.json`）。  
+`npm run harness:check` / `jj doctor` 会校验：磁盘 skill ↔ 清单 ↔ Claude 命令 三者一致。
+
+改 skill 或 Claude 命令后**必须重新安装**到各端，否则宿主仍跑旧副本：
+
+```bash
+npx @shendu-sdt/jj-flow@beta install-skill --platform all --force
+# 或仅当前项目：
+npx @shendu-sdt/jj-flow@beta install-skill --platform all --project --force
+```
+
+路径改名（例如 `.codex/skills` → `skills/`）**暂缓**；在改名完成前一律把 `.codex/skills` 当作多端通用 SSOT。
 
 ## 安装目标
 
 完成后应能：
 
-- Codex：`$jj-same`、`$jj-dispatch`、兼容入口 `$jj`
-- Claude Code：`/jj-same`、兼容入口 `/jj`
+- Codex：`$jj-same`、`$jj-ralph`、`$jj-review`、`$jj-dispatch`、`$jj-end`、`$jj-evaluated`、兼容入口 `$jj`
+- Claude Code：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-end`、兼容入口 `/jj`（无 `/jj-dispatch`，见清单）
 - Qoder：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-dispatch`、`/jj-end`、兼容入口 `/jj`
 - Grok：`/jj-same`、`/jj-ralph`、`/jj-review`、`/jj-dispatch`、`/jj-end`、`/jj-evaluated`、兼容入口 `/jj`（slash 来自 skill `user-invocable`）
 
@@ -166,19 +187,15 @@ npx @shendu-sdt/jj-flow@beta uninstall-skill --force
 如果安装命令不可用，可以手动复制 npm 包或仓库中的原生资产：
 
 ```text
-Codex 技能源目录：.codex/skills/（jj、jj-same、jj-dispatch）
-Codex 技能目标目录：~/.codex/skills/
-Codex agent 源目录：.codex/agents
-Codex agent 目标目录：~/.codex/agents
+权威 skill 源（全端 SSOT）：.codex/skills/（见 skill-inventory.json）
+Codex 技能目标：~/.codex/skills/ 或 ./.codex/skills/
+Codex agent 源：.codex/agents → 目标 ~/.codex/agents/
 
-Claude 命令源目录：.claude/commands/（jj.md、jj-same.md）
-Claude 命令目标目录：~/.claude/commands/
+Claude 薄命令源：.claude/commands/（jj.md、jj-same.md、jj-ralph.md、jj-review.md、jj-end.md）
+Claude 命令目标：~/.claude/commands/
 
-Qoder 技能源目录：.codex/skills/（与 Codex 共用同一套 SKILL.md 资产）
-Qoder 技能目标目录：~/.qoder/skills/
-
-Grok 技能源目录：.codex/skills/（与 Codex 共用同一套 SKILL.md 资产）
-Grok 技能目标目录：~/.grok/skills/
+Qoder / Grok 技能源：同一套 .codex/skills/
+Qoder 目标：~/.qoder/skills/　Grok 目标：~/.grok/skills/
 ```
 
 手动安装只作为排障备选；正常路径优先使用 `npx @shendu-sdt/jj-flow@beta install-skill`。

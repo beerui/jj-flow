@@ -1,0 +1,66 @@
+{
+  "schema_version": "jj-flow/skill-inventory/1.0",
+  "$schema": "schemas/skill-inventory.schema.json",
+  "canonical_skills_root": ".codex/skills",
+  "canonical_skills_root_note": "Historical path name under .codex/; this directory is the universal skill SSOT for Codex, Qoder, and Grok install. Do not maintain parallel full copies under .grok/skills or .qoder/skills in git.",
+  "claude_commands_root": ".claude/commands",
+  "install_targets": {
+    "codex": { "skills": ".codex/skills (or ~/.codex/skills)", "source": "canonical_skills_root" },
+    "qoder": { "skills": ".qoder/skills (or ~/.qoder/skills)", "source": "canonical_skills_root" },
+    "grok": { "skills": ".grok/skills (or ~/.grok/skills)", "source": "canonical_skills_root" },
+    "claude": { "commands": ".claude/commands (or ~/.claude/commands)", "source": "claude_commands_root" }
+  },
+  "install_discipline": [
+    "Edit skill body only under .codex/skills/<id>/ (SKILL.md + references).",
+    "Claude Code only gets thin wrappers under .claude/commands/<id>.md — no full procedure fork.",
+    "After skill/command changes: jj install-skill --platform all --force (or per-platform).",
+    "Never treat project .grok/skills or .qoder/skills as edit sources (install outputs; gitignored).",
+    "Path rename of .codex/skills → skills/ is deferred; treat the path as universal SSOT until then."
+  ],
+  "skills": [
+    {
+      "id": "jj",
+      "claude_command": "jj.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
+      "id": "jj-same",
+      "claude_command": "jj-same.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
+      "id": "jj-ralph",
+      "claude_command": "jj-ralph.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
+      "id": "jj-review",
+      "claude_command": "jj-review.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
+      "id": "jj-end",
+      "claude_command": "jj-end.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
+      "id": "jj-dispatch",
+      "claude_command": null,
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok"],
+      "note": "CREATE_THREAD / host attestation still Codex-first; no Claude slash until host parity."
+    },
+    {
+      "id": "jj-evaluated",
+      "claude_command": null,
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok"],
+      "note": "Offline evaluation skill; Claude command optional later."
+    }
+  ]
+}

@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 0.1.1-beta.34
+
 - Fix npm package homepage: publish workflow now aligns `latest` dist-tag (npmjs.com defaults to `latest`, which was stuck on Maestro-era 0.1.1-beta.0).
 - `$jj-review` / `/jj-review` 改为宿主内置 review 优先的适配器：发现并调用当前宿主 review/code-review，将结论映射为 `reviews/REV-*.json`（`source`/`host_review` 溯源）；仅在宿主不可用时最小内联回退。
 - `jj ralph review-record` / `ralph_ops review-record` 支持 `--source` 与 `--host-review-json`，progress 写入 `source=`；校验可选 provenance 枚举。
+- `$jj-end`：强制 `fetch → 同步 work → push → 同步 integration → merge → push → 回切`；提交前/推送前必须拉远端；禁止中途只 commit 不 merge；integration 回退链 `dev→develop→main`；冲突 abort 后回 work 并明确失败。
+- Skill 多端统一：新增 `skill-inventory.json` + `src/skillInventory.mjs`；harness 对账磁盘 skill ↔ 清单 ↔ Claude commands；补 `.claude/commands/jj-end.md`；安装文档写明 SSOT（`.codex/skills`）与 reinstall 纪律。
 
 ## 0.1.1-beta.33
 

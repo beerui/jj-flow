@@ -26,6 +26,7 @@ import { TRACE_SCHEMA_VERSION } from '../src/dispatchTrace.mjs';
 import { SCENARIO_IDS, SCENARIO_REPORT_VERSION } from '../src/scenarioRunner.mjs';
 import { HOST_TRIAL_REPORT_VERSION } from '../src/hostTrialRunner.mjs';
 import { hashNormalizedTextFile } from '../src/fileFingerprint.mjs';
+import { checkSkillInventory } from '../src/skillInventory.mjs';
 
 export const HARNESS_SCHEMA_VERSION = 'jj-flow/harness/1.0';
 const HARNESS_GC_REPORT_VERSION = 'jj-flow/harness-gc-report/1.0';
@@ -49,7 +50,8 @@ export function checkHarnessRepository({
     design_docs_checked: 0,
     adr_docs_checked: 0,
     exec_plans_checked: 0,
-    maturity_models_checked: 0
+    maturity_models_checked: 0,
+    skill_inventory_checked: 0
   };
 
   const addFinding = (ruleId, targetPath, reason, nextAction) => {
@@ -188,6 +190,14 @@ export function checkHarnessRepository({
     stats.protocols_checked += 1;
     checkDispatchProtocolContract({ cwd, protocol, addFinding, stats });
   }
+
+  checkSkillInventoryParity({
+    cwd,
+    config: manifest.skill_inventory,
+    addFinding,
+    stats,
+    manifestPath
+  });
 
   checkScenarioRegistry({
     cwd,
@@ -1105,6 +1115,48 @@ function checkUniqueEntries(entries, manifestPath, addFinding) {
   }
 }
 
+function checkSkillInventoryParity({ cwd, config, addFinding, stats, manifestPath }) {
+  stats.skill_inventory_checked += 1;
+  if (config == null) {
+    // Optional in older manifests: still run default inventory path check.
+  } else if (typeof config !== 'object' || Array.isArray(config)) {
+    addFinding('HNS-SKI-001', manifestPath, 'skill_inventory 必须是对象。', '按 schema 修复 skill_inventory。');
+    return;
+  } else {
+    const invPath = resolveRepositoryPath(cwd, config.path || 'skill-inventory.json', addFinding, 'HNS-SKI-002');
+    if (invPath && !fs.existsSync(invPath)) {
+      addFinding('HNS-SKI-003', invPath, 'skill_inventory.path 指向的文件不存在。', '恢复 skill-inventory.json。');
+    }
+    if (isNonEmptyString(config.schema)) {
+      const schemaPath = resolveRepositoryPath(cwd, config.schema, addFinding, 'HNS-SKI-004');
+      if (schemaPath && !fs.existsSync(schemaPath)) {
+        addFinding('HNS-SKI-005', schemaPath, 'skill_inventory.schema 不存在。', '恢复 schemas/skill-inventory.schema.json。');
+      } else if (schemaPath) {
+        stats.files_checked += 1;
+      }
+    }
+    if (isNonEmptyString(config.checker)) {
+      const checkerPath = resolveRepositoryPath(cwd, config.checker, addFinding, 'HNS-SKI-006');
+      if (checkerPath && !fs.existsSync(checkerPath)) {
+        addFinding('HNS-SKI-007', checkerPath, 'skill_inventory.checker 不存在。', '恢复 src/skillInventory.mjs。');
+      } else if (checkerPath) {
+        stats.files_checked += 1;
+      }
+    }
+  }
+
+  const result = checkSkillInventory({ cwd });
+  stats.files_checked += 1;
+  for (const finding of result.findings) {
+    addFinding(
+      finding.rule_id.startsWith('SKI-') ? 'HNS-' + finding.rule_id : finding.rule_id,
+      finding.path,
+      finding.reason,
+      finding.next_action
+    );
+  }
+}
+
 function resolveRepositoryPath(cwd, value, addFinding, ruleId) {
   if (!isNonEmptyString(value)) {
     addFinding(ruleId, cwd, '仓库路径不能为空。', '在 manifest 中填写相对仓库路径。');
@@ -1135,7 +1187,7 @@ function isNonEmptyString(value) {
 
 function renderText(result) {
   if (result.ok) {
-    return `harness check passed (${result.stats.files_checked} files, ${result.stats.links_checked} links, ${result.stats.commands_checked} commands, ${result.stats.protocols_checked} protocols, ${result.stats.scenarios_checked} scenarios, ${result.stats.host_trials_checked} host trials, ${result.stats.gc_baselines_checked} GC baselines, ${result.stats.docs_checked} docs)\n`;
+    return `harness check passed (${result.stats.files_checked} files, ${result.stats.links_checked} links, ${result.stats.commands_checked} commands, ${result.stats.protocols_checked} protocols, ${result.stats.skill_inventory_checked} skill-inventory, ${result.stats.scenarios_checked} scenarios, ${result.stats.host_trials_checked} host trials, ${result.stats.gc_baselines_checked} GC baselines, ${result.stats.docs_checked} docs)\n`;
   }
   const lines = ['harness check failed'];
   for (const finding of result.findings) {

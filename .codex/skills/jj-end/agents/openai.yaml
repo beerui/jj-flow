@@ -1,6 +1,4 @@
 interface:
   display_name: "jj-end"
-  short_description: "收工：提交、推送并合入 dev/develop"
-  default_prompt: "Use $jj-end to commit, push, merge into dev, push, and return to the working branch."
-policy:
-  allow_implicit_invocation: true
+  short_description: "收工：同步分支、提交、推送并合入 integration"
+  default_prompt: "Use $jj-end: fetch, commit if needed, sync work, push work, sync integration, merge, push integration, return."

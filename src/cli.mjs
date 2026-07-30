@@ -898,7 +898,7 @@ function printRalphHelp(stdout) {
 }
 
 function printDoctorHelp(stdout) {
-  stdout.write(`jj doctor\n\n用法：\n  jj doctor [--json]\n\n说明：\n  只读检查 Git、Harness manifest、权威文件、禁止路径、host capabilities 和可用 autonomy level。\n`);
+  stdout.write(`jj doctor\n\n用法：\n  jj doctor [--json]\n\n说明：\n  只读检查 Git、Harness manifest（含 skill-inventory 对账）、权威文件、禁止路径、host capabilities 和可用 autonomy level。\n`);
 }
 
 function printScenarioHelp(stdout) {
@@ -918,7 +918,7 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/commands，qoder 安装 .qoder/skills，grok 安装 .grok/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/commands，qoder 安装 .qoder/skills，grok 安装 .grok/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库 .codex/skills/（历史路径名，非 Codex 专用）。Qoder/Grok 安装同源。\n  Claude 仅安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n`);
 }
 
 function printUninstallHelp(stdout) {

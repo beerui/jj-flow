@@ -272,9 +272,11 @@
       "README.md",
       "AGENTS.md",
       "ARCHITECTURE.md",
+      "skill-inventory.json",
       ".codex/skills/jj/SKILL.md",
       ".codex/skills/jj-ralph/SKILL.md",
-      ".codex/skills/jj-dispatch/SKILL.md"
+      ".codex/skills/jj-dispatch/SKILL.md",
+      ".codex/skills/jj-end/SKILL.md"
     ],
     "site_builder": "scripts/build-docs.mjs",
     "excluded_paths": ["docs/other", "docs/evaluations"],
@@ -342,6 +344,14 @@
       "fixture": "tests/fixtures/dispatch-host-actions.json"
     }
   ],
+  "skill_inventory": {
+    "path": "skill-inventory.json",
+    "schema": "schemas/skill-inventory.schema.json",
+    "checker": "src/skillInventory.mjs",
+    "canonical_skills_root": ".codex/skills",
+    "claude_commands_root": ".claude/commands",
+    "note": "Universal skill SSOT is .codex/skills (historical path name). Qoder/Grok install from it; Claude uses thin .claude/commands wrappers only."
+  },
   "scenarios": {
     "runner": "src/scenarioRunner.mjs",
     "trace_runtime": "src/dispatchTrace.mjs",

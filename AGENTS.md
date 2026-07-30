@@ -2,6 +2,7 @@
 
 - `jj-flow` 是 **项目族编排工作流**（同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch）。
 - 代码定位先读 `ARCHITECTURE.md`；跨模块目标设计从 `docs/design-docs/index.md` 进入。仓库事实以 `harness-manifest.json` 索引的 versioned 资产为准。
+- **Skill 多端 SSOT**：完整 skill 只编辑 `.codex/skills/`（路径名历史遗留；Qoder/Grok install 同源）。Claude 只维护 `.claude/commands/` 薄入口。清单与对账见 `skill-inventory.json`；改后执行 `jj install-skill --platform all --force`。勿把 `.grok/skills` / `.qoder/skills` 当编辑源。
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目独占 worktree 中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。
