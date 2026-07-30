@@ -12,3 +12,14 @@ site/
 # Local install targets (authoritative skills live in package .codex/skills)
 .grok/skills/
 .qoder/skills/
+.qoder/better-harness/
+# One-shot local patch / wire scripts (do not land on main)
+_w_*.py
+_write_*.cjs
+daji-docsjj-flow_wire*.cjs
+PLAN.md
+agent/
+# Regenerated dispatch-demo media (source: make_frames.py / generate_interactive.py)
+docs/other/dispatch-demo/frames/
+docs/other/dispatch-demo/dispatch-demo.gif
+docs/other/dispatch-demo/dispatch-demo.mp4
