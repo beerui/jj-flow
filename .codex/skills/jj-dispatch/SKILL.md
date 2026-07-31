@@ -181,9 +181,13 @@ D:/a/
 
 1. 所有本波 intent 的 `thread_id` 填**当前真实 session id**（可相同）
 2. `host_id=grok-build`，`handle_kind=session`
-3. `sandbox_evidence_ref` 写可核对来源（如 `host:grok-build:session:<real-id>`），禁止无意义的 `session-bound` 套话
+3. **C4：** 每个 **BOUND** intent（**含 review/read**）写 attestation **文件**  
+   `{control_root}/.workflow/dispatch/<DEL>/attestations/<task_key_safe>.json`  
+   `sandbox_evidence_ref` = 该相对路径。**禁止**仅用 `host:grok-build:session:…` 字符串（development 与 review 一视同仁）
 4. progress 注明 `execution=same-session`；仍须按 A/B 填 commit 后才 `VERIFIED`
 5. **禁止**为凑 4 个 task_key 伪造 4 个假 session
+
+库辅助（jj-flow）：`writeGrokAttestation` / `attestationRelativePath`（`src/dispatchAttestation.mjs`）。
 
 拿不到真实 handle → intent 保持 `PENDING_THREAD` 或只记 progress，**不要**写 `BOUND` 假绑定。
 
@@ -193,15 +197,17 @@ D:/a/
 [ ] intake / approval 与本轮 task_keys 一致
 [ ] 写任务 environment=project-branch（或已确认的 exclusive-worktree）+ intended_branch
 [ ] 无合成 thread_id
+[ ] C4：每个 BOUND intent 的 sandbox_evidence_ref 指向 attestations/*.json（含 review）
 [ ] 若 status≥EVIDENCE_READY：changed_files / summary 与 git diff 一致
 [ ] 若 status=VERIFIED：produced_commit + commit + reviewed_commit 齐全且一致
-[ ] 若用户说「已合并」：git 已核对 feature 与 integration，而非只信聊天
-[ ] 承载等多 feature 合 dev：优先 task-scoped cherry-pick，避免整支 tip 覆盖无关提交（见 EP-S1 / acceptor-tag 负例）
+[ ] C5：plane-self-check grade=ok 再宣称 VERIFIED；可 setIntegrityGrade
+[ ] C6：push/merge 后 setRemoteCloseout；用户说「已合并」须 git 核对，不单靠聊天
+[ ] 承载等多 feature 合 dev：优先 task-scoped cherry-pick（见 EP-S1 / acceptor-tag 负例）
 ```
 
-可选（Agent 自跑，**不**教用户）：在 jj-flow 仓执行
-`node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest <control-plane.json>`
-非 0 退出则禁止宣称 VERIFIED。
+可选（Agent 自跑，**不**教用户）：
+`node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest <control-plane.json> [--json]`
+输出含 `integrity_grade`（C5）。非 0 退出则禁止宣称 VERIFIED。
 
 ## 角色字段
 
@@ -420,9 +426,10 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
 Grok DISPATCH 最小动作：
 
 1. PREFLIGHT：源 `source_head` 已 commit；分支已确认。
-2. 各 write intent：`thread_id`=**当前真实 session id**（可相同）；写 `{control_root}/.workflow/dispatch/<DEL>/attestations/<task_key_safe>.json`。
-3. 串行实施 → receipt 落 `.../receipts/<task_key_safe>.json` → git `produced_commit`。
-4. 仅证据齐才 `VERIFIED`（C3）；可选 `plane-self-check.mjs`。
+2. **每个** intent（development **与** review）：`thread_id`=真实 session；写 `attestations/<task_key_safe>.json`（**C4**）；`sandbox_evidence_ref`=该文件路径。
+3. 串行实施 → receipt → git `produced_commit`。
+4. `plane-self-check` grade=ok（**C5**）且 C3 证据齐 → 才 `VERIFIED`。
+5. 可选 `setRemoteCloseout`（**C6**：pushed/merged_to）；**不**因聊天「已 push」省略 git 核对。
 
 ## CLI 命令矩阵
 
@@ -437,11 +444,31 @@ Grok DISPATCH 最小动作：
 | plane 终端自检 | `node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`（Agent） |
 | 契约一致性 | `npm run harness:check` |
 
+## 回退（rollback）
+
+用户说「回退目标 / 撤销验收 / 假 VERIFIED / 停掉 task」时读 [rollback.md](references/rollback.md)。
+
+| 意图 | 控制面动作 | 默认不做 |
+| --- | --- | --- |
+| 误标 VERIFIED / 要重做 | `reopenTarget`（Mode S 自动 prepareSoft；attempt++，清 approval） | 手改 status、自动 unmerge |
+| Mode S 软 plane | `prepareModeSReopen` 或 reopen 内置 prepare | ad-hoc 归一化脚本 |
+| 停掉进行中 intent | `blockDispatchIntent` | 删 events / 同 key 再 create |
+| Review 返工 | `requestRework` | — |
+| 丢不掉的 UNKNOWN | `abandonDispatchUnknown` | 盲再 create |
+| 代码回滚 | **G-menu** + R4 `buildRollbackPrep`（只建议不执行） | Agent 默认 revert；自动 force-push |
+| 正式关掉 delivery | `closeDelivery` → `BLOCKED` + `closeout` | 对仍 VERIFIED 直接 close |
+| C4 attestation | BOUND 含 review 也写 `attestations/*.json` | 仅 `host:session:…` 字符串 |
+| C5 grade | `gradePlaneTerminalIntegrity` / `setIntegrityGrade` | 聊天宣称 OK |
+| C6 remote | `setRemoteCloseout`（不挡 VERIFIED） | 用 VERIFIED 冒充已 push |
+
+未 push 且 tip 即本任务时 **Recommended = reset**；已 push/已合 dev 才倾向 revert。回退写 `events[]` + `revision++`。
+
 ## References 何时读
 
 | 文件 | 何时读 |
 | --- | --- |
 | [control-project.md](references/control-project.md) | 解析 control 根、写 delivery/responsibility、恢复 UNKNOWN、Reviewer/Developer 闭环字段 |
+| [rollback.md](references/rollback.md) | **回退 / reopen / 撤销验收 / 假 VERIFIED**；动作矩阵与负例 |
 | [grok-dispatch-execution.md](references/grok-dispatch-execution.md) | **Grok 宿主**：Mode S/W/P、PREFLIGHT、attestation/receipt、与 Workflow 边界 |
 | [control-plane.schema.json](references/control-plane.schema.json) | 写/改 `control-plane.json` 前；按下列键检索，勿整文件默读 |
 | [host-action-contract.json](references/host-action-contract.json) | DISPATCH 前置 capability 与 host actions 前 |

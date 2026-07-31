@@ -48,6 +48,14 @@
 - accept PASS 后优先 `ralph_ops.mjs finalize`（或 `jj ralph finalize`）= map-merge + archive。
 - 分步亦可：`map-merge` 再 `archive`；勿只 archive 导致地图漏写。
 
+## 回退（phase / status）
+
+完整矩阵见 [rollback.md](rollback.md)。摘要：
+
+- 相邻 phase 回退：`rollback-phase --to PLAN|DELIVER|ANALYZE`（自当前 phase）；ARCHIVE 与 COMPLETED 不可回旧目录
+- 暂停/阻塞：`set-status --status PAUSED|BLOCKED`
+- gate 可 FAIL 覆盖先前 PASS，须写 progress / `updated_at`，禁止无日志改 gates
+
 ## gate
 
 - 优先 `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS`。

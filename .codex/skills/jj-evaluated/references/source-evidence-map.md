@@ -163,3 +163,28 @@ Portfolio under same control_root:
 Remote push for readme-pnpm still open (feature branches ahead 1). Harness-manifest:
 no required change for this closeout; optional evolutions C4–C6 **archived** in
 `docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md` (blocked until upgrade window).
+
+## 2026-07-31 rollback path B (readme-pnpm)
+
+Live rollback of the Mode S golden delivery (control reopen + feature task-scoped
+`git revert`). Evaluation:
+`docs/evaluations/2026-07-31-readme-pnpm-rollback.md`.
+
+| Field | Value |
+| --- | --- |
+| delivery_id | `DEL-readme-pnpm-install-20260731` |
+| plane hash @ eval | `2f07acdfb729` revision **7** |
+| delivery status | **PREVIEW_ONLY** (was VERIFIED) |
+| plane-self-check | **OK** |
+| dj-web tip | `3ee8d3cc4` Revert of `9093b961d` @ `feat/dj-0731-lyj` |
+| cz-broker-web tip | `6d589864f` Revert of `f7fbe8818` @ `feat/cz-0731-lyj` |
+| cj-web tip (lead) | `86dbbdf23` Revert of `1ec732bd6` @ `feat/cj-0731-lyj` |
+| on dev? | pnpm commits **not** ancestors of `dev` / `origin/dev` |
+| remote | feature **ahead 2**, not pushed |
+| events | `TARGET_REOPENED`×2 + `GIT_ROLLBACK_REVERT` |
+
+Candidate **R-soft-reopen**: Mode S soft plane cannot call strict `reopenTarget`
+(shared session `thread_id` uniqueness + DONE/BOUND fields). Soft equivalent used
+live; promote via skill/fixture or session-gated validator exception.
+
+Ralph `RALPH-readme-pnpm-install-20260731` remains COMPLETED/ARCHIVE (no un-archive).

@@ -35,9 +35,26 @@ node <resolved>/ralph_ops.mjs gate --run-id RALPH-x-20260723 --gate accept --sta
 node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x-20260723 --modules src/a.js --keywords a,b
 node <resolved>/ralph_ops.mjs handoff --run-id RALPH-x-20260723 --targets 兑接识票,承载识票
 node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x-20260723
+node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x-20260723 --to DELIVER --reason "验收证据不足"
+node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x-20260723 --status PAUSED --reason "等 UAT"
 ```
 
 解析：repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/ralph_ops.mjs` → `jj ralph`。
+
+阶段细则与回退边见 [phases.md](references/phases.md)、[rollback.md](references/rollback.md)。
+
+## 回退（rollback）
+
+用户说「撤销验收 / 退回 DELIVER / 暂停 / 阻塞」时读 [rollback.md](references/rollback.md)。
+
+| 意图 | 动作 |
+| --- | --- |
+| 改 gate | `ralph_ops gate --status FAIL`（或 PASS） |
+| phase 回退 | 仅相邻边：`rollback-phase --to DELIVER`（ACCEPT→DELIVER 等）；**ARCHIVE 不可回** |
+| 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
+| COMPLETED 再做 | **新 run** + 链 `supersedes`；不 un-archive 覆盖 |
+
+默认不自动 git revert。实现：`src/ralph.mjs` 的 `rollbackPhase` / `setRunStatus` / `setGate`。
 
 ## 硬约束
 

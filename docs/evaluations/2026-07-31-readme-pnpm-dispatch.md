@@ -87,12 +87,13 @@ Leakage：后续优化勿用 acceptor-tag 假 VERIFIED 当成功训练信号。
 | --- | --- | --- |
 | C3 | Agent VERIFIED 门禁 + plane-self-check | **promoted** beta.38 |
 | Mode S | Grok 默认同会话 + attestation/receipt | **promoted** + **live OK** |
-| **C4** | Review intent 也落 attestation **文件**（现多为 `host:grok-build:session:…` 字符串） | proposed |
-| **C5** | plane 增加 `integrity_grade` 或 self-check 结果字段，区分「业务 VERIFIED」vs「证据齐全」 | proposed（acceptor 假绿） |
-| **C6** | delivery 可选 `remote_closeout`（pushed/merged）不挡 VERIFIED | proposed |
-| R-rollback | reopen/supersede 误 VERIFIED | exec plan active（另线） |
+| **C4** | Review intent 也落 attestation **文件** | **promoted**（self-check BOUND + skill + `dispatchAttestation.mjs`） |
+| **C5** | `integrity_grade` ok\|degraded\|fail | **promoted**（`gradePlaneTerminalIntegrity` + `setIntegrityGrade` + schema） |
+| **C6** | `remote_closeout` 可选 | **promoted**（`setRemoteCloseout`；不挡 VERIFIED） |
+| R-rollback | reopen/supersede 误 VERIFIED | R1–R3 已实现；**live 路径 B 见** `2026-07-31-readme-pnpm-rollback.md` |
+| **R-soft-reopen** | Mode S 软 plane 无法直接 `reopenTarget` | proposed（rollback eval） |
 
-**一次只推一个：** 下一实现优先 **C4**（小、对齐 development 路径）或先完成 R1 回退规格。
+**一次只推一个：** 回退线优先 **R-soft-reopen**；升级 backlog 仍见 C4（Review attestation 文件化）。
 
 ## 7. Harness
 

@@ -198,7 +198,10 @@ INTAKE (CONFIRMED)
 - Mode S：`worktree == project_path`；多 task 可同一 `session_id`。  
 - intent.`thread_id` = 该 `session_id`（不要用 `coordinator:…#task` 当唯一 handle）。  
 - `sandbox_evidence_ref` 指向上述文件相对 control_root 的路径。  
+- **C4：development *与* review/read 责任均写 attestation 文件**；禁止仅用 `host:grok-build:session:…` 字符串充当 review 的 `sandbox_evidence_ref`。  
 - 缺关键字段 → 拒绝 BOUND。
+
+read/review 示例与 write 相同路径规则；`sandbox_mode`/`agent_name` 按 access 填 `read-only` / `jj-workflow-reviewer`，`worktree` 可为 null。
 
 ### 4.3 Receipt
 
@@ -246,11 +249,12 @@ INTAKE (CONFIRMED)
 1. **默认 Mode S**；不得无批准并行乱写多仓（串行 OK）。  
 2. PREVIEW 含分支表 + `proposed_mode=S|W`。  
 3. 源 MUST 改动未 commit → **不对 targets 写 DISPATCH**。  
-4. intent：`host_id=grok-build`，`handle_kind=session`，`thread_id`=真实 session；写 attestation。  
+4. intent：`host_id=grok-build`，`handle_kind=session`，`thread_id`=真实 session；**每个 BOUND intent（含 review）写 attestation 文件（C4）**。  
 5. 实施后写 receipt；git 取 `produced_commit`；遵守 C3 再 VERIFIED。  
-6. 用户不跑 CLI；Agent 可选用 `plane-self-check.mjs` / `dispatch-tick`。  
-7. 收工 `$jj-end`；feature→integration **优先 task-scoped cherry-pick**；feature 历史含 Revert 删除的能力时必须提示树风险。  
-8. **Grok Workflow**：仅辅助；完成报告须由调度 Agent 落入 receipt/plane。
+6. 用户不跑 CLI；Agent 可选用 `plane-self-check.mjs`（输出 `integrity_grade` C5）/ `dispatch-tick`。  
+7. VERIFIED 后可选标注 `remote_closeout`（C6：pushed/merged_to；**不**挡 VERIFIED）。  
+8. 收工 `$jj-end`；feature→integration **优先 task-scoped cherry-pick**；feature 历史含 Revert 删除的能力时必须提示树风险。  
+9. **Grok Workflow**：仅辅助；完成报告须由调度 Agent 落入 receipt/plane。
 
 ---
 

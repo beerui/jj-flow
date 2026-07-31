@@ -984,7 +984,154 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   }
   run.updated_at = nowIso();
   saveRun(run, cwd);
+  appendProgressLine(runId, cwd, '- ' + run.updated_at + ' gate ' + gate + '=' + status + ' phase=' + run.phase + ' status=' + run.status);
   return { run, gate, status, phase: run.phase, handoff: run.handoff || null };
+}
+
+/** Adjacent phase rollback edges only (ARCHIVE cannot roll back). */
+export const PHASE_ROLLBACK_EDGES = Object.freeze({
+  PLAN: 'ANALYZE',
+  DELIVER: 'PLAN',
+  ACCEPT: 'DELIVER'
+});
+
+const PHASE_TO_GATE = Object.freeze({
+  ANALYZE: 'analyze',
+  PLAN: 'plan',
+  DELIVER: 'deliver',
+  ACCEPT: 'accept',
+  ARCHIVE: 'archive'
+});
+
+/**
+ * Roll back phase along an allowed adjacent edge (e.g. ACCEPT → DELIVER).
+ * COMPLETED runs must open a new run; ARCHIVE is not reopenable in place.
+ */
+export function rollbackPhase(runId, {
+  toPhase,
+  reason,
+  cwd = process.cwd(),
+  leaveGateStatus = 'FAIL',
+  resumeInProgress = true
+} = {}) {
+  if (!toPhase || !PHASES.includes(toPhase)) {
+    throw new Error('toPhase must be one of ' + PHASES.join('|'));
+  }
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    throw new Error('reason is required for rollbackPhase');
+  }
+  if (!GATE_STATUS.includes(leaveGateStatus) && leaveGateStatus !== null) {
+    throw new Error('leaveGateStatus must be a gate status or null');
+  }
+  const run = loadRun(runId, cwd);
+  if (run.status === 'COMPLETED') {
+    throw new Error('COMPLETED run cannot rollbackPhase in place; init a new run with supersedes_run_id');
+  }
+  if (run.phase === 'ARCHIVE') {
+    throw new Error('ARCHIVE phase cannot rollback; init a new run with supersedes_run_id');
+  }
+  const expectedFrom = Object.entries(PHASE_ROLLBACK_EDGES).find(([, to]) => to === toPhase)?.[0];
+  const allowedTo = PHASE_ROLLBACK_EDGES[run.phase];
+  if (allowedTo !== toPhase) {
+    throw new Error(
+      'rollbackPhase only allows adjacent edges (got ' + run.phase + '→' + toPhase
+        + '; allowed from ' + run.phase + ': ' + (allowedTo || 'none')
+        + (expectedFrom ? '; ' + toPhase + ' is reached from ' + expectedFrom : '') + ')'
+    );
+  }
+
+  const fromPhase = run.phase;
+  const toIdx = PHASES.indexOf(toPhase);
+  const gates = { ...run.gates };
+  // Leaving phase gate → FAIL (or leaveGateStatus); later phases → PENDING
+  if (leaveGateStatus) {
+    const leaveGate = PHASE_TO_GATE[toPhase];
+    // Gate that advanced us into fromPhase is the gate of toPhase (e.g. deliver PASS → ACCEPT)
+    if (leaveGate) gates[leaveGate] = leaveGateStatus;
+  }
+  for (let i = toIdx + 1; i < PHASES.length; i += 1) {
+    const g = PHASE_TO_GATE[PHASES[i]];
+    if (g) gates[g] = 'PENDING';
+  }
+  // Clear accept/archive when rolling back before them
+  if (toIdx < PHASES.indexOf('ACCEPT')) {
+    gates.accept = 'PENDING';
+    gates.archive = 'PENDING';
+  }
+
+  run.gates = gates;
+  run.phase = toPhase;
+  if (resumeInProgress && (run.status === 'BLOCKED' || run.status === 'PAUSED' || run.status === 'READY_FOR_USER_TEST')) {
+    run.status = 'IN_PROGRESS';
+  }
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + run.updated_at + ' rollbackPhase ' + fromPhase + '→' + toPhase + ' reason=' + reason.trim()
+  );
+  return { run, fromPhase, toPhase, status: run.status, reason: reason.trim() };
+}
+
+/**
+ * Formal status transitions: IN_PROGRESS ↔ PAUSED/BLOCKED; reject COMPLETED reopen.
+ */
+export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}) {
+  const allowed = ['IN_PROGRESS', 'READY_FOR_USER_TEST', 'BLOCKED', 'PAUSED'];
+  if (!allowed.includes(status)) {
+    throw new Error('setRunStatus status must be one of ' + allowed.join('|') + ' (COMPLETED requires a new run)');
+  }
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    throw new Error('reason is required for setRunStatus');
+  }
+  const run = loadRun(runId, cwd);
+  if (run.status === 'COMPLETED') {
+    throw new Error('COMPLETED run cannot change status in place; init a new run with supersedes_run_id');
+  }
+  if (run.phase === 'ARCHIVE' && run.status === 'COMPLETED') {
+    throw new Error('archived COMPLETED run cannot change status');
+  }
+  const from = run.status;
+  run.status = status;
+  run.updated_at = nowIso();
+  if (status === 'BLOCKED' || status === 'PAUSED') {
+    run.intervention_needed = {
+      kind: status === 'PAUSED' ? 'PAUSED' : 'BLOCKED',
+      reason: reason.trim(),
+      at: run.updated_at
+    };
+  } else if (from === 'BLOCKED' || from === 'PAUSED') {
+    run.intervention_needed = null;
+  }
+  saveRun(run, cwd);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + run.updated_at + ' setRunStatus ' + from + '→' + status + ' reason=' + reason.trim()
+  );
+  return { run, from, status, reason: reason.trim() };
+}
+
+/** Suggest metadata for a new run that supersedes a COMPLETED/ARCHIVE run (does not create files). */
+export function suggestReopenAsNew(oldRun, { newRunId } = {}) {
+  if (!oldRun || typeof oldRun !== 'object') throw new Error('oldRun required');
+  return {
+    supersedes_run_id: oldRun.run_id || null,
+    suggested_run_id: newRunId || null,
+    title: oldRun.title || null,
+    goal: oldRun.goal || null,
+    scope: oldRun.scope ? { in: [...(oldRun.scope.in || [])], out: [...(oldRun.scope.out || [])] } : null,
+    note: 'Do not un-archive or mutate COMPLETED run status; init a new run and chain supersedes_run_id in progress/family.'
+  };
+}
+
+function appendProgressLine(runId, cwd, line) {
+  const nl = '\n';
+  const progressPath = path.join(runDir(runId, cwd), 'progress.md');
+  const text = String(line || '').endsWith(nl) ? String(line) : String(line) + nl;
+  if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, text, 'utf8');
+  else fs.writeFileSync(progressPath, '# Progress' + nl + nl + text, 'utf8');
 }
 
 export function commitPrep(runId, cwd = process.cwd()) {

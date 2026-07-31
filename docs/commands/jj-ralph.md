@@ -46,6 +46,17 @@ $jj-ralph
 - JSON 优先脚本；脚本不可用再复制 skill 内 skeleton
 - 默认不自动 commit/push
 
+## 回退（ledger）
+
+| 意图 | 动作 |
+| --- | --- |
+| 撤销验收 / 退回实施 | `rollback-phase --to DELIVER`（仅相邻边；ARCHIVE 不可回） |
+| gate 改 FAIL | `gate --gate accept --status FAIL` |
+| 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
+| 已 COMPLETED 再做 | **新 run**，链 `supersedes`；不 un-archive 覆盖 |
+
+默认不自动 git revert。Skill：`jj-ralph/references/rollback.md`。
+
 设计细节见 [jj-ralph 设计](../design-docs/jj-ralph.html)。
 
 ## 记忆与知识库

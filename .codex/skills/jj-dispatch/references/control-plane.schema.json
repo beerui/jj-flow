@@ -678,7 +678,43 @@
         "dispatch_intents": { "type": "array", "items": { "$ref": "#/$defs/intent" } },
         "reviews": { "type": "array", "items": { "$ref": "#/$defs/review" } },
         "decisions": { "type": "array", "items": { "type": "object" } },
-        "artifacts": { "type": "array", "items": { "type": "object" } }
+        "artifacts": { "type": "array", "items": { "type": "object" } },
+        "integrity_grade": {
+          "description": "C5: soft integrity grade from plane-self-check (ok|degraded|fail). Does not replace validateControlPlane.",
+          "enum": ["ok", "degraded", "fail"]
+        },
+        "integrity": {
+          "description": "C5: optional snapshot of last integrity check",
+          "type": "object",
+          "properties": {
+            "grade": { "enum": ["ok", "degraded", "fail"] },
+            "checked_at": { "type": "string", "format": "date-time" },
+            "findings": { "type": ["array", "null"], "items": { "type": "object" } }
+          },
+          "additionalProperties": true
+        },
+        "remote_closeout": {
+          "description": "C6: optional remote land annotation; never gates VERIFIED by itself",
+          "type": "object",
+          "properties": {
+            "pushed": { "type": ["boolean", "null"] },
+            "merged_to": { "type": ["string", "null"] },
+            "note": { "type": ["string", "null"] },
+            "at": { "type": "string", "format": "date-time" }
+          },
+          "additionalProperties": true
+        },
+        "closeout": {
+          "description": "Formal delivery close after abandon/rollback (status typically BLOCKED)",
+          "type": "object",
+          "properties": {
+            "outcome": { "enum": ["ABANDONED", "ROLLED_BACK", "SUPERSEDED_CLOSED", "CANCELLED"] },
+            "reason": { "type": "string" },
+            "closed_at": { "type": "string", "format": "date-time" },
+            "from_status": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
       },
       "allOf": [
         {

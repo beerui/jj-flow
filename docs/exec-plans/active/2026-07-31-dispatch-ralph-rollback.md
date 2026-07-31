@@ -2,6 +2,8 @@
 
 > 状态：active
 >
+> 备注：R1–R3 已实现；R4 git 协作包仍可选。
+>
 > 负责人：jj-flow dispatch + ralph
 >
 > 开始日期：2026-07-31
@@ -83,15 +85,15 @@
 
 **验收：** ralph 合约测试绿；phases.md 与 schema 字段对齐。
 
-### Phase R4 — Git 协作包（可选）
+### Phase R4 — Git 协作包
 
 | ID | 项 | 说明 |
 | --- | --- | --- |
-| R4-1 | `rollback-prep` | 输出：建议 `git revert <sha…>` / cherry-pick 逆序；**不执行** |
-| R4-2 | 与 `$jj-end` 边界 | land 后回退必须 task-scoped；Revert 树风险提示（沿用 EP-S1 / acceptor-tag） |
-| R4-3 | 用户确认后 Agent 才可执行 revert | 不可逆门禁 |
+| R4-1 | `rollback-prep` | ✅ `src/dispatchRollbackPrep.mjs`：`buildRollbackPrep` / `recommendGitStrategy`；**不执行** git |
+| R4-2 | 与 `$jj-end` 边界 | ✅ prep 包含 `jj_end_boundary`；on_integration → 仅 revert/fix-forward |
+| R4-3 | 用户确认后才执行 | ✅ G-menu + `user_confirmation_required: true` |
 
-**验收：** 至少一份 fixture 输出与真实负例 commit 列表一致。
+**验收：** ✅ `tests/dispatch-rollback-prep.test.mjs`（readme-pnpm 类 probe → Recommended=reset）
 
 ## 6. 建议状态语义（草案，实现时再进 schema）
 
@@ -117,26 +119,27 @@ gate：PASS 可被后续 FAIL 覆盖并记 progress；不得无日志改 gates
 
 ## 7. 验收总标准
 
-- [ ] R1 规格在 SSOT skill，用户文档有摘要  
-- [ ] R2 至少一个 reopen/rework 路径有合约测试  
-- [ ] R3 至少一个 phase/gate 回退路径有合约测试  
-- [ ] 无「自动 force push / 自动 unmerge」  
-- [ ] Grok Mode S：回退不依赖用户 CLI  
-- [ ] `npm run verify` PASS  
+- [x] R1 规格在 SSOT skill，用户文档有摘要  
+- [x] R2 至少一个 reopen/rework 路径有合约测试  
+- [x] R3 至少一个 phase/gate 回退路径有合约测试  
+- [x] 无「自动 force push / 自动 unmerge」  
+- [x] Grok Mode S：回退不依赖用户 CLI  
+- [x] `npm run verify` PASS  
+
 
 ## 8. 依赖与顺序
 
-1. **先 R1**（低风险、立刻减少 Agent 乱手改 plane）  
-2. R2 与 R3 可并行，优先 **Dispatch reopen**（与 C3 假 VERIFIED 负例直接相关）  
-3. R4 在 R2/R3 稳定后  
+1. **先 R1**（低风险、立刻减少 Agent 乱手改 plane） — done  
+2. R2 与 R3 可并行，优先 **Dispatch reopen** — done（`reopenTarget` / `blockDispatchIntent`）  
+3. R4 — **done**（prep 库 + 合约测试 + skill）
 
-并行注意：schema 改动须 `harness:check` + install-skill。
+并行注意：schema 改动须 `harness:check` + install-skill。本波 **未** 新增 target status 枚举（用 PENDING + event 审计）；`closeDelivery` 用 `BLOCKED` + `closeout`。
 
-## 9. 下一步（立即）
+## 9. 下一步
 
-1. 实现 R1-1/R1-2：两份 rollback 参考文 + skill 入口（本计划批准后）。  
-2. R2-1 草案 API 与 schema 字段 PR。  
-3. 实战样本：对 `DEL-acceptor-tag-color` 类假 VERIFIED 走 reopen 演练（不改历史业务 commit）。
+1. ~~R1–R4~~  
+2. 可选：`DEL-acceptor-tag-color` 假 VERIFIED 用正式 reopen 收口（勿伪装历史绿）  
+3. 发版 / `jj install-skill` 按需
 
 ## 10. 决策日志
 
@@ -145,3 +148,4 @@ gate：PASS 可被后续 FAIL 覆盖并记 progress；不得无日志改 gates
 | 2026-07-31 | 回退 = 控制面/ledger 诚实前进，非 git 时光机默认 | 已有 rework/attempt 模型；自动 revert 过险 |
 | 2026-07-31 | COMPLETED/VERIFIED 用 supersede/reopen，不擦除审计 | 检查点不可伪造未发生 |
 | 2026-07-31 | 用户不跑 CLI | 与 Mode S / C3 一致 |
+| 2026-07-31 | 实现 R1–R3：`reopenTarget`/`blockDispatchIntent`/`rollbackPhase`/`setRunStatus`；保留 checkpoint 审计 | 满足 reopen 负例与 Mode S 落盘 |

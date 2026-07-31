@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkPlaneTerminalIntegrity } from '../.codex/skills/jj-dispatch/scripts/plane-self-check.mjs';
+import {
+  checkPlaneTerminalIntegrity,
+  gradePlaneTerminalIntegrity
+} from '../.codex/skills/jj-dispatch/scripts/plane-self-check.mjs';
 
 test('plane-self-check flags synthetic session ids and VERIFIED without produced_commit', () => {
   const plane = {
@@ -39,6 +42,7 @@ test('plane-self-check flags synthetic session ids and VERIFIED without produced
   const codes = new Set(result.findings.map((f) => f.code));
   assert.ok(codes.has('SYNTHETIC_THREAD_ID'));
   assert.ok(codes.has('VERIFIED_MISSING_COMMIT') || codes.has('VERIFIED_WITHOUT_PRODUCED_COMMIT'));
+  assert.ok(codes.has('VERIFIED_REOPEN_SUGGESTED'));
 });
 
 test('plane-self-check accepts real session + matching produced_commit', () => {
@@ -65,6 +69,7 @@ test('plane-self-check accepts real session + matching produced_commit', () => {
             status: 'BOUND',
             host_id: 'grok-build',
             thread_id: '019fb288-5e92-7a73-bb0a-b6d6edfe1420',
+            sandbox_evidence_ref: '.workflow/dispatch/DEL-ok/attestations/DEL-ok__cj-web__development__1.json',
             result: { outcome: 'DONE', produced_commit: sha }
           }
         ]
@@ -74,4 +79,39 @@ test('plane-self-check accepts real session + matching produced_commit', () => {
 
   const result = checkPlaneTerminalIntegrity(plane);
   assert.equal(result.ok, true, JSON.stringify(result.findings, null, 2));
+  assert.equal(gradePlaneTerminalIntegrity(plane).grade, 'ok');
+});
+
+test('plane-self-check C4 flags BOUND review host:string attestation; grades fail on synthetic', () => {
+  const plane = {
+    deliveries: [{
+      delivery_id: 'DEL-c4',
+      status: 'RUNNING',
+      targets: [{ project_id: 'cj-web', status: 'RUNNING' }],
+      dispatch_intents: [
+        {
+          task_key: 'DEL-c4/cj-web/review/1',
+          project_id: 'cj-web',
+          responsibility: 'review',
+          status: 'BOUND',
+          host_id: 'grok-build',
+          thread_id: '019fb288-5e92-7a73-bb0a-b6d6edfe1420',
+          sandbox_evidence_ref: 'host:grok-build:session:019fb288-5e92-7a73-bb0a-b6d6edfe1420'
+        }
+      ]
+    }]
+  };
+  const result = checkPlaneTerminalIntegrity(plane);
+  assert.equal(result.ok, false);
+  assert.ok(result.findings.some((f) => f.code === 'ATTESTATION_REF_NOT_FILE'));
+
+  const badVerified = {
+    deliveries: [{
+      delivery_id: 'DEL-c5',
+      status: 'VERIFIED',
+      targets: [{ project_id: 'x', status: 'VERIFIED' }],
+      dispatch_intents: []
+    }]
+  };
+  assert.equal(gradePlaneTerminalIntegrity(badVerified).grade, 'fail');
 });

@@ -1,0 +1,19 @@
+{
+  "host_id": "grok-build",
+  "handle_kind": "session",
+  "session_id": "019fb5b3-b1f4-78b3-b79d-ffd601f91e55",
+  "task_key": "DEL-example/cj-web/review/1",
+  "agent_name": "jj-workflow-reviewer",
+  "execution_mode": "S",
+  "sandbox_mode": "read-only",
+  "effective_sandbox_mode": "read-only",
+  "effective_boundary_source": "declared-coordinator",
+  "environment": "project-read",
+  "worktree": null,
+  "intended_branch": null,
+  "git_head_at_bind": "aaaaaaaa1111111",
+  "project_path": "D:/a/cj-web",
+  "bound_at": "2026-07-31T12:00:00.000Z",
+  "access": "read",
+  "_comment": "C4: review/read intents use the same attestations/*.json layout as development; intent.sandbox_evidence_ref points at this file path under control_root."
+}

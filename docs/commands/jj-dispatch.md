@@ -45,6 +45,31 @@ DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型�
 - Codex App 缺少 list/create/read、worktree 或 runtime sandbox 证明时，停在 `PREVIEW_ONLY/BLOCKED`，不能降级为无项目任务。
 - **Grok** 缺少多 session create/list 时：**不**整波假 BLOCKED；进入 **Mode S**（当前真实 session + project-branch + attestation/receipt 文件）。禁止合成 session id；无 `produced_commit` 不得 `VERIFIED`。Grok Workflow（Rhai）可辅助探索，**不能**单独推进控制面 checkpoint。
 
+## 回退（控制面 + Git 点选）
+
+误标 `VERIFIED`、撤销目标验收、停掉进行中 task 时，走控制面回退，**不要**手改 JSON 假装未发生：
+
+| 意图 | 动作 |
+| --- | --- |
+| 已 VERIFIED 要重做 | `reopenTarget`（Mode S 自动 prepare；attempt++、清 approval、`PREVIEW_ONLY`） |
+| Mode S 软 plane | `prepareModeSReopen` 或 reopen 内置 prepare |
+| 停掉 BOUND / PENDING_THREAD | `blockDispatchIntent` |
+| Review 返工 | `requestRework` |
+| 丢不掉的 UNKNOWN | `abandonDispatchUnknown` |
+| 代码回滚 | **G-menu 用户点选**：[1] 保留 / [2] reset（未 push 干净 tip 推荐） / [3] revert（已 push/审计） |
+
+默认不自动 unmerge / force-push / 不默认 revert。Skill：`jj-dispatch/references/rollback.md`。
+
+## C4 / C5 / C6（Mode S 证据升级）
+
+| ID | 含义 | Agent 动作 |
+| --- | --- | --- |
+| **C4** | BOUND 时 development **与** review 均写 attestation **文件** | `sandbox_evidence_ref` → `.workflow/dispatch/<DEL>/attestations/<task_key_safe>.json`；禁止仅 `host:grok-build:session:…` |
+| **C5** | 完整性等级 | 跑 `plane-self-check` → `integrity_grade`：`ok` / `degraded` / `fail`；可 `setIntegrityGrade` 写 plane |
+| **C6** | 远端收口标注 | `setRemoteCloseout({ pushed, merged_to, note })`；**不**替代 VERIFIED 门禁 |
+
+库：`src/dispatchAttestation.mjs`（写文件）、`setIntegrityGrade` / `setRemoteCloseout`（`dispatchControlPlane.mjs`）。
+
 ## 输入模板
 
 先预览任务集合：

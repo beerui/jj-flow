@@ -27,7 +27,11 @@ import {
   evaluateAcceptArchiveGate,
   detectDeliverOutsideLedger,
   recordHostMeta,
-  resolveReviewScope
+  resolveReviewScope,
+  rollbackPhase,
+  setRunStatus,
+  suggestReopenAsNew,
+  loadRun
 } from '../src/ralph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -49,6 +53,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '.codex/skills/jj-ralph/SKILL.md',
     '.codex/skills/jj-ralph/references/artifact-layout.md',
     '.codex/skills/jj-ralph/references/phases.md',
+    '.codex/skills/jj-ralph/references/rollback.md',
     '.codex/skills/jj-ralph/references/business-map.md',
     '.codex/skills/jj-ralph/references/integrations.md',
     '.codex/skills/jj-ralph/references/ralph-run.schema.json',
@@ -73,7 +78,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'jj-dispatch',
     'map-find',
     'ralph_ops.mjs',
-    'finalize'
+    'finalize',
+    'rollback',
+    'rollback-phase'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -505,6 +512,78 @@ test('setGate advances phase on PASS and can block', () => {
     result = setGate(runId, { gate: 'deliver', status: 'PASS', cwd, advance: false });
     assert.equal(result.run.gates.deliver, 'PASS');
     assert.equal(result.phase, 'DELIVER');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('rollbackPhase allows adjacent edges and writes progress; rejects ARCHIVE/COMPLETED/skip', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-rollback-'));
+  try {
+    const runId = 'RALPH-rollback-20260731';
+    initRun({ run_id: runId, title: 'rollback', goal: 'phase back', capability_ids: ['CAP-rb'] }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    let run = loadRun(runId, cwd);
+    assert.equal(run.phase, 'ACCEPT');
+    assert.equal(run.gates.deliver, 'PASS');
+
+    const rolled = rollbackPhase(runId, { toPhase: 'DELIVER', reason: '验收证据不足', cwd });
+    assert.equal(rolled.toPhase, 'DELIVER');
+    assert.equal(rolled.fromPhase, 'ACCEPT');
+    run = loadRun(runId, cwd);
+    assert.equal(run.phase, 'DELIVER');
+    assert.equal(run.gates.deliver, 'FAIL');
+    assert.equal(run.gates.accept, 'PENDING');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /rollbackPhase ACCEPT→DELIVER/);
+
+    assert.throws(
+      () => rollbackPhase(runId, { toPhase: 'ANALYZE', reason: 'skip not allowed', cwd }),
+      /adjacent/
+    );
+
+    setRunStatus(runId, { status: 'PAUSED', reason: '等 UAT', cwd });
+    run = loadRun(runId, cwd);
+    assert.equal(run.status, 'PAUSED');
+    setRunStatus(runId, { status: 'IN_PROGRESS', reason: '继续实施', cwd });
+    run = loadRun(runId, cwd);
+    assert.equal(run.status, 'IN_PROGRESS');
+
+    // COMPLETED cannot reopen in place
+    run.status = 'COMPLETED';
+    run.phase = 'ARCHIVE';
+    run.gates.archive = 'PASS';
+    saveRun(run, cwd);
+    assert.throws(
+      () => rollbackPhase(runId, { toPhase: 'ACCEPT', reason: 'no', cwd }),
+      /COMPLETED|ARCHIVE/
+    );
+    assert.throws(
+      () => setRunStatus(runId, { status: 'IN_PROGRESS', reason: 'no', cwd }),
+      /COMPLETED/
+    );
+    const suggestion = suggestReopenAsNew(run, { newRunId: 'RALPH-rollback-reopen-20260731' });
+    assert.equal(suggestion.supersedes_run_id, runId);
+    assert.match(suggestion.note, /new run/i);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('setGate FAIL covers prior PASS without forging COMPLETED reopen', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-gate-fail-'));
+  try {
+    const runId = 'RALPH-gate-fail-20260731';
+    initRun({ run_id: runId, title: 'gate fail', goal: 'fail gate', capability_ids: ['CAP-gf'] }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    const failed = setGate(runId, { gate: 'plan', status: 'FAIL', cwd, advance: false });
+    assert.equal(failed.run.gates.plan, 'FAIL');
+    assert.equal(failed.phase, 'DELIVER');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /gate plan=FAIL/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

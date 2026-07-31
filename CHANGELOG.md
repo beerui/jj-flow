@@ -4,9 +4,12 @@
 
 ## Unreleased
 
-- 规划：Dispatch / Ralph **任务回退**下一阶段 exec plan（`docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md`）— 控制面 reopen/rework、Ralph phase/gate 回退、可选 git prep；无默认自动 unmerge。
+- **C4–C6 加深**：`dispatchAttestation.mjs`（含 review 的 attestation 路径/写文件）；schema 可选 `integrity_grade` / `remote_closeout` / `closeout`；skill 硬门禁 C 段改为文件 ref；用户文档与 sample；合约测试。
+- **收尾 R4 + C4–C6 + closeDelivery**：`dispatchRollbackPrep.mjs`；`closeDelivery` / `setRemoteCloseout` / `setIntegrityGrade`；plane-self-check；readme-pnpm `ROLLED_BACK` 关闭。
+- **R-soft-reopen + G-menu**：Mode S session 共享；`prepareModeSReopen`；`reopenTarget` 默认 prepareSoft；未 push 干净 tip Recommended=**reset**。
+- **任务回退（R1–R4）**：Dispatch reopen/block + Ralph phase/status + rollback-prep；plane-self-check `VERIFIED_REOPEN_SUGGESTED`。默认不自动 unmerge/force-push。
 - 评估：`DEL-readme-pnpm-install-20260731` Mode S **控制面闭环**（plane-self-check OK）；`docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`；Mode S exec plan live checkbox 勾选；acceptor-tag 保留 integrity FAIL 负例。
-- 存档：**Dispatch/Mode S 升级 backlog** `docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md`（状态 blocked，留待升级；队列 C4→C6，默认下一刀 Review attestation 文件化）。
+- 升级 backlog：`docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md` — **C4–C6 已完成**；Mode W/P / Host Wave 2 仍后置。
 
 ## 0.1.1-beta.38 — 2026-07-30 19:30
 

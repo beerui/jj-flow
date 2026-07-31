@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|rollback-phase|set-status|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -75,6 +75,8 @@ Commands:
   finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
   map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
   gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+  rollback-phase --run-id RALPH-x --to PLAN|DELIVER|ANALYZE --reason "..." [--cwd DIR]
+  set-status --run-id RALPH-x --status PAUSED|BLOCKED|IN_PROGRESS --reason "..." [--cwd DIR]
   map-find --query "keyword" [--limit N] [--cwd DIR]
   handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
   dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
@@ -179,6 +181,8 @@ async function main() {
     commitPrep,
     recordReview,
     setGate,
+    rollbackPhase,
+    setRunStatus,
     RALPH_MAP_REL,
   } = mod;
 
@@ -305,6 +309,49 @@ async function main() {
         status,
         phase: result.phase,
         run_status: result.run?.status,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'rollback-phase') {
+      const runId = args['run-id'];
+      const toPhase = args.to || args.phase || args['to-phase'];
+      const reason = args.reason;
+      if (!runId || !toPhase || !reason) die('rollback-phase needs --run-id --to --reason');
+      if (typeof rollbackPhase !== 'function') {
+        die('resolved ralph.mjs has no rollbackPhase; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = rollbackPhase(runId, { toPhase, reason, cwd });
+      printJson({
+        ok: true,
+        action: 'rollback-phase',
+        run_id: runId,
+        from_phase: result.fromPhase,
+        to_phase: result.toPhase,
+        status: result.status,
+        reason: result.reason,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'set-status') {
+      const runId = args['run-id'];
+      const status = args.status;
+      const reason = args.reason;
+      if (!runId || !status || !reason) die('set-status needs --run-id --status --reason');
+      if (typeof setRunStatus !== 'function') {
+        die('resolved ralph.mjs has no setRunStatus; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = setRunStatus(runId, { status, reason, cwd });
+      printJson({
+        ok: true,
+        action: 'set-status',
+        run_id: runId,
+        from: result.from,
+        status: result.status,
+        reason: result.reason,
         resolved,
       });
       return;

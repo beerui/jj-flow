@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   approveDispatch,
   abandonDispatchUnknown,
+  blockDispatchIntent,
   buildTaskKey,
   createControlPlane,
   dispatchTasks,
@@ -14,9 +15,16 @@ import {
   recordReviewResult,
   recordTaskResult,
   recordTargetResult,
+  prepareModeSReopen,
+  reopenTarget,
   requestRework,
+  closeDelivery,
+  setRemoteCloseout,
+  setIntegrityGrade,
   setReferenceImplementation,
-  validateControlPlane
+  supersedeVerified,
+  validateControlPlane,
+  bindThread
 } from '../src/dispatchControlPlane.mjs';
 
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/jj-dispatch-control-plane.json', import.meta.url), 'utf8'));
@@ -595,6 +603,353 @@ test('verified deliveries cannot be re-approved in place', () => {
     deliveryId: 'DEL-001',
     decisionRef: 'decision:reopen'
   }), /cannot be approved/);
+});
+
+test('reopenTarget demotes VERIFIED with attempt++ and keeps fail-closed gate until new commit', () => {
+  let source = withTargetReview(fixture, 'A');
+  source = withTargetReview(source, 'B');
+  source.deliveries[0].lead_project = 'A';
+  source.deliveries[0].lead_responsibilities = [];
+  let plane = approveDispatch(createControlPlane(source), {
+    deliveryId: 'DEL-001',
+    decisionRef: 'decision:reopen-path'
+  });
+  plane = completeTargetPipeline(plane, 'A');
+  plane = completeTargetPipeline(plane, 'B');
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:A-reopen',
+    commit: 'commit-A',
+    sourceHead: 'source-a-reopen'
+  });
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'B',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:B-reopen',
+    commit: 'commit-B',
+    sourceHead: 'source-b-reopen'
+  });
+  assert.equal(plane.deliveries[0].status, 'VERIFIED');
+  const beforeRevision = plane.revision;
+  const reopened = reopenTarget(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    reason: '误标验收，需重做 development'
+  });
+  assert.equal(validateControlPlane(reopened).ok, true);
+  assert.equal(reopened.revision, beforeRevision + 1);
+  const targetA = reopened.deliveries[0].targets.find((t) => t.project_id === 'A');
+  assert.equal(targetA.status, 'PENDING');
+  assert.equal(targetA.last_result, null);
+  assert.ok(targetA.checkpoint?.commit === 'commit-A' || targetA.checkpoint?.commit?.startsWith('commit-A'));
+  assert.equal(targetA.responsibilities.find((r) => r.name === 'development').attempt, 2);
+  assert.equal(targetA.responsibilities.find((r) => r.name === 'review').attempt, 2);
+  assert.equal(reopened.deliveries[0].status, 'PREVIEW_ONLY');
+  assert.equal(reopened.deliveries[0].approval.status, 'PENDING');
+  assert.ok(reopened.events.some((e) => e.type === 'TARGET_REOPENED' && e.project_id === 'A'));
+  // B remains VERIFIED — delivery is no longer terminal VERIFIED
+  assert.equal(reopened.deliveries[0].targets.find((t) => t.project_id === 'B').status, 'VERIFIED');
+  assert.notEqual(reopened.deliveries[0].status, 'VERIFIED');
+
+  const reapproved = approveDispatch(reopened, { deliveryId: 'DEL-001', decisionRef: 'decision:after-reopen' });
+  const preview = previewDispatch(reapproved, 'DEL-001');
+  assert.ok(preview.tasks.some((t) => t.task_key === 'DEL-001/A/development/2'));
+  // Cannot re-record VERIFIED without completing the new attempt pipeline
+  assert.throws(() => recordTargetResult(reapproved, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:A-too-soon',
+    commit: 'commit-A',
+    sourceHead: 'source-a-reopen'
+  }), /incomplete|review|ready/i);
+
+  const superseded = supersedeVerified(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'B',
+    reason: 'supersede B for rework'
+  });
+  assert.equal(validateControlPlane(superseded).ok, true);
+  assert.ok(superseded.events.some((e) => e.type === 'TARGET_SUPERSEDED' && e.project_id === 'B'));
+  assert.equal(superseded.deliveries[0].targets.find((t) => t.project_id === 'B').status, 'PENDING');
+});
+
+test('Mode S shared session allows multiple COMPLETED intents and bindThread', () => {
+  const sessionId = '019fb5b3-b1f4-78b3-b79d-ffd601f91e55';
+  let plane = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:mode-s-share' });
+  let dispatched = dispatchTasks(plane, 'DEL-001', { capabilities: appCapabilities });
+  const devA = dispatched.created.find((t) => t.project_id === 'A' && t.responsibility === 'development');
+  const devB = dispatched.created.find((t) => t.project_id === 'B' && t.responsibility === 'development');
+  plane = bindThread(dispatched.plane, {
+    taskKey: devA.task_key,
+    threadId: sessionId,
+    projectId: 'A',
+    hostId: 'grok-build',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: `host:grok-build:session:${sessionId}`,
+    worktree: 'D:/A',
+    handleKind: 'session'
+  });
+  plane = bindThread(plane, {
+    taskKey: devB.task_key,
+    threadId: sessionId,
+    projectId: 'B',
+    hostId: 'grok-build',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: `host:grok-build:session:${sessionId}`,
+    worktree: 'D:/B',
+    handleKind: 'session'
+  });
+  assert.equal(validateControlPlane(plane).ok, true);
+  assert.equal(plane.deliveries[0].dispatch_intents.filter((i) => i.thread_id === sessionId).length, 2);
+
+  // Codex-style thread still cannot share
+  let codexPlane = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:codex-no-share' });
+  codexPlane = dispatchTasks(codexPlane, 'DEL-001', { capabilities: appCapabilities }).plane;
+  const taskA = codexPlane.deliveries[0].dispatch_intents.find((i) => i.project_id === 'A' && i.responsibility === 'development');
+  const taskB = codexPlane.deliveries[0].dispatch_intents.find((i) => i.project_id === 'B' && i.responsibility === 'development');
+  codexPlane = bindThread(codexPlane, {
+    taskKey: taskA.task_key,
+    threadId: 'thread-shared',
+    projectId: 'A',
+    hostId: 'host-main',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: 'APP-SANDBOX:thread-shared',
+    worktree: 'D:/worktrees/A-development',
+    handleKind: 'thread'
+  });
+  assert.throws(() => bindThread(codexPlane, {
+    taskKey: taskB.task_key,
+    threadId: 'thread-shared',
+    projectId: 'B',
+    hostId: 'host-main',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: 'APP-SANDBOX:thread-shared',
+    worktree: 'D:/worktrees/B-development',
+    handleKind: 'thread'
+  }), /already bound/);
+});
+
+test('closeDelivery blocks PREVIEW_ONLY after rollback and rejects VERIFIED', () => {
+  let plane = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:close' });
+  // APPROVED (not yet DISPATCHING) may close as cancelled
+  const closedApproved = closeDelivery(plane, {
+    deliveryId: 'DEL-001',
+    reason: 'user cancelled before dispatch',
+    outcome: 'CANCELLED'
+  });
+  assert.equal(closedApproved.deliveries[0].status, 'BLOCKED');
+  assert.equal(closedApproved.deliveries[0].closeout.outcome, 'CANCELLED');
+  assert.ok(closedApproved.events.some((e) => e.type === 'DELIVERY_CLOSED'));
+
+  let source = withTargetReview(fixture, 'A');
+  source = withTargetReview(source, 'B');
+  source.deliveries[0].lead_project = 'A';
+  source.deliveries[0].lead_responsibilities = [];
+  plane = approveDispatch(createControlPlane(source), { deliveryId: 'DEL-001', decisionRef: 'decision:close-v' });
+  plane = completeTargetPipeline(plane, 'A');
+  plane = completeTargetPipeline(plane, 'B');
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:A',
+    commit: 'commit-A',
+    sourceHead: 'source-a'
+  });
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'B',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:B',
+    commit: 'commit-B',
+    sourceHead: 'source-b'
+  });
+  assert.equal(plane.deliveries[0].status, 'VERIFIED');
+  assert.throws(() => closeDelivery(plane, {
+    deliveryId: 'DEL-001',
+    reason: 'no',
+    outcome: 'ROLLED_BACK'
+  }), /VERIFIED/);
+
+  const reopened = reopenTarget(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    reason: 'reopen before close'
+  });
+  const closed = closeDelivery(reopened, {
+    deliveryId: 'DEL-001',
+    reason: 'rolled back and closed',
+    outcome: 'ROLLED_BACK'
+  });
+  assert.equal(validateControlPlane(closed).ok, true);
+  assert.equal(closed.deliveries[0].status, 'BLOCKED');
+  assert.equal(closed.deliveries[0].closeout.outcome, 'ROLLED_BACK');
+
+  const withRemote = setRemoteCloseout(closed, {
+    deliveryId: 'DEL-001',
+    pushed: false,
+    merged_to: null,
+    note: 'feature reset; not pushed'
+  });
+  assert.equal(withRemote.deliveries[0].remote_closeout.pushed, false);
+  const graded = setIntegrityGrade(withRemote, {
+    deliveryId: 'DEL-001',
+    grade: 'ok',
+    findings: []
+  });
+  assert.equal(graded.deliveries[0].integrity_grade, 'ok');
+});
+
+test('prepareModeSReopen + reopenTarget works on soft Mode S VERIFIED plane', () => {
+  const sessionId = '019fb5b3-b1f4-78b3-b79d-ffd601f91e55';
+  const shaA = 'aaaaaaaa1111111';
+  const shaB = 'bbbbbbbb2222222';
+  const soft = {
+    schema_version: 'jj-flow/control-plane/1.0',
+    revision: 4,
+    control_project: { id: 'control', name: '控制项目', path: 'D:/control', role: 'control' },
+    projects: [
+      { id: 'A', name: 'A', path: 'D:/A', status: 'active' },
+      { id: 'B', name: 'B', path: 'D:/B', status: 'active' },
+      { id: 'C', name: 'C', path: 'D:/C', status: 'active' }
+    ],
+    deliveries: [{
+      delivery_id: 'DEL-soft-ms',
+      title: 'soft mode s',
+      request_ref: 'thread:soft',
+      origin_project: 'C',
+      requirement_owner: 'C',
+      lead_project: 'C',
+      lead_responsibilities: [],
+      reference_implementation: {
+        project_id: 'C',
+        commit: 'cccccccc3333333',
+        snapshot_ref: 'ralph:soft'
+      },
+      distribution_prompt: {
+        summary: 'soft',
+        source_project: 'C',
+        source_head: 'cccccccc3333333',
+        handoff_ref: 'ralph:soft'
+      },
+      targets: [
+        {
+          project_id: 'A',
+          status: 'VERIFIED',
+          intended_branch: 'feat/a',
+          commit: shaA,
+          reviewed_commit: shaA,
+          responsibilities: [
+            { name: 'development', access: 'write', phase: 'development', status: 'DONE', attempt: 1, depends_on: [] },
+            { name: 'review', access: 'read', phase: 'review', status: 'DONE', attempt: 1, depends_on: ['DEL-soft-ms/A/development/1'] }
+          ]
+        },
+        {
+          project_id: 'B',
+          status: 'VERIFIED',
+          intended_branch: 'feat/b',
+          commit: shaB,
+          reviewed_commit: shaB,
+          responsibilities: [
+            { name: 'development', access: 'write', phase: 'development', status: 'DONE', attempt: 1, depends_on: [] },
+            { name: 'review', access: 'read', phase: 'review', status: 'DONE', attempt: 1, depends_on: ['DEL-soft-ms/B/development/1'] }
+          ]
+        }
+      ],
+      status: 'VERIFIED',
+      approval: {
+        status: 'APPROVED',
+        decision_ref: 'user:soft',
+        approved_at: '2026-07-31T01:00:00.000Z',
+        task_keys: [
+          'DEL-soft-ms/A/development/1',
+          'DEL-soft-ms/A/review/1',
+          'DEL-soft-ms/B/development/1',
+          'DEL-soft-ms/B/review/1'
+        ],
+        tasks: [
+          { task_key: 'DEL-soft-ms/A/development/1', project_id: 'A', responsibility: 'development', attempt: 1 },
+          { task_key: 'DEL-soft-ms/A/review/1', project_id: 'A', responsibility: 'review', attempt: 1 },
+          { task_key: 'DEL-soft-ms/B/development/1', project_id: 'B', responsibility: 'development', attempt: 1 },
+          { task_key: 'DEL-soft-ms/B/review/1', project_id: 'B', responsibility: 'review', attempt: 1 }
+        ]
+      },
+      dispatch_intents: [
+        softIntent({ taskKey: 'DEL-soft-ms/A/development/1', projectId: 'A', responsibility: 'development', phase: 'development', access: 'write', sessionId, produced: shaA, worktree: 'D:/A' }),
+        softIntent({ taskKey: 'DEL-soft-ms/A/review/1', projectId: 'A', responsibility: 'review', phase: 'review', access: 'read', sessionId, reviewed: shaA, dependsOn: ['DEL-soft-ms/A/development/1'] }),
+        softIntent({ taskKey: 'DEL-soft-ms/B/development/1', projectId: 'B', responsibility: 'development', phase: 'development', access: 'write', sessionId, produced: shaB, worktree: 'D:/B' }),
+        softIntent({ taskKey: 'DEL-soft-ms/B/review/1', projectId: 'B', responsibility: 'review', phase: 'review', access: 'read', sessionId, reviewed: shaB, dependsOn: ['DEL-soft-ms/B/development/1'] })
+      ],
+      reviews: [
+        { task_key: 'DEL-soft-ms/A/review/1', project_id: 'A', result: 'PASS', reviewed_commit: shaA, findings: [], reviewed_at: '2026-07-31T01:20:00.000Z' },
+        { task_key: 'DEL-soft-ms/B/review/1', project_id: 'B', result: 'PASS', reviewed_commit: shaB, findings: [], reviewed_at: '2026-07-31T01:20:00.000Z' }
+      ],
+      created_at: '2026-07-31T01:00:00.000Z',
+      updated_at: '2026-07-31T01:20:00.000Z'
+    }],
+    events: []
+  };
+
+  assert.equal(validateControlPlane(soft).ok, false);
+  const prepared = prepareModeSReopen(soft, { deliveryId: 'DEL-soft-ms' });
+  const preparedValidation = validateControlPlane(prepared);
+  assert.equal(preparedValidation.ok, true, preparedValidation.errors?.join('; '));
+
+  const reopened = reopenTarget(soft, {
+    deliveryId: 'DEL-soft-ms',
+    projectId: 'A',
+    reason: 'path B control reopen on soft Mode S plane'
+  });
+  assert.equal(validateControlPlane(reopened).ok, true);
+  assert.equal(reopened.deliveries[0].status, 'PREVIEW_ONLY');
+  assert.equal(reopened.deliveries[0].targets.find((t) => t.project_id === 'A').status, 'PENDING');
+  assert.equal(reopened.deliveries[0].targets.find((t) => t.project_id === 'A').responsibilities[0].attempt, 2);
+  assert.ok(reopened.events.some((e) => e.type === 'TARGET_REOPENED' && e.project_id === 'A'));
+  assert.equal(reopened.deliveries[0].targets.find((t) => t.project_id === 'B').status, 'VERIFIED');
+});
+
+test('blockDispatchIntent blocks BOUND/PENDING_THREAD and rejects COMPLETED', () => {
+  const approved = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:block-intent' });
+  const dispatched = dispatchTasks(approved, 'DEL-001', { capabilities: appCapabilities });
+  const task = dispatched.created.find((item) => item.project_id === 'A' && item.responsibility === 'development');
+  const pendingBlocked = blockDispatchIntent(dispatched.plane, {
+    taskKey: task.task_key,
+    reason: '用户取消本波开发'
+  });
+  assert.equal(validateControlPlane(pendingBlocked).ok, true);
+  assert.equal(
+    pendingBlocked.deliveries[0].dispatch_intents.find((i) => i.task_key === task.task_key).status,
+    'BLOCKED'
+  );
+  assert.equal(pendingBlocked.deliveries[0].status, 'BLOCKED');
+  assert.ok(pendingBlocked.events.some((e) => e.type === 'DISPATCH_INTENT_BLOCKED'));
+
+  let plane = approveDispatch(createControlPlane(withTargetReview(fixture, 'A')), {
+    deliveryId: 'DEL-001',
+    decisionRef: 'decision:block-completed'
+  });
+  plane = completeTargetPipeline(plane, 'A');
+  const completedKey = 'DEL-001/A/development/1';
+  assert.throws(
+    () => blockDispatchIntent(plane, { taskKey: completedKey, reason: 'too late' }),
+    /PENDING_THREAD or BOUND/
+  );
 });
 
 test('abandoning a stale UNKNOWN attempt is rejected and does not mutate the new attempt', () => {
@@ -1214,5 +1569,55 @@ function bindingCandidate(task, { threadId, worktree = null } = {}) {
     sandbox_evidence_ref: `APP-SANDBOX:${threadId}`,
     environment: writer ? 'project-branch' : 'project-read',
     worktree
+  };
+}
+
+function softIntent({
+  taskKey,
+  projectId,
+  responsibility,
+  phase,
+  access,
+  sessionId,
+  produced = null,
+  reviewed = null,
+  worktree = null,
+  dependsOn = []
+}) {
+  const writer = access === 'write';
+  return {
+    task_key: taskKey,
+    delivery_id: 'DEL-soft-ms',
+    project_id: projectId,
+    responsibility,
+    access,
+    phase,
+    attempt: 1,
+    depends_on: dependsOn,
+    status: 'BOUND',
+    created_at: '2026-07-31T01:15:00.000Z',
+    host_id: 'grok-build',
+    handle_kind: 'session',
+    thread_id: sessionId,
+    agent_name: writer ? 'jj-workflow-developer' : 'jj-workflow-reviewer',
+    sandbox_mode: writer ? 'workspace-write' : 'read-only',
+    effective_sandbox_mode: writer ? 'workspace-write' : 'read-only',
+    sandbox_evidence_ref: `host:grok-build:session:${sessionId}`,
+    environment: writer ? 'project-branch' : 'project-read',
+    worktree: writer ? worktree : null,
+    bound_at: '2026-07-31T01:15:00.000Z',
+    result: writer
+      ? {
+          outcome: 'DONE',
+          produced_commit: produced,
+          receipt_ref: `receipt:${taskKey}`
+        }
+      : {
+          outcome: 'DONE',
+          review: 'PASS',
+          reviewed_commit: reviewed,
+          findings: [],
+          receipt_ref: `receipt:${taskKey}`
+        }
   };
 }
