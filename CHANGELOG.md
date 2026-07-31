@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 0.1.1-beta.41 — 2026-07-31 18:23
+
+- **jj-ralph 续作协议（改错 / 加子需求）**：归档前同 `run_id` 扩 scope 或按相邻边回退；归档后新 run + `progress.md` 链（纠正用 `supersedes_run_id`，纯子需求用 `parent_run_id`）；禁止 reopen COMPLETED / invent 未 schema 的 run.json 字段。
+- Skill：`.codex/skills/jj-ralph/references/post-complete-continue.md`；`rollback.md` / `SKILL.md` 交叉引用。
+- 文档：`docs/commands/jj-ralph.md` §1；`docs/design-docs/jj-ralph.md` 站点链接 `command-jj-ralph.html`。
+
 ## 0.1.1-beta.40 — 2026-07-31 14:45
 
 - **技能面 90+ 三波优化（Wave0–2）**

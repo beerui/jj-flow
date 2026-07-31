@@ -58,6 +58,8 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
 | COMPLETED 再做 | 新 run + `supersedes`；不 un-archive 覆盖 |
 
+续作（**改错** / **加子需求**，关账前同 run / 关账后新 run 链）与话术：用户向 [ralph 命令 §1](../command-jj-ralph.html#1-续作-改错与子需求-关账前-关账后)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
+
 默认**不**自动 git revert。
 
 ## 5. 产物布局

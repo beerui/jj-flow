@@ -59,6 +59,8 @@ node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x-20260723 --status PAUS
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
 | COMPLETED 再做 | **新 run** + 链 `supersedes`；不 un-archive 覆盖 |
 
+续作「改错 / 加子需求」（关账前同 run / 关账后链）见 [post-complete-continue.md](references/post-complete-continue.md)（用户向：`docs/commands/jj-ralph.md` §1）。
+
 默认不自动 git revert。实现：`src/ralph.mjs` 的 `rollbackPhase` / `setRunStatus` / `setGate`。
 
 ## 硬约束

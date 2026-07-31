@@ -48,8 +48,9 @@ COMPLETED → 禁止 reopen 旧目录；新 run 链 supersedes_run_id
 ## COMPLETED / archive
 
 - **不** `un-archive` 覆盖冻结副本
-- 建议：`ralph_ops init` 新 `run_id`，在 `run.json` / progress 写 `supersedes: <old_run_id>`（字段可放 `family` 或 progress 首行）
+- 建议：`ralph_ops init` 新 `run_id`，在 **`progress.md` 首行** 写 `supersedes_run_id: <old_run_id>`（纠正）或 `parent_run_id: <old_run_id>`（纯子需求）；**勿**向未 schema 的 `run.json` invent 字段
 - 旧 archive 与 map 条目保留作审计
+- **改错 vs 子需求**（同 run 扩 scope / 新 run 链；相邻边回退）：见 [post-complete-continue.md](post-complete-continue.md)
 
 ## 负例
 
