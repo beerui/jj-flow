@@ -94,7 +94,7 @@ $jj-ralph
 
 协议刻意区分这两种「统一」，避免已经验收通过的证据被改写。
 
-**关联怎么记（写在 `progress.md` 首行，不要 invent 未 schema 的 run.json 字段）：**
+**关联怎么记（写在 `progress.md` 审计行——首条关联行或最近追加行均可；不要 invent 未 schema 的 run.json 字段）：**
 
 | 键 | 何时 |
 |------|------|
@@ -114,7 +114,7 @@ $jj-ralph
           │ 改错                           │ 加子需求
           ▼                                ▼
    Run B supersedes_run_id=A       Run B parent_run_id=A
-   （纠正型 delta）                  （子级 delta；勿误用 supersedes）
+   （纠正型 delta）                  （子级 delta；勿误用 supersedes_run_id）
 ```
 
 可选：像素/视觉类可先停在「等用户确认」再归档，减少过早 COMPLETED。
@@ -162,7 +162,7 @@ $jj-ralph 继续 RALPH-xxx：纠正 …（验收 FAIL 的点）
 | 步骤 | 做什么 |
 |------|--------|
 | 1 | 开新 run（标题带「纠正 / fixup」） |
-| 2 | 在 `progress.md` 首行写 `supersedes_run_id: RALPH-…`（旧 id） |
+| 2 | 在 `progress.md` 审计行写 `supersedes_run_id: RALPH-…`（旧 id） |
 | 3 | 分析只写差量，不重写整份背景 |
 | 4 | 轻量实施 → 验收 → 归档 |
 | 5 | 需要收工再用 [end](command-jj-end.html) |
@@ -238,7 +238,7 @@ $jj-ralph 子需求（续 RALPH-activity-tip-down-4px-20260731）：close 按钮
 |--|----------|------------------|
 | **未 COMPLETED** | 同 run：相邻边回退 / 再实施 | 同 run：加 REQ + TASK |
 | **已 COMPLETED** | 新 run + `supersedes_run_id` | 新 run + `parent_run_id` |
-| **禁止** | 手改 COMPLETED → 进行中 | 无关联地 init；纯子需求误用 supersedes |
+| **禁止** | 手改 COMPLETED → 进行中 | 无关联地 init；纯子需求误用 `supersedes_run_id` |
 | **话术** | 「纠正 RALPH-xxx：…」 | 「当前任务加…」或「子需求续 RALPH-xxx：…」 |
 
 **一句话：**  

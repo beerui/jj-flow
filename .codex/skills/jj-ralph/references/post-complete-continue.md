@@ -21,7 +21,7 @@
 
 `run.json` schema **未**声明 `supersedes_run_id` 等 top-level 键（`additionalProperties: false` 时勿 invent 进 run.json）。
 
-**权威落点：`progress.md` 首行（或首条 audit 行）**，键名统一：
+**权威落点：`progress.md` 审计行（首条关联行或最近追加行均可）**，键名统一：
 
 | 键 | 何时 |
 | --- | --- |
@@ -29,7 +29,7 @@
 | `parent_run_id: RALPH-…` | **纯子需求增量**，父 run 仍有效、不否定 |
 | `related_run_id: RALPH-…` | 弱关联（可选）；优先用 `parent_run_id` |
 
-- 与 `suggestReopenAsNew` 一致时用 **`supersedes_run_id`**（勿混用裸词 `supersedes:`  alone 而不写 id 键名）。
+- 与 `suggestReopenAsNew` 一致时用 **`supersedes_run_id`**（勿混用裸词 `supersedes:` 而不写完整 id 键名）。
 - 若将来 schema 开放字段，再迁入 `run.json`；在此之前 progress 即审计事实。
 
 ## 1. 修改错了
@@ -68,7 +68,7 @@
 ### 2.2 已 COMPLETED
 
 - **新 run**；`progress.md` 写 `parent_run_id: <父 run_id>`（纯子增量）
-- **不要**对纯子需求写 `supersedes_run_id`（那会暗示父实现作废）；纠正才用 supersedes
+- **不要**对纯子需求写 `supersedes_run_id`（那会暗示父实现作废）；纠正才用 `supersedes_run_id`
 - analyze MUST 仅子需求；父项验收可 N/A「已由父 run 验收」
 - 轻量路径（tiny-example）
 
@@ -89,7 +89,7 @@
 | --- | --- | --- |
 | 未关账 | 同 run 回退/再 DELIVER（相邻边） | 同 run 加 REQ/TASK |
 | 已关账 | 新 run + `supersedes_run_id` | 新 run + `parent_run_id` |
-| 禁止 | 改写 COMPLETED status | 无关联的第二 run；纯子需求误用 supersedes |
+| 禁止 | 改写 COMPLETED status | 无关联的第二 run；纯子需求误用 `supersedes_run_id` |
 
 ## 负例
 
@@ -99,4 +99,4 @@
 | 未关账时用户说「也要 close」却新 init 全套 | 同 run 扩 scope |
 | 已关账后无关联 init，map 上像无关需求 | progress 写 `parent_run_id` / `supersedes_run_id` |
 | 一次 `rollback-phase --to ANALYZE` 从 ACCEPT 跳级 | 相邻边逐步回退 |
-| 向 run.json 写入未 schema 的 supersedes 字段 | 写 progress.md 审计行 |
+| 向 run.json 写入未 schema 的 `supersedes_run_id` / `parent_run_id` | 写 progress.md 审计行 |

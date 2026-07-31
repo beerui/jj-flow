@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+- **jj-ralph 续作协议 nits**：恢复表/设计文档裸词 `supersedes` → 规范键 `supersedes_run_id` / `parent_run_id`；`suggestReopenAsNew` note 改为只链 `progress.md`（非 `family`/run.json）；`post-complete-continue` / `rollback` 审计行措辞对齐。
+- **对抗复查 follow-up**：合约测试锁定 note 含 `progress.md` / `not family`；用户文档 `docs/commands/jj-ralph.md` 首行→审计行；COMPLETED/ARCHIVE throw 文案补 progress.md placement；禁止表白话键名对齐。
+
 ## 0.1.1-beta.41 — 2026-07-31 18:23
 
 - **jj-ralph 续作协议（改错 / 加子需求）**：归档前同 `run_id` 扩 scope 或按相邻边回退；归档后新 run + `progress.md` 链（纠正用 `supersedes_run_id`，纯子需求用 `parent_run_id`）；禁止 reopen COMPLETED / invent 未 schema 的 run.json 字段。

@@ -567,6 +567,9 @@ test('rollbackPhase allows adjacent edges and writes progress; rejects ARCHIVE/C
     const suggestion = suggestReopenAsNew(run, { newRunId: 'RALPH-rollback-reopen-20260731' });
     assert.equal(suggestion.supersedes_run_id, runId);
     assert.match(suggestion.note, /new run/i);
+    assert.match(suggestion.note, /progress\.md/i);
+    assert.match(suggestion.note, /not family/i);
+    assert.doesNotMatch(suggestion.note, /progress\/family/i);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

@@ -45,7 +45,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 
 - accept PASS 后默认 `finalize`（map-merge + archive）
 - `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
-- ARCHIVE 后不可 rollback phase；要再做则 **新 run** 并链 `supersedes`
+- ARCHIVE 后不可 rollback phase；要再做则 **新 run** 并在 `progress.md` 链 `supersedes_run_id`（纠正）/ `parent_run_id`（子需求）
 
 ## 4. 回退（ledger）
 
@@ -56,7 +56,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | 改 gate | `ralph_ops gate --status FAIL`（或 PASS） |
 | phase 回退 | 仅相邻边：`rollback-phase --to DELIVER` 等 |
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
-| COMPLETED 再做 | 新 run + `supersedes`；不 un-archive 覆盖 |
+| COMPLETED 再做 | 新 run + `progress.md` 链 `supersedes_run_id` / `parent_run_id`；不 un-archive 覆盖 |
 
 续作（**改错** / **加子需求**，关账前同 run / 关账后新 run 链）与话术：用户向 [ralph 命令 §1](../command-jj-ralph.html#1-续作-改错与子需求-关账前-关账后)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
 

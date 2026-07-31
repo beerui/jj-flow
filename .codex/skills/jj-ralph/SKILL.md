@@ -57,7 +57,7 @@ node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x-20260723 --status PAUS
 | 改 gate | `ralph_ops gate --status FAIL`（或 PASS） |
 | phase 回退 | 仅相邻边：`rollback-phase --to DELIVER`（ACCEPT→DELIVER 等）；**ARCHIVE 不可回** |
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
-| COMPLETED 再做 | **新 run** + 链 `supersedes`；不 un-archive 覆盖 |
+| COMPLETED 再做 | **新 run** + `progress.md` 链 `supersedes_run_id`（纠正）/ `parent_run_id`（子需求）；不 un-archive 覆盖 |
 
 续作「改错 / 加子需求」（关账前同 run / 关账后链）见 [post-complete-continue.md](references/post-complete-continue.md)（用户向：`docs/commands/jj-ralph.md` §1）。
 

@@ -1025,10 +1025,14 @@ export function rollbackPhase(runId, {
   }
   const run = loadRun(runId, cwd);
   if (run.status === 'COMPLETED') {
-    throw new Error('COMPLETED run cannot rollbackPhase in place; init a new run with supersedes_run_id');
+    throw new Error(
+      'COMPLETED run cannot rollbackPhase in place; init a new run and chain supersedes_run_id in progress.md (not run.json)'
+    );
   }
   if (run.phase === 'ARCHIVE') {
-    throw new Error('ARCHIVE phase cannot rollback; init a new run with supersedes_run_id');
+    throw new Error(
+      'ARCHIVE phase cannot rollback; init a new run and chain supersedes_run_id in progress.md (not run.json)'
+    );
   }
   const expectedFrom = Object.entries(PHASE_ROLLBACK_EDGES).find(([, to]) => to === toPhase)?.[0];
   const allowedTo = PHASE_ROLLBACK_EDGES[run.phase];
@@ -1087,7 +1091,9 @@ export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}
   }
   const run = loadRun(runId, cwd);
   if (run.status === 'COMPLETED') {
-    throw new Error('COMPLETED run cannot change status in place; init a new run with supersedes_run_id');
+    throw new Error(
+      'COMPLETED run cannot change status in place; init a new run and chain supersedes_run_id in progress.md (not run.json)'
+    );
   }
   if (run.phase === 'ARCHIVE' && run.status === 'COMPLETED') {
     throw new Error('archived COMPLETED run cannot change status');
@@ -1122,7 +1128,7 @@ export function suggestReopenAsNew(oldRun, { newRunId } = {}) {
     title: oldRun.title || null,
     goal: oldRun.goal || null,
     scope: oldRun.scope ? { in: [...(oldRun.scope.in || [])], out: [...(oldRun.scope.out || [])] } : null,
-    note: 'Do not un-archive or mutate COMPLETED run status; init a new run and chain supersedes_run_id in progress/family.'
+    note: 'Do not un-archive or mutate COMPLETED run status; init a new run and chain supersedes_run_id in progress.md (not run.json; not family).'
   };
 }
 
