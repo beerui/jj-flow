@@ -69,6 +69,16 @@ test('nested milestone page uses depth-correct relative assets and nav', () => {
   assert.match(nested, /data-docs-root="\.\.\/"/);
 });
 
+test('dispatch-demo lives under milestones with root redirect', () => {
+  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'dispatch-demo.html'), 'utf8');
+  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
+  assert.match(demo, /href="\.\.\/loop-graph-guide\.html"/);
+  assert.match(demo, /href="\.\.\/command-jj-dispatch\.html"/);
+  const redirect = fs.readFileSync(path.join(root, 'site', 'dispatch-demo.html'), 'utf8');
+  assert.match(redirect, /milestones\/dispatch-demo\.html/);
+  assert.match(redirect, /http-equiv="refresh"/i);
+});
+
 test('markdown tables and bold render in project-plan page', () => {
   const html = fs.readFileSync(path.join(root, 'site', 'project-plan.html'), 'utf8');
   assert.match(html, /<table>/);

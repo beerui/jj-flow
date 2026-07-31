@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Legacy generator. SSOT for the live demo is interactive.fragment.html (edit that file).
+This script is kept only for historical/offline regeneration experiments.
+"""
 from pathlib import Path
 import json
 OUT = Path(__file__).resolve().parent
+print("SSOT is interactive.fragment.html — not regenerating stale steps.")
+raise SystemExit(0)
 steps = [
   {"title": "0. \u63a7\u5236\u4ed3 vs \u4e1a\u52a1\u4ed3", "body": "\u591a\u9879\u76ee\u8c03\u5ea6\u4e0d\u5728\u4e1a\u52a1\u4ed3\u91cc\u558a\u547d\u4ee4\u3002\u63a7\u5236\u4ed3\u53ea\u8d1f\u8d23 Graph\uff1a\u89d2\u8272\u3001\u6279\u51c6\u3001\u6d3e\u53d1\u3001\u5bf9\u8d26\uff1b\u627f\u63a5/\u5151\u63a5/\u627f\u8f7d\u624d\u6539\u4ee3\u7801\u3002", "cmd": "\u5728\u63a7\u5236\u9879\u76ee\u6253\u5f00\u5bf9\u8bdd\uff08\u4e0d\u8981\u5728 D:\\a\\cj-web \u91cc\u76f4\u63a5 DISPATCH\uff09", "facts": ["\u63a7\u5236\u4ed3\uff1a\u8c03\u5ea6\u4e0e receipt", "\u4e1a\u52a1\u4ed3\uff1aralph / same / review \u95ed\u73af", "D:\\a \u4f8b\uff1acj-web / dj-web / cz-broker-web"], "active": {"control": True}, "done": {}, "edges": []},
   {"title": "1. PREVIEW \u53ea\u5c55\u793a", "body": "\u5148\u751f\u6210\u5b8c\u6574 task_keys\u3001depends_on\u3001\u963b\u585e\u9879\u3002\u8fd9\u4e00\u6b65\u4e0d\u521b\u5efa Codex task\u3002", "cmd": "$jj-dispatch PREVIEW\ndelivery=DEL-password-expire\ntargets=\u627f\u63a5,\u5151\u63a5,\u627f\u8f7d", "facts": ["\u4ea7\u51fa\u9884\u89c8\u8868\u4e0e task_key \u5217\u8868", "\u53ef\u53cd\u590d PREVIEW", "\u4fe1\u606f\u4e0d\u5168\u65f6\u5148 INTAKE_REQUIRED"], "active": {"control": True, "keys": True}, "done": {}, "edges": ["c-cj"]},

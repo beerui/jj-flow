@@ -79,7 +79,8 @@ const SIDEBAR_GROUPS = [
       { title: 'M7 半真实 Host', source: 'docs/milestones/m7-acceptance.md', output: 'milestones/m7-acceptance.html' },
       { title: 'H5 熵清理', source: 'docs/milestones/h5-acceptance.md', output: 'milestones/h5-acceptance.html' },
       { title: 'M6 调度', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },
-      { title: '调度演示', source: 'docs/dispatch-demo.md', output: 'dispatch-demo.html' }
+      // Canonical under milestones/ (same folder as other milestone pages); root path kept as redirect below.
+      { title: '调度演示', source: 'docs/dispatch-demo.md', output: 'milestones/dispatch-demo.html' }
     ]
   }
 ];
@@ -135,12 +136,25 @@ fs.writeFileSync(path.join(OUT_DIR, 'assets', 'search.js'), buildClientScript(se
 fs.writeFileSync(path.join(OUT_DIR, 'assets', 'search-index.json'), `${JSON.stringify(searchIndex)}\n`);
 fs.writeFileSync(path.join(OUT_DIR, '.nojekyll'), '');
 fs.writeFileSync(path.join(OUT_DIR, 'sitemap.xml'), buildSitemap());
+// Legacy root URL → milestones (bookmarks / guessed paths both work).
+fs.writeFileSync(
+  path.join(OUT_DIR, 'dispatch-demo.html'),
+  buildRedirectPage('milestones/dispatch-demo.html', '调度演示')
+);
 
 if (CHECK_MODE) {
   for (const page of PAGES) {
     if (!fs.existsSync(path.join(OUT_DIR, page.output))) throw new Error(`Missing output ${page.output}`);
   }
-  for (const f of ['assets/styles.css', 'assets/search.js', 'assets/search-index.json', '.nojekyll', 'sitemap.xml']) {
+  for (const f of [
+    'assets/styles.css',
+    'assets/search.js',
+    'assets/search-index.json',
+    '.nojekyll',
+    'sitemap.xml',
+    'dispatch-demo.html',
+    'milestones/dispatch-demo.html'
+  ]) {
     if (!fs.existsSync(path.join(OUT_DIR, f))) throw new Error(`Missing ${f}`);
   }
   validateSearchIndex(searchIndex);
@@ -500,6 +514,34 @@ function validateBuiltPages() {
   if (!nested.includes('href="../assets/styles.css"') || !nested.includes('href="../index.html"')) {
     throw new Error('Nested milestone paths broken');
   }
+  const demo = fs.readFileSync(path.join(OUT_DIR, 'milestones/dispatch-demo.html'), 'utf8');
+  if (!demo.includes('href="../assets/styles.css"') || !demo.includes('href="../loop-graph-guide.html')) {
+    throw new Error('dispatch-demo nested page links broken');
+  }
+  const demoRedirect = fs.readFileSync(path.join(OUT_DIR, 'dispatch-demo.html'), 'utf8');
+  if (!demoRedirect.includes('milestones/dispatch-demo.html')) {
+    throw new Error('root dispatch-demo.html redirect missing');
+  }
+}
+
+/** Static HTML redirect for legacy or dual-published paths (no SPA shell). */
+function buildRedirectPage(target, title) {
+  const safeTarget = escapeAttribute(target);
+  const safeTitle = escapeHtml(title);
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=${safeTarget}">
+  <link rel="canonical" href="${escapeAttribute(new URL(target, SITE_URL).href)}">
+  <title>${safeTitle} · jj-flow</title>
+</head>
+<body>
+  <p>页面已移动到 <a href="${safeTarget}">${safeTitle}</a>。</p>
+</body>
+</html>
+`;
 }
 
 function buildSitemap() {
