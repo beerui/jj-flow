@@ -101,9 +101,19 @@ CLI 覆盖：`--control-root` / `--manifest`。解析序：CLI → env → namin
 
 「回退目标 / 假 VERIFIED / 停 task」→ [rollback.md](references/rollback.md)。默认**不** auto merge/push/force-push；`reopenTarget` / `blockDispatchIntent` / `requestRework` 等写 `events[]` + `revision++`。
 
+## Host action contract tokens
+
+权威契约：[host-action-contract.json](references/host-action-contract.json)。
+
+- Action types: `CREATE_THREAD` · `RECONCILE_THREAD`
+- Capabilities: `list_projects` · `list_threads` · `create_thread` · `read_thread` · `send_message_to_thread` · `worktree` · `sandbox`
+- Write 默认 `project-branch`；隔离时 `exclusive-worktree`；`worktree` 字段绑路径
+
+角色字段（intake / plane）：`origin_project` · `requirement_owner` · `lead_project` · `reference_implementation` · `targets`（细则 → control-project.md）。
+
 ## 与 `jj-same` 的关系
 
-`$jj-dispatch` 是跨项目控制平面，不是同步实现器。可把已批准目标交给 `$jj-same`；目标分析、差异适配、验证与 sync checkpoint 仍由 `jj-same` 负责。旧 `源=A 目标=B,C` 映射为 `origin/requirement_owner/lead=A`、`reference_implementation=null`、`targets=[B,C]`。
+`$jj-dispatch` 是跨项目控制平面，不是同步实现器。可把已批准目标交给 `$jj-same`；目标分析、差异适配、验证与 sync checkpoint 仍由 `jj-same` 负责。旧 `源=A 目标=B,C` 映射为 `origin_project/requirement_owner/lead_project=A`、`reference_implementation=null`、`targets=[B,C]`。
 
 ## 明确不做
 

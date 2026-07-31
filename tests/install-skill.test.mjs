@@ -189,37 +189,36 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.mjs')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.sh')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'scripts', 'collect-port-evidence.ps1')), true);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /handoff_ref/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /更新交接/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /REUSE \/ REFRESH_SOURCES \/ REBASELINE \/ BLOCKED/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /cj -> dj -> cz/);
-  assert.doesNotMatch(
-    fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'),
-    /grill-me|grill-with-doc|workflow-grill/
+  const sameSkill = fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8');
+  const sameHappy = fs.readFileSync(path.join(target, 'jj-same', 'references', 'happy-path.md'), 'utf8');
+  const sameWorkflow = fs.readFileSync(path.join(target, 'jj-same', 'references', 'workflow-core.md'), 'utf8');
+  const sameCorpus = [sameSkill, sameHappy, sameWorkflow].join('\n');
+  assert.match(sameSkill, /^---\r?\nname: jj-same/m);
+  assert.match(sameCorpus, /cj -> dj -> cz/);
+  assert.match(sameCorpus, /handoff_ref/);
+  assert.match(sameCorpus, /更新交接/);
+  assert.match(
+    fs.readFileSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md'), 'utf8'),
+    /REUSE \/ REFRESH_SOURCES \/ REBASELINE \/ BLOCKED/
   );
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /READY_FOR_USER_TEST/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /默认跳过编译、build、浏览器/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /必要时提示用户下一步手动测试/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /EXECUTION_READY/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /HANDOFF_READY/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /EXECUTE_NOW/);
+  assert.doesNotMatch(sameCorpus, /grill-me|grill-with-doc|workflow-grill/);
+  assert.match(sameCorpus, /READY_FOR_USER_TEST/);
+  assert.match(sameCorpus, /默认跳过编译、build、浏览器/);
+  assert.match(sameCorpus, /必要时提示用户下一步手动测试|提示用户下一步手动测试/);
+  assert.match(sameCorpus, /不需要时记录 `N\/A` 理由|N\/A/);
+  assert.match(sameCorpus, /EXECUTION_READY/);
+  assert.match(sameCorpus, /HANDOFF_READY/);
+  assert.match(sameCorpus, /EXECUTE_NOW/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /PREVIEW/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /RECONCILE/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /origin_project/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /reference_implementation/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /不得继续用补齐 `.workflow`/);
-  for (const skill of ['jj-same']) {
-    const content = fs.readFileSync(path.join(target, skill, 'SKILL.md'), 'utf8');
-    assert.match(content, /\$jj-same/);
-    assert.match(content, /分析阶段/);
-    assert.doesNotMatch(content, /[Mm]aestro|maestro explore/);
-    assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);
-    assert.equal(fs.existsSync(path.join(target, 'jj-fix', 'SKILL.md')), false);
-  }
+  assert.match(sameCorpus, /不得继续用补齐 `.workflow`|不得只更新计划/);
+  assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Happy path/);
+  assert.match(sameCorpus, /分析阶段/);
+  assert.doesNotMatch(sameCorpus, /[Mm]aestro|maestro explore/);
+  assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);
+  assert.equal(fs.existsSync(path.join(target, 'jj-fix', 'SKILL.md')), false);
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md'), 'utf8'),
     /last_source_head\.\.current_source_head/
@@ -312,32 +311,18 @@ test('installSkill can install Claude slash commands', () => {
   assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-ralph.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch.md')), false);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /^---\r?\nname: jj-same/m);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /cj -> dj -> cz/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /handoff_ref/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /更新交接/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /PARTIAL_HANDOFF/);
-  assert.doesNotMatch(
-    fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'),
-    /grill-me|grill-with-doc|workflow-grill/
-  );
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /READY_FOR_USER_TEST/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /默认跳过编译、build、浏览器/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /提示用户下一步手动测试/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /不需要时记录 `N\/A` 理由/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTION_READY/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /HANDOFF_READY/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /EXECUTE_NOW/);
-  for (const command of ['jj-same.md']) {
-    const content = fs.readFileSync(path.join(target, command), 'utf8');
-    assert.match(content, /\/jj-same/);
-    assert.match(content, /分析阶段/);
-    assert.doesNotMatch(content, /[Mm]aestro|maestro explore/);
-    assert.equal(fs.existsSync(path.join(target, 'jj-feat.md')), false);
-    assert.equal(fs.existsSync(path.join(target, 'jj-fix.md')), false);
-  }
-  assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8'), /jj-same\s+"/);
+  // Claude entry must stay thin and point at SSOT (full protocol lives under .codex/skills/jj-same).
+  const claudeSame = fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8');
+  assert.match(claudeSame, /^---\r?\nname: jj-same/m);
+  assert.match(claudeSame, /\.codex\/skills\/jj-same\/SKILL\.md|Authoritative procedure|薄入口|SSOT/);
+  assert.match(claudeSame, /EXECUTION_READY|HANDOFF_READY|Ralph-handoff-first|handoff/);
+  assert.doesNotMatch(claudeSame, /grill-me|grill-with-doc|workflow-grill/);
+  assert.doesNotMatch(claudeSame, /[Mm]aestro|maestro explore/);
+  assert.ok(claudeSame.split(/\r?\n/).length <= 40, 'Claude jj-same.md must stay thin (<=40 lines)');
+  assert.match(claudeSame, /\/jj-same|# \/jj-same/);
+  assert.equal(fs.existsSync(path.join(target, 'jj-feat.md')), false);
+  assert.equal(fs.existsSync(path.join(target, 'jj-fix.md')), false);
+  assert.doesNotMatch(claudeSame, /jj-same\s+"/);
 });
 
 test('installSkill can install Grok skills from Codex skill sources', () => {

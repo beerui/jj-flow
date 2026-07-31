@@ -140,13 +140,13 @@ test('~/custom-control expands under home', () => {
 });
 
 test('jj-dispatch skill states product default ~/.jj-flow and NEEDS_CONFIRM gate', () => {
-  const skill = fs.readFileSync(
-    path.join(process.cwd(), '.codex', 'skills', 'jj-dispatch', 'SKILL.md'),
-    'utf8'
-  );
+  const skillRoot = path.join(process.cwd(), '.codex', 'skills', 'jj-dispatch');
+  const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
+  const happyPath = fs.readFileSync(path.join(skillRoot, 'references', 'happy-path.md'), 'utf8');
+  const corpus = skill + '\n' + happyPath;
   assert.match(skill, /~\/\.jj-flow/);
   assert.match(skill, /control_root/);
   assert.doesNotMatch(skill, /默认 `D:\/a\/dispatch-control`/);
-  assert.match(skill, /NEEDS_CONFIRM/);
-  assert.match(skill, /确认前.*不.*DISPATCH|用户确认前/);
+  assert.match(corpus, /NEEDS_CONFIRM/);
+  assert.match(corpus, /确认前.*不.*DISPATCH|用户确认前|确认前不写 intent/);
 });

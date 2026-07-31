@@ -4,6 +4,15 @@
 
 ## Unreleased
 
+## 0.1.1-beta.40 — 2026-07-31 14:45
+
+- **技能面 90+ 三波优化（Wave0–2）**
+  - Wave0：可移植命名/map 解析（去掉 ralph 立即动作 `D:/a` 硬编码）；`jj` 路由补全 `/jj-end`、dispatch 多端、evaluated experimental、不确定不默认 same；Claude `jj-same` 瘦身；`jj-review` 去幽灵 `/jj-dispatch` + host 矩阵；`jj-end` monorepo/dry_run 加固；ARCHITECTURE / inventory 平台文案对齐。
+  - Wave1：`jj-same` / `jj-dispatch` progressive disclosure（主 SKILL 压缩 + `happy-path` / `workflow-core` / `agent-write-plane` references）；Claude 薄入口行数门禁 `SKI-CLAUDE-005`（≤40 行）。
+  - Wave2：`jj-evaluated` experimental MVP runner（`episode-validate.mjs` / `evaluated_ops.mjs`：validate、init-report、check-split）+ 合约测试；design 状态 Implemented（验收证据链）。
+- 测试：`tests/jj-evaluated-contract.test.mjs`；skill-inventory thinness；install/harness 断言适配 progressive disclosure。
+- 文档：`docs/commands/jj-same.md` 补准备交接 / freshness 入口说明。
+
 ## 0.1.1-beta.39 — 2026-07-31 10:58
 
 - **T-lead-outside-schema + T-task-result-sync**：lead∉targets 时可用完整 `reference_implementation` 代替空 `lead_responsibilities`；checkpoint/last_result 不再强制 `recorded_at` 相等；`recordTargetResult` 同步该 lead 逻辑。skill 要求 VERIFIED 同批刷新 task `result.md`/`progress.md`。telemetry Codex 实战 plane 现通过 `validateControlPlane`。
@@ -279,3 +288,4 @@
 - 初始化独立 `jj-flow` 项目。
 - 增加 `/jj` 薄入口的 CLI、recipe、guard、evidence schema。
 - 增加 Codex skill 草案、GitHub CI、Release Please、Dependabot。
+

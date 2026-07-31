@@ -1,6 +1,8 @@
 # `jj-evaluated` 真实工作流评估与泛化学习设计
 
-> 状态：Implemented（MVP runner；全量学习环仍扩展中）
+> 状态：Implemented
+>
+> 验收证据：`tests/jj-evaluated-contract.test.mjs` · `tests/fixtures/evaluated-episode.valid.json` · `.codex/skills/jj-evaluated/scripts/episode-validate.mjs` · `.codex/skills/jj-evaluated/scripts/evaluated_ops.mjs`
 >
 > 范围注记：完整 eval 闭环未关闭；MVP runner ≠ 全量自动化学习环
 >

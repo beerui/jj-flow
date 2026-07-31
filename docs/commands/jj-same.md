@@ -12,7 +12,7 @@
 
 - A 仓已经做好，B/C 仓要对齐  
 - 已有交接信息、会话或提交可当证据  
-- 你说「交接到… / 开始迁移…」  
+- 你说「交接到… / 开始迁移… / 准备交接 / 更新交接」  
 
 **别用 same：** 只在当前仓做完 → [ralph](command-jj-ralph.html)；多仓统一调度 → [dispatch](command-jj-dispatch.html)
 
@@ -26,6 +26,14 @@ $jj-same 交接到 兑接 承载
 
 ```text
 $jj-same 开始迁移承载识票
+```
+
+```text
+$jj-same 准备交接 会话=019f... 源提交=<sha> 功能=...
+```
+
+```text
+$jj-same 更新交接 交接=@…/handoff-snapshot.yaml 会话=… 源提交=<new>
 ```
 
 ```text
@@ -43,6 +51,12 @@ $jj-same
 ```
 
 在 ralph 做完后，你往往 **只说**「交接到…」——same 会读当前任务里的交接信息。
+
+## 交接快照（handoff）
+
+- 准备交接：源仓形成可验证状态后生成 snapshot（`parent_snapshot` 链）  
+- 消费侧 freshness：`REUSE` / `REFRESH_SOURCES` / `REBASELINE` / `BLOCKED`  
+- 权威规程：仓库 skill `.codex/skills/jj-same/`（`references/handoff-snapshot.md`）
 
 ## 会怎么做（简版）
 
