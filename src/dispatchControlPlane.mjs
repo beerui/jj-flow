@@ -267,11 +267,20 @@ export function validateControlPlane(plane) {
       errors.push(`delivery ${delivery.delivery_id} requires lead_responsibilities array`);
     }
     const leadIsTarget = Array.isArray(delivery.targets) && delivery.targets.some((target) => target.project_id === delivery.lead_project);
-    if (!leadIsTarget && (!Array.isArray(delivery.lead_responsibilities) || delivery.lead_responsibilities.length === 0)) {
-      errors.push(`delivery ${delivery.delivery_id} requires lead_responsibilities when lead is not a target`);
-    }
+    // Lead outside targets: empty lead_responsibilities is allowed when a durable
+    // reference_implementation proves source work (ralph/source commit) — Codex telemetry sample.
+    // Otherwise still require at least one lead responsibility plan.
     if (!leadIsTarget) {
-      validateResponsibilities(delivery.lead_responsibilities, `${delivery.delivery_id}/${delivery.lead_project}`, errors);
+      const leadResp = Array.isArray(delivery.lead_responsibilities) ? delivery.lead_responsibilities : [];
+      if (leadResp.length === 0 && !hasDurableLeadReference(delivery)) {
+        errors.push(
+          `delivery ${delivery.delivery_id} requires lead_responsibilities when lead is not a target `
+          + '(or a durable reference_implementation with commit + verification for external source work)'
+        );
+      }
+      if (leadResp.length) {
+        validateResponsibilities(leadResp, `${delivery.delivery_id}/${delivery.lead_project}`, errors);
+      }
     }
     validateDependencies(delivery, errors);
 
@@ -1943,8 +1952,12 @@ export function recordTargetResult(plane, {
   }
 
   const targetsVerified = delivery.targets.length && delivery.targets.every((item) => SUCCESS_TARGET_STATUSES.has(item.status));
-  const leadVerified = delivery.targets.some((item) => item.project_id === delivery.lead_project)
-    || areResponsibilityTasksCompleted(delivery, delivery.lead_project, delivery.lead_responsibilities);
+  const leadIsTarget = delivery.targets.some((item) => item.project_id === delivery.lead_project);
+  const leadResp = Array.isArray(delivery.lead_responsibilities) ? delivery.lead_responsibilities : [];
+  const leadVerified = leadIsTarget
+    || (leadResp.length === 0
+      ? hasDurableLeadReference(delivery)
+      : areResponsibilityTasksCompleted(delivery, delivery.lead_project, leadResp));
   if (targetsVerified && leadVerified) {
     delivery.status = 'VERIFIED';
   } else {
@@ -2416,18 +2429,27 @@ function validateTargetSuccessConsistency(delivery, target, errors) {
     return;
   }
   if (!target.last_result || typeof target.last_result !== 'object' || Array.isArray(target.last_result)) return;
+  // Evidence fields must match. recorded_at may differ when coordinator writes
+  // checkpoint vs last_result at different steps (telemetry Codex sample).
   for (const field of [
     'source_head',
     'target_head',
     'commit',
     'evidence_ref',
     'difference_ref',
-    'reviewed_commit',
-    'recorded_at'
+    'reviewed_commit'
   ]) {
     const checkpointValue = target.checkpoint[field] ?? null;
     const resultValue = target.last_result[field] ?? null;
     if (checkpointValue !== resultValue) errors.push(`${context} checkpoint ${field} must match last_result`);
+  }
+  for (const [label, value] of [
+    ['checkpoint.recorded_at', target.checkpoint.recorded_at],
+    ['last_result.recorded_at', target.last_result.recorded_at]
+  ]) {
+    if (value !== undefined && value !== null && !isDateTime(value)) {
+      errors.push(`${context} ${label} must be a date-time`);
+    }
   }
   const intents = Array.isArray(delivery.dispatch_intents) ? delivery.dispatch_intents : [];
   const responsibilities = Array.isArray(target.responsibilities) ? target.responsibilities : [];
@@ -2792,13 +2814,38 @@ function validateDeliveryCompletion(delivery, errors) {
     errors.push(`delivery ${delivery.delivery_id} VERIFIED requires every target to be successful`);
   }
   if (targets.some((target) => target?.project_id === delivery.lead_project)) return;
+  const leadResp = Array.isArray(delivery.lead_responsibilities) ? delivery.lead_responsibilities : [];
+  // External source lead (ralph-only): durable reference_implementation substitutes for
+  // empty lead_responsibilities / missing lead dispatch intents.
+  if (leadResp.length === 0) {
+    if (!hasDurableLeadReference(delivery)) {
+      errors.push(
+        `delivery ${delivery.delivery_id} VERIFIED requires completed lead responsibilities `
+        + 'or a durable reference_implementation when lead is not a target'
+      );
+    }
+    return;
+  }
   try {
-    if (!areResponsibilityTasksCompleted(delivery, delivery.lead_project, delivery.lead_responsibilities)) {
+    if (!areResponsibilityTasksCompleted(delivery, delivery.lead_project, leadResp)) {
       errors.push(`delivery ${delivery.delivery_id} VERIFIED requires completed lead responsibilities`);
     }
   } catch (error) {
     errors.push(`delivery ${delivery.delivery_id} VERIFIED lead validation failed: ${error.message}`);
   }
+}
+
+/** True when reference_implementation is a durable source proof for lead∉targets. */
+function hasDurableLeadReference(delivery) {
+  const ref = delivery?.reference_implementation;
+  if (!ref || typeof ref !== 'object' || Array.isArray(ref)) return false;
+  if (ref.project_id && delivery.lead_project && ref.project_id !== delivery.lead_project) return false;
+  if (typeof ref.commit !== 'string' || ref.commit.length < 7) return false;
+  if (typeof ref.snapshot_ref !== 'string' || !ref.snapshot_ref.trim()) return false;
+  if (typeof ref.snapshot_hash !== 'string' || !ref.snapshot_hash.trim()) return false;
+  if (typeof ref.verification_ref !== 'string' || !ref.verification_ref.trim()) return false;
+  if (ref.verified_at && !isDateTime(ref.verified_at)) return false;
+  return true;
 }
 
 function validateDependencies(delivery, errors) {

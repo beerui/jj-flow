@@ -135,6 +135,8 @@ D:/a/
 8. 要把 target/delivery 标成 VERIFIED（或 development 标 DONE）
    -> 先满足「终端态证据」清单（git commit / review / 真 session id）
    -> 不满足：最多写到 EVIDENCE_READY / RUNNING；禁止因用户说「好了/已合并」而写 VERIFIED
+   -> **T-task-result-sync**：升 VERIFIED 的同一落盘动作内刷新 task 目录
+      `result.md` / `progress.md`（状态、各 target commit、review 结论）；禁止 plane 已 VERIFIED 而 result 仍写 EVIDENCE_READY
 ```
 
 有 `TASK-ID` 时先恢复索引与 manifest（有 CLI 用 `jj task context/status`；无 CLI 直接读 control_root 下 task 目录与 plane），再套用以上门禁。
@@ -200,6 +202,8 @@ D:/a/
 [ ] C4：每个 BOUND intent 的 sandbox_evidence_ref 指向 attestations/*.json（含 review）
 [ ] 若 status≥EVIDENCE_READY：changed_files / summary 与 git diff 一致
 [ ] 若 status=VERIFIED：produced_commit + commit + reviewed_commit 齐全且一致
+[ ] 若 status=VERIFIED：task/result.md 与 progress.md 已同步（非仍写 EVIDENCE_READY）
+[ ] lead∉targets 时：lead_responsibilities 有计划，或 reference_implementation 完整（commit+snapshot+verification）
 [ ] C5：plane-self-check grade=ok 再宣称 VERIFIED；可 setIntegrityGrade
 [ ] C6：push/merge 后 setRemoteCloseout；用户说「已合并」须 git 核对，不单靠聊天
 [ ] 承载等多 feature 合 dev：优先 task-scoped cherry-pick（见 EP-S1 / acceptor-tag 负例）
@@ -410,6 +414,10 @@ DRAFT -> PREVIEW_ONLY -> APPROVED -> DISPATCHING -> RUNNING
   - `NO_CHANGE_REQUIRED`：planning/analysis 的 `ANL-TARGET`、`difference_ref`、目标 HEAD、`unresolved=[]`；未派发 development/verification/review 标 `SKIPPED`；不伪造 Developer commit / VRF / Review。
 - 同步目标两种成功态都须 `FRESH` handoff、snapshot ref/hash、source/target branch 与 HEAD、差异决策引用；缺字段或 `STALE` 不得推进 checkpoint。
 - **用户自然语言不能单独推进 checkpoint**（含「已合并」「完成」「ok」）；只作为触发 Agent 去读 git / plane 的信号。
+- **task 文档与 plane 同步（T-task-result-sync）**：把 delivery/target 标 `VERIFIED` 时，必须同批更新 `.workflow/tasks/<TASK-ID>/result.md` 与 `progress.md`：
+  - `result.md`：状态=`VERIFIED`；表列各 target 的 commit / review PASS；不得保留过期的 `EVIDENCE_READY` 段作为当前态
+  - `progress.md`：追加 VERIFIED 时间与 revision
+  - plane 是 SSOT；task 文档是给人恢复用的镜像，**允许滞后即视为收口未完成**
 
 ## Grok 执行（host_id=grok-build）
 

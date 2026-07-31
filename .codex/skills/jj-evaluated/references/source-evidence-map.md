@@ -188,3 +188,21 @@ Candidate **R-soft-reopen**: Mode S soft plane cannot call strict `reopenTarget`
 live; promote via skill/fixture or session-gated validator exception.
 
 Ralph `RALPH-readme-pnpm-install-20260731` remains COMPLETED/ARCHIVE (no un-archive).
+
+## 2026-07-31 Codex multi-thread dispatch (telemetry-image)
+
+Offline export package (local only; raw JSONL unredacted):
+
+`D:\dingding-download\20260731-102519-telemetry-image-dispatch\20260731-102519-telemetry-image-dispatch`
+
+| Field | Value |
+| --- | --- |
+| episode_id | `ep-20260731-telemetry-image-request-dispatch` |
+| delivery_id | `DELIVERY-telemetry-image-request-20260731` |
+| host | **codex-app** / `handle_kind=thread` (4 task threads + coordinator) |
+| feature | Image telemetry: no DOM mount + sync try/catch |
+| delivery | VERIFIED rev 6; plane-self-check **ok** |
+| strict validate | FAIL 4 (empty lead_responsibilities; checkpoint recorded_at mismatch) |
+| evaluation | `docs/evaluations/2026-07-31-telemetry-image-codex-dispatch.md` |
+
+Roles at capture (Mac paths): 承接 `cj-frontend-web` @ `c2fc7d7e`; 兑接 `duijie-frontend-web` @ `bbb9c4bc` ADAPT; 承载 `chengjie-broker-web` @ `c243db37` ADAPT.

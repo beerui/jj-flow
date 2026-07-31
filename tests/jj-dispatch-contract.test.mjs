@@ -745,6 +745,68 @@ test('Mode S shared session allows multiple COMPLETED intents and bindThread', (
   }), /already bound/);
 });
 
+test('lead outside targets may omit lead_responsibilities when reference_implementation is durable', () => {
+  // Mirrors Codex telemetry-image VERIFIED shape: lead=source not in targets, empty lead_resp.
+  const source = structuredClone(fixture);
+  source.deliveries[0].lead_project = 'C';
+  source.deliveries[0].lead_responsibilities = [];
+  source.deliveries[0].origin_project = 'C';
+  source.deliveries[0].requirement_owner = 'C';
+  source.deliveries[0].reference_implementation = {
+    project_id: 'C',
+    commit: 'c2fc7d7ef522e63fb17dc84184d18e64bc7ac087',
+    snapshot_ref: 'ralph:RALPH-telemetry-image/handoff.json',
+    snapshot_hash: 'sha256:0de7e506407707aac9d8f2007913b5f36ba20502',
+    source_head: 'c2fc7d7ef522e63fb17dc84184d18e64bc7ac087',
+    handoff_ref: 'ralph:RALPH-telemetry-image/handoff.json',
+    freshness: 'FRESH',
+    verified_at: '2026-07-31T02:03:09.325Z',
+    verification_ref: 'ralph:RALPH-telemetry-failure-isolation/acceptance.md'
+  };
+  // Empty lead_resp without reference must still fail
+  const bare = structuredClone(fixture);
+  bare.deliveries[0].lead_project = 'C';
+  bare.deliveries[0].lead_responsibilities = [];
+  bare.deliveries[0].reference_implementation = null;
+  assert.equal(validateControlPlane(bare).ok, false);
+  assert.ok(validateControlPlane(bare).errors.some((e) => e.includes('lead_responsibilities')));
+
+  let plane = withTargetReview(source, 'A');
+  plane = withTargetReview(plane, 'B');
+  plane = createControlPlane(plane);
+  plane = approveDispatch(plane, { deliveryId: 'DEL-001', decisionRef: 'decision:lead-out' });
+  plane = completeTargetPipeline(plane, 'A');
+  plane = completeTargetPipeline(plane, 'B');
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'A',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:A-lead-out',
+    commit: 'commit-A',
+    sourceHead: 'c2fc7d7ef522e63fb17dc84184d18e64bc7ac087'
+  });
+  // Drift recorded_at between checkpoint and last_result (telemetry sample)
+  const targetA = plane.deliveries[0].targets.find((t) => t.project_id === 'A');
+  targetA.checkpoint.recorded_at = '2026-07-31T02:13:04.515Z';
+  targetA.last_result.recorded_at = '2026-07-31T02:20:48.000Z';
+  plane = recordTargetResult(plane, {
+    deliveryId: 'DEL-001',
+    projectId: 'B',
+    status: 'VERIFIED',
+    evidenceRef: 'VRF:B-lead-out',
+    commit: 'commit-B',
+    sourceHead: 'c2fc7d7ef522e63fb17dc84184d18e64bc7ac087'
+  });
+  const targetB = plane.deliveries[0].targets.find((t) => t.project_id === 'B');
+  targetB.checkpoint.recorded_at = '2026-07-31T02:13:04.515Z';
+  targetB.last_result.recorded_at = '2026-07-31T02:20:48.000Z';
+
+  assert.equal(plane.deliveries[0].status, 'VERIFIED');
+  const validation = validateControlPlane(plane);
+  assert.equal(validation.ok, true, validation.errors?.join('; '));
+  assert.equal(plane.deliveries[0].lead_responsibilities.length, 0);
+});
+
 test('closeDelivery blocks PREVIEW_ONLY after rollback and rejects VERIFIED', () => {
   let plane = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:close' });
   // APPROVED (not yet DISPATCHING) may close as cancelled

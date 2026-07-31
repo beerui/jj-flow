@@ -70,6 +70,11 @@ DISPATCH 绑定一律要求：**runtime sandbox attestation**（不得用模型�
 
 库：`src/dispatchAttestation.mjs`（写文件）、`setIntegrityGrade` / `setRemoteCloseout`（`dispatchControlPlane.mjs`）。
 
+## 收口卫生（Codex 实战反馈）
+
+- **lead 不在 targets**：允许空 `lead_responsibilities`，但须有完整 `reference_implementation`（源 Ralph/commit 证明）；否则仍要 lead 责任计划。
+- **升 VERIFIED 时**：同步更新 task `result.md` / `progress.md`，禁止 plane 已 VERIFIED 而 result 仍写 `EVIDENCE_READY`。
+
 ## 输入模板
 
 先预览任务集合：
