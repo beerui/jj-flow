@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.1.1-beta.39 — 2026-07-31 10:58
+
 - **T-lead-outside-schema + T-task-result-sync**：lead∉targets 时可用完整 `reference_implementation` 代替空 `lead_responsibilities`；checkpoint/last_result 不再强制 `recorded_at` 相等；`recordTargetResult` 同步该 lead 逻辑。skill 要求 VERIFIED 同批刷新 task `result.md`/`progress.md`。telemetry Codex 实战 plane 现通过 `validateControlPlane`。
 - 评估：Codex 实战 dispatch `docs/evaluations/2026-07-31-telemetry-image-codex-dispatch.md`（候选已 promote）。
 - **C4–C6 加深**：`dispatchAttestation.mjs`（含 review 的 attestation 路径/写文件）；schema 可选 `integrity_grade` / `remote_closeout` / `closeout`；skill 硬门禁 C 段改为文件 ref；用户文档与 sample；合约测试。
