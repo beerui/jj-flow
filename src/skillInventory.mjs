@@ -10,6 +10,8 @@ export const SKILL_INVENTORY_SCHEMA_VERSION = 'jj-flow/skill-inventory/1.0';
 export const CANONICAL_SKILLS_ROOT_REL = '.codex/skills';
 export const CLAUDE_COMMANDS_ROOT_REL = '.claude/commands';
 export const SKILL_INVENTORY_REL = 'skill-inventory.json';
+/** Claude command thin-wrapper budget (lines including frontmatter). */
+export const CLAUDE_COMMAND_MAX_LINES = 40;
 
 export function skillInventoryPath(cwd = PROJECT_ROOT) {
   return path.join(cwd, SKILL_INVENTORY_REL);
@@ -164,13 +166,37 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
 
   for (const skill of inventory.skills) {
     if (skill.claude_command) {
+      const claudeRel = path.join(CLAUDE_COMMANDS_ROOT_REL, skill.claude_command);
       if (!claudeSet.has(skill.claude_command)) {
         add(
           'SKI-CLAUDE-001',
-          path.join(CLAUDE_COMMANDS_ROOT_REL, skill.claude_command),
+          claudeRel,
           '清单要求 Claude 薄入口但文件缺失：' + skill.claude_command,
           '新增 .claude/commands/' + skill.claude_command + '（薄路由，勿复制完整 skill 规程）。'
         );
+      } else {
+        const claudeAbs = path.join(cwd, CLAUDE_COMMANDS_ROOT_REL, skill.claude_command);
+        try {
+          const text = fs.readFileSync(claudeAbs, 'utf8');
+          const lineCount = text.length === 0 ? 0 : text.replace(/\n$/, '').split('\n').length;
+          if (lineCount > CLAUDE_COMMAND_MAX_LINES) {
+            add(
+              'SKI-CLAUDE-005',
+              claudeRel,
+              'Claude 薄入口超过 ' + CLAUDE_COMMAND_MAX_LINES + ' 行预算：' +
+                skill.claude_command + ' 现有 ' + lineCount + ' 行（含 frontmatter）。',
+              '瘦身为 pointer 级入口（指向 .codex/skills/' + skill.id +
+                '/SKILL.md），勿在 .claude/commands 复述完整 lifecycle/gates。'
+            );
+          }
+        } catch (error) {
+          add(
+            'SKI-CLAUDE-001',
+            claudeRel,
+            '无法读取 Claude 薄入口：' + skill.claude_command + ' — ' + error.message,
+            '修复或重建 .claude/commands/' + skill.claude_command + '。'
+          );
+        }
       }
       if (!skill.platforms?.includes('claude')) {
         add(

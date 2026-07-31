@@ -6,6 +6,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
   CANONICAL_SKILLS_ROOT_REL,
+  CLAUDE_COMMAND_MAX_LINES,
   checkSkillInventory,
   listFilesystemClaudeCommands,
   listFilesystemSkillIds,
@@ -65,4 +66,55 @@ test('checkSkillInventory fails when skill missing from inventory', () => {
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
+});
+
+test('checkSkillInventory fails SKI-CLAUDE-005 when claude command exceeds thin budget', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ski-claude-'));
+  try {
+    const skillId = 'jj-demo';
+    fs.mkdirSync(path.join(cwd, '.codex', 'skills', skillId), { recursive: true });
+    fs.writeFileSync(path.join(cwd, '.codex', 'skills', skillId, 'SKILL.md'), '# demo\n', 'utf8');
+    fs.mkdirSync(path.join(cwd, '.claude', 'commands'), { recursive: true });
+    const fatLines = Array.from({ length: CLAUDE_COMMAND_MAX_LINES + 5 }, (_, i) => `line ${i + 1}`);
+    fs.writeFileSync(
+      path.join(cwd, '.claude', 'commands', skillId + '.md'),
+      fatLines.join('\n') + '\n',
+      'utf8'
+    );
+    fs.writeFileSync(path.join(cwd, 'skill-inventory.json'), JSON.stringify({
+      schema_version: SKILL_INVENTORY_SCHEMA_VERSION,
+      canonical_skills_root: CANONICAL_SKILLS_ROOT_REL,
+      claude_commands_root: '.claude/commands',
+      install_discipline: ['edit .codex/skills only'],
+      skills: [{
+        id: skillId,
+        claude_command: skillId + '.md',
+        platforms: ['claude', 'codex']
+      }]
+    }, null, 2), 'utf8');
+    fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({
+      name: 'tmp',
+      files: ['.codex/skills/', '.claude/commands/']
+    }), 'utf8');
+
+    const result = checkSkillInventory({ cwd });
+    assert.equal(result.ok, false);
+    const finding = result.findings.find((item) => item.rule_id === 'SKI-CLAUDE-005');
+    assert.ok(finding, JSON.stringify(result.findings, null, 2));
+    assert.match(finding.reason, /超过/);
+    assert.match(finding.next_action, /瘦身|pointer/i);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('repository jj-same Claude command is within thin budget', () => {
+  const sameCmd = path.join(root, '.claude', 'commands', 'jj-same.md');
+  assert.ok(fs.existsSync(sameCmd));
+  const text = fs.readFileSync(sameCmd, 'utf8');
+  const lineCount = text.length === 0 ? 0 : text.replace(/\n$/, '').split('\n').length;
+  assert.ok(
+    lineCount <= CLAUDE_COMMAND_MAX_LINES,
+    'jj-same.md has ' + lineCount + ' lines, budget is ' + CLAUDE_COMMAND_MAX_LINES
+  );
 });

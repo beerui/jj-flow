@@ -53,14 +53,14 @@
       "claude_command": null,
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok"],
-      "note": "Platforms: codex/qoder/grok (no Claude slash). Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation (Phase 1 contract; Wave2 real-host still PENDING)."
+      "note": "Platforms: codex/qoder/grok (no Claude slash intentional). Docs must not say Codex-only. Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation (Phase 1 contract; Wave2 real-host still PENDING)."
     },
     {
       "id": "jj-evaluated",
       "claude_command": null,
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok"],
-      "note": "Offline evaluation skill; Claude command optional later."
+      "note": "experimental; minimal runner (episode-validate + evaluated_ops); no Claude command; do not invent /jj-evaluated slash"
     }
   ]
 }

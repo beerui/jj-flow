@@ -83,6 +83,11 @@
         "authority_for": ["evaluated-workflow-contract"]
       },
       {
+        "id": "evaluated-runner-scripts",
+        "path": ".codex/skills/jj-evaluated/scripts/evaluated_ops.mjs",
+        "authority_for": ["evaluated-mvp-runner"]
+      },
+      {
         "id": "dispatch-contract",
         "path": ".codex/skills/jj-dispatch/SKILL.md",
         "authority_for": ["dispatch-workflow-contract"]

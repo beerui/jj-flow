@@ -9,7 +9,12 @@ description: "在当前单一业务仓库完成需求到验收归档的 Ralph �
 
 ## 立即动作
 
-1. 无 run 时 `ralph_ops.mjs init`。命名读 `D:/a/config/naming.json`；定位读 `D:/a/map.md`。
+1. 无 run 时 `ralph_ops.mjs init`。解析命名与项目 map（**禁止写死本机路径**，如 `D:/a/...`）：
+   | 档 | 来源 | 用途 |
+   | --- | --- | --- |
+   | ① | `jj doctor` / env `JJ_GLOBAL_CONFIG_DIR` 或 `DAJI_CONFIG_DIR` → `naming.json` | 命名规则 |
+   | ② | 配置内已解析的 project map 路径（如 map.md / portfolio map） | 定位模块 |
+   | ③ | 以上缺失 | **hard-stop**：报告缺失路径与如何配置；**禁止**编造 portfolio 根 |
 2. `map-find`；单点改动先读 [tiny-example.md](references/tiny-example.md)。
 3. 按 [phases.md](references/phases.md)：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。优先 `gate`。
 4. accept PASS 后默认 `finalize`。

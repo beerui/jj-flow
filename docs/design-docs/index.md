@@ -19,7 +19,7 @@
 | [jj-ralph](jj-ralph.html) | Implemented |
 | [任务分配 UX](task-assignment-ux.html) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.html) | Implemented |
-| [jj-evaluated](jj-evaluated.html) | Proposed |
+| [jj-evaluated](jj-evaluated.html) | Implemented（MVP runner；全量学习环仍扩展中） |
 | [Grok Host Adapter](grok-host-adapter.html) | Proposed（Wave 2） |
 
 实施进度：[执行计划](../exec-plans/index.html)

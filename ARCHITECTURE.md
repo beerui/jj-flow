@@ -29,9 +29,9 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `.codex/skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
 - `.codex/skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
-- `.codex/skills/jj-dispatch/` 定义 Codex 专用的控制项目调度协议。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
-- `.codex/skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph` 或 `jj-dispatch` 入口。
-- `.claude/commands/` 保存 Claude Code 对应命令。`jj-dispatch` 有意不在此暴露。
+- `.codex/skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
+- `.codex/skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）或 experimental `jj-evaluated`。
+- `.claude/commands/` 保存 Claude Code 对应命令。`jj-dispatch` / `jj-evaluated` 有意不在此暴露。
 - `.codex/agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。
 
 修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装、ralph 机械步骤或控制平面运行时行为才应先进入 npm CLI。

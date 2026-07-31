@@ -6,29 +6,47 @@
 
 ## 发现顺序（从前到后，命中即用）
 
-1. **用户已指定**  
+1. **用户已指定**
    用户给出 review 产物路径、粘贴 findings、或点名已完成的 review 会话 → 直接解析映射，`source=user_provided`。
 
-2. **本宿主可调用的 review skill / 命令**  
+2. **本宿主可调用的 review skill / 命令**
    在当前会话已加载或可调用的 skills / slash / commands 中，**只匹配明确的审查入口**：
    - 名称或描述含 `review`、`code-review`、`code review`（优先）
    - 只读 reviewer 子代理 / 审查 persona（见下条）
 
    **不要**把下列入口默认当成 code review：
-   - `verify`、`npm test`、`npm run verify`、CI/lint/typecheck 绿灯  
+   - `verify`、`npm test`、`npm run verify`、CI/lint/typecheck 绿灯
    - 纯「修到通过」的 `check-work` / self-verify 循环（那是验证/返工，不是审查引擎）
 
    仅当用户**明确要求**用某入口做审查，且该入口输出的是**结构化 findings**（文件/行/严重度/说明），才可选用；若是“修到通过”循环，只取**第一轮只读审查结论**，不要在 jj-review 里自动开修。测试通过 ≠ `outcome=PASS`。
 
-3. **只读 reviewer 子代理 / 角色**  
-   宿主提供只读 reviewer / 审查 persona / read-only subagent 时，用于对既定 diff/commit 出 findings。  
+3. **只读 reviewer 子代理 / 角色**
+   宿主提供只读 reviewer / 审查 persona / read-only subagent 时，用于对既定 diff/commit 出 findings。
    约束：子代理只读；禁止其改业务代码。
 
-4. **不可用 → 回退**  
-   以上皆无，或调用失败且用户要求继续 → `source=fallback_inline` 做最小内联审查（见 SKILL.md）。  
+4. **不可用 → 回退**
+   以上皆无，或调用失败且用户要求继续 → `source=fallback_inline` 做最小内联审查（见 SKILL.md）。
    注意：`user_provided` 属于第 1 步，**不是**回退。
 
 同一次 `$jj-review` **只跑一条**宿主审查路径，不要串多个完整 review 引擎。
+
+## 宿主发现矩阵（Codex / Grok / Claude）
+
+用**能力名**发现入口，不写死营销产品页。按当前会话已加载的 tools / skills / slash / agents 搜索：
+
+| 宿主 | 优先查找（能力名 / 入口形态） | 如何确认可用 | 典型产物或输出 |
+| --- | --- | --- | --- |
+| **Codex** | skill / command 名或描述含 `review`、`code-review`、`code review`；只读 reviewer agent | 会话可调用列表 / skill 目录；用户 `@` 或 `$` 审查入口 | 结构化 findings 文本或 review 产物路径 |
+| **Grok** | 已安装 skill 中 review/code-review；Build 内只读 subagent / reviewer 角色 | 当前 session 的 skill 列表；role-spec 若声明 read-only reviewer | findings 列表、会话附件路径 |
+| **Claude** | slash 或 skill：`/review`、名称含 review/code-review 的 command；只读 subagent | `.claude/commands` / 已加载 Skill；`/help` 或 tool 列表 | 报告 Markdown / 结构化 findings |
+
+通用规则（各宿主相同）：
+
+1. **只匹配明确审查入口**；`verify` / `npm test` / CI 绿灯 **不是** review 引擎。
+2. 优先 **用户已提供** 产物（矩阵之上的发现顺序第 1 步）。
+3. 子代理必须 **read-only**，禁止其改业务代码。
+4. 无可发现入口 → `source=fallback_inline` 最小内联审查，并在 `host_review.note` 写明原因。
+5. 发现失败 hard-stop：若用户要求「必须用宿主 review」且入口不存在 → `BLOCKED`，说明缺失入口与可选回退，不 init ralph。
 
 ## 调用时传入的上下文
 
@@ -114,6 +132,6 @@
   reviews/REV-n.json  +  run.json.review  +  progress.md
 ```
 
-- **事实源**仍是 `REV-*.json` 与 `run.json`，不是聊天正文。  
-- 宿主 review 文件可保留在其默认位置；jj-flow 侧只要求契约路径下有规范化报告。  
+- **事实源**仍是 `REV-*.json` 与 `run.json`，不是聊天正文。
+- 宿主 review 文件可保留在其默认位置；jj-flow 侧只要求契约路径下有规范化报告。
 - accept/archive 的 product-consistency 仍读最新 REV outcome（见 jj-ralph phases）。

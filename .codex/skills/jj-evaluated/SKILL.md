@@ -1,9 +1,19 @@
 ---
 name: jj-evaluated
-description: Evaluate and improve jj-same, jj-ralph, and jj-dispatch workflows with real project conversation exports and versioned artifacts. Use for 承接、兑接、承载 workflow time-cost analysis, handoff reuse, rework diagnosis, trace-quality checks, and replay-backed generalization improvements through /jj-evaluated.
+description: Experimental offline evaluation skill ($jj-evaluated / skill id jj-evaluated). Evaluate and improve jj-same, jj-ralph, and jj-dispatch workflows with real project conversation exports and versioned artifacts. Use for 承接、兑接、承载 workflow time-cost analysis, handoff reuse, rework diagnosis, trace-quality checks, and replay-backed generalization. Platforms Codex/Qoder/Grok only — no Claude slash command (do not invent one). Minimal runner scripts available; full learning loop still expanding.
 ---
 
 # jj-evaluated
+
+> **Status:** experimental (MVP runner)
+>
+> **Product report root (business repos):** `.workflow/evaluated/`
+>
+> **Honesty:** jj-flow itself is **not** control-plane truth for business evaluations.
+> Chat text, thread status, and memory cannot advance checkpoints.
+>
+> **Platforms:** Codex / Qoder / Grok skill install. **No** Claude Code command
+> (intentional — do not invent `/jj-evaluated`).
 
 ## Purpose
 
@@ -16,6 +26,47 @@ Keep the three project roles separate: 承接, 兑接, and 承载. Do not rename
 to `handoff`, and do not infer a role from an old path or chat phrase without a
 current repository/branch/commit fact.
 
+## Scripts (minimal runner)
+
+Pure Node ESM under `scripts/`. No external deps.
+
+| Script | Role |
+| --- | --- |
+| `scripts/episode-validate.mjs` | Validate episode JSON/JSONL against contract minimums |
+| `scripts/evaluated_ops.mjs` | Ops facade: `validate`, `init-report`, `check-split` |
+
+### Script resolution
+
+1. Repo skill scripts: `.codex/skills/jj-evaluated/scripts/…`
+2. Installed skill path (same relative `scripts/` after `jj install-skill`)
+3. Explicit: `node .codex/skills/jj-evaluated/scripts/evaluated_ops.mjs …`
+
+Examples:
+
+```text
+node .codex/skills/jj-evaluated/scripts/episode-validate.mjs path/to/episode.json --json
+node .codex/skills/jj-evaluated/scripts/evaluated_ops.mjs validate --episode path/to/episode.json
+node .codex/skills/jj-evaluated/scripts/evaluated_ops.mjs init-report --out .workflow/evaluated/EP-demo --episode-id EP-demo
+node .codex/skills/jj-evaluated/scripts/evaluated_ops.mjs check-split --manifest path/to/split.json
+```
+
+## 9 steps ↔ CLI mapping
+
+| Step | Agent work | CLI / mechanical assist |
+| ---: | --- | --- |
+| 1 | Establish scope and authorities (read design docs, role map, git facts) | manual (agent) |
+| 2 | Ingest real episodes (exports, git, handoff, verification artifacts) | manual (agent) |
+| 3 | Normalize and tag to episode contract | `validate` / `episode-validate.mjs` |
+| 4 | Compute cautious baseline (clock_quality + provenance on every duration) | manual (agent); contract fields enforced by `validate` |
+| 5 | Split before proposing (optimization/search, holdout, regression) | `check-split --manifest` |
+| 6 | Diagnose from raw traces; one bounded candidate | manual (agent) |
+| 7 | Replay cheaply then expensively | manual (agent); keep suite notes in report |
+| 8 | Review and promote deliberately | manual (agent); human decision in report |
+| 9 | Archive and maintain; next data-collection action | `init-report` skeleton + archive notes |
+
+`init-report` may be run at step 1–2 to create the markdown shell under
+`.workflow/evaluated/<episode_id|timestamp>/report.md`, then filled as steps progress.
+
 ## Operating procedure
 
 1. **Establish scope and authorities.** Read `ARCHITECTURE.md`,
@@ -24,7 +75,7 @@ current repository/branch/commit fact.
    path, role, branch, commit, worktree state, thread/export id, and evidence
    source. Treat this as a read-only investigation unless the user explicitly
    requests a change.
-2. **Ingest real episodes.** Accept local Codex thread exports, user-provided
+2. **Ingest real episodes.** Accept local Codex/Grok thread exports, user-provided
    JSON/JSONL exports, Git history, handoff snapshots, verification/review
    artifacts, ralph ledgers, and (in a business repository) `.workflow` files.
    The latter are input evidence for the business repository, not jj-flow's own
@@ -33,7 +84,8 @@ current repository/branch/commit fact.
    `references/episode-contract.md`. Preserve raw references and hashes. Tag
    behavior such as `handoff_reuse`, `redundant_analysis`, `branch_correction`,
    `stale_snapshot`, `validation_wait`, `user_correction`, and
-   `target_native_adaptation`.
+   `target_native_adaptation`. Run `episode-validate` / `evaluated_ops validate`
+   before treating the sample as baseline-ready.
 4. **Compute a cautious baseline.** Report active work, wall span, idle/wait,
    human attention, tool/build wait, handoff wait, rework, duplicate analysis,
    correction count, token/tool volume, and correctness evidence. Mark every
@@ -42,7 +94,8 @@ current repository/branch/commit fact.
 5. **Split before proposing.** Create disjoint `optimization/search`, `holdout`,
    and immutable `regression` sets. Group-split by thread, feature, snapshot,
    project role, time window, and (when available) person/model. Do not expose
-   holdout outcomes to the proposer. See `references/optimization-loop.md`.
+   holdout outcomes to the proposer. Validate with `check-split`. See
+   `references/optimization-loop.md`.
 6. **Diagnose from raw traces.** Use scores to locate candidates, then inspect
    the complete relevant trace, tool calls, state updates, artifact diffs, and
    user corrections. State a causal hypothesis and identify confounded edits.
@@ -96,6 +149,12 @@ Produce a concise report with:
 - replay results, regressions, token/time trade-offs, and human decision;
 - promotion status, rollback path, and next data-collection action.
 
+Scaffold with:
+
+```text
+node .codex/skills/jj-evaluated/scripts/evaluated_ops.mjs init-report --out .workflow/evaluated/<episode_id> --episode-id <episode_id>
+```
+
 Read the detailed contracts only when needed:
 
 - [episode-contract.md](references/episode-contract.md) for normalized events,
@@ -111,3 +170,6 @@ Do not use chat text, thread status, memory, or an unverified artifact to advanc
 jj-flow checkpoints. Do not send raw project conversations to an external service
 without explicit authorization. Make redaction/hashing configurable, preserve
 enough structure to diagnose failures, and label any inferred value as inferred.
+
+Do not invent a Claude slash command for this skill. Entry is `$jj-evaluated` /
+skill id `jj-evaluated` on Codex, Qoder, and Grok only.

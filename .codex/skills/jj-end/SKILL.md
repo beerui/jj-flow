@@ -19,15 +19,28 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 ## Core Rule
 
 - 显式：`$jj-end` / 收工 / 结束任务 / 提交并合并到 dev
-- **主动收尾**：实现完成且用户未禁止 push/merge 时，先用一行说明 `work→integration`，再**自动执行到底**
+- **主动收尾**：实现完成且用户未禁止 push/merge 时，**先打印一行** `work→integration` 计划，再**自动执行到底**
+- 用户说过禁止 push/merge，或 `dry_run=true`：**不得** merge / push；只报告计划或停在 dry_run 表
 - 仅提交、不 push/merge：不用本 skill
-- **禁止**因「怕 merge」或「先问问」而跳过步骤 4–6（冲突除外）
+- **禁止**因「怕 merge」或「先问问」而跳过步骤 4–6（冲突除外，或用户明确禁止）
+- 本 skill **不**写 control plane、**不**读/推进 dispatch manifest；调度闭环用 `$jj-dispatch`
+
+## Integration 解析优先级
+
+按序解析 `integration`（每步检查**本地或** `<remote>/<name>` 是否存在）：
+
+1. 用户显式 `integration=`（远端/本地皆无则 **hard-stop**）
+2. 家族 / 仓库约定（若文档或用户配置写明 integration 分支名）
+3. 启发式：`dev` → `develop` → `main`（仅当存在）
+4. 否则停止并询问目标分支
+
+**禁止** monorepo / 子包未声明时默默选 monorepo 根或上层仓库的 integration。工作区须是用户意图的 git 根（`git rev-parse --show-toplevel`）；误判为子包或上层根 → **hard-stop**，报告检出路径与建议。
 
 ## Defaults
 
 | key | default |
 |-----|---------|
-| integration | auto：`dev` → `develop` → `main`（见下）；可被显式覆盖 |
+| integration | 见「Integration 解析优先级」；可被显式覆盖 |
 | return_to | `work`（`work` \| `integration`） |
 | remote | `origin` |
 | message | 自动：`type(scope): 中文摘要` |
@@ -67,15 +80,21 @@ Hard-stop（报告后停止，不改仓库）：
 - merge / rebase / cherry-pick / revert 进行中
 - 工作区含**他人/无关**大量冲突式脏状态且无法安全只提交本任务文件
 
-解析 `integration`（每步检查**本地或** `<remote>/<name>` 是否存在）：
+解析 `integration`：见上文「Integration 解析优先级」（勿在 monorepo 未声明时猜根）。
 
-1. 用户显式传入 → 用它（远端/本地皆无则停止）
-2. 否则 `dev`
-3. 否则 `develop`
-4. 否则 `main`（仅当存在）
-5. 否则停止并询问目标分支
+`dry_run=true`：打印可验证字段表后**停止，不写仓库**：
 
-`dry_run=true`：打印 plan（work / integration / return、是否 commit、是否需 pull work、是否 merge）后**停止，不写仓库**。
+| 字段 | 含义 |
+|------|------|
+| `work_branch` | 收工开始时的工作分支 |
+| `integration` | 解析后的合入目标 |
+| `will_commit` | 是否将提交本任务改动 |
+| `will_pull_work` | 是否将 pull/同步 work |
+| `will_merge` | 是否将 merge work→integration（同分支则为 false 并说明） |
+| `will_push_work` | 是否将 push work |
+| `will_push_integration` | 是否将 push integration |
+| `return_to` | `work` \| `integration` |
+| `blockers[]` | 已知阻塞（无 remote、禁止 merge、路径误判等） |
 
 ### 2. Commit（仅本任务；可先于 pull）
 
@@ -207,11 +226,13 @@ git log -1 --oneline <integration>   # 若可解析
 | 失败点 | 动作 |
 |--------|------|
 | commit 前 hard-stop | 不改分支、不 merge |
+| monorepo/子包工作区误判 | 不 commit/merge；报告 `show-toplevel` 与意图根；停 |
 | pull work 冲突 | abort merge；留在 work；停 |
 | push work 失败 | 留在 work；停 |
 | pull integration 冲突 | abort；checkout work；停 |
 | merge work→integration 冲突 | `merge --abort`；checkout work；停 |
 | push integration 失败 | checkout work；integration 可能已 merge 未推送，报告需人工 push |
+| 用户禁止 push/merge 或 dry_run | 不 push/merge；仅报告计划 |
 
 **禁止**在失败后留下半成品 merge 状态（必须 abort 或明确报告「仍在 merging」）。  
 **禁止**把「merge --abort 后的回退」当成收工成功。

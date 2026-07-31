@@ -1,0 +1,46 @@
+{
+  "episode_id": "EP-fixture-valid-001",
+  "role": "承载",
+  "thread_id": "019fb1a6-fixture-thread",
+  "events": [
+    {
+      "event_id": "evt-001",
+      "episode_id": "EP-fixture-valid-001",
+      "kind": "user_request",
+      "role": "承载",
+      "started_at": "2026-07-30T02:00:00Z",
+      "ended_at": "2026-07-30T02:01:00Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "status": "completed",
+      "labels": ["requirement_recovery"],
+      "notes": "fixture: intake"
+    },
+    {
+      "event_id": "evt-002",
+      "episode_id": "EP-fixture-valid-001",
+      "kind": "agent_turn",
+      "role": "承载",
+      "started_at": "2026-07-30T02:01:00Z",
+      "ended_at": "2026-07-30T02:10:00Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "status": "completed",
+      "labels": ["handoff_reuse"],
+      "notes": "fixture: delivery turn"
+    },
+    {
+      "event_id": "evt-003",
+      "episode_id": "EP-fixture-valid-001",
+      "kind": "verification",
+      "role": "承载",
+      "started_at": "2026-07-30T02:10:00Z",
+      "ended_at": "2026-07-30T02:12:00Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "exact",
+      "status": "completed",
+      "labels": [],
+      "notes": "fixture: gate pass"
+    }
+  ]
+}

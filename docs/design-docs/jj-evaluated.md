@@ -1,10 +1,10 @@
-# `/jj-evaluated` 真实工作流评估与泛化学习设计
+# `jj-evaluated` 真实工作流评估与泛化学习设计
 
-> 状态：Proposed
+> 状态：Implemented（MVP runner；全量学习环仍扩展中）
 >
-> 范围注记：完整 eval 闭环未关闭；skill MVP 可用不等于 Implemented
+> 范围注记：完整 eval 闭环未关闭；MVP runner ≠ 全量自动化学习环
 >
-> 已落地：`.codex/skills/jj-evaluated` skill 入口；`docs/evaluations/*` episode 与回放笔记
+> 已落地：`.codex/skills/jj-evaluated` skill 入口（experimental；`$jj-evaluated` / skill id；**无** Claude slash）；`scripts/episode-validate.mjs` + `scripts/evaluated_ops.mjs` 最小 runner；`docs/evaluations/*` episode 与回放笔记；业务仓报告根 `.workflow/evaluated/`
 >
 > 未关闭：标准化 holdout / regression 套件、批准后自动演进 skill 的机械门禁、与 harness GC 的联动
 >
@@ -12,11 +12,13 @@
 
 ## 1. 摘要
 
-`/jj-evaluated` 是一个只读、离线、可回放的学习系统入口，用真实项目对话
-导出和交付工件评估 `jj-same`（同源迁移/持续同步）、`jj-ralph`（单仓闭环）
-和 `jj-dispatch`（多项目调度）的实际使用。第一阶段学习对象是 workflow
-策略、skill 文本、handoff 规则和工具编排，不自动训练模型、不自动改生产
-代码，也不替代现有事实源和门禁。
+`$jj-evaluated`（skill id `jj-evaluated`；experimental；无 Claude slash）是一个
+只读、离线、可回放的学习系统入口，用真实项目对话导出和交付工件评估
+`jj-same`（同源迁移/持续同步）、`jj-ralph`（单仓闭环）和 `jj-dispatch`
+（多项目调度）的实际使用。第一阶段学习对象是 workflow 策略、skill 文本、
+handoff 规则和工具编排，不自动训练模型、不自动改生产代码，也不替代现有
+事实源和门禁。MVP runner 提供 episode 校验、split 检查与 report 骨架，不
+关闭全量学习环。
 
 核心问题不是“哪次对话更快”，而是：在保持需求正确性、目标项目原生适配、
 回归安全和证据完整的前提下，哪些策略能减少重复分析、无效等待和返工，并
