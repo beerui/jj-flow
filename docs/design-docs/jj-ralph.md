@@ -39,9 +39,19 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | --- | --- | --- |
 | ANALYZE | 需求、范围、证据与不做清单 | 范围确认 |
 | PLAN | 最小计划与验收标准 | plan 可执行 |
-| DELIVER | 实施与验证循环 | 验证证据 |
-| ACCEPT | 验收结论 | `gate accept` PASS/FAIL |
+| DELIVER | 实施与验证循环 | 验证证据；`deliver-attempt` 停滞/预算早停 |
+| ACCEPT | 验收结论（双层：mechanical + 可选 judgment） | `gate accept` PASS/FAIL；strict 需 judgment PASS |
 | ARCHIVE | map-merge + archive 冻结 | `finalize` |
+
+### 强度档 intensity（速度 × 质量）
+
+`init --intensity tiny|standard|strict`（默认 standard）。写入 `run.intensity` / `budget` / `stagnation` / `accept_layers`；遗留 run 缺字段按 standard。
+
+- **tiny**：短 `max_iterations`、跳过判断层（除非已有 review 否定结论）
+- **standard**：现网默认；accept 判断层可 SKIPPED
+- **strict**：更紧预算；accept 前 `accept_layers.judgment` 必须 PASS（review/recheck）
+
+不引入 ACO / 多 worker 主循环；对抗只作为 judgment_mode 可选备注，事实源仍是 ledger + verify。
 
 - accept PASS 后默认 `finalize`（map-merge + archive）
 - `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
@@ -58,7 +68,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
 | COMPLETED 再做 | 新 run + `progress.md` 链 `supersedes_run_id` / `parent_run_id`；不 un-archive 覆盖 |
 
-续作（**改错** / **加子需求**，关账前同 run / 关账后新 run 链）与话术：用户向 [ralph 命令 §1](../command-jj-ralph.html#1-续作-改错与子需求-关账前-关账后)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
+续作（**改错** / **加子需求**：还没归档同任务 / 已归档则新任务 + progress 链）与话术：用户向 [ralph 命令 · 做完了还要改](../command-jj-ralph.html#做完了还要改-还要加东西)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
 
 默认**不**自动 git revert。
 
@@ -96,7 +106,7 @@ archive 目录默认去重 run_id 末尾日期（例 `2026-07-23-smoke`，而非
 | 权威实现 | `src/ralph.mjs` |
 | Skill 可移植副本 | `.codex/skills/jj-ralph/scripts/lib/ralph.mjs`（`npm run ralph:sync`） |
 | Agent 入口 | `.codex/skills/jj-ralph/scripts/ralph_ops.mjs`（优先 live src，否则 bundled；业务仓无需装 npm 包） |
-| CLI | `jj ralph init\|status\|archive\|finalize\|map-merge\|gate\|map-find\|handoff\|dispatch-snapshot\|commit-prep\|review-record\|rollback-phase\|set-status` |
+| CLI | `jj ralph init\|status\|archive\|finalize\|map-merge\|gate\|deliver-attempt\|accept-layer\|map-find\|handoff\|dispatch-snapshot\|commit-prep\|review-record\|rollback-phase\|set-status` |
 
 解析顺序：repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
 

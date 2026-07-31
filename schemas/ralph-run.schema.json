@@ -95,6 +95,70 @@
       "minimum": 1,
       "default": 20
     },
+    "intensity": {
+      "type": "string",
+      "enum": ["tiny", "standard", "strict"],
+      "description": "Speed/quality tier. Omit on legacy runs (treated as standard)."
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_deliver_loops": { "type": "integer", "minimum": 1 },
+        "max_accept_rechecks": { "type": "integer", "minimum": 1 },
+        "max_same_strategy_failures": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "stagnation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patience": { "type": "integer", "minimum": 1 },
+        "unchanged_count": { "type": "integer", "minimum": 0 },
+        "last_signal": { "type": ["string", "null"] },
+        "last_score": { "type": ["number", "null"] },
+        "last_fingerprint": {
+          "type": ["string", "null"],
+          "description": "sha256-16 of deliver workspace fingerprint (diff paths + signal)"
+        }
+      }
+    },
+    "accept_layers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mechanical": { "type": "string", "enum": ["PENDING", "PASS", "FAIL", "SKIPPED"] },
+        "judgment": { "type": "string", "enum": ["PENDING", "PASS", "FAIL", "SKIPPED"] },
+        "judgment_mode": { "type": "string", "enum": ["none", "review", "recheck", "adversarial_note"] },
+        "recheck_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "gate_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["class", "message"],
+        "properties": {
+          "gate": { "type": "string" },
+          "class": { "type": "string", "enum": ["error", "warning", "info"] },
+          "code": { "type": ["string", "null"] },
+          "message": { "type": "string", "minLength": 1 },
+          "waived": { "type": "boolean" },
+          "at": { "type": "string" }
+        }
+      }
+    },
+    "plan_options": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Optional multi-path PLAN candidates for strict intensity"
+        }
+      ]
+    },
     "tasks": {
       "type": "array",
       "items": {
@@ -193,8 +257,17 @@
                 "USER_TEST",
                 "DIRTY_WORKTREE",
                 "MAX_ITERATIONS",
+                "STAGNATION",
+                "ACCEPT_JUDGMENT_REQUIRED",
+                "HALLUCINATION_CLUSTER",
+                "SCOPE_AMBIGUITY",
+                "PAUSED",
+                "BLOCKED",
                 "OTHER"
               ]
+            },
+            "at": {
+              "type": "string"
             }
           }
         }

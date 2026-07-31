@@ -25,11 +25,37 @@
 
 `max_iterations` 默认 20，触顶写 `intervention_needed.kind=MAX_ITERATIONS`。
 
+## 强度档（intensity）
+
+`init --intensity tiny|standard|strict` 写入 `run.intensity` + 默认 `budget` / `stagnation` / `accept_layers`。缺省与遗留 run = `standard`。
+
+| intensity | max_iterations | PLAN | DELIVER | ACCEPT 判断层 |
+| --- | --- | --- | --- | --- |
+| `tiny` | 8 | 最短（见 tiny-example） | 单线；`deliver-attempt` 停滞早停 | 默认可 SKIPPED |
+| `standard` | 20 | 正常最短计划 | 同上 | 有 review 则尊守；无则 SKIPPED |
+| `strict` | 12 | 建议 2～3 路线写入 `plan_options` | 更紧预算 | **必须** `accept_layers.judgment=PASS`（review/recheck） |
+
+机械步骤：
+
+```bash
+ralph_ops.mjs deliver-attempt --run-id … [--improved true|false|auto] [--signal "verify:…"]
+# omit --improved / auto：对比工作区 diff 指纹 + signal，防谎报 improved
+ralph_ops.mjs accept-layer --run-id … --layer judgment --status PASS --mode review|recheck
+ralph_ops.mjs gate --run-id … --gate accept --status PASS
+```
+
+- **层1 mechanical**：现有 product-consistency（deliver PASS、路径、review 不得 NEEDS_CHANGES…）
+- **层2 judgment**：strict 必过；error 级 `gate_issues` 始终挡 accept（除非 waived/`--force`）
+- 连续 `improved=false` 达 `stagnation.patience`（默认 2）→ `BLOCKED` + `intervention_needed.kind=STAGNATION`
+- 触顶 `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
+- `review-record` outcome=PASS/NEEDS_CHANGES → 自动写 `accept_layers.judgment`（strict 可直接 gate accept）
+- `map-merge` / finalize 自动把 STAGNATION、strict 等写入 capability `lessons`（弱信息素，供 map-find）
+
 ## 精简执行
 
-- 单点/单文件：ANALYZE/PLAN 只写最短 MUST、文件列表、验收；跟随 [tiny-example.md](tiny-example.md)。
+- 单点/单文件：ANALYZE/PLAN 只写最短 MUST、文件列表、验收；跟随 [tiny-example.md](tiny-example.md)；优先 `intensity=tiny`。
 - 已定位文件后直接 DELIVER；不要为完整而重复检索。
-- 同一工具/策略失败 2 次必须换法。
+- 同一工具/策略失败 2 次必须换法；每次 verify 后记 `deliver-attempt`。
 - 全部步骤由当前会话直接读写约定路径完成（不绑定特定宿主）。
 - 未要求 commit/push 时给 commit-prep 建议或完成报告即可。
 

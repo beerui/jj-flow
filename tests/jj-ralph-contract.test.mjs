@@ -25,8 +25,15 @@ import {
   extractLedgerPathRefs,
   findImplementationPathMismatch,
   evaluateAcceptArchiveGate,
+  evaluateAcceptJudgment,
   detectDeliverOutsideLedger,
   recordHostMeta,
+  recordDeliverAttempt,
+  fingerprintDeliverState,
+  setAcceptLayer,
+  addGateIssue,
+  deriveAutoLessonsFromRun,
+  INTENSITY_DEFAULTS,
   resolveReviewScope,
   rollbackPhase,
   setRunStatus,
@@ -80,10 +87,40 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'ralph_ops.mjs',
     'finalize',
     'rollback',
-    'rollback-phase'
+    'rollback-phase',
+    'intensity',
+    'deliver-attempt',
+    'accept-layer',
+    'tiny',
+    'strict'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
+
+  const userCmd = read('docs/commands/jj-ralph.md');
+  for (const marker of [
+    '承接',
+    '兑接',
+    '承载',
+    '控制项目',
+    'RALPH-login-reminder',
+    'DEL-password',
+    'CAP-login-reminder',
+    'intensity',
+    'tiny',
+    'strict'
+  ]) {
+    assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+
+  const phases = read('.codex/skills/jj-ralph/references/phases.md');
+  assert.match(phases, /强度档/);
+  assert.match(phases, /deliver-attempt/);
+  assert.match(phases, /accept-layer|accept_layers/);
+
+  const schema = read('schemas/ralph-run.schema.json');
+  assert.match(schema, /"intensity"/);
+  assert.match(schema, /STAGNATION/);
   assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs')));
 assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs')));
   assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/namingConfig.mjs')));
@@ -842,6 +879,355 @@ test('host-record and init host metadata persist on run', () => {
     assert.equal(run.host.thread_id, '019f');
     assert.equal(resolveReviewScope({ reviewed_commit: 'abcdef1' }), 'commit');
     assert.equal(resolveReviewScope({}), 'working_tree');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('init intensity tiers set budget and accept_layers defaults', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intensity-'));
+  try {
+    for (const intensity of ['tiny', 'standard', 'strict']) {
+      const runId = 'RALPH-intensity-' + intensity + '-20260731';
+      initRun({
+        run_id: runId,
+        title: 'intensity ' + intensity,
+        goal: 'tier defaults',
+        capability_ids: ['CAP-intensity'],
+        attach_knowledge: false,
+        intensity
+      }, cwd);
+      const run = loadRun(runId, cwd);
+      assert.equal(run.intensity, intensity);
+      assert.equal(run.max_iterations, INTENSITY_DEFAULTS[intensity].max_iterations);
+      assert.equal(run.budget.max_deliver_loops, INTENSITY_DEFAULTS[intensity].budget.max_deliver_loops);
+      assert.equal(run.stagnation.patience, INTENSITY_DEFAULTS[intensity].stagnation_patience);
+      assert.equal(run.stagnation.unchanged_count, 0);
+      if (intensity === 'strict') {
+        assert.equal(run.accept_layers.judgment, 'PENDING');
+      } else {
+        assert.equal(run.accept_layers.judgment, 'SKIPPED');
+      }
+      assert.deepEqual(validateRun(run), []);
+    }
+    assert.throws(
+      () => initRun({
+        run_id: 'RALPH-intensity-bad-20260731',
+        title: 'bad',
+        goal: 'bad',
+        capability_ids: ['CAP-intensity'],
+        attach_knowledge: false,
+        intensity: 'ludicrous'
+      }, cwd),
+      /intensity must be/
+    );
+    // default standard
+    initRun({
+      run_id: 'RALPH-intensity-default-20260731',
+      title: 'default',
+      goal: 'default',
+      capability_ids: ['CAP-intensity'],
+      attach_knowledge: false
+    }, cwd);
+    assert.equal(loadRun('RALPH-intensity-default-20260731', cwd).intensity, 'standard');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('recordDeliverAttempt stagnates then BLOCKED with STAGNATION', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-stag-'));
+  try {
+    const runId = 'RALPH-stagnation-20260731';
+    initRun({
+      run_id: runId,
+      title: 'stag',
+      goal: 'stop spinning',
+      capability_ids: ['CAP-stag'],
+      attach_knowledge: false,
+      intensity: 'tiny'
+    }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+
+    let r = recordDeliverAttempt(runId, { improved: false, signal: 'test_fail:foo', cwd });
+    assert.equal(r.blocked, false);
+    assert.equal(r.stagnation.unchanged_count, 1);
+    assert.equal(r.iteration, 1);
+
+    r = recordDeliverAttempt(runId, { improved: false, signal: 'test_fail:foo', cwd });
+    assert.equal(r.blocked, true);
+    assert.equal(r.status, 'BLOCKED');
+    assert.equal(r.intervention_needed.kind, 'STAGNATION');
+    assert.equal(r.stagnation.unchanged_count, 2);
+
+    // improvement resets counter when unblocked
+    setRunStatus(runId, { status: 'IN_PROGRESS', reason: 'retry with new strategy', cwd });
+    r = recordDeliverAttempt(runId, { improved: true, signal: 'tests_green', cwd });
+    assert.equal(r.blocked, false);
+    assert.equal(r.stagnation.unchanged_count, 0);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('recordDeliverAttempt auto fingerprint detects no-change stagnation', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-auto-fp-'));
+  try {
+    const runId = 'RALPH-auto-fp-20260731';
+    initRun({
+      run_id: runId,
+      title: 'auto fp',
+      goal: 'fingerprint',
+      capability_ids: ['CAP-fp'],
+      attach_knowledge: false,
+      intensity: 'tiny'
+    }, cwd);
+    const samePaths = ['src/a.js'];
+    const r1 = recordDeliverAttempt(runId, {
+      signal: 'fail',
+      paths: samePaths,
+      cwd
+    });
+    assert.equal(r1.improved_source, 'auto');
+    assert.equal(r1.improved, true); // baseline
+    assert.ok(r1.fingerprint);
+
+    const r2 = recordDeliverAttempt(runId, {
+      signal: 'fail',
+      paths: samePaths,
+      cwd
+    });
+    assert.equal(r2.improved, false);
+    assert.equal(r2.blocked, false);
+
+    const r3 = recordDeliverAttempt(runId, {
+      signal: 'fail',
+      paths: samePaths,
+      cwd
+    });
+    assert.equal(r3.improved, false);
+    assert.equal(r3.blocked, true);
+    assert.equal(r3.intervention_needed.kind, 'STAGNATION');
+
+    // path change → improved
+    setRunStatus(runId, { status: 'IN_PROGRESS', reason: 'new diff', cwd });
+    const r4 = recordDeliverAttempt(runId, {
+      signal: 'fail',
+      paths: ['src/a.js', 'src/b.js'],
+      cwd
+    });
+    assert.equal(r4.improved, true);
+    assert.equal(r4.stagnation.unchanged_count, 0);
+
+    const fp = fingerprintDeliverState(cwd, { signal: 'x', paths: ['src/z.js'] });
+    assert.equal(fp.fingerprint.length, 16);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('strict accept requires judgment layer; error gate_issues block; standard can skip', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-accept-layer-'));
+  try {
+    const strictId = 'RALPH-strict-accept-20260731';
+    initRun({
+      run_id: strictId,
+      title: 'strict accept',
+      goal: 'judgment required',
+      capability_ids: ['CAP-strict'],
+      attach_knowledge: false,
+      intensity: 'strict'
+    }, cwd);
+    setGate(strictId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(strictId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(strictId, { gate: 'deliver', status: 'PASS', cwd });
+
+    // Without judgment PASS, strict accept is blocked (force would bypass — not used here).
+    assert.throws(
+      () => setGate(strictId, { gate: 'accept', status: 'PASS', cwd }),
+      /judgment/
+    );
+
+    setAcceptLayer(strictId, { layer: 'judgment', status: 'PASS', mode: 'review', note: 'REV ok', cwd });
+    const passed = setGate(strictId, { gate: 'accept', status: 'PASS', cwd });
+    assert.equal(passed.run.gates.accept, 'PASS');
+    assert.equal(passed.run.accept_layers.mechanical, 'PASS');
+    assert.equal(passed.run.accept_layers.judgment, 'PASS');
+
+    const stdId = 'RALPH-std-accept-20260731';
+    initRun({
+      run_id: stdId,
+      title: 'standard accept',
+      goal: 'skip judgment',
+      capability_ids: ['CAP-std'],
+      attach_knowledge: false,
+      intensity: 'standard'
+    }, cwd);
+    setGate(stdId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(stdId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(stdId, { gate: 'deliver', status: 'PASS', cwd });
+    const stdPass = setGate(stdId, { gate: 'accept', status: 'PASS', cwd });
+    assert.equal(stdPass.run.gates.accept, 'PASS');
+    assert.equal(stdPass.run.accept_layers.judgment, 'SKIPPED');
+
+    const errId = 'RALPH-gate-issue-20260731';
+    initRun({
+      run_id: errId,
+      title: 'gate issue',
+      goal: 'error blocks',
+      capability_ids: ['CAP-issue'],
+      attach_knowledge: false,
+      intensity: 'standard'
+    }, cwd);
+    setGate(errId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(errId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(errId, { gate: 'deliver', status: 'PASS', cwd });
+    addGateIssue(errId, { class: 'error', code: 'SEC-1', message: 'secret in code', cwd });
+    assert.equal(evaluateAcceptJudgment(loadRun(errId, cwd)).ok, false);
+    assert.throws(() => setGate(errId, { gate: 'accept', status: 'PASS', cwd }), /gate_issue error/);
+    // warning does not block
+    const warnId = 'RALPH-gate-warn-20260731';
+    initRun({
+      run_id: warnId,
+      title: 'warn',
+      goal: 'warn ok',
+      capability_ids: ['CAP-warn'],
+      attach_knowledge: false
+    }, cwd);
+    setGate(warnId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(warnId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(warnId, { gate: 'deliver', status: 'PASS', cwd });
+    addGateIssue(warnId, { class: 'warning', message: 'style nits', cwd });
+    assert.equal(setGate(warnId, { gate: 'accept', status: 'PASS', cwd }).run.gates.accept, 'PASS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('recordReview PASS sets accept_layers.judgment for strict accept path', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-judgment-'));
+  try {
+    const runId = 'RALPH-review-judgment-20260731';
+    initRun({
+      run_id: runId,
+      title: 'review judgment',
+      goal: 'auto judgment from review',
+      capability_ids: ['CAP-rj'],
+      attach_knowledge: false,
+      intensity: 'strict'
+    }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    assert.equal(loadRun(runId, cwd).accept_layers.judgment, 'PENDING');
+    recordReview(runId, { cwd, outcome: 'PASS', summary: 'ok', findings: [] });
+    const after = loadRun(runId, cwd);
+    assert.equal(after.accept_layers.judgment, 'PASS');
+    assert.equal(after.accept_layers.judgment_mode, 'review');
+    const accepted = setGate(runId, { gate: 'accept', status: 'PASS', cwd });
+    assert.equal(accepted.run.gates.accept, 'PASS');
+
+    recordReview(runId, {
+      cwd,
+      outcome: 'NEEDS_CHANGES',
+      summary: 'fix',
+      findings: [{
+        id: 'F-1',
+        severity: 'high',
+        file: 'src/a.js',
+        line: 1,
+        description: 'bug',
+        status: 'OPEN',
+        acceptance: 'fix it'
+      }]
+    });
+    assert.equal(loadRun(runId, cwd).accept_layers.judgment, 'FAIL');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('map-merge derives STAGNATION/strict lessons into capability', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-auto-lessons-'));
+  try {
+    const runId = 'RALPH-auto-lessons-20260731';
+    initRun({
+      run_id: runId,
+      title: 'lessons',
+      goal: 'map pheromone',
+      capability_ids: ['CAP-lessons'],
+      attach_knowledge: false,
+      intensity: 'strict'
+    }, cwd);
+    recordDeliverAttempt(runId, { improved: false, signal: 'test_fail:login', cwd });
+    recordDeliverAttempt(runId, { improved: false, signal: 'test_fail:login', cwd });
+    const run = loadRun(runId, cwd);
+    assert.equal(run.intervention_needed?.kind, 'STAGNATION');
+    const auto = deriveAutoLessonsFromRun(run, cwd);
+    assert.ok(auto.some((l) => /STAGNATION/.test(l)));
+    assert.ok(auto.some((l) => /intensity=strict/.test(l)));
+
+    // force map-merge without accept for lesson path
+    run.gates.accept = 'PASS';
+    run.gates.analyze = 'PASS';
+    run.gates.plan = 'PASS';
+    run.gates.deliver = 'PASS';
+    saveRun(run, cwd);
+    const merged = mapMergeFromRun(runId, { force: true, modules: ['src/login.js'] }, cwd);
+    assert.ok(merged.capability.lessons.some((l) => /STAGNATION/.test(l)));
+    assert.ok(merged.capability.lessons.some((l) => /intensity=strict/.test(l)));
+    const found = mapFind('STAGNATION', { cwd, limit: 5 });
+    assert.ok(found.matches.some((m) => m.id === 'CAP-lessons'));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('cli deliver-attempt and accept-layer wire through', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-cli-layer-'));
+  try {
+    const runId = 'RALPH-cli-layer-20260731';
+    assert.equal(
+      runCli([
+        'ralph', 'init',
+        '--run-id', runId,
+        '--title', 'cli',
+        '--goal', 'cli wire',
+        '--intensity', 'tiny',
+        '--no-knowledge-refs',
+        '--json'
+      ], { cwd, stdout: { write: () => {} } }),
+      0
+    );
+    const run = loadRun(runId, cwd);
+    assert.equal(run.intensity, 'tiny');
+    assert.equal(run.max_iterations, INTENSITY_DEFAULTS.tiny.max_iterations);
+
+    assert.equal(
+      runCli([
+        'ralph', 'deliver-attempt',
+        '--run-id', runId,
+        '--improved', 'false',
+        '--signal', 'lint',
+        '--json'
+      ], { cwd, stdout: { write: () => {} } }),
+      0
+    );
+    assert.equal(loadRun(runId, cwd).stagnation.unchanged_count, 1);
+
+    assert.equal(
+      runCli([
+        'ralph', 'accept-layer',
+        '--run-id', runId,
+        '--layer', 'judgment',
+        '--status', 'PASS',
+        '--mode', 'recheck',
+        '--json'
+      ], { cwd, stdout: { write: () => {} } }),
+      0
+    );
+    assert.equal(loadRun(runId, cwd).accept_layers.judgment, 'PASS');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

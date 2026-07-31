@@ -12,6 +12,27 @@
   "assumptions": [],
   "iteration": 0,
   "max_iterations": 20,
+  "intensity": "standard",
+  "budget": {
+    "max_deliver_loops": 20,
+    "max_accept_rechecks": 2,
+    "max_same_strategy_failures": 2
+  },
+  "stagnation": {
+    "patience": 2,
+    "unchanged_count": 0,
+    "last_signal": null,
+    "last_score": null,
+    "last_fingerprint": null
+  },
+  "accept_layers": {
+    "mechanical": "PENDING",
+    "judgment": "SKIPPED",
+    "judgment_mode": "none",
+    "recheck_count": 0
+  },
+  "gate_issues": [],
+  "plan_options": null,
   "tasks": [],
   "gates": {
     "analyze": "PENDING",

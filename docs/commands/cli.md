@@ -53,6 +53,7 @@ jj doctor [--json]
 
 ```bash
 jj ralph init --run-id RALPH-… --title "…" --goal "…" \
+  [--intensity tiny|standard|strict] [--max-iterations N] \
   [--capability CAP-…] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] \
   [--host-id …] [--thread-id …] [--model-id …] [--session-export path] [--force] [--json]
 
@@ -64,6 +65,9 @@ jj ralph map-find --query "关键词" [--limit N] [--json]
 jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]
 jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]
 jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]
+jj ralph deliver-attempt --run-id RALPH-… [--improved true|false|auto] [--signal text] [--json]
+jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment \
+  --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]
 jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]
 jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]
 jj ralph commit-prep --run-id RALPH-… [--json]
@@ -73,6 +77,9 @@ jj ralph host-record --run-id RALPH-… [--host-id …] [--thread-id …] [--ses
 
 说明：
 
+- `intensity`：`tiny` / `standard`（默认）/ `strict` — 预算与 accept 判断层；对话入口见 [ralph 命令](command-jj-ralph.html)  
+- `deliver-attempt`：DELIVER 循环记是否改进；可省略 `--improved`（按工作区指纹自动判定）；连续无改进 → `BLOCKED` + `STAGNATION`  
+- `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`  
 - `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）  
 - `finalize` = map-merge + archive  
 - `handoff` 写到 `.workflow/handoffs/`（迁移实现不在 ralph 目录内）  

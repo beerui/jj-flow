@@ -35,6 +35,8 @@ import {
   renderRalphStatusText,
   recordReview,
   recordHostMeta,
+  recordDeliverAttempt,
+  setAcceptLayer,
   writeDispatchSnapshot,
   writeHandoffPackage
 } from './ralph.mjs';
@@ -729,6 +731,40 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     return 0;
   }
 
+  if (command === 'deliver-attempt') {
+    const options = parseRalphDeliverAttemptArgs(args);
+    const result = recordDeliverAttempt(options.runId, {
+      improved: options.improved,
+      signal: options.signal,
+      score: options.score,
+      cwd
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      stdout.write(
+        `deliver-attempt ${options.runId} improved=${result.improved} source=${result.improved_source}`
+        + ` iteration=${result.iteration}`
+        + (result.blocked ? ` BLOCKED ${result.intervention_needed?.kind || ''}` : '')
+        + '\n'
+      );
+    }
+    return 0;
+  }
+
+  if (command === 'accept-layer') {
+    const options = parseRalphAcceptLayerArgs(args);
+    const result = setAcceptLayer(options.runId, {
+      layer: options.layer,
+      status: options.status,
+      mode: options.mode,
+      note: options.note,
+      cwd
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`accept-layer ${options.layer}=${options.status} (${options.runId})\n`);
+    return 0;
+  }
+
   if (command === 'rollback-phase') {
     const options = parseRalphRollbackPhaseArgs(args);
     const result = rollbackPhase(options.runId, {
@@ -852,6 +888,14 @@ function parseRalphInitArgs(args) {
       options.host.export_path = args[++i];
       continue;
     }
+    if (arg === '--intensity') {
+      options.intensity = args[++i];
+      continue;
+    }
+    if (arg === '--max-iterations') {
+      options.max_iterations = Number(args[++i]);
+      continue;
+    }
     throw new Error(`Unknown ralph init option: ${arg}`);
   }
   if (!options.run_id || !options.title || !options.goal) {
@@ -923,6 +967,44 @@ function parseRalphGateArgs(args) {
   if (!options.runId) throw new Error('gate requires --run-id');
   if (!options.gate) throw new Error('gate requires --gate analyze|plan|deliver|accept|archive');
   if (!options.status) throw new Error('gate requires --status PENDING|PASS|FAIL|N/A|BLOCKED');
+  return options;
+}
+
+function parseRalphDeliverAttemptArgs(args) {
+  const options = { signal: null, score: null, improved: undefined };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--improved') {
+      const raw = String(args[++i] ?? '').toLowerCase();
+      if (raw === 'true' || raw === '1' || raw === 'yes') options.improved = true;
+      else if (raw === 'false' || raw === '0' || raw === 'no') options.improved = false;
+      else if (raw === 'auto') options.improved = undefined;
+      else throw new Error('--improved must be true|false|auto');
+      continue;
+    }
+    if (arg === '--signal') { options.signal = args[++i]; continue; }
+    if (arg === '--score') { options.score = Number(args[++i]); continue; }
+    throw new Error(`Unknown ralph deliver-attempt option: ${arg}`);
+  }
+  if (!options.runId) throw new Error('deliver-attempt requires --run-id');
+  return options;
+}
+
+function parseRalphAcceptLayerArgs(args) {
+  const options = { mode: null, note: null };
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--layer') { options.layer = args[++i]; continue; }
+    if (arg === '--status') { options.status = args[++i]; continue; }
+    if (arg === '--mode') { options.mode = args[++i]; continue; }
+    if (arg === '--note') { options.note = args[++i]; continue; }
+    throw new Error(`Unknown ralph accept-layer option: ${arg}`);
+  }
+  if (!options.runId) throw new Error('accept-layer requires --run-id');
+  if (!options.layer) throw new Error('accept-layer requires --layer mechanical|judgment');
+  if (!options.status) throw new Error('accept-layer requires --status PENDING|PASS|FAIL|SKIPPED');
   return options;
 }
 
@@ -1037,9 +1119,9 @@ function parseRalphFindArgs(args) {
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph deliver-attempt --run-id RALPH-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
   jj ralph host-record --run-id RALPH-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
-  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
+  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }
 
 function printDoctorHelp(stdout) {

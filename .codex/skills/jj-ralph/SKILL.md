@@ -9,16 +9,24 @@ description: "在当前单一业务仓库完成需求到验收归档的 Ralph �
 
 ## 立即动作
 
-1. 无 run 时 `ralph_ops.mjs init`。解析命名与项目 map（**禁止写死本机路径**，如 `D:/a/...`）：
+1. 无 run 时 `ralph_ops.mjs init`（选强度，见下表）。解析命名与项目 map（**禁止写死本机路径**，如 `D:/a/...`）：
    | 档 | 来源 | 用途 |
    | --- | --- | --- |
    | ① | `jj doctor` / env `JJ_GLOBAL_CONFIG_DIR` 或 `DAJI_CONFIG_DIR` → `naming.json` | 命名规则 |
-   | ② | 配置内已解析的 project map 路径（如 map.md / portfolio map） | 定位模块 |
+   | ② | 配置内已解析的 project map 路径（如 map.md / portfolio map） | 定位模块（承接/兑接/承载等） |
    | ③ | 以上缺失 | **hard-stop**：报告缺失路径与如何配置；**禁止**编造 portfolio 根 |
-2. `map-find`；单点改动先读 [tiny-example.md](references/tiny-example.md)。
-3. 按 [phases.md](references/phases.md)：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。优先 `gate`。
-4. accept PASS 后默认 `finalize`。
-5. 完成报告（中文、短）。
+2. **选 intensity**（写入 `run.intensity`；用户口语优先）：
+   | 信号 | intensity |
+   | --- | --- |
+   | 单点 / tiny / `@file:line` / 像素 | `tiny` |
+   | 鉴权·协议 / strict / 明确要审查再归档 / 做完要交接到兑接·承载且怕迁歪 | `strict` |
+   | 其它（先改承接完整能力等） | `standard`（默认） |
+3. `map-find`；单点改动先读 [tiny-example.md](references/tiny-example.md)。
+4. 按 [phases.md](references/phases.md)：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。优先 `gate`。
+   - DELIVER 每次 verify 后：`deliver-attempt --improved true|false [--signal …]`
+   - **strict** accept 前：`accept-layer --layer judgment --status PASS --mode review|recheck`
+5. accept PASS 后默认 `finalize`。
+6. 完成报告（中文、短）。
 
 ## 交接（集成在 run 里）
 
@@ -35,7 +43,9 @@ description: "在当前单一业务仓库完成需求到验收归档的 Ralph �
 ## 脚本
 
 ```bash
-node <resolved>/ralph_ops.mjs init --run-id RALPH-x-20260723 --title "..." --goal "..."
+node <resolved>/ralph_ops.mjs init --run-id RALPH-x-20260723 --title "..." --goal "..." [--intensity tiny|standard|strict]
+node <resolved>/ralph_ops.mjs deliver-attempt --run-id RALPH-x-20260723 --improved true|false [--signal "verify:…"]
+node <resolved>/ralph_ops.mjs accept-layer --run-id RALPH-x-20260723 --layer judgment --status PASS --mode review
 node <resolved>/ralph_ops.mjs gate --run-id RALPH-x-20260723 --gate accept --status PASS
 node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x-20260723 --modules src/a.js --keywords a,b
 node <resolved>/ralph_ops.mjs handoff --run-id RALPH-x-20260723 --targets 兑接识票,承载识票
@@ -43,6 +53,8 @@ node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x-20260723
 node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x-20260723 --to DELIVER --reason "验收证据不足"
 node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x-20260723 --status PAUSED --reason "等 UAT"
 ```
+
+强度档（速度×质量）：`tiny` 短预算；`standard` 默认；`strict` 要求 accept 判断层 PASS。细则见 [phases.md](references/phases.md)#强度档intensity。
 
 解析：repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/ralph_ops.mjs` → `jj ralph`。
 
@@ -66,21 +78,26 @@ node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x-20260723 --status PAUS
 ## 硬约束
 
 - 不做无关重构；单点 analyze/plan 约 ≤15 行
-- 同操作最多失败 2 次
+- 同操作最多失败 2 次；连续 `deliver-attempt improved=false` 达 patience → 尊重 STAGNATION，换策略或升级用户
 - 未要求 commit/push/review/handoff/dispatch 不做
+- **控制项目** 不跑业务 ralph 实现；多仓派工是 `DEL-*`（dispatch），单仓账本是 `RALPH-*`（勿混 id）
 
 ## 完成报告
 
-- run_id / phase / status
+- run_id / phase / status / **intensity**
+- accept_layers（mechanical / judgment）摘要（若有）
 - 验收结论
-- 若有交接：`ready` + 下一步人话（`交接到 …`）
-- 阻塞原因
+- 若有交接：`ready` + 下一步人话（`交接到 兑接 承载`）
+- 阻塞原因（含 `STAGNATION` / `MAX_ITERATIONS` 时写明）
 
 ## 调用示例
 
 ```text
-$jj-ralph 开始 先改承接
+$jj-ralph 先改承接：登录后密码过期要提示，只做登录成功那条路
+$jj-ralph tiny：兑接 tip bottom 4px→6px
+$jj-ralph strict：承接鉴权刷新失败重登，审查后再归档
 $jj-ralph 继续 RALPH-login-reminder-20260722
+$jj-ralph 交接到 兑接 承载
 ```
 
-见 [integrations.md](references/integrations.md)、[artifact-layout.md](references/artifact-layout.md)。
+见 [integrations.md](references/integrations.md)、[artifact-layout.md](references/artifact-layout.md)；用户向示例 [docs/commands/jj-ralph.md](../../../docs/commands/jj-ralph.md)。

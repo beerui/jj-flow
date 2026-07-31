@@ -4,6 +4,18 @@
 
 ## Unreleased
 
+- **docs**：ralph 用户文档「续作」重写为说人话（还没归档 / 已经归档）；修复对照表因分隔行 `-` 不足 3 位导致整表渲染成乱码管道符。
+- **jj-ralph 强度档 + 双层 ACCEPT + 停滞早停**（速度×质量，不引入多 agent/ACO）：
+  - `init --intensity tiny|standard|strict`：默认 budget / stagnation / accept_layers
+  - `deliver-attempt`：连续无改进 → `BLOCKED` + `STAGNATION`；触顶 max_iterations/budget
+  - `accept-layer`：mechanical/judgment；strict 验收前 judgment 必 PASS；`gate_issues` error 挡 accept
+  - schema/skill/CLI/`phases.md`/设计文档同步；合约测试覆盖三档、停滞、strict accept、CLI 接线
+  - 用户文档：`docs/commands/jj-ralph.md` 用承接/兑接/承载、控制项目、`RALPH-*`/`DEL-*`/`CAP-*` 真实话术解释强度档与闭环；`tiny-example.md` 对齐
+  - 收口：`docs/commands/cli.md` 补 `intensity`/`deliver-attempt`/`accept-layer`；SKILL 立即动作选档 + 完成报告；`integrations.md` 身份对照；`examples/ralph/sample-run.json` 字段样例；合约锁定文档/skill 标记
+  - `recordReview` 自动同步 `accept_layers.judgment`；`map-merge` 派生 STAGNATION/strict lessons 进 business-map（弱信息素）
+  - `deliver-attempt` 可省略 `--improved`：用 diff 路径 + signal 指纹自动判定是否进展（`stagnation.last_fingerprint`）
+- **docs**：调度演示改通俗版（人话总结、少术语、预览=看菜单/批准=下单）；SVG 动画 + 自动播放；仍对齐业务仓发起与账本进度。
+- **docs**：调度演示页输出改为 `milestones/dispatch-demo.html`（修复 `.../milestones/dispatch-demo.html` 404）；根路径 `dispatch-demo.html` 保留重定向。
 - **jj-ralph 续作协议 nits**：恢复表/设计文档裸词 `supersedes` → 规范键 `supersedes_run_id` / `parent_run_id`；`suggestReopenAsNew` note 改为只链 `progress.md`（非 `family`/run.json）；`post-complete-continue` / `rollback` 审计行措辞对齐。
 - **对抗复查 follow-up**：合约测试锁定 note 含 `progress.md` / `not family`；用户文档 `docs/commands/jj-ralph.md` 首行→审计行；COMPLETED/ARCHIVE throw 文案补 progress.md placement；禁止表白话键名对齐。
 

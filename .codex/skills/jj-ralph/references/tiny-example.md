@@ -1,11 +1,13 @@
 # 单点改动最短样例
 
-适用：用户已给 `@file:line` 或明确单字段/单交互修改。
+适用：用户已给 `@file:line` 或明确单字段/单交互修改。  
+强度：`init --intensity tiny`（或用户说「tiny / 单点快做」）。
 
 ## 范围
 
 - 只改 1 个业务文件（可加 1 个参考实现文件只读）
 - 不写长背景；不全仓检索
+- DELIVER 每次验证后记 `deliver-attempt --improved true|false`（防空转）
 
 ## analyze.md（示例）
 
@@ -37,8 +39,10 @@ run_id: RALPH-zero-interest-url-20260723
 ## progress.md（追加）
 
 ```markdown
+- 2026-07-23T00:00:00Z init … intensity: tiny
 - 2026-07-23T00:00:00Z DELIVER: 改 URL 绑定
 - 2026-07-23T00:01:00Z VERIFY: rg 确认旧静态地址已移除
+- 2026-07-23T00:01:01Z deliver-attempt improved=true signal=rg_clean
 ```
 
 ## acceptance.md（示例）

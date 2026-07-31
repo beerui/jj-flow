@@ -28,6 +28,110 @@ export const REVIEW_SOURCES = ['host_builtin', 'user_provided', 'fallback_inline
 export const HOST_REVIEW_METHODS = ['skill', 'command', 'subagent', 'user_provided', 'fallback_inline'];
 export const HOST_IDS = ['codex', 'grok-build', 'claude', 'qoder', 'other'];
 
+/** Run intensity tiers: speed/quality tradeoff without multi-agent runtime. */
+export const RALPH_INTENSITIES = Object.freeze(['tiny', 'standard', 'strict']);
+export const ACCEPT_LAYER_STATUSES = Object.freeze(['PENDING', 'PASS', 'FAIL', 'SKIPPED']);
+export const JUDGMENT_MODES = Object.freeze(['none', 'review', 'recheck', 'adversarial_note']);
+export const GATE_ISSUE_CLASSES = Object.freeze(['error', 'warning', 'info']);
+export const INTENSITY_DEFAULTS = Object.freeze({
+  tiny: Object.freeze({
+    max_iterations: 8,
+    budget: Object.freeze({ max_deliver_loops: 8, max_accept_rechecks: 1, max_same_strategy_failures: 2 }),
+    stagnation_patience: 2,
+    judgment_policy: 'auto'
+  }),
+  standard: Object.freeze({
+    max_iterations: 20,
+    budget: Object.freeze({ max_deliver_loops: 20, max_accept_rechecks: 2, max_same_strategy_failures: 2 }),
+    stagnation_patience: 2,
+    judgment_policy: 'if_review'
+  }),
+  strict: Object.freeze({
+    max_iterations: 12,
+    budget: Object.freeze({ max_deliver_loops: 12, max_accept_rechecks: 3, max_same_strategy_failures: 2 }),
+    stagnation_patience: 2,
+    judgment_policy: 'required'
+  })
+});
+
+export function normalizeIntensity(intensity) {
+  const value = String(intensity == null || intensity === '' ? 'standard' : intensity).toLowerCase();
+  if (!RALPH_INTENSITIES.includes(value)) {
+    throw new Error('intensity must be one of ' + RALPH_INTENSITIES.join('|'));
+  }
+  return value;
+}
+
+export function buildBudgetForIntensity(intensity, overrides = null) {
+  const base = INTENSITY_DEFAULTS[normalizeIntensity(intensity)].budget;
+  const o = overrides && typeof overrides === 'object' ? overrides : {};
+  const pick = (key) => {
+    if (o[key] == null) return base[key];
+    const n = Number(o[key]);
+    if (!Number.isInteger(n) || n < 1) throw new Error('budget.' + key + ' must be integer >= 1');
+    return n;
+  };
+  return {
+    max_deliver_loops: pick('max_deliver_loops'),
+    max_accept_rechecks: pick('max_accept_rechecks'),
+    max_same_strategy_failures: pick('max_same_strategy_failures')
+  };
+}
+
+export function createEmptyStagnation(intensity = 'standard') {
+  const patience = INTENSITY_DEFAULTS[normalizeIntensity(intensity)].stagnation_patience;
+  return { patience, unchanged_count: 0, last_signal: null, last_score: null, last_fingerprint: null };
+}
+
+export function createEmptyAcceptLayers(intensity = 'standard') {
+  const policy = INTENSITY_DEFAULTS[normalizeIntensity(intensity)].judgment_policy;
+  return {
+    mechanical: 'PENDING',
+    judgment: policy === 'required' ? 'PENDING' : 'SKIPPED',
+    judgment_mode: 'none',
+    recheck_count: 0
+  };
+}
+
+function hydrateIntensityFields(run) {
+  if (!run || typeof run !== 'object') return run;
+  const intensity = run.intensity != null ? normalizeIntensity(run.intensity) : 'standard';
+  if (run.intensity == null) run.intensity = intensity;
+  if (!run.budget || typeof run.budget !== 'object') run.budget = buildBudgetForIntensity(intensity);
+  else {
+    const d = INTENSITY_DEFAULTS[intensity].budget;
+    run.budget = {
+      max_deliver_loops: run.budget.max_deliver_loops ?? d.max_deliver_loops,
+      max_accept_rechecks: run.budget.max_accept_rechecks ?? d.max_accept_rechecks,
+      max_same_strategy_failures: run.budget.max_same_strategy_failures ?? d.max_same_strategy_failures
+    };
+  }
+  if (!run.stagnation || typeof run.stagnation !== 'object') run.stagnation = createEmptyStagnation(intensity);
+  else {
+    const empty = createEmptyStagnation(intensity);
+    run.stagnation = {
+      patience: run.stagnation.patience ?? empty.patience,
+      unchanged_count: run.stagnation.unchanged_count ?? 0,
+      last_signal: run.stagnation.last_signal ?? null,
+      last_score: run.stagnation.last_score ?? null,
+      last_fingerprint: run.stagnation.last_fingerprint ?? null
+    };
+  }
+  if (!run.accept_layers || typeof run.accept_layers !== 'object') run.accept_layers = createEmptyAcceptLayers(intensity);
+  else {
+    const empty = createEmptyAcceptLayers(intensity);
+    run.accept_layers = {
+      mechanical: run.accept_layers.mechanical || empty.mechanical,
+      judgment: run.accept_layers.judgment || empty.judgment,
+      judgment_mode: run.accept_layers.judgment_mode || empty.judgment_mode,
+      recheck_count: Number.isInteger(run.accept_layers.recheck_count) ? run.accept_layers.recheck_count : 0
+    };
+  }
+  if (!Array.isArray(run.gate_issues)) run.gate_issues = [];
+  if (run.plan_options === undefined) run.plan_options = null;
+  return run;
+}
+
 export function ralphRoot(cwd = process.cwd()) { return path.join(cwd, RALPH_ROOT_REL); }
 export function ralphsDir(cwd = process.cwd()) { return path.join(cwd, RALPHS_DIR_REL); }
 export function archiveDir(cwd = process.cwd()) { return path.join(cwd, RALPH_ARCHIVE_DIR_REL); }
@@ -38,10 +142,27 @@ export function nowIso() { return new Date().toISOString(); }
 export function createEmptyMap() { return { schema_version: RALPH_MAP_SCHEMA_VERSION, updated_at: nowIso(), capabilities: [] }; }
 function unique(items) { return [...new Set((items || []).filter(Boolean))]; }
 
-export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: [] }, capability_ids = [], knowledge_refs = [], knowledge_summary = [], max_iterations = 20, host = null, created_at = nowIso() } = {}) {
+export function createRunSkeleton({
+  run_id,
+  title,
+  goal,
+  scope = { in: [], out: [] },
+  capability_ids = [],
+  knowledge_refs = [],
+  knowledge_summary = [],
+  max_iterations = null,
+  intensity = 'standard',
+  budget = null,
+  host = null,
+  created_at = nowIso()
+} = {}) {
   if (!run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run_id)) throw new Error('run_id must match RALPH-<slug> pattern');
   if (!title) throw new Error('title is required');
   if (!goal) throw new Error('goal is required');
+  const intensityNorm = normalizeIntensity(intensity);
+  const defaults = INTENSITY_DEFAULTS[intensityNorm];
+  const maxIter = max_iterations != null ? max_iterations : defaults.max_iterations;
+  if (!Number.isInteger(maxIter) || maxIter < 1) throw new Error('max_iterations must be >= 1');
   return {
     schema_version: RALPH_RUN_SCHEMA_VERSION,
     run_id,
@@ -52,7 +173,13 @@ export function createRunSkeleton({ run_id, title, goal, scope = { in: [], out: 
     scope: { in: [...(scope.in || [])], out: [...(scope.out || [])] },
     assumptions: [],
     iteration: 0,
-    max_iterations,
+    max_iterations: maxIter,
+    intensity: intensityNorm,
+    budget: buildBudgetForIntensity(intensityNorm, budget),
+    stagnation: createEmptyStagnation(intensityNorm),
+    accept_layers: createEmptyAcceptLayers(intensityNorm),
+    gate_issues: [],
+    plan_options: null,
     tasks: [],
     gates: { analyze: 'PENDING', plan: 'PENDING', deliver: 'PENDING', accept: 'PENDING', archive: 'PENDING' },
     intervention_needed: null,
@@ -89,6 +216,63 @@ export function validateRun(run) {
   if (run.knowledge_refs != null && !Array.isArray(run.knowledge_refs)) errors.push('knowledge_refs must be array when present');
   if (Array.isArray(run.knowledge_refs) && run.knowledge_refs.some((ref) => typeof ref !== 'string' || !ref.trim())) errors.push('knowledge_refs must be non-empty strings');
   if (run.knowledge_summary != null && !Array.isArray(run.knowledge_summary)) errors.push('knowledge_summary must be array when present');
+  // Optional intensity / budget / dual-accept fields (legacy runs omit them).
+  if (run.intensity != null && !RALPH_INTENSITIES.includes(String(run.intensity).toLowerCase())) {
+    errors.push('intensity must be tiny|standard|strict');
+  }
+  if (run.budget != null) {
+    if (typeof run.budget !== 'object' || Array.isArray(run.budget)) errors.push('budget must be object when present');
+    else {
+      for (const key of ['max_deliver_loops', 'max_accept_rechecks', 'max_same_strategy_failures']) {
+        if (run.budget[key] != null && (!Number.isInteger(run.budget[key]) || run.budget[key] < 1)) {
+          errors.push('budget.' + key + ' must be integer >= 1');
+        }
+      }
+    }
+  }
+  if (run.stagnation != null) {
+    if (typeof run.stagnation !== 'object' || Array.isArray(run.stagnation)) errors.push('stagnation must be object when present');
+    else {
+      if (run.stagnation.patience != null && (!Number.isInteger(run.stagnation.patience) || run.stagnation.patience < 1)) {
+        errors.push('stagnation.patience must be integer >= 1');
+      }
+      if (run.stagnation.unchanged_count != null && (!Number.isInteger(run.stagnation.unchanged_count) || run.stagnation.unchanged_count < 0)) {
+        errors.push('stagnation.unchanged_count must be integer >= 0');
+      }
+    }
+  }
+  if (run.accept_layers != null) {
+    if (typeof run.accept_layers !== 'object' || Array.isArray(run.accept_layers)) errors.push('accept_layers must be object when present');
+    else {
+      for (const key of ['mechanical', 'judgment']) {
+        if (run.accept_layers[key] != null && !ACCEPT_LAYER_STATUSES.includes(run.accept_layers[key])) {
+          errors.push('accept_layers.' + key + ' invalid');
+        }
+      }
+      if (run.accept_layers.judgment_mode != null && !JUDGMENT_MODES.includes(run.accept_layers.judgment_mode)) {
+        errors.push('accept_layers.judgment_mode must be one of ' + JUDGMENT_MODES.join('|'));
+      }
+      if (run.accept_layers.recheck_count != null && (!Number.isInteger(run.accept_layers.recheck_count) || run.accept_layers.recheck_count < 0)) {
+        errors.push('accept_layers.recheck_count must be integer >= 0');
+      }
+    }
+  }
+  if (run.gate_issues != null) {
+    if (!Array.isArray(run.gate_issues)) errors.push('gate_issues must be array when present');
+    else {
+      for (const [i, issue] of run.gate_issues.entries()) {
+        if (!issue || typeof issue !== 'object') errors.push('gate_issues[' + i + '] must be object');
+        else if (issue.class != null && !GATE_ISSUE_CLASSES.includes(issue.class)) {
+          errors.push('gate_issues[' + i + '].class invalid');
+        }
+      }
+    }
+  }
+  if (run.plan_options != null) {
+    if (typeof run.plan_options !== 'object' || Array.isArray(run.plan_options)) {
+      errors.push('plan_options must be object or null');
+    }
+  }
   if (run.host != null) {
     if (typeof run.host !== 'object' || Array.isArray(run.host)) errors.push('host must be object or null');
     else {
@@ -262,7 +446,10 @@ export function initRun(options, cwd = process.cwd()) {
   const stubs = {
     'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
     'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Tasks' + nl + nl + '## Out of scope' + nl,
-    'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
+    'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl
+      + '- intensity: ' + (run.intensity || 'standard') + nl
+      + '- max_iterations: ' + run.max_iterations + nl
+      + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
     'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | result | evidence |' + nl + '| --- | --- | --- |' + nl
   };
   for (const [name, bodyText] of Object.entries(stubs)) {
@@ -361,16 +548,50 @@ export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], le
   };
 }
 
-export function capabilityFromRun(run, { modules = [], lessons = [], keywords = [], acceptance = [], status = 'done' } = {}) {
+/**
+ * Weak "pheromone" lessons from run ledger (stagnation / budget / intensity).
+ * Merged into business-map on map-merge so map-find can surface past pain.
+ */
+export function deriveAutoLessonsFromRun(run, cwd = process.cwd()) {
+  if (!run || typeof run !== 'object') return [];
+  const out = [];
+  const kind = run.intervention_needed?.kind;
+  if (kind === 'STAGNATION') {
+    out.push(
+      'STAGNATION on ' + run.run_id
+      + ': deliver loop stalled'
+      + (run.stagnation?.last_signal ? (' (signal=' + run.stagnation.last_signal + ')') : '')
+      + '; change strategy or narrow scope'
+    );
+  }
+  if (kind === 'MAX_ITERATIONS') {
+    out.push('MAX_ITERATIONS on ' + run.run_id + ': raise budget or split scope');
+  }
+  if (run.intensity === 'strict') {
+    out.push('intensity=strict on ' + run.run_id + ': required judgment layer before accept');
+  }
+  try {
+    const progress = readRunArtifactText(run, 'progress', cwd);
+    if (progress && /BLOCKED kind=STAGNATION|kind=STAGNATION/i.test(progress) && kind !== 'STAGNATION') {
+      out.push('prior STAGNATION signals on ' + run.run_id + ': avoid repeating the same failed approach');
+    }
+  } catch {
+    // progress optional
+  }
+  return unique(out);
+}
+
+export function capabilityFromRun(run, { modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', cwd = process.cwd() } = {}) {
   const id = run.capability_ids?.[0] || ('CAP-' + run.run_id.replace(/^RALPH-/, '').toLowerCase());
   const defaultAcceptance = path.join(RALPHS_DIR_REL, run.run_id, 'acceptance.md').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const autoLessons = deriveAutoLessonsFromRun(run, cwd);
   return {
     id,
     title: run.title,
     status,
     summary: run.goal,
     modules,
-    lessons,
+    lessons: unique([...(lessons || []), ...autoLessons]),
     keywords: unique([...(keywords || []), ...tokenize(run.title), ...tokenize(run.goal)]),
     acceptance: unique([...(acceptance || []), defaultAcceptance]),
     run_refs: [run.run_id]
@@ -406,7 +627,7 @@ export function mapMergeFromRun(runId, options = {}, cwd = process.cwd()) {
     throw new Error('map-merge requires gates.accept=PASS (pass force:true or --force to override)');
   }
   const map = loadMap(cwd);
-  const capability = capabilityFromRun(run, options);
+  const capability = capabilityFromRun(run, { ...options, cwd });
   const next = mergeCapabilityIntoMap(map, capability);
   saveMap(next, cwd);
   return { map: next, capability };
@@ -677,7 +898,7 @@ export function recordReview(runId, {
   if (source != null && source !== '' && !REVIEW_SOURCES.includes(source)) {
     throw new Error('source must be one of ' + REVIEW_SOURCES.join(', '));
   }
-  const run = loadRun(runId, cwd);
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
   const id = review_id || nextReviewId(run);
   if (review_id && run.review?.reviews?.some((item) => item.review_id === review_id)) throw new Error('review already exists: ' + review_id);
   const resolvedFix = fix_commit || null;
@@ -722,6 +943,15 @@ export function recordReview(runId, {
   const reviews = Array.isArray(previous.reviews) ? [...previous.reviews, entry] : [entry];
   run.review = { latest_review_id: id, task_thread_id: report.task_thread_id || previous.task_thread_id || null, reviews };
   run.artifact_refs = { ...run.artifact_refs, latest_review_ref: relPath };
+  // Dual-layer accept: review outcome drives judgment layer (strict needs this before gate accept).
+  run.accept_layers = run.accept_layers || createEmptyAcceptLayers(run.intensity || 'standard');
+  if (outcome === 'PASS') {
+    run.accept_layers.judgment = 'PASS';
+    run.accept_layers.judgment_mode = 'review';
+  } else if (outcome === 'NEEDS_CHANGES' || outcome === 'BLOCKED') {
+    run.accept_layers.judgment = 'FAIL';
+    run.accept_layers.judgment_mode = 'review';
+  }
   run.updated_at = nowIso();
   saveRun(run, cwd);
   const progressPath = path.join(runDir(runId, cwd), 'progress.md');
@@ -733,6 +963,7 @@ export function recordReview(runId, {
   if (report.source) line += ' source=' + report.source;
   if (report.task_thread_id) line += ' task_thread=' + report.task_thread_id;
   if (report.review_thread_id) line += ' review_thread=' + report.review_thread_id;
+  line += ' accept_layers.judgment=' + run.accept_layers.judgment;
   line += nl;
   if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, line, 'utf8');
   else fs.writeFileSync(progressPath, '# Progress' + nl + nl + line, 'utf8');
@@ -882,6 +1113,239 @@ export function getLatestReviewRecord(run, cwd = process.cwd()) {
 }
 
 /**
+ * Dual-layer ACCEPT judgment (layer 2). Mechanical layer is evaluateAcceptArchiveGate.
+ * - tiny/auto: judgment may stay SKIPPED
+ * - standard/if_review: existing review outcome rules apply (mechanical path)
+ * - strict/required: accept_layers.judgment must be PASS
+ * Error-class gate_issues always block unless waived or force.
+ */
+export function evaluateAcceptJudgment(run, { force = false } = {}) {
+  if (force) return { ok: true, forced: true, reasons: [] };
+  const reasons = [];
+  const intensity = run?.intensity != null ? normalizeIntensity(run.intensity) : 'standard';
+  const policy = INTENSITY_DEFAULTS[intensity].judgment_policy;
+  const layers = run?.accept_layers || createEmptyAcceptLayers(intensity);
+
+  if (policy === 'required') {
+    if (layers.judgment !== 'PASS') {
+      reasons.push(
+        'strict intensity requires accept_layers.judgment=PASS (current='
+        + (layers.judgment || 'missing')
+        + '); use setAcceptLayer --layer judgment --status PASS after review/recheck'
+      );
+    }
+  }
+
+  const issues = Array.isArray(run?.gate_issues) ? run.gate_issues : [];
+  for (const issue of issues) {
+    if (!issue || issue.waived) continue;
+    if (issue.class !== 'error') continue;
+    const g = issue.gate || 'accept';
+    if (g === 'accept' || g === 'archive' || g === '*') {
+      reasons.push('gate_issue error' + (issue.code ? (' ' + issue.code) : '') + ': ' + (issue.message || 'blocking issue'));
+    }
+  }
+
+  return { ok: reasons.length === 0, forced: false, reasons, policy, intensity, layers };
+}
+
+/**
+ * Fingerprint of current deliver workspace state (diff paths + optional verify signal).
+ * Used when --improved is omitted so agents cannot silently claim progress forever.
+ */
+export function fingerprintDeliverState(cwd = process.cwd(), { signal = null, paths = null } = {}) {
+  let list = Array.isArray(paths) ? paths : collectGitDiffPaths(cwd);
+  if (!Array.isArray(list)) list = [];
+  const normalized = unique(
+    list
+      .map((item) => String(item || '').replace(/\\/g, '/'))
+      .filter((item) => item && !isWorkflowNoisePath(item))
+  ).sort();
+  const payload = normalized.join('\n') + '\n#signal=' + (signal == null ? '' : String(signal));
+  const fingerprint = crypto.createHash('sha256').update(payload).digest('hex').slice(0, 16);
+  return { fingerprint, paths: normalized, signal: signal == null ? null : String(signal) };
+}
+
+/**
+ * Record a DELIVER attempt for stagnation / budget tracking.
+ * On no improvement for `stagnation.patience` attempts, or budget/max_iterations hit → BLOCKED.
+ *
+ * @param {boolean|null|undefined} improved - explicit true/false; if omitted, auto-compare fingerprint
+ */
+export function recordDeliverAttempt(runId, {
+  improved = undefined,
+  signal = null,
+  score = null,
+  paths = null,
+  cwd = process.cwd()
+} = {}) {
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
+  run.iteration = (Number.isInteger(run.iteration) ? run.iteration : 0) + 1;
+
+  const fp = fingerprintDeliverState(cwd, { signal, paths });
+  let improvedSource = 'explicit';
+  let resolvedImproved = improved;
+  if (typeof improved !== 'boolean') {
+    improvedSource = 'auto';
+    const prevFp = run.stagnation?.last_fingerprint || null;
+    if (prevFp == null) {
+      // First attempt: establish baseline without counting as stagnation failure.
+      resolvedImproved = true;
+    } else {
+      resolvedImproved = prevFp !== fp.fingerprint;
+    }
+  } else {
+    resolvedImproved = improved;
+  }
+
+  const stag = run.stagnation;
+  if (resolvedImproved) {
+    stag.unchanged_count = 0;
+  } else {
+    stag.unchanged_count = (Number.isInteger(stag.unchanged_count) ? stag.unchanged_count : 0) + 1;
+  }
+  if (signal != null) stag.last_signal = String(signal);
+  if (score != null) stag.last_score = score;
+  stag.last_fingerprint = fp.fingerprint;
+  run.stagnation = stag;
+
+  const maxLoops = run.budget?.max_deliver_loops || run.max_iterations;
+  let blocked = false;
+  let intervention = null;
+
+  if (run.iteration >= run.max_iterations) {
+    blocked = true;
+    intervention = {
+      kind: 'MAX_ITERATIONS',
+      reason: 'iteration ' + run.iteration + ' reached max_iterations ' + run.max_iterations,
+      unblock: 'Raise max_iterations, revise plan, or open a new run',
+      at: nowIso()
+    };
+  } else if (run.iteration >= maxLoops) {
+    blocked = true;
+    intervention = {
+      kind: 'MAX_ITERATIONS',
+      reason: 'iteration ' + run.iteration + ' reached budget.max_deliver_loops ' + maxLoops,
+      unblock: 'Raise budget.max_deliver_loops or change approach',
+      at: nowIso()
+    };
+  } else if (!resolvedImproved && stag.unchanged_count >= (stag.patience || 2)) {
+    blocked = true;
+    intervention = {
+      kind: 'STAGNATION',
+      reason: 'no improvement for ' + stag.unchanged_count + ' deliver attempts (patience=' + (stag.patience || 2) + ')'
+        + (stag.last_signal ? ('; signal=' + stag.last_signal) : '')
+        + ' fp=' + fp.fingerprint,
+      unblock: 'Change strategy, rollback-phase to PLAN, or set-status IN_PROGRESS after root-cause fix',
+      at: nowIso()
+    };
+  }
+
+  if (blocked) {
+    run.status = 'BLOCKED';
+    run.intervention_needed = intervention;
+  }
+
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + run.updated_at
+      + ' deliver-attempt improved=' + resolvedImproved
+      + ' source=' + improvedSource
+      + ' iteration=' + run.iteration
+      + ' unchanged=' + stag.unchanged_count
+      + ' fp=' + fp.fingerprint
+      + (signal != null ? (' signal=' + String(signal)) : '')
+      + (blocked ? (' BLOCKED kind=' + intervention.kind) : '')
+  );
+  return {
+    run,
+    blocked,
+    improved: resolvedImproved,
+    improved_source: improvedSource,
+    fingerprint: fp.fingerprint,
+    iteration: run.iteration,
+    stagnation: run.stagnation,
+    intervention_needed: run.intervention_needed,
+    status: run.status
+  };
+}
+
+/**
+ * Update accept dual-layer state (mechanical | judgment).
+ * Does not set gates.accept; call setGate accept after layers are ready.
+ */
+export function setAcceptLayer(runId, {
+  layer,
+  status,
+  mode = null,
+  note = null,
+  cwd = process.cwd()
+} = {}) {
+  if (layer !== 'mechanical' && layer !== 'judgment') {
+    throw new Error('layer must be mechanical|judgment');
+  }
+  if (!ACCEPT_LAYER_STATUSES.includes(status)) {
+    throw new Error('status must be one of ' + ACCEPT_LAYER_STATUSES.join('|'));
+  }
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
+  if (layer === 'judgment' && mode != null) {
+    if (!JUDGMENT_MODES.includes(mode)) throw new Error('mode must be one of ' + JUDGMENT_MODES.join('|'));
+    run.accept_layers.judgment_mode = mode;
+    if (mode === 'recheck') {
+      run.accept_layers.recheck_count = (run.accept_layers.recheck_count || 0) + 1;
+      const maxRecheck = run.budget?.max_accept_rechecks || 2;
+      if (run.accept_layers.recheck_count > maxRecheck) {
+        throw new Error('accept recheck_count ' + run.accept_layers.recheck_count + ' exceeds budget.max_accept_rechecks ' + maxRecheck);
+      }
+    }
+  }
+  run.accept_layers[layer] = status;
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + run.updated_at
+      + ' accept-layer ' + layer + '=' + status
+      + (mode ? (' mode=' + mode) : '')
+      + (note ? (' note=' + String(note).slice(0, 120)) : '')
+  );
+  return { run, layer, status, mode: run.accept_layers.judgment_mode, accept_layers: run.accept_layers };
+}
+
+/**
+ * Append a structured gate issue (error blocks accept unless waived).
+ */
+export function addGateIssue(runId, {
+  gate = 'accept',
+  class: issueClass = 'warning',
+  code = null,
+  message,
+  waived = false,
+  cwd = process.cwd()
+} = {}) {
+  if (!GATE_ISSUE_CLASSES.includes(issueClass)) throw new Error('class must be error|warning|info');
+  if (!message || typeof message !== 'string' || !message.trim()) throw new Error('message is required');
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
+  const issue = {
+    gate: gate || 'accept',
+    class: issueClass,
+    code: code || null,
+    message: message.trim(),
+    waived: Boolean(waived),
+    at: nowIso()
+  };
+  run.gate_issues = [...(run.gate_issues || []), issue];
+  run.updated_at = issue.at;
+  saveRun(run, cwd);
+  appendProgressLine(runId, cwd, '- ' + issue.at + ' gate-issue ' + issue.class + ' ' + (issue.code || '') + ' ' + issue.message);
+  return { run, issue };
+}
+
+/**
  * Product-consistency gate for ACCEPT/ARCHIVE PASS.
  * Blocks false completes when latest review is NEEDS_CHANGES/BLOCKED, when
  * plan/acceptance implementation paths diverge from the current diff set,
@@ -960,10 +1424,22 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
 export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null } = {}) {
   if (!GATE_KEYS.includes(gate)) throw new Error('invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|') + ')');
   if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
-  const run = loadRun(runId, cwd);
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
     const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate });
     if (!consistency.ok) throw new Error('product-consistency gate blocked ' + gate + ' PASS: ' + consistency.reasons.join('; '));
+    if (gate === 'accept') {
+      const judgment = evaluateAcceptJudgment(run, { force });
+      if (!judgment.ok) throw new Error('accept judgment layer blocked PASS: ' + judgment.reasons.join('; '));
+      run.accept_layers.mechanical = 'PASS';
+      // If judgment was SKIPPED under non-strict, leave it; if PASS already set, keep.
+      if (run.accept_layers.judgment === 'PENDING' && INTENSITY_DEFAULTS[run.intensity || 'standard'].judgment_policy !== 'required') {
+        run.accept_layers.judgment = 'SKIPPED';
+      }
+    }
+  }
+  if (status === 'FAIL' && gate === 'accept' && run.accept_layers) {
+    run.accept_layers.mechanical = 'FAIL';
   }
   run.gates = { ...run.gates, [gate]: status };
   if (status === 'BLOCKED') {
@@ -1173,13 +1649,20 @@ export function renderRalphStatusText(payload) {
       'title: ' + run.title,
       'phase: ' + run.phase,
       'status: ' + run.status,
+      'intensity: ' + (run.intensity || 'standard'),
       'iteration: ' + run.iteration + '/' + run.max_iterations,
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
+      run.accept_layers
+        ? ('accept_layers: mechanical=' + run.accept_layers.mechanical + ' judgment=' + run.accept_layers.judgment + ' mode=' + (run.accept_layers.judgment_mode || 'none'))
+        : 'accept_layers: (legacy)',
+      run.stagnation
+        ? ('stagnation: unchanged=' + (run.stagnation.unchanged_count ?? 0) + '/' + (run.stagnation.patience ?? 2))
+        : 'stagnation: (legacy)',
       'capabilities: ' + ((run.capability_ids || []).join(', ') || '(none)'),
       'knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'),
       latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.review_scope ? (' scope=' + latestReview.review_scope) : '') + ((latestReview.fix_commit || latestReview.reviewed_commit) ? (' @' + (latestReview.fix_commit || latestReview.reviewed_commit)) : '')) : 'review: none',
       run.host ? ('host: ' + [run.host.host_id, run.host.thread_id || run.host.session_handle, run.host.model_id].filter(Boolean).join(' / ')) : 'host: none',
-      run.intervention_needed ? ('intervention: ' + run.intervention_needed.reason) : 'intervention: none',
+      run.intervention_needed ? ('intervention: ' + (run.intervention_needed.kind ? (run.intervention_needed.kind + ' ') : '') + run.intervention_needed.reason) : 'intervention: none',
       'path: ' + (payload.path || '')
     ].join(nl);
   }

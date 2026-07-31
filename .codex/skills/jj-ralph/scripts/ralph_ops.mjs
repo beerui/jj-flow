@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|rollback-phase|set-status|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|deliver-attempt|accept-layer|rollback-phase|set-status|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -69,12 +69,15 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id RALPH-x --title "..." --goal "..." [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--cwd DIR]
+  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--cwd DIR]
   status [--run-id RALPH-x] [--cwd DIR]
   archive --run-id RALPH-x [--slug name] [--cwd DIR]
   finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
   map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
   gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+  deliver-attempt --run-id RALPH-x [--improved true|false|auto] [--signal text] [--cwd DIR]
+                 (omit --improved or use auto: compare workspace fingerprint)
+  accept-layer --run-id RALPH-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--cwd DIR]
   rollback-phase --run-id RALPH-x --to PLAN|DELIVER|ANALYZE --reason "..." [--cwd DIR]
   set-status --run-id RALPH-x --status PAUSED|BLOCKED|IN_PROGRESS --reason "..." [--cwd DIR]
   map-find --query "keyword" [--limit N] [--cwd DIR]
@@ -183,6 +186,8 @@ async function main() {
     setGate,
     rollbackPhase,
     setRunStatus,
+    recordDeliverAttempt,
+    setAcceptLayer,
     RALPH_MAP_REL,
   } = mod;
 
@@ -192,21 +197,25 @@ async function main() {
       const title = args.title;
       const goal = args.goal;
       if (!runId || !title || !goal) die('init needs --run-id --title --goal');
-      const run = initRun(
-        {
-          run_id: runId,
-          title,
-          goal,
-          force: Boolean(args.force),
-          scope: { in: splitList(args.in), out: splitList(args.out) },
-          capability_ids: splitList(args.capability),
-        },
-        cwd
-      );
+      const initOpts = {
+        run_id: runId,
+        title,
+        goal,
+        force: Boolean(args.force),
+        scope: { in: splitList(args.in), out: splitList(args.out) },
+        capability_ids: splitList(args.capability),
+      };
+      if (args.intensity) initOpts.intensity = args.intensity;
+      if (args['max-iterations'] != null && args['max-iterations'] !== true) {
+        initOpts.max_iterations = Number(args['max-iterations']);
+      }
+      const run = initRun(initOpts, cwd);
       printJson({
         ok: true,
         action: 'init',
         run_id: run.run_id,
+        intensity: run.intensity || 'standard',
+        max_iterations: run.max_iterations,
         path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', run.run_id)).replaceAll('\\', '/'),
         resolved,
       });
@@ -309,6 +318,73 @@ async function main() {
         status,
         phase: result.phase,
         run_status: result.run?.status,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'deliver-attempt') {
+      const runId = args['run-id'];
+      if (!runId) die('deliver-attempt needs --run-id');
+      if (typeof recordDeliverAttempt !== 'function') {
+        die('resolved ralph.mjs has no recordDeliverAttempt; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      let improved;
+      if (args.improved == null || args.improved === true) {
+        // omit or bare --improved → auto fingerprint
+        improved = undefined;
+      } else {
+        const raw = String(args.improved).toLowerCase();
+        if (raw === 'true' || raw === '1' || raw === 'yes') improved = true;
+        else if (raw === 'false' || raw === '0' || raw === 'no') improved = false;
+        else if (raw === 'auto') improved = undefined;
+        else die('--improved must be true|false|auto');
+      }
+      const result = recordDeliverAttempt(runId, {
+        improved,
+        signal: args.signal && args.signal !== true ? String(args.signal) : null,
+        score: args.score != null && args.score !== true ? Number(args.score) : null,
+        cwd,
+      });
+      printJson({
+        ok: true,
+        action: 'deliver-attempt',
+        run_id: runId,
+        improved: result.improved,
+        improved_source: result.improved_source,
+        fingerprint: result.fingerprint,
+        iteration: result.iteration,
+        blocked: result.blocked,
+        status: result.status,
+        stagnation: result.stagnation,
+        intervention_needed: result.intervention_needed,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'accept-layer') {
+      const runId = args['run-id'];
+      const layer = args.layer;
+      const status = args.status;
+      if (!runId || !layer || !status) die('accept-layer needs --run-id --layer --status');
+      if (typeof setAcceptLayer !== 'function') {
+        die('resolved ralph.mjs has no setAcceptLayer; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = setAcceptLayer(runId, {
+        layer,
+        status,
+        mode: args.mode && args.mode !== true ? args.mode : null,
+        note: args.note && args.note !== true ? String(args.note) : null,
+        cwd,
+      });
+      printJson({
+        ok: true,
+        action: 'accept-layer',
+        run_id: runId,
+        layer,
+        status,
+        accept_layers: result.accept_layers,
         resolved,
       });
       return;
