@@ -79,6 +79,26 @@ test('dispatch-demo lives under milestones with root redirect', () => {
   assert.match(redirect, /http-equiv="refresh"/i);
 });
 
+test('ralph-demo lives under milestones with interactive embed and root redirect', () => {
+  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'ralph-demo.html'), 'utf8');
+  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
+  assert.match(demo, /id="ralph-demo-app"/);
+  assert.match(demo, /五段流水线|强度档|改代码循环/);
+  const redirect = fs.readFileSync(path.join(root, 'site', 'ralph-demo.html'), 'utf8');
+  assert.match(redirect, /milestones\/ralph-demo\.html/);
+  assert.match(redirect, /http-equiv="refresh"/i);
+});
+
+test('end-demo lives under milestones with interactive embed and root redirect', () => {
+  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'end-demo.html'), 'utf8');
+  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
+  assert.match(demo, /id="end-demo-app"/);
+  assert.match(demo, /集成分支|push work|merge|dry_run/);
+  const redirect = fs.readFileSync(path.join(root, 'site', 'end-demo.html'), 'utf8');
+  assert.match(redirect, /milestones\/end-demo\.html/);
+  assert.match(redirect, /http-equiv="refresh"/i);
+});
+
 test('markdown tables and bold render in project-plan page', () => {
   const html = fs.readFileSync(path.join(root, 'site', 'project-plan.html'), 'utf8');
   assert.match(html, /<table>/);

@@ -80,7 +80,9 @@ const SIDEBAR_GROUPS = [
       { title: 'H5 熵清理', source: 'docs/milestones/h5-acceptance.md', output: 'milestones/h5-acceptance.html' },
       { title: 'M6 调度', source: 'docs/milestones/m6-acceptance.md', output: 'milestones/m6-acceptance.html' },
       // Canonical under milestones/ (same folder as other milestone pages); root path kept as redirect below.
-      { title: '调度演示', source: 'docs/dispatch-demo.md', output: 'milestones/dispatch-demo.html' }
+      { title: '调度演示', source: 'docs/dispatch-demo.md', output: 'milestones/dispatch-demo.html' },
+      { title: 'ralph 机制演示', source: 'docs/ralph-demo.md', output: 'milestones/ralph-demo.html' },
+      { title: 'end 收工演示', source: 'docs/end-demo.md', output: 'milestones/end-demo.html' }
     ]
   }
 ];
@@ -141,6 +143,14 @@ fs.writeFileSync(
   path.join(OUT_DIR, 'dispatch-demo.html'),
   buildRedirectPage('milestones/dispatch-demo.html', '调度演示')
 );
+fs.writeFileSync(
+  path.join(OUT_DIR, 'ralph-demo.html'),
+  buildRedirectPage('milestones/ralph-demo.html', 'ralph 机制演示')
+);
+fs.writeFileSync(
+  path.join(OUT_DIR, 'end-demo.html'),
+  buildRedirectPage('milestones/end-demo.html', 'end 收工演示')
+);
 
 if (CHECK_MODE) {
   for (const page of PAGES) {
@@ -153,7 +163,11 @@ if (CHECK_MODE) {
     '.nojekyll',
     'sitemap.xml',
     'dispatch-demo.html',
-    'milestones/dispatch-demo.html'
+    'milestones/dispatch-demo.html',
+    'ralph-demo.html',
+    'milestones/ralph-demo.html',
+    'end-demo.html',
+    'milestones/end-demo.html'
   ]) {
     if (!fs.existsSync(path.join(OUT_DIR, f))) throw new Error(`Missing ${f}`);
   }
@@ -521,6 +535,22 @@ function validateBuiltPages() {
   const demoRedirect = fs.readFileSync(path.join(OUT_DIR, 'dispatch-demo.html'), 'utf8');
   if (!demoRedirect.includes('milestones/dispatch-demo.html')) {
     throw new Error('root dispatch-demo.html redirect missing');
+  }
+  const ralphDemo = fs.readFileSync(path.join(OUT_DIR, 'milestones/ralph-demo.html'), 'utf8');
+  if (!ralphDemo.includes('href="../assets/styles.css"') || !ralphDemo.includes('ralph-demo-app')) {
+    throw new Error('ralph-demo nested page missing embed or assets');
+  }
+  const ralphRedirect = fs.readFileSync(path.join(OUT_DIR, 'ralph-demo.html'), 'utf8');
+  if (!ralphRedirect.includes('milestones/ralph-demo.html')) {
+    throw new Error('root ralph-demo.html redirect missing');
+  }
+  const endDemo = fs.readFileSync(path.join(OUT_DIR, 'milestones/end-demo.html'), 'utf8');
+  if (!endDemo.includes('href="../assets/styles.css"') || !endDemo.includes('end-demo-app')) {
+    throw new Error('end-demo nested page missing embed or assets');
+  }
+  const endRedirect = fs.readFileSync(path.join(OUT_DIR, 'end-demo.html'), 'utf8');
+  if (!endRedirect.includes('milestones/end-demo.html')) {
+    throw new Error('root end-demo.html redirect missing');
   }
 }
 

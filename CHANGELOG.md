@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **docs**：end 收工机制可交互 SVG 演示（`milestones/end-demo.html`）：fetch/commit/同步 work/push/合进集成分支/再推/冲突停表；end 命令页互链。
+- **docs**：ralph 内部机制可交互 SVG 演示（`milestones/ralph-demo.html`）：阶段门、强度档、改代码循环、验收双层、相邻回退、归档后续作；ralph 命令页互链。
 - **docs**：ralph 用户文档「续作」重写为说人话（还没归档 / 已经归档）；修复对照表因分隔行 `-` 不足 3 位导致整表渲染成乱码管道符。
 - **jj-ralph 强度档 + 双层 ACCEPT + 停滞早停**（速度×质量，不引入多 agent/ACO）：
   - `init --intensity tiny|standard|strict`：默认 budget / stagnation / accept_layers

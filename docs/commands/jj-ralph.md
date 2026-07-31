@@ -83,6 +83,12 @@ $jj-ralph
 
 → 走 [same](command-jj-same.html)，**不要**在控制项目里当业务实现仓硬做。
 
+### 内部机制演示（可交互）
+
+阶段门、强度档、改代码循环、停表、验收双层、相邻回退、归档后续作——用 SVG 点着看：
+
+→ **[ralph 内部机制动画](milestones/ralph-demo.html)**（本地：`site/milestones/ralph-demo.html`）
+
 ## 强度档与对话示例（速度 × 质量）
 
 不必手敲 CLI：用口语点名档位，agent 写入 `run.intensity`。未点名 = **standard**。

@@ -29,6 +29,12 @@
 
 合入目标默认：有 `dev` 用 `dev`，否则 `develop`，再否则 `main`。
 
+### 内部机制演示（可交互）
+
+fetch / commit / 同步 work / push / 合进集成分支 / 再推 / 冲突停表——用 SVG 点着看：
+
+→ **[end 收工机制动画](milestones/end-demo.html)**（本地：`site/milestones/end-demo.html`）
+
 ## 硬规矩
 
 - 不 force push、不删分支、不改 git 配置  
