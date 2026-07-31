@@ -8,7 +8,7 @@
 >
 > 完成日期：2026-07-27
 >
-> 残留风险：真实 Codex App Host 仍为 [PENDING 里程碑](../../milestones/real-host-acceptance.md)；`autonomy.max_unattended_level` 保持 `A1`
+> 残留风险：真实 Host（Codex App 或 Grok Wave 2）仍为 [PENDING 里程碑](../../milestones/real-host-acceptance.md)；`autonomy.max_unattended_level` 保持 `A1`
 
 ## 目标
 
@@ -101,7 +101,7 @@ npm run verify
 1. [x] fresh clone 不依赖聊天、memory 或 `.workflow` 即可通过 `npm run verify`。
 2. [x] 未索引 exec plan、非法成熟度分数和文档/manifest 分数漂移都会触发结构化 finding。
 3. [x] 定时 Gardener 上传 JSON 报告，P0/P1 时创建或更新去重 issue，且没有自动修复权限。
-4. [x] 真实 Codex App Host 缺口以 `PENDING` 保留（`docs/milestones/real-host-acceptance.md`），不能被半真实报告替代；`max_unattended_level` 仍为 `A1`。
+4. [x] 真实 Host 缺口以 `PENDING` 保留（`docs/milestones/real-host-acceptance.md`；Codex 或 Grok 路径），不能被半真实报告替代；`max_unattended_level` 仍为 `A1`。
 
 ## 残留风险与后续
 

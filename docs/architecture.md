@@ -2,86 +2,46 @@
 
 ## 一句话
 
-`jj-flow` 是 **项目族编排工作流**：定义同源迁移、单仓闭环、持续同步与多项目调度的控制协议、证据门禁和可恢复调度身份。`jj` 只是命令标识，不代表组织品牌。
+`jj-flow` = **项目族编排协议**：same 迁移、ralph 单仓闭环、dispatch 多项目调度。  
+产品中心是编排与证据门禁，不是重写外部 coding agent。
 
-**jj-flow 的产品中心是项目编排**。不重写外部执行引擎，也不把 jj 做成通用编排引擎。
+## 三条主路径
 
-## 数据流
-
-```mermaid
-flowchart LR
-  A[Codex / Claude 对话入口] --> B[jj-flow 命令资产]
-  B --> C[same 迁移协议]
-  B --> R[ralph 单仓闭环]
-  B --> D[dispatch 控制平面]
-  C --> E[证据 / 门禁 / handoff]
-  R --> M[run ledger / 能力地图 / 归档]
-  D --> F[task_key / CAS / receipt]
-  E --> G[目标仓库改动与验证]
-  M --> G
-  F --> G
-  G --> H[Git commit / 验收证据]
-  H --> D
-  M --> C
-  M --> D
-  D --> I[scenario trace / pure replay]
+```text
+same:     源证据 → 目标差异 → 原生架构实施 → 验证 → 同步检查点
+ralph:    需求 → 计划 → 实施/验证 → 验收 → 归档 → 能力地图
+dispatch: plane → tick → host actions → receipts → 下一检查点
 ```
 
-跨项目调度使用独立 **control_root** 落盘（默认 `~/.jj-flow`，可配置）；用户从**业务仓**发起：
+## 模块（定位）
 
-```mermaid
-flowchart LR
-  U[业务仓会话 jj-dispatch] --> CP[control_root control-plane.json]
-  CP --> T1[项目 A project-branch 或 isolation worktree]
-  CP --> T2[项目 B project-branch 或 isolation worktree]
-  CP --> T3[项目 C project-branch 或 isolation worktree]
-  T1 --> E[commit / snapshot / VRF / REV 引用]
-  T2 --> E
-  T3 --> E
-  E --> CP
-```
+| 区域 | 职责 |
+|------|------|
+| `.codex/skills/jj-*` | 对话协议 SSOT（多端 install） |
+| `src/dispatch*.mjs` | 控制面状态机、tick、CAS、host 契约 |
+| `src/ralph.mjs` | 单仓机械步骤 |
+| `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
+| `src/hostTrialRunner.mjs` | 半真实 Host trial |
+| `src/harnessGc.mjs` / `check-harness.mjs` | 仓库 Harness 门禁与熵扫描 |
+| `docs/` | 用户文档 SSOT → `npm run docs:build` |
 
-## 核心模块
+代码级地图：仓库根 **`ARCHITECTURE.md`**。
 
-- `.codex/skills/jj-same/`：同源迁移与持续同步（handoff、项目族、证据脚本）。
-- `.codex/skills/jj-ralph/`：单仓分析→计划→验收→归档与能力地图；`src/ralph.mjs` 提供机械 CLI。
-- `.codex/skills/jj-dispatch/`：多项目调度（PREVIEW / DISPATCH / RECONCILE / BIND_THREAD）；业务仓发起，状态默认 `~/.jj-flow`；写任务默认 project-branch；宿主 Codex App（thread）或 Grok Build（session）；无 Claude 薄命令。
-- `src/namingConfig.mjs`：`control_root` / `portfolio_root` / `knowledge_root` / `project_map` 解析；`jj doctor` 输出 paths。
-- `.codex/skills/jj/`、`.claude/commands/`：兼容路由与 Claude 薄入口。
-- `.codex/agents/*.toml`：Reviewer（read-only）与 Developer 角色期望；运行时 sandbox 以 host attestation 为准。
-- `src/dispatchHostContract.mjs` 与 `.codex/skills/jj-dispatch/references/host-action-contract.json`：host action allowlist、capability、sandbox 和 worktree policy；`npm run harness:check` 负责跨 runtime/schema/skill/fixture parity。
-- `src/scenarioRunner.mjs`、`src/dispatchTrace.mjs` 与 `src/handoffContract.mjs`：固定场景、统一 report、语义 hash、纯 replay 和 handoff snapshot 校验；`npm run scenario:check` 不执行真实 host action。
-- `src/hostTrialRunner.mjs`：系统临时目录中的半真实 Host adapter，使用实际 Git/worktree、control-plane CAS、receipt 和 Review rework；它明确不创建 Codex App thread。
-- `schemas/dispatch-trace.schema.json` 与 `schemas/scenario-report.schema.json`：场景和 trace 的外部序列化契约；Manifest 检查其版本与 runtime 一致。
-- `schemas/host-trial-report.schema.json` 与 `docs/milestones/m7-host-trial.json`：H4/M7 结构化验收契约和版本化证据；Harness 校验 runner fingerprint。
-- `src/harnessGc.mjs`、`schemas/harness-gc-report.schema.json` 与 `docs/milestones/h5-gc-baseline.json`：H5 只读熵清理、质量评分和版本化基线；P0/P1 阻断，P2/P3 仅提示。
-- `docs/design-docs/index.md` 与 `docs/adr/index.md`：目标设计和已接受决策的发现入口；Harness 检查索引覆盖、站点构建、设计状态和 Implemented 验收证据。
-- `bin/jj.mjs` / `src/cli.mjs`：安装与 `dispatch-tick` 调试，不是业务交付主入口。
-- `jj scenario` / `jj trace`：面向 Agent 和维护者的任务级反馈入口；只使用固定 fixture 和纯状态转换。
-- `src/dispatchControlPlane.mjs` / `src/dispatchRuntime.mjs`：控制面状态机与单次 tick/CAS/receipt。
-- `src/recipes.mjs`：CLI 侧 `same` recipe（可选辅助，不是产品定义中心）。
-- 代码定位用定点读取与搜索。
+## 不变量（摘要）
 
-## 关键决策
+1. 只有持久证据推进状态  
+2. 控制面单写者；worker 回报 receipt  
+3. `task_key` 可恢复；临时 subagent 不是身份  
+4. Reviewer 只读；Developer 仅在获批写工作区  
+5. 外部副作用归宿主；runtime 无 daemon、不自动 merge  
+6. 真 Host 未验收前 `max_unattended_level = A1`
 
-### 产品是项目编排，不是工具适配
+## 成熟度边界
 
-同源多仓、分叉演进、可恢复调度才是主问题。YApi / ARMS 等是可插拔能力，可换、可缺，不能定义 jj-flow 的存在理由。
+| 已关闭 | 仍 open |
+|--------|---------|
+| M6 / M7 半真实 / H5 GC / Mode S 日常 | 真 Host Wave 2、A2+、evaluated 完整闭环 |
 
-### 保持薄实现边界
+## ADR
 
-不重写外部执行引擎，不重做通用 intent 引擎，不实现 daemon/数据库/自动 merge。控制协议与证据契约留在 jj-flow；重执行仍交给 coding agent 与既有工具。
-
-### 控制状态根与业务产物分离
-
-`control_root`（默认 `~/.jj-flow`）只存角色、task、thread、状态与 artifact 引用；需求正文、源码与验证正文归属业务仓。用户不必打开状态目录即可在业务仓发起调度。
-
-### 单写者与可恢复身份
-
-主调度是唯一可推进控制面 checkpoint 的角色；子任务只回报结构化 receipt。`task_key` 是持久调度身份；临时 subagent 不是。
-
-详细决策见 [ADR 0002](adr-0002-project-family-control-plane.html) 与 [ADR 0001](adr-0001-external-tool-boundary.html)。
-
-## 少参数入口
-
-`$jj-same` / `$jj-dispatch` 接受自然语言与路径线索，不强制固定 CLI 参数。证据不足时保持 `PENDING` / `BLOCKED`，不把聊天「做完了」写成 checkpoint。
+[ADR 索引](adr/index.html) · [0001 外部工具边界](adr-0001-external-tool-boundary.html) · [0002 控制面](adr-0002-project-family-control-plane.html)

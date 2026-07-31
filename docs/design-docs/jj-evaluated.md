@@ -1,6 +1,14 @@
 # `/jj-evaluated` 真实工作流评估与泛化学习设计
 
 > 状态：Proposed
+>
+> 范围注记：完整 eval 闭环未关闭；skill MVP 可用不等于 Implemented
+>
+> 已落地：`.codex/skills/jj-evaluated` skill 入口；`docs/evaluations/*` episode 与回放笔记
+>
+> 未关闭：标准化 holdout / regression 套件、批准后自动演进 skill 的机械门禁、与 harness GC 的联动
+>
+> 事实边界：不自动训练模型、不自动改生产代码
 
 ## 1. 摘要
 

@@ -3,10 +3,12 @@
 > 状态：Implemented
 >
 > 验收证据：`tests/task-presentation.test.mjs`、`tests/cli-task-assignment.test.mjs`、`tests/dispatch-runtime.test.mjs`
+>
+> 实施边界：只改变人可见展示与 prompt 载荷形状；不改变控制面状态机、CAS、批准快照或 Review 门禁
 
 ## 目标
 
-让控制项目的任务分配足够快，同时把详细文档和审计证据留在机器可读层，不把它们重复展示给用户。
+让调度任务分配足够快：人眼只扫主标题与下一步，审计细节留在机器可读层。
 
 ## 用户可见流程
 
@@ -14,26 +16,26 @@
 TASK-ID -> 读取 task.md 主标题 -> PREVIEW -> 用户批准 -> DISPATCH -> tick/resume
 ```
 
-命令：
+控制状态默认在 `control_root`（例 `~/.jj-flow`）；业务仓发起。命令示例：
 
 ```text
-jj task assign --manifest .workflow/dispatch/<DELIVERY_ID>/control-plane.json \
+jj task assign --manifest <control-plane.json> \
   --delivery <DELIVERY_ID> --task <TASK-ID>
 ```
 
-默认输出只有任务主标题、任务 ID、四步流程和下一步命令。`--json` 才返回供 Host 使用的结构化分配包。
+默认输出：任务主标题、任务 ID、四步流程、下一步命令。`--json` 返回 Host 用的结构化分配包。
 
 ## Agent 交互
 
-- `distribution_prompt` 保留完整结构化上下文，并增加 `task_id`、`task_title`、`task_doc_ref`。
-- `initial_prompt` 只包含标题、ID、责任和最小执行要求，不嵌入任务文档或完整 JSON。
-- Developer/Reviewer 开始时只确认标题，过程只报告阻塞和结论，完成时返回结构化证据。
+- `distribution_prompt`：完整结构化上下文 + `task_id` / `task_title` / `task_doc_ref`
+- `initial_prompt`：标题、ID、责任与最小执行要求；不嵌入任务正文或完整 JSON
+- Developer/Reviewer：开场确认标题；过程只报阻塞与结论；完成回结构化证据
 
 ## 完成反馈
 
-非 JSON 的 `dispatch-tick` 输出只显示任务标题、状态、分配数、待确认数和等待数；完整 `actions`、task key、receipt 和 finding 仍保留在 JSON、manifest 和 artifact 中。
+非 JSON 的 `dispatch-tick` 只显示标题、状态、分配数、待确认数、等待数；`actions`、task_key、receipt、finding 留在 JSON / manifest / artifact。
 
 ## 边界
 
-- `quick` 任务仍可跳过完整任务文档，但必须使用 delivery title 或 task ID 作为回退标题。
-- 该设计不改变控制面状态转换、批准快照、CAS 或 Review 门禁。
+- `quick` 任务可跳过完整任务文档，须有 delivery title 或 task ID 回退标题
+- Grok Mode S 日常串行派发仍遵守本展示原则；真 Host Wave 2 不由本文关闭

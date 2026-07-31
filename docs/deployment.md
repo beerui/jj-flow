@@ -1,122 +1,13 @@
-# GitHub Pages 部署
+# 部署（GitHub Pages）
 
-## 目标
-
-`jj-flow` 是长期维护项目，文档必须可以被自动构建、自动检查、自动部署到 GitHub Pages。仓库中的 Markdown 是唯一文档源，部署产物由脚本生成，不手工维护。
-
-公开文档地址固定使用：
-
-```text
-https://beerui.github.io/jj-flow/index.html
-```
-
-## 目录约定
-
-```text
-docs/                 文档源，维护者只改这里
-scripts/build-docs.mjs 静态站点生成脚本
-site/                 构建产物，本地生成，不提交
-.github/workflows/pages.yml GitHub Pages 发布流程
-```
-
-## 本地构建
+文档站由 CI 构建 `site/` 发布到 GitHub Pages。
 
 ```bash
-npm run docs:build
+npm run docs:build   # 本地预览
+npm run docs:check   # 不写 site/ 的校验构建
 ```
 
-构建结果会写入 `site/`。本地只需要检查 HTML 是否生成完整，不需要把 `site/` 提交到仓库。
+源：`docs/**` + `scripts/build-docs.mjs`。  
+首页：https://beerui.github.io/jj-flow/index.html
 
-## 本地检查
-
-```bash
-npm run docs:check
-npm run verify
-```
-
-`docs:check` 使用同一套生成逻辑构建到临时目录，并检查首页、全部独立命令页、样式、搜索脚本和搜索索引是否完整。`verify` 会同时跑单元测试、项目结构检查和文档站检查。
-
-## GitHub Pages 流程
-
-合并到 `main` 后，`pages.yml` 会：
-
-1. 安装依赖。
-2. 运行 `npm run docs:build`。
-3. 上传 `site/` 作为 Pages artifact。
-4. 部署到 GitHub Pages 环境。
-
-## npm 发布流程
-
-**本项目 npm 发布的唯一正式路径是 GitHub Actions `NPM Publish`（`npm-publish.yml`）。**
-不要用本地 `npm publish` 作为发布手段；本地 token 不是事实源，常见 401/404。
-
-工作流不会自动跟随每次 push 发布，需要维护者手动 `workflow_dispatch`。
-
-发布 beta 前确认：
-
-- 版本 commit 已推到 `main`（含 `package.json` / `CHANGELOG.md`）。
-- `package.json` 的版本是预发布版本，例如 `0.1.1-beta.26`。
-- `CHANGELOG.md` 版本标题带发布时间：`## 0.1.1-beta.N — YYYY-MM-DD HH:mm`（本地时区；`install-skill` 版本日志解析支持该格式）。
-- GitHub 仓库 secret 已配置 `NPM_TOKEN`。
-- `npm run verify` 在本地或 CI 中通过。
-
-在 GitHub Actions 中运行：
-
-```text
-Workflow: NPM Publish
-tag: beta
-align_latest: true
-dry_run: false
-run_verify: true
-```
-
-CLI 等价：
-
-```bash
-gh workflow run "NPM Publish" --field tag=beta --field align_latest=true --field dry_run=false --field run_verify=true
-gh run watch
-```
-
-### 为什么 npm 首页还是旧文案？
-
-[npmjs.com 包页](https://www.npmjs.com/package/@shendu-sdt/jj-flow) **默认展示 `latest` dist-tag**，不是 `beta`。
-
-历史上多次发布都用 `--tag beta`，`latest` 一直停在 `0.1.1-beta.0`（含 Maestro 描述）。
-发布工作流现在默认会在成功后把 `latest` 指到当前 `package.json` 版本。
-
-若版本已发布、只需纠正标签（不重传 tarball）：
-
-```bash
-gh workflow run "NPM Publish" \
-  --field tag=beta \
-  --field align_latest=true \
-  --field retag_only=true \
-  --field dry_run=false \
-  --field run_verify=false
-```
-
-校验：
-
-```bash
-npm view @shendu-sdt/jj-flow dist-tags
-npm view @shendu-sdt/jj-flow@latest version description
-```
-
-发布成功后，用户可以用：
-
-```bash
-npx @shendu-sdt/jj-flow@beta install-skill
-npx @shendu-sdt/jj-flow@beta install-skill --platform claude
-npx @shendu-sdt/jj-flow@beta install-skill --platform grok
-npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
-```
-
-## 新增文档页面
-
-1. 先在 `docs/` 新增 Markdown。
-2. 在 `scripts/build-docs.mjs` 的 `PAGES` 中登记页面标题、源文件和输出文件。
-3. 在 `docs/index.md` 加入口。
-4. 如果页面是安装、命令、使用、架构这类长期入口，同步加入 `scripts/check-project.mjs`。
-5. 运行 `npm run verify`。
-
-不要直接编辑 `site/`。如果 GitHub Pages 内容不对，修文档源或生成脚本。
+详见仓库 Actions 与 [维护说明](maintenance.html)。

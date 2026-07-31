@@ -1,99 +1,157 @@
-# `jj` / `jj-flow` CLI
+# CLI 参考（维护 / 调试）
 
-`jj` 与 `jj-flow` 是同一个 Node.js CLI 的两个可执行名，面向 jj-flow 维护者和自动化脚本。它可以读取 intent 与 evidence，生成 recipe、guard、execution decision、knowledge loop 和 工作提示词；它不会在终端里代替 Codex/Claude Code 完成真实业务交付。
+> **面向维护者与 Agent 机械步骤，不是日常用法。**  
+> 正常交付请在 Codex / Claude / Grok / Qoder 里用 **对话入口**（`$jj-ralph` / `/jj-same` / …），**不要**让用户手敲下面命令完成业务。  
+> 本页把 `jj` 表面 **集中列全**，教程与工作流页不再展开 CLI。
 
-## 适用场景
+入口：`npx @shendu-sdt/jj-flow@beta …` 或本地 `jj`（需已安装包）。
 
-- 维护者需要检查某个 intent 会被路由到哪个内置 mode。
-- CI 或脚本需要结构化 JSON，用于检查 evidence、guard 和 调用链。
-- 调试 `same` recipe。
-- 使用 `install-skill` 安装或更新 Codex/Claude Code 原生命令资产，使用 `uninstall-skill` 安全卸载。
-- 使用 `doctor` 只读判断当前仓库的 Harness、Git、host capabilities、自治等级，以及 **paths**（`control_root` / `portfolio_root` / `knowledge_root` / `project_map`）。
-- 使用 `scenario` 运行固定、隔离、无副作用的任务级回归。
-- 使用 `trace explain` / `trace replay` 解释或纯重放 scenario trace，不重复 host action。
-- 使用 `host-trial` 在临时 Git repo/worktree 中验证 A2/A3 半真实 Host 闭环。
-- 使用 `ralph` 子命令执行单仓闭环机械步骤：`init`、`status`、`archive`、`map-merge`、`map-find`、`handoff`、`dispatch-snapshot`、`commit-prep`。
-- 使用 `harness-gc` 只读检查 Harness 漂移、规则健康和维护重复。
-- 使用 `dispatch-tick` 对控制面做一次可恢复调度预览或写回。
-- 使用 `task assign` 读取任务 ID 对应的 `task.md` 主标题，生成简洁的分配流程和下一步命令。
+---
 
-## 何时不用
+## 总览
 
-- 真实迁移应在 Codex 中使用 `$jj-same`，或在 Claude Code 中使用 `/jj-same`。
-- 真实多项目调度应在 Codex 中使用 `$jj-dispatch`。
-- 不要在终端执行 `jj same ...` 后期待 CLI 修改业务代码；它只生成调度结果。
-- 管理命令资产时使用 `install-skill` 或 `uninstall-skill`，完整说明见[安装](installation.html)。
+| 命令 | 用途 |
+|------|------|
+| `install-skill` / `uninstall-skill` | 安装或卸载 skill / 薄命令 |
+| `doctor` | 只读诊断 Git / Harness / 路径 / capabilities |
+| `ralph *` | 单仓 run 机械步骤（不替代对话） |
+| `dispatch-tick` | 单次调度 tick 预览或 CAS 写入 |
+| `task scaffold` / `task assign` | 任务脚手架与轻量分配展示 |
+| `scenario` | 确定性场景 list / check / run |
+| `trace` | explain / pure replay |
+| `host-trial run` | 半真实 Host 试跑（非真 Host） |
+| `harness-gc` | 只读熵扫描 |
 
-## 命令格式
+---
 
-两个可执行名等价：
+## 安装与卸载
 
-```text
-jj [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
-jj-flow [mode] <intent> [--cwd <dir>] [--evidence <file>] [--json]
+```bash
+jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-run] [--json]
 ```
 
-`mode` 可省略。省略时使用内部 `auto` 路由；没有命中明显关键词时，回退到 `same`。
+- 默认不按名称前缀扫描未知文件；只动 ownership 登记资产  
+- 本地改过或历史未登记：默认拒绝，审查后 `--force`  
+- 用户装入口仍可在 [安装](installation.html) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI  
 
-支持的 mode：
+---
 
-- `auto`（仅 CLI 内部路由，不是对话入口）
-- `same`
+## doctor
 
-安装、卸载与调度：
-
-```text
-jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]
-jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]
+```bash
 jj doctor [--json]
-jj scenario list [--json]
-jj scenario check [--json]
-jj scenario run <scenario|all> [--json]
-jj trace explain <trace.json> [--json]
-jj trace replay <trace.json> [--json]
-jj host-trial run [--json]
-jj harness-gc [--json]
+```
+
+只读：版本、Git、`control_root` / `portfolio_root` / `knowledge_root`、Harness、宿主 capability 线索。不修复、不安装、不派发。
+
+---
+
+## ralph 子命令
+
+对话入口仍是 `$jj-ralph` / `/jj-ralph`。下列命令供 skill 脚本 / 维护脚本调用。
+
+```bash
+jj ralph init --run-id RALPH-… --title "…" --goal "…" \
+  [--capability CAP-…] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] \
+  [--host-id …] [--thread-id …] [--model-id …] [--session-export path] [--force] [--json]
+
+jj ralph status [--run-id RALPH-…] [--json]
+jj ralph archive --run-id RALPH-… [--slug name] [--json]
+jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]
+jj ralph map-merge --run-id RALPH-… [--modules …] [--keywords …] [--lessons …] [--force] [--json]
+jj ralph map-find --query "关键词" [--limit N] [--json]
+jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]
+jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]
+jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]
+jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]
+jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]
+jj ralph commit-prep --run-id RALPH-… [--json]
+jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [审查溯源选项…] [--json]
+jj ralph host-record --run-id RALPH-… [--host-id …] [--thread-id …] [--session-handle …] [--model-id …] [--export-path …] [--json]
+```
+
+说明：
+
+- `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）  
+- `finalize` = map-merge + archive  
+- `handoff` 写到 `.workflow/handoffs/`（迁移实现不在 ralph 目录内）  
+- `commit-prep` 只出清单与 message，**不** git commit/push  
+- 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`）
+
+---
+
+## dispatch-tick
+
+```bash
 jj dispatch-tick --delivery DELIVERY_ID \
   [--manifest path | --control-root dir] \
-  [--expected-revision N] [--receipt receipt.json] [--capabilities a,b,c] [--write] [--json]
+  [--receipt receipt.json] \
+  [--write] [--json]
+```
+
+- 默认**预览**；`--write` 才 CAS 写 plane  
+- 单次 tick，无后台 daemon  
+- `--delivery` 是控制面 `delivery_id`，不是对话命令名  
+
+日常调度请 `$jj-dispatch` / `/jj-dispatch`，不要让用户以 tick 为主路径。
+
+---
+
+## task
+
+```bash
 jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]
 jj task assign --delivery DELIVERY_ID --task TASK-ID [--manifest path | --control-root dir] [--json]
 ```
 
-注意：
+轻量分配展示；审计细节在 JSON / manifest。设计见 [任务分配 UX](design-docs/task-assignment-ux.html)。
 
-- `install-skill` 会在每个目标根目录写入 `.jj-flow-install.json`，记录包版本、明确资产名和内容摘要。
-- `uninstall-skill` 默认只删除摘要匹配的自有资产；任一资产被修改时整组拒绝删除。`--dry-run --json` 会返回 `would_remove`、`conflicts` 和 `conflict_details`。
-- 已移除的旧版入口没有 ownership manifest，只会作为明确 retired 候选报告；必须审查后显式使用 `--force`。命令不会按 `jj-*` 前缀扫描未知文件。
-- `doctor` 只读取 Git、`harness-manifest.json`、**路径配置**和仓库文件，不修复、不安装、不派发；失败输出包含 `rule_id`、原因和下一动作。
-- **目录配置**：产品默认 `control_root=~/.jj-flow`。配置文件 `$JJ_GLOBAL_CONFIG_DIR/naming.json`（Windows 未设 env 时默认识别 `D:/a/config/naming.json`）可设 `dispatch.control_root` / `portfolio_root` / `knowledge_root` 与 `project_map`。环境变量：`JJ_DISPATCH_CONTROL_ROOT`、`JJ_PORTFOLIO_ROOT`、`PORTFOLIO_KB_ROOT`。详见 [安装 · 本机目录配置](installation.html)。
-- `dispatch-tick` / `task *` 可只传 `--delivery`：自动解析 `{control_root}/.workflow/dispatch/<id>/control-plane.json`。
-- `scenario list` 输出 Manifest 机械校验的 runtime registry；`scenario check` 执行全部场景但省略完整 trace；`scenario run` 输出统一 report 和可审计 trace。
-- 当前场景为 `dispatch-happy-path`、`dispatch-interrupted-resume`、`dispatch-partial-target-failure` 和 `same-handoff-contract`。
-- 场景只使用固定 fixture 与内存状态。report 始终声明隔离策略；`trace replay` 会校验 before/after/output/final hash，并在最早不匹配步骤失败。
-- `trace.json` 相对当前工作目录解析；replay 重新调用纯状态转换，但不执行 trace 中记录的 `CREATE_THREAD` 或 `RECONCILE_THREAD`。
-- `host-trial` 会创建临时控制仓、真实 Git repo 和 worktree，执行 CAS、中断对账及两轮 Review，然后删除临时目录。它不联网、不触碰业务仓，也不创建 Codex App task。
-- 半真实报告中的批准和 sandbox attestation 是固定 Host fixture，用于验证协议消费；真实宿主能力仍需在 Codex App 环境单独验证。
-- `harness-gc` 输出 100 分质量评分；P0/P1 使命令失败，P2/P3 仅形成维护建议。它不会自动删除、重写或创建 `.workflow`。
-- `--delivery` 是控制面 `delivery_id`，不是已移除的 `$jj-delivery` 入口。
-- `dispatch-tick` 是单次 tick/resume：消费结构化 receipt、按 `expected_revision` 做 revision CAS，输出 `actions` / `decision_required` / `next_wait`。
-- `task assign` 默认只输出任务主标题、任务 ID、`PREVIEW → APPROVE → DISPATCH → TICK` 和下一步命令；任务文档正文在 `control_root` 的 task 目录中，用户通常不打开。
-- `--write` 使用文件级 CAS 写回；若磁盘 revision 已变化，返回 `REVISION_CONFLICT` 且不覆盖。
-- 目标 `ANL-TARGET` 差异决策不可绕过（已移除 `--no-target-analysis`）。
-- 未批准差异的目标会进入 `decision_required`，但**不会**阻塞其它已就绪目标的派发。
-- 恢复时会对仍为 `PENDING_THREAD` 的 intent 重新输出 `CREATE_THREAD` actions，避免中断后丢动作。
+---
 
-## 参数
+## scenario / trace / host-trial / harness-gc
 
-- `[mode]`：可选，显式指定 recipe。自动化场景建议指定，避免关键词路由产生歧义。
-- `<intent>`：自然语言目标。多个非选项参数会按空格拼成完整 intent。
-- `--cwd <dir>`：把指定目录作为项目上下文写入调度结果。默认是当前工作目录。
-- `--evidence <file>`：读取一个 UTF-8 JSON evidence 文件。文件内容可以是 evidence 数组，也可以是包含 `evidence` 数组的对象。
-- `--json`：输出完整 JSON；不传时输出适合人读的 Markdown。
-- `--help` / `-h`：显示 CLI 安装与定位说明。
+```bash
+jj scenario list|check|run <scenario|all> [--json]
+jj trace explain|replay <trace.json> [--json]
+jj host-trial run [--json]
+jj harness-gc [--json]
+```
 
-## 相关命令
+| 命令 | 边界 |
+|------|------|
+| scenario | 固定 fixture、纯状态、不创建真 task、不执行 host action |
+| trace replay | 只重放纯状态转换 |
+| host-trial | 系统临时目录半真实 Git/worktree；**不能**关闭真 Host 里程碑 |
+| harness-gc | 只读 findings，不自动修 |
 
-- [`jj-same`](command-jj-same.html)：Codex/Claude Code 中的同源迁移入口。
-- [`jj-dispatch`](command-jj-dispatch.html)：Codex 多项目调度入口。
-- [安装](installation.html)：`install-skill` 与 `uninstall-skill` 完整参数。
+---
+
+## 本仓库维护（开发 jj-flow 时）
+
+```bash
+npm run verify
+npm run docs:build
+npm run docs:check
+npm run harness:check
+npm run harness:gc
+npm run scenario:check
+npm run host:trial
+npm run ralph:check
+npm run ralph:sync
+```
+
+npm 发布走 GitHub Actions `NPM Publish`，勿依赖本机 `npm publish` token。
+
+---
+
+## 已移除对话入口（勿当 CLI 复活）
+
+`$jj-delivery` / `$jj-validate` / `$jj-evolve` 已删除。维护用 `npm run verify`。
+
+---
+
+## 相关
+
+用户路径：[安装](installation.html) · [命令总览](commands.html) · [五分钟上手](usage.html)  
+维护：[维护说明](maintenance.html)

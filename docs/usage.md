@@ -1,33 +1,21 @@
-# 使用说明
+# 五分钟上手
 
-这页只讲用户第一次怎么用：选择入口、提供资料、理解执行过程，以及判断一项工作是否真的完成。`jj-flow` 是 **项目族编排工作流**（迁移 + 闭环 + 调度）。安装步骤见 [安装](installation.html)，全部入口见 [命令总览](commands.html)。若还没建立整体图景，先读 [Loop 与 Graph 上手](loop-graph-guide.html) 与 [记忆与知识库](memory-knowledge-guide.html)：外层 Graph 管秩序，内层 Loop 管做对，文件管算不算发生过。
+先完成 [安装](installation.html)。  
+下面三条路 **任选一条**，在对话里直接说中文即可。
 
-## 第一次使用
+## A. 只改当前仓库 → ralph
 
-同源功能迁移、修复同步或 handoff 时，直接用 `$jj-same`：
-
-```text
-$jj-same
-会话=019f...
-当前需求=保留密码入口
-源=承接前台
-目标=兑接前台,承载前台
-```
-
-Claude Code 中把 `$` 换成 `/`：
+复制改一改：
 
 ```text
-/jj-same 会话=019f... 源=承接前台 目标=兑接前台 开始迁移
+$jj-ralph 票面预览关闭按钮点了没反应
 ```
-
-多项目波次：在**业务仓**直接 `$jj-dispatch` / `/jj-dispatch`（Grok/Qoder 用 `/`；无 Claude 薄命令）。**不要求**先打开控制仓，**不要求**用户跑 CLI。协调状态默认写入用户主目录 **`~/.jj-flow/`**；本机 portfolio 用 `naming.json` 覆盖（见 [安装 · 本机目录配置](installation.html)）。写任务默认 **`project-branch`**；分支/workspace 不确定时 Agent 先问再 `DISPATCH`。**Grok 默认 Mode S**（单会话串行完成多 task_key；不必开多 session，也不必用 Workflow 收口）——见 [jj-dispatch 命令页](command-jj-dispatch.html)。
 
 ```text
-$jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
-/jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
+$jj-ralph 先改承接，登录后密码过期要提示，只做登录成功那条
 ```
 
-单仓从需求做到验收归档时，用 `$jj-ralph` / `/jj-ralph`：
+也可以写得更整齐（可选）：
 
 ```text
 $jj-ralph
@@ -36,85 +24,64 @@ $jj-ralph
 验收=提示出现且可跳转改密
 ```
 
-## 一份好输入包含什么
+Agent 会在对话里：建任务 → 分析 → 改代码 → 验收 → 归档。  
+做完看仓库里的任务记录，不要只听聊天总结。
 
-不需要准备固定参数，但最好说明下面 4 件事：
+→ [ralph 说明](command-jj-ralph.html)
 
-- `目标`：你最终要得到什么。
-- `资料`：会话、PRD、接口、设计、日志、diff、handoff、截图或文件路径在哪里。
-- `范围`：本次明确做什么、不做什么；源与目标是谁。
-- `验收`：什么证据能证明完成。
-
-资料不完整也可以先给线索：
+## B. 搬到别的同源项目 → same
 
 ```text
-$jj-same 参考会话 019f... 与源分支 feat/cj-0717-1，准备交接
+$jj-same 交接到 兑接 承载
 ```
-
-Agent 应该先寻找已有上下文。只有缺失信息会改变范围、方案、权限或上线风险时，才需要你补充决策。
-
-## 怎么选择命令
-
-- 同源迁移 / handoff / 持续同步：[$jj-same](command-jj-same.html)
-- 单仓全流程闭环 / 能力地图：[$jj-ralph](command-jj-ralph.html)
-- 多项目任务调度：[$jj-dispatch](command-jj-dispatch.html)
-- 不确定：[$jj](command-jj.html) 兼容入口（迁移优先 same；单仓闭环走 ralph）
-
-控制面 `delivery_id` 是调度任务身份，不是对话命令名。更完整的选择说明见 [命令总览](commands.html)。心智模型与值班 checklist 见 [Loop 与 Graph 上手](loop-graph-guide.html)。
-
-## 你会看到的执行过程
-
-不同命令细节不同，但一次可靠的迁移通常按这个顺序推进：
-
-1. 确认真实目标、源/目标、已有资料和不做范围。
-2. 从会话、Git、文档或 handoff snapshot 核对证据。
-3. 说明缺口、风险和需要用户拍板的决策。
-4. 给出最小可执行迁移矩阵与计划。
-5. 在批准边界内实施或同步。
-6. 运行与改动风险匹配的验证。
-7. 区分已验证、待确认和阻塞项。
-
-如果 Agent 还没核对资料就直接写代码，或者把无法验证的内容写成已经完成，说明流程没有正确执行。
-
-## 3 个完整场景
-
-### 场景一：会话驱动迁移
 
 ```text
-$jj-same
-会话=019f...
-当前需求=账号安全页保留密码入口
-源=承接前台
-目标=兑接前台,承载前台
-验收：目标调用链验证通过，聚焦测试通过
+$jj-same 开始迁移承载识票
 ```
 
-### 场景二：准备交接再迁目标
+**注意：** 「开始迁移」前要确认 **分支是不是这个任务的分支**，别在发布分支上乱改。详见 [踩坑](pitfalls.html)。
+
+→ [same 说明](command-jj-same.html)
+
+## C. 多个项目一起派 → dispatch
+
+在 **任意一个业务仓库** 的对话里说（不用先建控制仓）：
 
 ```text
-$jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
-$jj-same 交接=@path/to/handoff-snapshot.yaml 当前项目=兑接 开始迁移
+/jj-dispatch 分发当前任务到 承接和承载识票
 ```
-
-### 场景三：多项目调度
 
 ```text
-$jj-dispatch PREVIEW delivery=DEL-password
-$jj-dispatch DISPATCH 批准 delivery=DEL-password 的当前 task_keys
-$jj-dispatch RECONCILE task_key=DEL-password/dj/development/1
+$jj-dispatch 把 README 装依赖改成 pnpm，预览分发到承接兑接承载
 ```
 
-## 完成标准
+你会先看到预览，**你点同意** 后才会真正派出去。  
+调度「验收通过」**不等于** 已经推到远端——要推/合分支用 [收工 end](command-jj-end.html)。
 
-- 关键证据可追溯（会话、commit、handoff、验证结果）。
-- 目标改动可对应需求账本与迁移决策。
-- 未验证项明确标为 `PENDING` / `BLOCKED` / `N/A`，不伪装成已完成。
-- 多项目任务以 control-plane、Git commit、VRF/REV 为准推进 checkpoint。
+→ [dispatch 说明](command-jj-dispatch.html)
 
-## 记忆与知识库
+## 怎样算做完？
 
-- 顶层知识库（Portfolio KB）路径可配置：`dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT`；有 portfolio 时常为 `{portfolio_root}/knowledge`（本机例：`D:/a/knowledge`）。跨项目，不是某个业务仓的 `.workflow`。
-- `jj ralph init` 默认自动挂载 `knowledge_refs`（jj-flow ≥ 0.1.1-beta.31；解析实现见 `src/portfolioKnowledge.mjs`）。
-- 聊天不是持久记忆；要「记住」必须走 extract → review → promote，形成 active 条目。
-- 值班命令（路径以本机 knowledge_root 为准）：`node <knowledge_root>/tools/kb.mjs doctor` / `extract --incremental` / `human-review`。
-- 完整说明见 [记忆与知识库](memory-knowledge-guide.html)。
+| 你在做 | 怎样算完 |
+|--------|----------|
+| ralph | 验收通过，并已归档 |
+| same | 目标仓改对了，验证过了 |
+| dispatch | 各项目在调度记录里验收通过 |
+| end | 代码已 push，并按需要合进 dev/main |
+
+聊天说「好了」、会话关了、脑子里记住了 → **都不算**。
+
+## 最容易翻车的三件事
+
+1. 源仓库 **还没 commit** 就多项目派发 → 会被拦住  
+2. **分支不对** 就迁移 → 改到错误分支  
+3. 调度显示通过就以为 **已经上线** → 其实还没 push / 合分支  
+
+更多：[常见踩坑](pitfalls.html)
+
+## 两个简单概念
+
+- **调度（外层）**：谁做、批没批、任务号在哪 → 主要是 dispatch  
+- **做事（内层）**：分析 → 改 → 验 → 不过再改 → 主要是 ralph / same  
+
+名词表：[术语](glossary.html)

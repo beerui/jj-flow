@@ -2,9 +2,13 @@
 
 > 状态：Proposed
 >
+> 范围注记：Wave 2 真 Host；**不是** Mode S 日常路径的完成态
+>
 > 范围：真 Host attestation / Wave 2。日常 Grok 分发 Mode S skill MVP 见
 > [`.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`](../../.codex/skills/jj-dispatch/references/grok-dispatch-execution.md)
 > 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)，**不**等同关闭本文验收。
+>
+> 与 [真实 Host 验收](../milestones/real-host-acceptance.html) 并列：任一已批准宿主路径达标即可评估 A2。
 >
 > 关联：
 > - [真实 Host 验收（PENDING）](../milestones/real-host-acceptance.md)

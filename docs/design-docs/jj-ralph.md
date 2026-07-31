@@ -2,63 +2,127 @@
 
 > 状态：Implemented
 >
-> 验收证据：`tests/jj-ralph-contract.test.mjs`、`tests/install-skill.test.mjs`、`npm run verify`
+> 验收证据：`tests/jj-ralph-contract.test.mjs`、`tests/install-skill.test.mjs`、`tests/portfolio-knowledge.test.mjs`、`npm run verify`、`npm run ralph:check`
 >
-> 实施边界：协议资产 + 轻量 CLI 机械步骤；无 dispatch 式 CAS 状态机
+> 实施边界：协议资产（skill）+ 轻量 CLI / `ralph_ops.mjs` 机械步骤；**无** dispatch 式 CAS 状态机；**不**自动 commit/push/merge/release
 
-## 目标
+## 1. 目标
 
-在当前**单一业务仓库**内完成：
+在当前**单一业务仓库**内完成可追溯闭环：
 
 ```text
-需求分析 → 计划实施 → 验收完成 → 归档
+ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 ```
 
 约束：
 
-- 全步骤文档留痕、可追溯
-- 能力地图可检索，供下次模型会话发现历史经验
-- 默认自治，仅在必要时请用户介入
+- 全步骤写入 `.workflow/ralph/`（run ledger），可恢复、可检索
+- 能力地图 `business-map.json` 供下次会话发现历史经验
+- 默认自治；仅范围、权限、验收歧义时请用户介入
+- 事实源是 `run.json` / Git / 验证产物，不是聊天「做完了」
 
-## 非目标
+## 2. 非目标
 
-- 多仓迁移实现（`jj-same`）
-- 控制面 tick/CAS（`jj-dispatch`）
-- 自动 push / merge / release
-- 后台 daemon
+| 非目标 | 正确入口 |
+| --- | --- |
+| 多仓迁移实现 | `jj-same`（读 `run.handoff` 或 handoff 镜像） |
+| 控制面 tick / CAS / 多目标派发 | `jj-dispatch` |
+| 宿主 review 映射落盘 | `jj-review` → `reviews/REV-*.json` |
+| 自动 push / merge / release | 人工或 `jj-end` 等收工流程（仍需用户/宿主执行） |
+| 后台 daemon | 不实现 |
 
-## 产物布局
+## 3. 阶段与门禁
+
+权威阶段细则：`.codex/skills/jj-ralph/references/phases.md`。
+
+| 阶段 | 含义 | 典型门禁 |
+| --- | --- | --- |
+| ANALYZE | 需求、范围、证据与不做清单 | 范围确认 |
+| PLAN | 最小计划与验收标准 | plan 可执行 |
+| DELIVER | 实施与验证循环 | 验证证据 |
+| ACCEPT | 验收结论 | `gate accept` PASS/FAIL |
+| ARCHIVE | map-merge + archive 冻结 | `finalize` |
+
+- accept PASS 后默认 `finalize`（map-merge + archive）
+- `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
+- ARCHIVE 后不可 rollback phase；要再做则 **新 run** 并链 `supersedes`
+
+## 4. 回退（ledger）
+
+权威：`.codex/skills/jj-ralph/references/rollback.md`、`src/ralph.mjs`。
+
+| 意图 | 动作 |
+| --- | --- |
+| 改 gate | `ralph_ops gate --status FAIL`（或 PASS） |
+| phase 回退 | 仅相邻边：`rollback-phase --to DELIVER` 等 |
+| 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
+| COMPLETED 再做 | 新 run + `supersedes`；不 un-archive 覆盖 |
+
+默认**不**自动 git revert。
+
+## 5. 产物布局
 
 ```text
 .workflow/ralph/
   business-map.json
-  RALPH-{slug}-{date}/
-  archive/YYYY-MM-DD-{slug}/
-.workflow/ralph/<run_id>/handoff/
+  RALPH-{slug}-{date}/          # 活跃 run
+    run.json                    # 真相：phase / gates / handoff / knowledge_refs
+    handoff/handoff.json        # 可选镜像（same 可读）
+    reviews/REV-*.json          # jj-review 映射
+  archive/YYYY-MM-DD-{slug}/    # 冻结副本（含 COMPLETED run.json）
+.workflow/handoffs/<HOF-ID>/    # handoff 导出（跨仓）
 .workflow/dispatch/recommendations/<SNAP-ID>/
 ```
 
-## 与 same / dispatch
+archive 目录默认去重 run_id 末尾日期（例 `2026-07-23-smoke`，而非 `…-smoke-20260723`）。
+
+## 6. 交接与调度衔接
 
 | 关系 | 约定 |
 | --- | --- |
-| same | `jj ralph handoff` 写出 `.workflow/handoffs/`；same 读需求后在目标仓实现 |
-| dispatch | 验收后 `jj ralph dispatch-snapshot` 写出推荐快照 |
+| handoff 真相 | **`run.handoff`**（精简字段：`ready` / `blocked_reasons` / `source_head` / `must` / `do_not_port` / `targets` / `mode`） |
+| same | 用户自然语言「交接到…」；same 读当前会话 run/handoff；跨仓实现不在 `.workflow/ralph/` 内完成 |
+| dispatch | `jj ralph dispatch-snapshot` 写出推荐快照；不替代 control-plane |
+| knowledge | `ralph init` 默认挂载 `knowledge_refs`（可 `--no-knowledge-refs`） |
 
-## 机械步骤
+未提交时 `ready=false`；提交后再交接。用户不必填 handoff 路径。
 
-- 权威实现：`src/ralph.mjs`
-- Skill 可移植副本：`.codex/skills/jj-ralph/scripts/lib/ralph.mjs`（`npm run ralph:sync` 保持同步）
-- Agent：`.codex/skills/jj-ralph/scripts/ralph_ops.mjs`（优先 live src，否则 bundled lib；业务仓无需安装 jj-flow）
-- CLI：`jj ralph init|status|archive|finalize|map-merge|gate|map-find|handoff|dispatch-snapshot|commit-prep|review-record`
-- `finalize` = map-merge + archive（accept PASS 后默认收口）
-- `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
-- archive 目录默认去重 run_id 末尾日期：`2026-07-23-smoke` 而非 `…-smoke-20260723`
-- archive 冻结副本包含 COMPLETED 的 `run.json`
+## 7. 机械步骤
 
-## 验收
+| 层 | 路径 |
+| --- | --- |
+| 权威实现 | `src/ralph.mjs` |
+| Skill 可移植副本 | `.codex/skills/jj-ralph/scripts/lib/ralph.mjs`（`npm run ralph:sync`） |
+| Agent 入口 | `.codex/skills/jj-ralph/scripts/ralph_ops.mjs`（优先 live src，否则 bundled；业务仓无需装 npm 包） |
+| CLI | `jj ralph init\|status\|archive\|finalize\|map-merge\|gate\|map-find\|handoff\|dispatch-snapshot\|commit-prep\|review-record\|rollback-phase\|set-status` |
 
-- 安装含 `jj-ralph` skill 与 command
-- sample run/map 校验通过
+解析顺序：repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
+
+## 8. 硬约束
+
+- 不做无关重构；单点 analyze/plan 宜短
+- 同操作失败有限次后换策略或升级用户
+- 未要求 commit/push/review/handoff/dispatch 则不做
+- 聊天、thread 状态、memory 不能推进 checkpoint
+
+## 9. 验收
+
+- 安装含 `jj-ralph` skill 与 Claude/Grok/Qoder 对应入口
+- sample run / map 与 schema 校验通过
 - map-merge 后 map-find 可恢复 run 路径与 lessons
-- archive / handoff / dispatch-snapshot 路径正确
+- archive / handoff / dispatch-snapshot / rollback 路径与合约测试一致
+- `npm run ralph:check` 与 `tests/jj-ralph-contract.test.mjs` 通过
+
+## 10. 与产品面位置
+
+```text
+ralph  单仓闭环 + 能力地图
+  │ handoff          │ dispatch-snapshot
+  v                  v
+same  跨仓迁移      dispatch  多项目调度
+  │
+  v
+review  宿主审查 → REV（可选，挂在 run 下）
+```
+
+当前实现事实见根 `ARCHITECTURE.md` 与 [架构](../architecture.html)。使用者入口见 [命令页](../command-jj-ralph.html)。

@@ -11,11 +11,17 @@
 
 ## 活跃计划
 
-- [Dispatch / Mode S 升级 backlog（存档·留待）](active/2026-07-31-dispatch-upgrade-backlog.html)（**blocked**：C4/C5/C6 等；恢复时改 active；默认下一刀 U1 Review attestation）
-- [Dispatch / Ralph 任务回退](active/2026-07-31-dispatch-ralph-rollback.html)（下一阶段：规格 → reopen/rework → Ralph phase/gate → 可选 git prep）
-- [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html)（Phase 2a live 已验收；仍 open Mode W/P / Host Wave 2）
+| 计划 | 状态摘要 | 下一刀 |
+| --- | --- | --- |
+| [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a **live 已验收**；Mode W/P / Host Wave 2 仍 open | Mode W 或 Wave 2 证据 |
+| [Dispatch / Ralph 任务回退](active/2026-07-31-dispatch-ralph-rollback.html) | R1–R4 主体已落地；规格与 prep 见文内 | 按业务回退场景回归 |
+| [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 **promoted**；Mode W/P / Wave 2 后置 | 未关闭项见文内表 |
+
+说明：active 中可含「主路径已完成、仍作指针」的条目；新工作优先开新 plan 或更新「仍后置」表，避免重复实现已 promoted 项。
 
 ## 已完成计划
 
-- [Grok Host Adapter Phase 1 — 契约扩展](completed/2026-07-27-grok-host-adapter.html)（契约与纯状态测试完成；Phase 2/3 与设计 Implemented 未启动）
-- [Harness Engineering 收口与真实 Host 路径](completed/2026-07-18-harness-hardening.html)（仓库侧收口完成；真实 Codex App Host 见 [PENDING 里程碑](../milestones/real-host-acceptance.html)）
+| 计划 | 结果 |
+| --- | --- |
+| [Grok Host Adapter Phase 1 — 契约扩展](completed/2026-07-27-grok-host-adapter.html) | 契约与纯状态测试完成；Phase 2/3 真 Host 未启动 |
+| [Harness Engineering 收口与真实 Host 路径](completed/2026-07-18-harness-hardening.html) | 仓库侧收口完成；真实 Host 见 [PENDING](../milestones/real-host-acceptance.html) |

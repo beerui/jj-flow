@@ -1,70 +1,79 @@
-# $jj-ralph / /jj-ralph
+# ralph — 只改当前这一个仓库
 
-单仓全流程自治闭环：需求分析 → 计划实施 → 验收完成 → 归档。
+在 **当前业务仓库** 里：把需求做完 → 验收 → 归档，并留下可查记录。
 
-Codex 用 `$jj-ralph`，Claude Code 用 `/jj-ralph`。
+| 工具 | 怎么喊 |
+|------|--------|
+| Codex | `$jj-ralph` |
+| 其他 | `/jj-ralph` |
 
-## 何时用
+请用 **对话** 推进，不要手敲命令行。
 
-- 当前仓库从需求做到验收与归档
-- 需要能力地图沉淀
-- 用户明确说 ralph / 全流程 / 闭环
+## 什么时候用
 
-不要用：
+- 只动 **这一个** 仓库  
+- 希望有完整记录：分析、计划、改动、验收  
+- 你说「做完这个需求 / 全流程 / 闭环」  
 
-- 同源多仓迁移主体 → [$jj-same](command-jj-same.html)
-- 控制项目多目标调度 → [$jj-dispatch](command-jj-dispatch.html)
+**别用 ralph：** 要搬到别的仓库 → [same](command-jj-same.html)；要多个仓库一起派 → [dispatch](command-jj-dispatch.html)
 
-## 输入模板
+## 怎么说
+
+**口语：**
+
+```text
+$jj-ralph 票面预览关闭按钮点了没反应
+```
+
+```text
+$jj-ralph 先改承接，登录后密码过期要提示，只做登录成功那条路
+```
+
+```text
+$jj-ralph 继续
+```
+
+**写整齐一点（可选）：**
 
 ```text
 $jj-ralph
-目标：要完成什么。
-资料：PRD、接口、会话、日志、路径。
-范围：做什么 / 不做什么。
-验收：什么证据算完成。
+目标=登录后密码过期提醒
+范围=仅登录成功路径
+验收=提示出现且可跳转改密
 ```
 
-已定位到文件/行号的小改动，直接附路径；协议走短产物路径。
-
-## 产物位置
+## 大致会经历什么
 
 ```text
-.workflow/ralph/RALPH-{slug}-{date}/
-.workflow/ralph/business-map.json
-.workflow/ralph/archive/…
-.workflow/handoffs/<HOF-ID>/
-.workflow/dispatch/recommendations/…
+分析 → 计划 → 改代码 → 验收 → 归档
 ```
 
-## 执行默认
+验收通过后会默认收尾归档。
 
-- 机械步骤优先 skill 脚本 `ralph_ops.mjs`（自带 `scripts/lib/ralph.mjs`，业务仓无需 jj-flow 包）
-- 仅 skill 损坏时 skeleton 手建；不要因“无 jj-flow”降级
-- 少检索、短产物、失败换策略
-- accept 后优先 `finalize`（map-merge + archive）
-- JSON 优先脚本；脚本不可用再复制 skill 内 skeleton
-- 默认不自动 commit/push
+## 东西写在哪
 
-## 回退（ledger）
+```text
+.workflow/ralph/
+  business-map.json          # 能力地图（方便下次找）
+  RALPH-…/run.json           # 这一次任务的主记录
+  archive/…                  # 归档副本
+```
 
-| 意图 | 动作 |
-| --- | --- |
-| 撤销验收 / 退回实施 | `rollback-phase --to DELIVER`（仅相邻边；ARCHIVE 不可回） |
-| gate 改 FAIL | `gate --gate accept --status FAIL` |
-| 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
-| 已 COMPLETED 再做 | **新 run**，链 `supersedes`；不 un-archive 覆盖 |
+做完后可以说「交接到 兑接 承载」，再交给 [same](command-jj-same.html) 去别的仓实现。
 
-默认不自动 git revert。Skill：`jj-ralph/references/rollback.md`。
+## 想回退时
 
-设计细节见 [jj-ralph 设计](../design-docs/jj-ralph.html)。
+直接说清楚意图即可，例如：「验收不算，退回改」「先暂停」。
 
-## 记忆与知识库
+| 你想 | 结果 |
+|------|------|
+| 退回继续改 | 退到相邻阶段（归档后不能退） |
+| 验收不过 | 验收记失败 |
+| 暂停 | 任务标记暂停 |
+| 已经归档还要再做 | **开一个新任务**，不要改旧归档 |
 
-从 **0.1.1-beta.31** 起，`jj ralph init` 默认从顶层知识库自动挂载 `knowledge_refs` / `knowledge_summary`。知识库路径可配置（`dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT` / `{portfolio_root}/knowledge`；本机 portfolio 例 `D:/a/knowledge`），见 [安装 · 本机目录配置](installation.html)。
+默认 **不会** 自动 `git revert`。要提交/合分支用 [end](command-jj-end.html)。
 
-- 关闭：`--no-knowledge-refs`
-- 指定检索：`--project <key> --knowledge-query "..."`
-- 任务结束后：更新 business-map → `kb extract --incremental` → promote 高置信条目
+## 相关
 
-完整操作见 [记忆与知识库](../memory-knowledge-guide.html)。设计见 [Portfolio Knowledge](../design-docs/portfolio-knowledge.html)。
+[踩坑](pitfalls.html) · [上手](usage.html) · [设计（深）](design-docs/jj-ralph.html)
