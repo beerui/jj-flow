@@ -11,7 +11,9 @@
 
 ## 活跃计划
 
-- [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html)（skill MVP 部分完成；下一波真实 delivery 验收）
+- [Dispatch / Mode S 升级 backlog（存档·留待）](active/2026-07-31-dispatch-upgrade-backlog.html)（**blocked**：C4/C5/C6 等；恢复时改 active；默认下一刀 U1 Review attestation）
+- [Dispatch / Ralph 任务回退](active/2026-07-31-dispatch-ralph-rollback.html)（下一阶段：规格 → reopen/rework → Ralph phase/gate → 可选 git prep）
+- [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html)（Phase 2a live 已验收；仍 open Mode W/P / Host Wave 2）
 
 ## 已完成计划
 

@@ -78,10 +78,10 @@ Do not use filesystem mtime as wall span.
 | Split | Use |
 | --- | --- |
 | **search** | this episode (worktree → transfer) |
-| **holdout** | future episode with real `control-plane.json` + PREVIEW/DISPATCH |
+| **holdout** | ~~future formal plane~~ → **graduated** by `2026-07-31-readme-pnpm-dispatch.md` (Mode S OK) |
 | **regression** | project-branch default; confirm-before-DISPATCH; no silent detached exclusive |
 
-Leakage: do not re-tune prompts using holdout formal-dispatch outcomes until one exists.
+Leakage: formal Mode S success is documented; do not train on acceptor-tag fake VERIFIED as success.
 
 ## 6. Candidate changes (status)
 

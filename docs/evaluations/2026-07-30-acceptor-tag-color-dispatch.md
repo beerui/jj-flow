@@ -1,10 +1,14 @@
 # Episode evaluation — formal dispatch `DEL-acceptor-tag-color-20260730`
 
-> Status: evaluation closed for protocol candidate C3 (**promoted** as agent-path hard gates; no user CLI)
+> Status: evaluation closed for protocol candidate C3 (**promoted**); plane remains **integrity FAIL** (historical negative)
 >
 > Skill: `jj-evaluated`
 >
-> Scope: latest live multi-project dispatch under `D:/a/dispatch-control`
+> Scope: first live multi-project dispatch under `D:/a/dispatch-control`（业务可闭环，证据链不绿）
+>
+> 2026-07-31：`plane-self-check` 仍 **FAIL 12**（合成 session + VERIFIED 无 produced_commit）。  
+> **成功对照样本**已换成 `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`（Mode S 真闭环）。  
+> 勿回写本 plane 伪装历史；用 reopen/回退规划（exec plan rollback）另线处理。
 >
 > Non-goals: do not rewrite the control-plane snapshot; do not re-open business commits.
 

@@ -11,6 +11,11 @@
 > Spec SSOT：`.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`
 >
 > 边界：Phase 2a skill MVP（Mode S + agent artifacts）；不关闭 Host Wave 2；不要求用户 CLI
+>
+> **2026-07-31 进度：** Phase 2a **live 验收已通过**
+> `DEL-readme-pnpm-install-20260731`（plane-self-check OK，四 intent 共享真 session）。
+> 评估：`docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`。
+> 仍 open：Mode W/P、Host Wave 2、业务仓 remote push/land（可选）。
 
 ## 目标
 
@@ -34,7 +39,8 @@ Make Grok `/jj-dispatch` **repeatable** without forcing multi-session or user CL
 - [x] `agents/openai.yaml` Mode S prompt
 - [x] `docs/commands/jj-dispatch.md` wording
 - [x] `plane-self-check.mjs` (synthetic session / VERIFIED without commit)
-- [ ] Live Grok delivery: PREFLIGHT source commit + real session + receipt + VERIFIED green on self-check
+- [x] Live Grok delivery: PREFLIGHT source commit + real session + receipt + VERIFIED green on self-check  
+      (`DEL-readme-pnpm-install-20260731` / session `019fb5b3-…` / self-check OK @ 2026-07-31)
 - [x] Thin indexes under portfolio `knowledge/` and `dispatch-control/docs` point at jj-flow SSOT
 
 ### Phase 2b Mode W

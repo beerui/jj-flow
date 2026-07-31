@@ -138,3 +138,28 @@ scheduler implemented targets in the same session.
 **C3 promoted (agent-path, no user CLI):** jj-dispatch skill hard gates +
 `scripts/plane-self-check.mjs` — same-session OK with real session id; no synthetic
 `session-*-YYYYMMDD`; no VERIFIED without git `produced_commit`.
+
+## 2026-07-31 Mode S closed loop (readme-pnpm)
+
+| Field | Value |
+| --- | --- |
+| delivery_id | `DEL-readme-pnpm-install-20260731` |
+| task_id | `TASK-DEL-readme-pnpm-install-20260731` |
+| control-plane | `D:/a/dispatch-control/.../control-plane.json` hash `690410c60e45` |
+| plane-self-check | **OK** |
+| session | `019fb5b3-b1f4-78b3-b79d-ffd601f91e55` (shared Mode S) |
+| lead / 承接 | `D:/a/cj-web` @ `1ec732bd6` ralph COMPLETED |
+| target / 兑接 | `D:/a/dj-web` @ `9093b961d` |
+| target / 承载用户端 | `D:/a/cz-broker-web` @ `f7fbe8818` |
+| evaluation | `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md` |
+
+Portfolio under same control_root:
+
+| delivery | business | integrity |
+| --- | --- | --- |
+| readme-pnpm-20260731 | VERIFIED | self-check **OK** |
+| acceptor-tag-20260730 | VERIFIED label / git landed | self-check **FAIL** (regression negative) |
+
+Remote push for readme-pnpm still open (feature branches ahead 1). Harness-manifest:
+no required change for this closeout; optional evolutions C4–C6 **archived** in
+`docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md` (blocked until upgrade window).

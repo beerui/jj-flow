@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+- 规划：Dispatch / Ralph **任务回退**下一阶段 exec plan（`docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md`）— 控制面 reopen/rework、Ralph phase/gate 回退、可选 git prep；无默认自动 unmerge。
+- 评估：`DEL-readme-pnpm-install-20260731` Mode S **控制面闭环**（plane-self-check OK）；`docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`；Mode S exec plan live checkbox 勾选；acceptor-tag 保留 integrity FAIL 负例。
+- 存档：**Dispatch/Mode S 升级 backlog** `docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md`（状态 blocked，留待升级；队列 C4→C6，默认下一刀 Review attestation 文件化）。
+
 ## 0.1.1-beta.38 — 2026-07-30 19:30
 
 - **Grok dispatch Mode S（skill MVP）**：默认单会话串行 + project-branch；缺多 session API 时降级 Mode S，禁止合成 session id；用户不跑 CLI。
