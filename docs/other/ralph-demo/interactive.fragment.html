@@ -157,7 +157,7 @@
       cmd: "（验收通过后默认归档）\n交接到 兑接 承载",
       facts: [
         "产物：archive 目录 + business-map.json",
-        "归档后再改 → 新开 RALPH-…（见续作）",
+        "归档后再改 → 同 RALPH resume（见续作）；新 run 仅真新需求",
         "提交 / 合分支另走 end 或你自己 git"
       ],
       active: { p4: true, map: true },
@@ -168,12 +168,12 @@
     },
     {
       title: "回退只能相邻阶段",
-      one: "验收→改代码→计划→分析，一步一步退；归档不能退。",
-      body: "说「验收不算，退回改」会退到相邻阶段。已经归档的不能 reopen 旧目录；要再做就新开任务。",
+      one: "验收→改代码→计划→分析，一步一步退；归档后可退回验收。",
+      body: "说「验收不算，退回改」会退到相邻阶段。归档是 soft 快照，不是墓碑：可 resume 同 run，或 rollback-phase ARCHIVE→ACCEPT 再改。",
       cmd: "$jj-ralph 验收不算，退回 DELIVER：…\n$jj-ralph 先暂停 RALPH-xxx",
       facts: [
         "相邻边：不能从验收一次跳回分析",
-        "暂停 / 阻塞：状态标记，进度里留痕",
+        "ARCHIVE→ACCEPT 合法；COMPLETED 可 resume",
         "不会默认 git revert"
       ],
       active: { p2: true, p3: true },
@@ -184,14 +184,14 @@
       blocked: { p3: true }
     },
     {
-      title: "归档后还要改：新任务 + progress 写关系",
-      one: "纠正写 supersedes_run_id；加功能写 parent_run_id。",
-      body: "旧任务保持归档。新开 RALPH-…，在 progress.md 写清和旧任务的关系。纯加功能别写成 supersedes（那表示旧版作废）。",
-      cmd: "$jj-ralph 纠正 RALPH-旧编号：…\n$jj-ralph 子需求续 RALPH-旧编号：…",
+      title: "归档后还要改：同 run resume",
+      one: "优先 resume 同一 RALPH-…；一半不做用 abandon。",
+      body: "无终态冻结：归档/COMPLETED 后仍用同一 run_id 续作（可 re-archive）。新 RALPH 仅真新需求；可选 progress 链。做一半不要了 → abandon（可再 resume）。",
+      cmd: "$jj-ralph 继续 RALPH-旧编号：…\n$jj-ralph 不做了 RALPH-xxx：原因…",
       facts: [
-        "写在 progress.md，不要 invent 进 run.json",
-        "还没归档：同一 RALPH-… 里继续改 / 加",
-        "详情见本页「做完了还要改」"
+        "同 run resume / rollback，不要默认新 init",
+        "ABANDONED 禁 map-merge；可救回",
+        "详情见命令页「做完了还要改」"
       ],
       active: { run: true, chain: true, ledger: true },
       done: { p4: true, map: true },

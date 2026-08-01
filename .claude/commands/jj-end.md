@@ -18,6 +18,8 @@ User: $ARGUMENTS
 
 Run the **full** jj-end closeout (do not stop after commit-only). Authoritative procedure: skill `jj-end` under the package/repo SSOT (`.codex/skills/jj-end/SKILL.md`). This file is a thin Claude entry only.
 
+**Boundary:** end is **Git only** — does not write ralph `run.json` / does not set COMPLETED / does not kill the task. Soft-archive resume and abandon stay under `/jj-ralph`.
+
 Mandatory order:
 
 1. `git fetch` and resolve `work_branch` + `integration` (`dev` → `develop` → `main` unless overridden)

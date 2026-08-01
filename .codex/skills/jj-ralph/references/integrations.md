@@ -20,6 +20,7 @@
 3. same 读当前会话 run/handoff 后迁目标；不重做源分析
 4. 目标实现不在 `.workflow/ralph/` 下写
 5. 源仓若 `intensity=strict`，handoff 的 must / do_not_port / targets 应更完整（便于兑接·承载复用）
+6. **soft COMPLETED 不挡续作**：归档后再改同 run 时，应 **commit + 再 accept/handoff** 刷新 `source_head` / must；handoff ready 仍跟 accept 与 git 稳定，不跟「任务墓碑」
 
 ## jj-dispatch
 

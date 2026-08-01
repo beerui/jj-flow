@@ -264,6 +264,7 @@ git log -1 --oneline <integration>   # 若可解析
 ## Boundaries
 
 - 仅提交 / 中途 checkpoint：不用本 skill
-- ralph 归档/handoff → `$jj-ralph`（本 skill 不写 run）
+- ralph 归档/handoff → `$jj-ralph`（本 skill **不写** run / 不写 `COMPLETED` / **不关死** ralph）
+- **end ≠ 任务关仓**：只做 Git 落地；归档后再改、半途废弃/resume 仍走 `$jj-ralph`（同 run 优先；见 jj-ralph 无终态冻结）
 - 多仓迁移/调度 → `$jj-same` / `$jj-dispatch`
 - 不写业务代码、不改 CI 密钥

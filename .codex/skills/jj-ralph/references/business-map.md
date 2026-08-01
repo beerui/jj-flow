@@ -22,8 +22,9 @@
 ## 写入时机
 
 - ANALYZE：可在 `analyze.md` 记草案；地图节点可选 `active`。
-- ARCHIVE / accept PASS 后：必须把强证据字段合并进 `business-map.json`。
-- 不删除历史 capability；废弃标 `deprecated`。
+- ARCHIVE / accept PASS 后：必须把强证据字段合并进 `business-map.json`（soft archive 可多次 merge 更新 current）。
+- **`status=ABANDONED` 禁止 map-merge**（半途丢弃不是能力源；resume 后再归档才写 map）。
+- 不删除历史 capability；能力废弃标 `deprecated`（与 run 的 `ABANDONED` 不同层）。
 
 ## map-find
 
