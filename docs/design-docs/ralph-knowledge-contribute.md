@@ -2,8 +2,9 @@
 
 > 状态：Proposed
 >
-> 关联：`portfolio-knowledge.md`、`jj-ralph.md`、ADR 0001 外部工具边界  
-> 问题：归档只写本仓 `business-map` + 快照，**不会**更新全局 Portfolio KB；用户希望归档时能**方便**补充全局知识库。
+> 关联：`portfolio-knowledge.md`、`jj-ralph.md`、`ralph-archive-elevation.md`（提升总览）、ADR 0001 外部工具边界  
+> 问题：归档只写本仓 `business-map` + 快照，**不会**更新全局 Portfolio KB；用户希望归档时能**方便**补充全局知识库。  
+> 定位：本文 = **L2 全局候选投喂**；L1 本仓 map 见 `ralph-archive-elevation.md`。
 
 ## 1. 目标
 

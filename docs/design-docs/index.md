@@ -20,6 +20,7 @@
 | [任务分配 UX](task-assignment-ux.html) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.html) | Implemented |
 | [Ralph → 知识库贡献](ralph-knowledge-contribute.html) | Proposed（归档投喂全局 KB） |
+| [Ralph 归档提升](ralph-archive-elevation.html) | Proposed（L1 本仓 map / L2 候选 / L3 人审） |
 | [jj-evaluated](jj-evaluated.html) | Implemented（MVP runner） |
 | [Grok Host Adapter](grok-host-adapter.html) | Proposed（Wave 2） |
 
