@@ -4,7 +4,14 @@
 
 ## Unreleased
 
-- **ralph 归档提升 E1–E3**：`process_lessons` 分桶；finalize 写 `knowledge-contribution.json`；`knowledge-contribute --hook`（cli，fail-open）；env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD`；skill「投喂知识库」
+## 0.1.1-beta.44 — 2026-08-01 14:21
+
+- **ralph 归档提升 E1–E3**：
+  - `process_lessons` 与 durable `lessons` 分桶（默认 STAGNATION 不进主 lessons）
+  - `finalize` 写 `knowledge-contribution.json`（全局 candidate 包，不 auto-promote）
+  - `jj ralph knowledge-contribute [--hook]`；env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD`；fail-open
+  - skill / 用户文档：口语「投喂知识库」；设计稿 `ralph-archive-elevation` / `ralph-knowledge-contribute`
+- **docs(ralph)**：用户口语优先，禁止逼报 `RALPH-` 编号
 
 ## 0.1.1-beta.43 — 2026-08-01 10:55
 
