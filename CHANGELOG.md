@@ -4,13 +4,15 @@
 
 ## Unreleased
 
+## 0.1.1-beta.43 — 2026-08-01 10:55
+
 - **jj-ralph 无终态冻结（同任务持续交付）**：
-  - 归档 = soft 快照 + map（可 re-archive），**不是**墓碑；`COMPLETED` 可 `resume` 同 `run_id`
+  - 归档 = 快照 + map（可再归档），不是任务作废；`COMPLETED` 可 `resume` 同 `run_id`
   - `ABANDONED`：半途丢弃（禁 map-merge），可再 resume；`close` deprecated
   - `rollbackPhase` 含 **ARCHIVE→ACCEPT**；`resume` / `abandon` CLI；合约测试对齐
-  - 文档：`post-complete-continue` / 用户命令 / design / demo；关联 skill：`jj-end` 边界、Claude 薄入口、business-map、integrations
+  - 文档重整：用户命令页 / skill / design / demo；`jj-end` 边界（只 Git）；Claude 薄入口
   - exec-plan：`2026-07-31-dispatch-ralph-rollback` → completed（R3-3 supersede）
-- **说明**：`0.1.1-beta.41` 条目中「归档后新 run / 禁止 reopen COMPLETED」已被本项取代（历史版本记录保留）
+- **说明**：`0.1.1-beta.41` 中「归档后新 run / 禁止 reopen COMPLETED」已被本项取代（历史版本记录保留）
 
 ## 0.1.1-beta.42 — 2026-07-31 21:01
 
