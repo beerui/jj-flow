@@ -1,8 +1,10 @@
 # Ralph 归档时的「提升」怎么做
 
-> 状态：Accepted（E1/E2/E3-cli 已实现；http hook 与 portfolio extract 契约对齐待联调）  
-> 关联：`jj-ralph.md`、`portfolio-knowledge.md`、`ralph-knowledge-contribute.md`  
-> 实现：`buildElevationFromRun`、`process_lessons`、`knowledge-contribution.json`、`invokeKnowledgeContributeHook`、`jj ralph knowledge-contribute --hook`
+> 状态：Accepted
+>
+> 验收证据：`tests/jj-ralph-contract.test.mjs`、`src/ralph.mjs`（buildElevationFromRun / knowledgeContribute）
+>
+> 备注：E1–E3 cli hook 已实现；http hook 与 portfolio extract 契约对齐待联调。详见正文。
 
 ## 1. 结论（产品）
 
