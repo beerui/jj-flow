@@ -22,11 +22,11 @@ allowed-tools:
 ## 执行要点
 
 1. 解析脚本：repo skill → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
-2. **有同需求 run → resume/继续，不要默认 init**；无 run 才 init（并选 intensity）。
+2. **用户口语优先**（「再改 tip」「刚才那个」「先不做了」）；**禁止**要求用户先报 `RALPH-…`。同需求 → resume/继续，勿默认 init。
 3. map-find；单点跟 tiny-example。
-4. 聊天不推进检查点；更新 run.json 与阶段文档。
+4. 聊天不推进检查点；更新 run.json 与阶段文档。报告里可写 run_id 供核对。
 5. 同操作失败最多 2 次后换策略。
-6. accept PASS 后 `finalize`（归档快照 + map）；之后仍可同 run 再改。
+6. accept PASS 后 `finalize`；之后仍可同 run 再改。
 7. 一半不做：`abandon`；再做：`resume`。
 8. 未要求 commit/push/review/handoff/dispatch 不做。
 9. 交接：「交接到…」→ `/jj-same`。Git 收工 → `/jj-end`（只 Git）。

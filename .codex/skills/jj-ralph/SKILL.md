@@ -9,9 +9,15 @@ description: "单仓需求闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE；�
 
 **续作：** 同一需求用同一 `run_id`。归档 = 快照 + map，不是作废；再改用 `resume`。半途不做 → `abandon`（可再 resume）。新 run **仅**真新需求。`$jj-end` 只 Git。
 
+**用户不会用编号开头。** 真实说法是「tip 再挪一点」「刚才那个再改」「这个先不做了」。`RALPH-…` 由你解析/写入报告，**禁止**要求用户先背 run_id。
+
 ## 立即动作
 
-1. **定位 run：** 有同需求 run（任意状态）→ `resume` / 继续，**禁止默认 init**。无 run 才 `init`（并选 intensity，见下）。  
+1. **定位 run（口语优先）：**  
+   - 用户点了 `RALPH-…` → 用该 id（少见）  
+   - 否则：当前会话关联 / 最近 `updated_at` / title·goal·scope 语义匹配（含 COMPLETED/ABANDONED）  
+   - **同需求 → `resume`/继续，禁止默认 init**；无匹配才 `init`  
+   - 多个候选且无法安全推断 → 用一句话列出候选 title（可附 run_id）让用户点，而不是让用户默写编号  
    命名与 map：`jj doctor` / `JJ_GLOBAL_CONFIG_DIR` 或 `DAJI_CONFIG_DIR` → `naming.json` + project map；缺失 hard-stop，**禁止**编造本机路径。
 2. **intensity**（用户口语优先）：单点/`tiny` → `tiny`；鉴权·协议/`strict`/要审查再归档 → `strict`；否则 `standard`。
 3. `map-find`；单点先读 [tiny-example.md](references/tiny-example.md)。
@@ -78,13 +84,15 @@ node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x
 - 交接：`ready` +「交接到 …」  
 - 阻塞原因（含 STAGNATION / MAX_ITERATIONS）
 
-## 示例
+## 示例（用户侧口语；agent 自己解析 run）
 
 ```text
 $jj-ralph 先改承接：登录后密码过期提示
-$jj-ralph tiny：兑接 tip 4px→6px
-$jj-ralph 继续 RALPH-login-reminder-20260722：改文案
-$jj-ralph 不做了 RALPH-xxx：需求取消
+$jj-ralph tiny：tip bottom 4px→6px
+$jj-ralph tip 应是 6px 不是 8px
+$jj-ralph close 也跟着下移
+$jj-ralph 这个先不做了，产品砍了
+$jj-ralph 登录提醒还要，文案改一下
 $jj-ralph 交接到 兑接 承载
 ```
 
