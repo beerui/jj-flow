@@ -24,6 +24,7 @@
 | **控制项目** | 调度状态仓（不是业务实现） | 里面是 `DEL-…`，不是 `RALPH-…` |
 | **ralph 任务** | 本仓一次需求的账本 id | `RALPH-login-reminder-20260722` |
 | **能力 CAP** | 能力地图条目 | `CAP-login-reminder` |
+| **delivery / DEL-** | 多仓调度一次派发（dispatch） | `DEL-password`（不是 RALPH 编号） |
 | **交接** | 做完后迁到兑接/承载 | 人话：`交接到 兑接 承载` |
 
 **一句话：** 只改当前业务仓 → **ralph**；迁仓 → **same**；多仓派工 → **dispatch**；Git 收工 → **end**。
@@ -64,7 +65,7 @@ $jj-ralph
 
 可交互演示：[ralph 内部机制动画](milestones/ralph-demo.html)
 
-## 强度档
+## 强度档（intensity）
 
 用口语点名即可，未说 = **standard**。
 
