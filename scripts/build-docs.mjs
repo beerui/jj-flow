@@ -93,6 +93,7 @@ const DEEP_PAGES = [
   { title: '任务分配与反馈设计', source: 'docs/design-docs/task-assignment-ux.md', output: 'design-docs/task-assignment-ux.html', group: '设计文档' },
   { title: 'jj-ralph 设计', source: 'docs/design-docs/jj-ralph.md', output: 'design-docs/jj-ralph.html', group: '设计文档' },
   { title: 'Portfolio Knowledge', source: 'docs/design-docs/portfolio-knowledge.md', output: 'design-docs/portfolio-knowledge.html', group: '设计文档' },
+  { title: 'Ralph 知识库贡献', source: 'docs/design-docs/ralph-knowledge-contribute.md', output: 'design-docs/ralph-knowledge-contribute.html', group: '设计文档' },
   { title: 'jj-evaluated 设计', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html', group: '设计文档' },
   { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html', group: '设计文档' },
   { title: 'Grok Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html', group: '执行计划' },
