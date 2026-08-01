@@ -4,8 +4,6 @@
 
 ## Unreleased
 
-- **信息保护 / 示例脱敏**：文档、skill、评测与样例中的业务项目角色统一改为 **项目A / 项目B / 项目C**（及项目D/E），路径改为 `/portfolio/*` 或 `/path/to/*`；去掉真实仓名、本机绝对路径与开发者缩写示例。
-
 ## 0.1.1-beta.45 — 2026-08-01
 
 - **npm 包迁移到 `@brewer/jj-flow`**（原 `@shendu-sdt/jj-flow` 弃用，安装请改用新 scope）
@@ -13,6 +11,7 @@
   - 文档与 CLI help 示例：`npx @brewer/jj-flow@beta …`
   - `ralph_ops` 解析优先 `@brewer/jj-flow`，兼容旧 `node_modules/@shendu-sdt/jj-flow`
   - 旧包 deprecate 命令见发布后说明（`npm deprecate @shendu-sdt/jj-flow`）
+- **信息保护 / 示例脱敏**：文档、skill、评测与样例中的业务项目角色统一改为 **项目A / 项目B / 项目C**（及项目D/E），路径改为 `/portfolio/*` 或 `/path/to/*`；去掉真实仓名、本机绝对路径与开发者缩写示例
 
 ## 0.1.1-beta.44 — 2026-08-01 14:21
 
