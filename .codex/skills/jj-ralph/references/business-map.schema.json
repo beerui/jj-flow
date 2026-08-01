@@ -63,7 +63,14 @@
           "lessons": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "Durable product/engineering lessons (archive elevation L1 main bucket)"
+          },
+          "process_lessons": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": [],
+            "description": "Process pheromone (STAGNATION/budget/intensity); weak retrieval, not global-KB default"
           },
           "handoff_refs": {
             "type": "array",

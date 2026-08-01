@@ -39,6 +39,7 @@ import {
   setRunStatus,
   resumeRun,
   abandonRun,
+  knowledgeContribute,
   suggestReopenAsNew,
   loadRun
 } from '../src/ralph.mjs';
@@ -1188,7 +1189,7 @@ test('recordReview PASS sets accept_layers.judgment for strict accept path', () 
   }
 });
 
-test('map-merge derives STAGNATION/strict lessons into capability', () => {
+test('map-merge puts STAGNATION/strict into process_lessons by default', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-auto-lessons-'));
   try {
     const runId = 'RALPH-auto-lessons-20260731';
@@ -1215,10 +1216,62 @@ test('map-merge derives STAGNATION/strict lessons into capability', () => {
     run.gates.deliver = 'PASS';
     saveRun(run, cwd);
     const merged = mapMergeFromRun(runId, { force: true, modules: ['src/login.js'] }, cwd);
-    assert.ok(merged.capability.lessons.some((l) => /STAGNATION/.test(l)));
-    assert.ok(merged.capability.lessons.some((l) => /intensity=strict/.test(l)));
+    assert.ok(!(merged.capability.lessons || []).some((l) => /STAGNATION/.test(l)));
+    assert.ok(merged.capability.process_lessons.some((l) => /STAGNATION/.test(l)));
+    assert.ok(merged.capability.process_lessons.some((l) => /intensity=strict/.test(l)));
     const found = mapFind('STAGNATION', { cwd, limit: 5 });
     assert.ok(found.matches.some((m) => m.id === 'CAP-lessons'));
+
+    const withLegacy = mapMergeFromRun(runId, {
+      force: true,
+      modules: ['src/login.js'],
+      include_process_lessons_in_map: true
+    }, cwd);
+    assert.ok(withLegacy.capability.lessons.some((l) => /STAGNATION/.test(l)));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('finalize writes knowledge-contribution with durable lessons only by default', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-contrib-'));
+  try {
+    const runId = 'RALPH-contrib-20260801';
+    initRun({
+      run_id: runId,
+      title: 'tip down',
+      goal: 'move tip 6px',
+      capability_ids: ['CAP-tip'],
+      attach_knowledge: false,
+      intensity: 'tiny'
+    }, cwd);
+    const run = loadRun(runId, cwd);
+    run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
+    run.phase = 'ACCEPT';
+    saveRun(run, cwd);
+    const result = finalizeRun(runId, {
+      cwd,
+      modules: ['src/tip.vue'],
+      lessons: ['tip bottom uses 6px not 8px'],
+      force: true
+    });
+    assert.ok(result.capability.id === 'CAP-tip');
+    assert.ok(result.contribution_path);
+    assert.equal(result.elevation.durable_lessons.length, 1);
+    assert.ok(result.capability.lessons.includes('tip bottom uses 6px not 8px'));
+    const contribAbs = path.join(cwd, result.contribution_path);
+    assert.ok(fs.existsSync(contribAbs));
+    const contrib = JSON.parse(fs.readFileSync(contribAbs, 'utf8'));
+    assert.equal(contrib.schema_version, 'jj-flow/ralph-knowledge-contribution/0.1');
+    assert.ok(contrib.candidates.some((c) => c.type === 'capability'));
+    assert.ok(contrib.candidates.some((c) => c.type === 'lesson' && /6px/.test(c.summary)));
+    assert.equal(contrib.policy.auto_promote, false);
+    // process lessons should not appear as lesson candidates
+    assert.ok(!contrib.candidates.some((c) => /STAGNATION/.test(c.summary || '')));
+
+    const again = knowledgeContribute(runId, { cwd, lessons: ['tip bottom uses 6px not 8px'], modules: ['src/tip.vue'] });
+    assert.ok(again.path);
+    assert.equal(again.hook.status, 'skipped');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

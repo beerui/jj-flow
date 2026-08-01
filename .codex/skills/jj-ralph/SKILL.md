@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "单仓需求闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE；产物 .workflow/ralph/RALPH-*/ + business-map；handoff 在 run.handoff。同需求始终优先同一 run_id（归档后 resume、半途 abandon 可救回）。跨仓用 jj-same；调度用 jj-dispatch。机械步骤 ralph_ops.mjs。"
+description: "单个需求任务闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE；产物 .workflow/ralph/RALPH-*/ + business-map；handoff 在 run.handoff。同需求始终优先同一 run_id（归档后 resume、半途 abandon 可救回）。跨仓用 jj-same；调度用 jj-dispatch。机械步骤 ralph_ops.mjs。"
 ---
 
 # jj-ralph
@@ -24,8 +24,8 @@ description: "单仓需求闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE；�
 4. 阶段 [phases.md](references/phases.md)：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。优先 `gate`。  
    - DELIVER 每次 verify 后：`deliver-attempt`  
    - **strict** accept 前：`accept-layer --layer judgment --status PASS --mode review|recheck`
-5. accept PASS 后默认 `finalize`（map-merge + 归档快照；之后仍可同 run 再改、再归档）。
-6. 完成报告（中文、短）。
+5. accept PASS 后默认 `finalize`（L1 map-merge + 归档 + 写 `knowledge-contribution.json`；之后仍可同 run 再改、再归档）。过程性 STAGNATION 进 `process_lessons`，不进主 lessons；显式 `--lessons` 才是 durable。
+6. 完成报告（中文、短）：本仓 CAP id、贡献包路径；用户说「投喂知识库」→ `knowledge-contribute`（钩子 Wave 后续）。
 
 ## 交接
 
@@ -43,7 +43,8 @@ node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [
 node <resolved>/ralph_ops.mjs deliver-attempt --run-id RALPH-x --improved true|false
 node <resolved>/ralph_ops.mjs accept-layer --run-id RALPH-x --layer judgment --status PASS --mode review
 node <resolved>/ralph_ops.mjs gate --run-id RALPH-x --gate accept --status PASS
-node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x --modules src/a.js --keywords a,b
+node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x --modules src/a.js --keywords a,b --lessons "durable rule"
+node <resolved>/ralph_ops.mjs knowledge-contribute --run-id RALPH-x [--hook]
 node <resolved>/ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"

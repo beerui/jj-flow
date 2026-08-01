@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -72,8 +72,9 @@ Commands:
   init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--cwd DIR]
   status [--run-id RALPH-x] [--cwd DIR]
   archive --run-id RALPH-x [--slug name] [--cwd DIR]
-  finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
-  map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--cwd DIR]
+  finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
+  map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--cwd DIR]
+  knowledge-contribute --run-id RALPH-x [--modules p1,p2] [--lessons "l1|l2"] [--hook] [--cwd DIR]
   gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
   deliver-attempt --run-id RALPH-x [--improved true|false|auto] [--signal text] [--cwd DIR]
                  (omit --improved or use auto: compare workspace fingerprint)
@@ -190,6 +191,7 @@ async function main() {
     setRunStatus,
     resumeRun,
     abandonRun,
+    knowledgeContribute,
     recordDeliverAttempt,
     setAcceptLayer,
     RALPH_MAP_REL,
@@ -258,6 +260,7 @@ async function main() {
           acceptance: splitList(args.acceptance),
           status: args.status || 'done',
           force: Boolean(args.force),
+          include_process_lessons_in_map: Boolean(args['include-process-lessons']),
         },
         cwd
       );
@@ -267,6 +270,35 @@ async function main() {
         run_id: runId,
         capability_id: result.capability.id,
         map_path: (RALPH_MAP_REL || '.workflow/ralph/business-map.json').replaceAll('\\', '/'),
+        process_lessons: result.capability.process_lessons || [],
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'knowledge-contribute') {
+      const runId = args['run-id'];
+      if (!runId) die('knowledge-contribute needs --run-id');
+      if (typeof knowledgeContribute !== 'function') {
+        die('resolved ralph.mjs has no knowledgeContribute; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = knowledgeContribute(runId, {
+        cwd,
+        modules: splitList(args.modules),
+        keywords: splitList(args.keywords),
+        lessons: splitPipe(args.lessons),
+        acceptance: splitList(args.acceptance),
+        status: args.status || 'done',
+        include_process_lessons_in_map: Boolean(args['include-process-lessons']),
+        hook: Boolean(args.hook),
+      });
+      printJson({
+        ok: true,
+        action: 'knowledge-contribute',
+        run_id: runId,
+        path: result.path,
+        candidates: result.contribution?.candidates?.length || 0,
+        hook: result.hook,
         resolved,
       });
       return;
@@ -287,6 +319,8 @@ async function main() {
         acceptance: splitList(args.acceptance),
         status: args.status || 'done',
         force: Boolean(args.force),
+        include_process_lessons_in_map: Boolean(args['include-process-lessons']),
+        contribution_package: args['no-contribution-package'] ? false : true,
       });
       printJson({
         ok: true,
@@ -295,6 +329,8 @@ async function main() {
         archive_path: result.archive_path,
         capability_id: result.capability?.id,
         map_path: result.map_path,
+        contribution_path: result.contribution_path || null,
+        elevation: result.elevation || null,
         phase: result.run?.phase,
         status: result.run?.status,
         resolved,

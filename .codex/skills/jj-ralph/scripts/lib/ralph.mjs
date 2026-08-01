@@ -7,6 +7,7 @@ import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown } from './portfolioKno
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
+export const RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA = 'jj-flow/ralph-knowledge-contribution/0.1';
 export const RALPH_REVIEW_SCHEMA_VERSION = 'jj-flow/ralph-review/1.0';
 export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
 // Runs live directly under .workflow/ralph/RALPH-*/. Reserved siblings: business-map.json, archive/
@@ -560,28 +561,68 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
   return { run: latest, archive_path: archivePathNorm, manifest };
 }
 
-/** map-merge then archive; default accept-PASS closeout. */
-export function finalizeRun(runId, { cwd = process.cwd(), slug, modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', force = false, diff_paths = null } = {}) {
+/**
+ * map-merge + archive + elevation package (L1 map, L2 contribution).
+ * @param {object} [options]
+ * @param {boolean} [options.contribution_package=true] write knowledge-contribution.json
+ * @param {boolean} [options.include_process_lessons_in_map=false] put process lessons into main lessons[]
+ */
+export function finalizeRun(runId, {
+  cwd = process.cwd(),
+  slug,
+  modules = [],
+  lessons = [],
+  keywords = [],
+  acceptance = [],
+  status = 'done',
+  force = false,
+  diff_paths = null,
+  contribution_package = true,
+  include_process_lessons_in_map = false
+} = {}) {
   const runBefore = loadRun(runId, cwd);
   if (shouldMaintainHandoff(runBefore)) {
     applyHandoffState(runBefore, { cwd, write_file: true });
     saveRun(runBefore, cwd);
   }
-  const merged = mapMergeFromRun(runId, { modules, lessons, keywords, acceptance, status, force }, cwd);
+  const elevOpts = { modules, lessons, keywords, acceptance, status, force, include_process_lessons_in_map };
+  const merged = mapMergeFromRun(runId, elevOpts, cwd);
   const archived = archiveRun(runId, { cwd, slug, force, diff_paths });
+  let contribution = null;
+  let contribution_path = null;
+  if (contribution_package !== false) {
+    const written = writeKnowledgeContribution(runId, {
+      cwd,
+      modules,
+      lessons,
+      keywords,
+      acceptance,
+      status,
+      include_process_lessons_in_map,
+      capability: merged.capability
+    });
+    contribution = written.contribution;
+    contribution_path = written.path;
+  }
   return {
     run: archived.run,
     archive_path: archived.archive_path,
     manifest: archived.manifest,
     capability: merged.capability,
     map_path: RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
-    handoff: archived.run.handoff || null
+    handoff: archived.run.handoff || null,
+    contribution,
+    contribution_path,
+    elevation: {
+      durable_lessons: merged.elevation?.durable_lessons || [],
+      process_lessons: merged.elevation?.process_lessons || []
+    }
   };
 }
 
 /**
- * Weak "pheromone" lessons from run ledger (stagnation / budget / intensity).
- * Merged into business-map on map-merge so map-find can surface past pain.
+ * Weak process "pheromone" lessons (stagnation / budget / intensity).
+ * Default: stored in process_lessons, not durable lessons (archive elevation design).
  */
 export function deriveAutoLessonsFromRun(run, cwd = process.cwd()) {
   if (!run || typeof run !== 'object') return [];
@@ -612,21 +653,48 @@ export function deriveAutoLessonsFromRun(run, cwd = process.cwd()) {
   return unique(out);
 }
 
-export function capabilityFromRun(run, { modules = [], lessons = [], keywords = [], acceptance = [], status = 'done', cwd = process.cwd() } = {}) {
+/**
+ * Build L1 capability + lesson buckets for map elevation / L2 contribution.
+ * @param {object} options
+ * @param {boolean} [options.include_process_lessons_in_map=false]
+ */
+export function buildElevationFromRun(run, {
+  modules = [],
+  lessons = [],
+  keywords = [],
+  acceptance = [],
+  status = 'done',
+  cwd = process.cwd(),
+  include_process_lessons_in_map = false
+} = {}) {
   const id = run.capability_ids?.[0] || ('CAP-' + run.run_id.replace(/^RALPH-/, '').toLowerCase());
   const defaultAcceptance = path.join(RALPHS_DIR_REL, run.run_id, 'acceptance.md').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
-  const autoLessons = deriveAutoLessonsFromRun(run, cwd);
-  return {
+  const processLessons = deriveAutoLessonsFromRun(run, cwd);
+  const durableLessons = unique([...(lessons || [])]);
+  const mainLessons = include_process_lessons_in_map
+    ? unique([...durableLessons, ...processLessons])
+    : durableLessons;
+  const capability = {
     id,
     title: run.title,
     status,
     summary: run.goal,
-    modules,
-    lessons: unique([...(lessons || []), ...autoLessons]),
+    modules: unique(modules || []),
+    lessons: mainLessons,
+    process_lessons: processLessons,
     keywords: unique([...(keywords || []), ...tokenize(run.title), ...tokenize(run.goal)]),
     acceptance: unique([...(acceptance || []), defaultAcceptance]),
     run_refs: [run.run_id]
   };
+  return {
+    capability,
+    durable_lessons: durableLessons,
+    process_lessons: processLessons
+  };
+}
+
+export function capabilityFromRun(run, options = {}) {
+  return buildElevationFromRun(run, options).capability;
 }
 
 export function mergeCapabilityIntoMap(map, capability) {
@@ -640,6 +708,7 @@ export function mergeCapabilityIntoMap(map, capability) {
       ...capability,
       modules: unique([...(existing.modules || []), ...(capability.modules || [])]),
       lessons: unique([...(existing.lessons || []), ...(capability.lessons || [])]),
+      process_lessons: unique([...(existing.process_lessons || []), ...(capability.process_lessons || [])]).slice(-20),
       keywords: unique([...(existing.keywords || []), ...(capability.keywords || [])]),
       acceptance: unique([...(existing.acceptance || []), ...(capability.acceptance || [])]),
       run_refs: unique([...(existing.run_refs || []), ...(capability.run_refs || [])])
@@ -649,7 +718,20 @@ export function mergeCapabilityIntoMap(map, capability) {
 }
 
 function normalizeCapability(capability) {
-  return { id: capability.id, title: capability.title, status: capability.status, summary: capability.summary || '', modules: unique(capability.modules || []), lessons: unique(capability.lessons || []), keywords: unique(capability.keywords || []), acceptance: unique(capability.acceptance || []), run_refs: unique(capability.run_refs || []) };
+  const out = {
+    id: capability.id,
+    title: capability.title,
+    status: capability.status,
+    summary: capability.summary || '',
+    modules: unique(capability.modules || []),
+    lessons: unique(capability.lessons || []),
+    keywords: unique(capability.keywords || []),
+    acceptance: unique(capability.acceptance || []),
+    run_refs: unique(capability.run_refs || [])
+  };
+  const processLessons = unique(capability.process_lessons || []);
+  if (processLessons.length) out.process_lessons = processLessons;
+  return out;
 }
 
 export function mapMergeFromRun(runId, options = {}, cwd = process.cwd()) {
@@ -661,10 +743,171 @@ export function mapMergeFromRun(runId, options = {}, cwd = process.cwd()) {
     throw new Error('map-merge requires gates.accept=PASS (pass force:true or --force to override)');
   }
   const map = loadMap(cwd);
-  const capability = capabilityFromRun(run, { ...options, cwd });
-  const next = mergeCapabilityIntoMap(map, capability);
+  const elevation = buildElevationFromRun(run, { ...options, cwd });
+  const next = mergeCapabilityIntoMap(map, elevation.capability);
   saveMap(next, cwd);
-  return { map: next, capability };
+  return { map: next, capability: elevation.capability, elevation };
+}
+
+/**
+ * Build L2 knowledge-contribution package (does not promote KB active).
+ */
+export function buildKnowledgeContribution(run, {
+  cwd = process.cwd(),
+  modules = [],
+  lessons = [],
+  keywords = [],
+  acceptance = [],
+  status = 'done',
+  include_process_lessons_in_map = false,
+  capability = null
+} = {}) {
+  if (!run || typeof run !== 'object') throw new Error('run required');
+  if (run.status === 'ABANDONED') {
+    throw new Error('knowledge contribution forbidden for ABANDONED runs; resume first if work continues');
+  }
+  const elevation = capability
+    ? {
+        capability,
+        durable_lessons: unique(lessons || capability.lessons || []),
+        process_lessons: unique(capability.process_lessons || [])
+      }
+    : buildElevationFromRun(run, {
+        modules,
+        lessons,
+        keywords,
+        acceptance,
+        status,
+        cwd,
+        include_process_lessons_in_map
+      });
+  const cap = elevation.capability;
+  const git = readGitSourceFacts(cwd);
+  const candidates = [];
+  candidates.push({
+    type: 'capability',
+    title: cap.title,
+    summary: cap.summary || run.goal || '',
+    keywords: cap.keywords || [],
+    body_ref: (cap.acceptance && cap.acceptance[0]) || null,
+    confidence: run.gates?.accept === 'PASS' ? 0.75 : 0.4,
+    durable: true,
+    provenance: {
+      run_id: run.run_id,
+      files: unique(cap.modules || []),
+      source_kind: 'ralph_archive'
+    }
+  });
+  for (const lesson of elevation.durable_lessons || []) {
+    candidates.push({
+      type: 'lesson',
+      title: lesson.slice(0, 80),
+      summary: lesson,
+      keywords: tokenize(lesson).slice(0, 8),
+      body_ref: null,
+      confidence: 0.7,
+      durable: true,
+      provenance: {
+        run_id: run.run_id,
+        files: [],
+        source_kind: 'ralph_archive'
+      }
+    });
+  }
+  return {
+    schema_version: RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA,
+    run_id: run.run_id,
+    created_at: nowIso(),
+    source: {
+      repo_root: cwd.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+      project_key: run.project_key || null,
+      git_head: git.head || null,
+      branch: git.ref || null,
+      archive_path: run.last_archive_path || null,
+      last_archived_at: run.last_archived_at || null
+    },
+    intent: {
+      title: run.title,
+      goal: run.goal,
+      scope_in: run.scope?.in || [],
+      scope_out: run.scope?.out || []
+    },
+    capability_hint: {
+      id: cap.id,
+      title: cap.title,
+      modules: cap.modules || [],
+      keywords: cap.keywords || [],
+      acceptance_paths: cap.acceptance || []
+    },
+    candidates,
+    existing_knowledge_refs: Array.isArray(run.knowledge_refs) ? [...run.knowledge_refs] : [],
+    policy: {
+      suggest_status: 'candidate',
+      auto_promote: false
+    },
+    elevation: {
+      durable_lessons: elevation.durable_lessons,
+      process_lessons: elevation.process_lessons
+    }
+  };
+}
+
+export function writeKnowledgeContribution(runId, options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const run = loadRun(runId, cwd);
+  if (run.status === 'ABANDONED') {
+    throw new Error('knowledge contribution forbidden for ABANDONED runs');
+  }
+  const contribution = buildKnowledgeContribution(run, { ...options, cwd });
+  const rel = path.join(RALPHS_DIR_REL, runId, 'knowledge-contribution.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const abs = path.join(cwd, RALPHS_DIR_REL, runId, 'knowledge-contribution.json');
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  writeJson(abs, contribution);
+  // Best-effort: copy into latest archive snapshot if present
+  if (run.last_archive_path) {
+    try {
+      const archAbs = path.join(cwd, run.last_archive_path, 'knowledge-contribution.json');
+      if (fs.existsSync(path.dirname(archAbs))) writeJson(archAbs, contribution);
+    } catch {
+      // archive copy optional
+    }
+  }
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + nowIso() + ' knowledge-contribute written path=' + rel
+      + ' candidates=' + (contribution.candidates?.length || 0)
+      + ' durable=' + (contribution.elevation?.durable_lessons?.length || 0)
+  );
+  return { path: rel, contribution, run_id: runId };
+}
+
+/** Re-generate contribution package for a run (post-archive ok). Hook not implemented (fail-open design: package only). */
+export function knowledgeContribute(runId, {
+  cwd = process.cwd(),
+  modules = [],
+  lessons = [],
+  keywords = [],
+  acceptance = [],
+  status = 'done',
+  include_process_lessons_in_map = false,
+  hook = false
+} = {}) {
+  const written = writeKnowledgeContribution(runId, {
+    cwd,
+    modules,
+    lessons,
+    keywords,
+    acceptance,
+    status,
+    include_process_lessons_in_map
+  });
+  return {
+    ...written,
+    hook: hook
+      ? { status: 'skipped', reason: 'extract hook not implemented in this wave (package written; use external kb extract)' }
+      : { status: 'skipped', reason: 'hook not requested' }
+  };
 }
 
 export function tokenize(text = '') {
@@ -675,7 +918,16 @@ export function findInMap(map, query, { limit = 10 } = {}) {
   const tokens = tokenize(query);
   const matches = [];
   for (const cap of map.capabilities || []) {
-    const hay = [cap.id, cap.title, cap.summary, ...(cap.keywords || []), ...(cap.modules || []), ...(cap.lessons || []), ...(cap.run_refs || [])].join(' ').toLowerCase();
+    const hay = [
+      cap.id,
+      cap.title,
+      cap.summary,
+      ...(cap.keywords || []),
+      ...(cap.modules || []),
+      ...(cap.lessons || []),
+      ...(cap.process_lessons || []),
+      ...(cap.run_refs || [])
+    ].join(' ').toLowerCase();
     let score = 0;
     for (const token of tokens) if (hay.includes(token)) score += 1;
     if (!tokens.length && query && hay.includes(String(query).toLowerCase())) score = 1;
@@ -688,7 +940,16 @@ export function findInMap(map, query, { limit = 10 } = {}) {
           discover_paths.push(path.join(RALPHS_DIR_REL, runId, name).split(sep).join('/'));
         }
       }
-      matches.push({ id: cap.id, title: cap.title, score, status: cap.status, run_refs, lessons: cap.lessons || [], discover_paths });
+      matches.push({
+        id: cap.id,
+        title: cap.title,
+        score,
+        status: cap.status,
+        run_refs,
+        lessons: cap.lessons || [],
+        process_lessons: cap.process_lessons || [],
+        discover_paths
+      });
     }
   }
   matches.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));

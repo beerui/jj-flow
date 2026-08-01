@@ -34,6 +34,7 @@ import {
   initRun,
   mapFind,
   mapMergeFromRun,
+  knowledgeContribute,
   renderRalphStatusText,
   recordReview,
   recordHostMeta,
@@ -644,10 +645,17 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       lessons: options.lessons || [],
       acceptance: options.acceptance || [],
       status: options.status || 'done',
-      force: Boolean(options.force)
+      force: Boolean(options.force),
+      include_process_lessons_in_map: Boolean(options.includeProcessLessonsInMap),
+      contribution_package: options.noContributionPackage ? false : true
     });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-    else stdout.write(`finalized ${options.runId} -> ${result.archive_path} (map ${result.capability.id})\n`);
+    else {
+      let line = `finalized ${options.runId} -> ${result.archive_path} (map ${result.capability.id}`;
+      if (result.contribution_path) line += `; knowledge ${result.contribution_path}`;
+      line += ')\n';
+      stdout.write(line);
+    }
     return 0;
   }
 
@@ -659,10 +667,34 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       lessons: options.lessons || [],
       acceptance: options.acceptance || [],
       status: options.status || 'done',
-      force: Boolean(options.force)
+      force: Boolean(options.force),
+      include_process_lessons_in_map: Boolean(options.includeProcessLessonsInMap)
     }, cwd);
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`map-merged ${result.capability.id} from ${options.runId}\n`);
+    return 0;
+  }
+
+  if (command === 'knowledge-contribute') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const result = knowledgeContribute(options.runId, {
+      cwd,
+      modules: options.modules || [],
+      keywords: options.keywords || [],
+      lessons: options.lessons || [],
+      acceptance: options.acceptance || [],
+      status: options.status || 'done',
+      include_process_lessons_in_map: Boolean(options.includeProcessLessonsInMap),
+      hook: Boolean(options.hook)
+    });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      stdout.write(
+        `knowledge-contribute ${options.runId} -> ${result.path}`
+        + ` (candidates=${result.contribution?.candidates?.length || 0}`
+        + `; hook=${result.hook?.status || 'n/a'})\n`
+      );
+    }
     return 0;
   }
 
@@ -972,6 +1004,18 @@ function parseRalphRunArgs(args, { requireRunId = false } = {}) {
       options.force = true;
       continue;
     }
+    if (arg === '--include-process-lessons') {
+      options.includeProcessLessonsInMap = true;
+      continue;
+    }
+    if (arg === '--no-contribution-package') {
+      options.noContributionPackage = true;
+      continue;
+    }
+    if (arg === '--hook') {
+      options.hook = true;
+      continue;
+    }
     throw new Error(`Unknown ralph option: ${arg}`);
   }
   if (requireRunId && !options.runId) throw new Error('requires --run-id');
@@ -1160,7 +1204,7 @@ function parseRalphFindArgs(args) {
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph deliver-attempt --run-id RALPH-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id RALPH-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph deliver-attempt --run-id RALPH-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
   jj ralph host-record --run-id RALPH-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }
