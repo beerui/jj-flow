@@ -19,7 +19,7 @@
 | feature | 回退 README 安装依赖 `pnpm install` → 恢复 `npm install` |
 | host | Grok Build Mode S（同会话调度；回退在后续会话执行） |
 | session_id (original dispatch) | `019fb5b3-b1f4-78b3-b79d-ffd601f91e55` |
-| control_root | `D:/a/dispatch-control` |
+| control_root | `/portfolio/dispatch-control` |
 | control-plane hash @ eval | `2f07acdfb729` (SHA-256 prefix) |
 | plane revision | `4` (VERIFIED) → `6` (reopen) → **`7`** (git revert recorded) |
 | evaluation_date | 2026-07-31 |
@@ -29,13 +29,13 @@
 
 | Role | project_id | path | branch | tip @ eval | note |
 | --- | --- | --- | --- | --- | --- |
-| 承接 lead/owner/origin | `cj-web` | `D:/a/cj-web` | `feat/cj-0731-lyj` | `86dbbdf23` Revert | **not** a dispatch target; source/lead; path B 一并 revert |
-| 兑接 target | `dj-web` | `D:/a/dj-web` | `feat/dj-0731-lyj` | `3ee8d3cc4` Revert | target reopen + git revert |
-| 承载用户端 target | `cz-broker-web` | `D:/a/cz-broker-web` | `feat/cz-0731-lyj` | `6d589864f` Revert | target reopen + git revert |
+| 项目A lead/owner/origin | `project-a` | `/portfolio/project-a` | `feat/pa-0731-dev` | `86dbbdf23` Revert | **not** a dispatch target; source/lead; path B 一并 revert |
+| 项目B target | `project-b` | `/portfolio/project-b` | `feat/pb-0731-dev` | `3ee8d3cc4` Revert | target reopen + git revert |
+| 项目C target | `project-c` | `/portfolio/project-c` | `feat/pc-0731-dev` | `6d589864f` Revert | target reopen + git revert |
 
 Artifact anchors:
 
-- `D:/a/dispatch-control/.workflow/dispatch/DEL-readme-pnpm-install-20260731/control-plane.json` (`2f07acdfb729`)
+- `/portfolio/dispatch-control/.workflow/dispatch/DEL-readme-pnpm-install-20260731/control-plane.json` (`2f07acdfb729`)
 - backup pre-reopen: `control-plane.pre-reopen-2026-07-31T01-48-07-073Z.json`
 - task: `…/tasks/TASK-DEL-readme-pnpm-install-20260731/{progress,result}.md`
 - prior success eval: `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`
@@ -50,9 +50,9 @@ Artifact anchors:
 | evt-reopen-blocked-strict | tool_call | dispatch | evidence_gap | `validateControlPlane` fail：共享 session thread_id + DONE/BOUND 软字段 |
 | evt-reopen-soft | artifact_write | dispatch | reopen | soft `reopenTarget` 等价：rev 4→6；`TARGET_REOPENED`×2 |
 | evt-path-choice | user_request | dispatch | user_correction | 用户选 **B**（控制面已 reopen + feature git revert） |
-| evt-git-revert-dj | commit | sync | task_scoped_revert | `9093b961d` → revert `3ee8d3cc4` |
-| evt-git-revert-cz | commit | sync | task_scoped_revert | `f7fbe8818` → revert `6d589864f` |
-| evt-git-revert-cj | commit | sync | task_scoped_revert | lead `1ec732bd6` → revert `86dbbdf23` |
+| evt-git-revert-pb | commit | sync | task_scoped_revert | `9093b961d` → revert `3ee8d3cc4` |
+| evt-git-revert-pc | commit | sync | task_scoped_revert | `f7fbe8818` → revert `6d589864f` |
+| evt-git-revert-pa | commit | sync | task_scoped_revert | lead `1ec732bd6` → revert `86dbbdf23` |
 | evt-git-event | artifact_write | dispatch | evidence | plane rev 7 `GIT_ROLLBACK_REVERT` |
 | evt-self-check | verification | dispatch | C3 | plane-self-check **OK**（findings=[]） |
 
@@ -75,7 +75,7 @@ Artifact anchors:
 | Layer | Before rollback | After path B | Correctness |
 | --- | --- | --- | --- |
 | Dispatch delivery | `VERIFIED` | **`PREVIEW_ONLY`** | pass |
-| Targets dj/cz | `VERIFIED` attempt 1 | **`PENDING` attempt 2** | pass |
+| Targets pb/pc | `VERIFIED` attempt 1 | **`PENDING` attempt 2** | pass |
 | Approval | APPROVED frozen keys | **PENDING** | pass |
 | Events | empty / soft | `TARGET_REOPENED`×2 + `GIT_ROLLBACK_REVERT` | pass |
 | plane-self-check | OK @ VERIFIED（parent） | **OK** @ PREVIEW_ONLY | pass |

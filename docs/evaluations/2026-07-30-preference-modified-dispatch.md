@@ -23,11 +23,11 @@ Role mapping (export facts only):
 
 | Role | project_path | branch | feature_commit | thread_id |
 | --- | --- | --- | --- | --- |
-| 承接 | `…/chengjie/frontend-web` | `feat/cj-0731-jmb` | `88ee0bebcc…` | `019fb207-2380-75c0-97f4-3de61ae0879e` |
-| 兑接 | `…/duijie/frontend-web` | `feat/dj-0731-jmb` | `3a0ed04710…` | `019fb249-101a-7192-bb55-1afe17b4e5a3` |
-| 承载 | `…/chengjie/broker-web` | `feat/cz-0731-jmb` | `6c6dbf2ef1…` | `019fb24c-8d31-77c3-bf73-35e8fe4d0404` |
+| 项目A | `…/org-a/frontend-web` | `feat/pa-0731-dev` | `88ee0bebcc…` | `019fb207-2380-75c0-97f4-3de61ae0879e` |
+| 项目B | `…/org-b/frontend-web` | `feat/pb-0731-dev` | `3a0ed04710…` | `019fb249-101a-7192-bb55-1afe17b4e5a3` |
+| 项目C | `…/org-a/broker-web` | `feat/pc-0731-dev` | `6c6dbf2ef1…` | `019fb24c-8d31-77c3-bf73-35e8fe4d0404` |
 
-承载 additionally: `dispatch_worktree_path` = `~/.codex/worktrees/08ce/broker-web`；export 时 dispatch tree = detached + dirty；main worktree clean after land.
+项目C additionally: `dispatch_worktree_path` = `~/.codex/worktrees/08ce/broker-web`；export 时 dispatch tree = detached + dirty；main worktree clean after land.
 
 Artifact anchors: `manifest.json`, `normalized-events.jsonl`, `task/dispatch-task.md`, `threads/raw/*`, `repositories/*`.
 
@@ -35,23 +35,23 @@ Artifact anchors: `manifest.json`, `normalized-events.jsonl`, `task/dispatch-tas
 
 | event_id | kind | role | active_s (thread) | labels | notes |
 | --- | --- | --- | ---: | --- | --- |
-| evt-cj-feature-commit | commit | 承接 | — | user_correction | feature + later dev merge |
-| evt-cj-dev-merge | commit | 承接 | — | | |
-| evt-dj-context-thread | handoff_created | 兑接 | — | role_mapping, handoff_reuse | main-repo feature path |
-| evt-cz-dispatch | handoff_created | 承载 | ~352 | handoff_reuse, target_native_adaptation, evidence_gap | **exclusive worktree** implement |
-| evt-cz-transfer | artifact_write | 承载 | ~87 | branch_correction | user: 合到当前分支 |
-| evt-cz-review | review | 承载 | — | validation_wait, ADAPT | APPROVE; static checks |
-| evt-cz-feature-commit | commit | 承载 | — | | Git fact |
-| evt-cz-dev-merge | commit | 承载 | — | evidence_gap | Git fact |
+| evt-project-a-feature-commit | commit | 项目A | — | user_correction | feature + later dev merge |
+| evt-project-a-dev-merge | commit | 项目A | — | | |
+| evt-project-b-context-thread | handoff_created | 项目B | — | role_mapping, handoff_reuse | main-repo feature path |
+| evt-project-c-dispatch | handoff_created | 项目C | ~352 | handoff_reuse, target_native_adaptation, evidence_gap | **exclusive worktree** implement |
+| evt-project-c-transfer | artifact_write | 项目C | ~87 | branch_correction | user: 合到当前分支 |
+| evt-project-c-review | review | 项目C | — | validation_wait, ADAPT | APPROVE; static checks |
+| evt-project-c-feature-commit | commit | 项目C | — | | Git fact |
+| evt-project-c-dev-merge | commit | 项目C | — | evidence_gap | Git fact |
 
-Task body (`task/dispatch-task.md`) instructed **`$jj-same`** onto 承载, branch `feat/cz-0731-jmb`, no push; cwd was still a Codex exclusive worktree.
+Task body (`task/dispatch-task.md`) instructed **`$jj-same`** onto 项目C, branch `feat/pc-0731-dev`, no push; cwd was still a Codex exclusive worktree.
 
 ## 3. Baseline (cautious)
 
 | Metric | Value | clock_quality | provenance |
 | --- | --- | --- | --- |
 | Business outcome | three fronts feature + land on `dev` | exact | git timestamps in manifest |
-| 承载 implement wall (thread) | ~6 min active (352s) on worktree | exact | thread |
+| 项目C implement wall (thread) | ~6 min active (352s) on worktree | exact | thread |
 | Transfer cost | ~87s active | exact | thread |
 | Formal dispatch CAS | **absent** | n/a | evidence_gap |
 | Static verification | focused tests / template / eslint / diff-check claimed | derived | export claims |
@@ -63,11 +63,11 @@ Do not use filesystem mtime as wall span.
 
 | Tag | Evidence | Hypothesis |
 | --- | --- | --- |
-| `branch_correction` | evt-cz-transfer; detached dirty worktree at export | Default exclusive worktree ≠ user mental model of feature branch main checkout |
+| `branch_correction` | evt-project-c-transfer; detached dirty worktree at export | Default exclusive worktree ≠ user mental model of feature branch main checkout |
 | `evidence_gap` | no manifest / task_key / receipt / ANL-PLN-VRF-REV ids | Episode is same-shaped port under dispatch packaging, not full control plane |
-| `target_native_adaptation` | migration_decision ADAPT; old-version paths | Correct same discipline on 承载 |
-| `handoff_reuse` | source commit + task payload; 兑接/承载 consume context | Source analysis not fully rebuilt |
-| `user_correction` | 承接 thread (requirement sequence); 承载 “合到当前分支” | Product/UX friction on workspace |
+| `target_native_adaptation` | migration_decision ADAPT; old-version paths | Correct same discipline on 项目C |
+| `handoff_reuse` | source commit + task payload; 项目B/项目C consume context | Source analysis not fully rebuilt |
+| `user_correction` | 项目A thread (requirement sequence); 项目C “合到当前分支” | Product/UX friction on workspace |
 
 **Dominant failure mode:** workspace isolation default, not wrong product code.
 
@@ -88,7 +88,7 @@ Leakage: formal Mode S success is documented; do not train on acceptor-tag fake 
 ### C1 — Default write `project-branch` (same-style)
 
 - Mechanism: bind developer to named feature branch at `project.path`; exclusive worktree only for concurrent write / dirty main / user opt-in.
-- Expected: eliminate transfer tax; align 承接/兑接/承载 UX.
+- Expected: eliminate transfer tax; align 项目A/项目B/项目C UX.
 - **Promoted:** jj-flow `10da281` (`feat(dispatch): default write workspace to project-branch`); contract tests green.
 
 ### C2 — Confirm branch/workspace when uncertain before DISPATCH

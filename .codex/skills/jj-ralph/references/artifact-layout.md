@@ -1,6 +1,6 @@
 # Ralph 产物布局
 
-**位置：业务仓**（承接 / 兑接 / 承载等），不是控制项目。
+**位置：业务仓**（项目A / 项目B / 项目C等），不是控制项目。
 
 ```text
 .workflow/ralph/RALPH-{kebab-slug}-{YYYYMMDD}/

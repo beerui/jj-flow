@@ -38,14 +38,14 @@ test('C4 path helpers map task_key to attestations file ref', () => {
 test('C4 writeGrokAttestation writes review file and plane-self-check accepts file ref', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-att-'));
   try {
-    const taskKey = 'DEL-c4/cj-web/review/1';
+    const taskKey = 'DEL-c4/project-a/review/1';
     const sessionId = '019fb288-5e92-7a73-bb0a-b6d6edfe1420';
     const { rel } = writeGrokAttestation(root, {
       deliveryId: 'DEL-c4',
       task_key: taskKey,
       session_id: sessionId,
       access: 'read',
-      project_path: 'D:/a/cj-web'
+      project_path: '/portfolio/project-a'
     });
     assert.ok(fs.existsSync(path.join(root, rel)));
     const payload = buildGrokAttestation({
@@ -60,10 +60,10 @@ test('C4 writeGrokAttestation writes review file and plane-self-check accepts fi
       deliveries: [{
         delivery_id: 'DEL-c4',
         status: 'RUNNING',
-        targets: [{ project_id: 'cj-web', status: 'RUNNING' }],
+        targets: [{ project_id: 'project-a', status: 'RUNNING' }],
         dispatch_intents: [{
           task_key: taskKey,
-          project_id: 'cj-web',
+          project_id: 'project-a',
           responsibility: 'review',
           status: 'BOUND',
           host_id: 'grok-build',

@@ -53,12 +53,12 @@ Grok 默认执行：Mode S（单会话串行 + project-branch）
 
 ### 1.3 真实负例（回归必留）
 
-**EP-20260730 acceptor-tag-color（兑接→承接/承载识票）**
+**EP-20260730 acceptor-tag-color（项目B→项目A/项目D）**
 
 1. 源未 commit 即 PREVIEW/DISPATCH。  
 2. 占位 `session-acceptor-tag-*-20260730`。  
 3. coordinator 会话内直接改多仓（合理 MVP，但未写标准 receipt）。  
-4. 承载 feature 含 Revert tracker 后整支 merge 进 `dev`，冲掉埋点。
+4. 项目C feature 含 Revert tracker 后整支 merge 进 `dev`，冲掉埋点。
 
 升级目标：**防止 1–2 成默认；把 3 收成 Mode S；把 4 写入 land/merge 提示**。
 
@@ -184,10 +184,10 @@ INTAKE (CONFIRMED)
   "effective_sandbox_mode": "workspace-write",
   "effective_boundary_source": "declared-coordinator",
   "environment": "project-branch",
-  "worktree": "D:/a/cj-web",
+  "worktree": "/portfolio/project-a",
   "intended_branch": "feat/…",
   "git_head_at_bind": "<sha|null>",
-  "project_path": "D:/a/cj-web",
+  "project_path": "/portfolio/project-a",
   "bound_at": "ISO-8601"
 }
 ```

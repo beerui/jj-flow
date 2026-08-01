@@ -17,7 +17,7 @@ function looksLikeKbRoot(root) {
 }
 
 /**
- * Resolve Portfolio KB root from config (naming.json / env) then legacy D:/a fallbacks.
+ * Resolve Portfolio KB root from config (naming.json / env) then legacy /portfolio fallbacks.
  */
 export function resolvePortfolioKbRoot(explicitRoot = null) {
   const configured = resolveKnowledgeRoot({ explicit: explicitRoot });
@@ -27,8 +27,8 @@ export function resolvePortfolioKbRoot(explicitRoot = null) {
     configured,
     process.env.PORTFOLIO_KB_ROOT,
     portfolio ? path.join(portfolio, 'knowledge') : null,
-    'D:/a/knowledge',
-    'D:\\a\\knowledge'
+    '/portfolio/knowledge',
+    '/portfolio/knowledge'
   ].filter(Boolean);
 
   const seen = new Set();
@@ -66,7 +66,7 @@ function scoreItem(item, needle, project) {
 
 /**
  * Attach portfolio knowledge_refs for a ralph/dispatch task.
- * Reads D:/a/knowledge indexes; never treats chat as authority.
+ * Reads /portfolio/knowledge indexes; never treats chat as authority.
  */
 export function attachKnowledgeRefs({
   q = '',

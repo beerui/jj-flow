@@ -34,11 +34,11 @@ TASK-ID 恢复 -> PREVIEW（分支/workspace 表）
 
 ## 目录配置
 
-**产品默认 control_root = `~/.jj-flow`**（不是 `D:/a`）。
+**产品默认 control_root = `~/.jj-flow`**（不是 `/portfolio`）。
 
 | 项 | 值 |
 | --- | --- |
-| 配置目录 | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`；Windows 未设时可**可选**发现 `D:/a/config`（legacy，非产品默认状态根） |
+| 配置目录 | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`；Windows 未设时可**可选**发现 `/portfolio/config`（legacy，非产品默认状态根） |
 | 配置文件 | `<configDir>/naming.json` |
 | 查看解析 | `jj doctor` → `control_root` / `portfolio_root` / `knowledge_root` / `project_map` |
 
@@ -54,7 +54,7 @@ CLI 覆盖：`--control-root` / `--manifest`。解析序：CLI → env → namin
 | | **用户从哪发起** | **状态写到哪** |
 | --- | --- | --- |
 | 产品默认 | 任意业务仓 cwd | **`~/.jj-flow`** |
-| **portfolio 示例（非默认）** | 如 `D:/a/cj-web` | 仅当 naming 配置后如 `D:/a/dispatch-control` |
+| **portfolio 示例（非默认）** | 如 `/portfolio/project-a` | 仅当 naming 配置后如 `/portfolio/dispatch-control` |
 
 细则 → [control-project.md](references/control-project.md)。
 

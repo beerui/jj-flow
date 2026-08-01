@@ -2,7 +2,7 @@
   "packages": {
     ".": {
       "release-type": "node",
-      "package-name": "@shendu-sdt/jj-flow",
+      "package-name": "@brewer/jj-flow",
       "changelog-path": "CHANGELOG.md"
     }
   }

@@ -47,12 +47,12 @@ handoff 规则和工具编排，不自动训练模型、不自动改生产代码
 
 | 角色 | 样本路径 | 观察 |
 | --- | --- | --- |
-| 承接前台 | `D:\codeup\chengjie\cj-frontend-web` | 旧密码提醒波次中的项目之一 |
-| 兑接前台 | `D:\codeup\duijie\dj-frontend-web` | 旧波次目标项目之一 |
-| 承载前台 | `D:\codeup\chengjie\cz-broker-web` | 新企标签右对齐样本的源项目 |
-| 候选 draft-manager | `D:\codeup\chengjie\cz-draft-manager-web` | 存在，但样本未证明它是当前承载源 |
+| 项目A | `/path/to/org-a/project-a` | 旧密码提醒波次中的项目之一 |
+| 项目B | `/path/to/org-b/project-b` | 旧波次目标项目之一 |
+| 项目C | `/path/to/org-a/project-c` | 新企标签右对齐样本的源项目 |
+| 候选 draft-manager | `/path/to/org-a/project-e` | 存在，但样本未证明它是当前项目C源 |
 
-承接、兑接、承载保持三个独立角色，不能因为出现 handoff 就把它们合并。
+项目A、项目B、项目C保持三个独立角色，不能因为出现 handoff 就把它们合并。
 
 ### 3.2 旧密码提醒波次：主要成本
 
@@ -61,9 +61,9 @@ handoff 规则和工具编排，不自动训练模型、不自动改生产代码
 
 主要证据根包括：
 
-- `D:\codeup\chengjie\cj-frontend-web\.workflow\.csv-wave`
-- `D:\codeup\duijie\dj-frontend-web\.workflow\.csv-wave`
-- `D:\codeup\chengjie\cj-frontend-web\.workflow\ralph`
+- `/path/to/org-a/project-a/.workflow/.csv-wave`
+- `/path/to/org-b/project-b/.workflow/.csv-wave`
+- `/path/to/org-a/project-a/.workflow/ralph`
 
 | 工作段 | 估计时长 | 解释 |
 | --- | ---: | --- |
@@ -85,13 +85,13 @@ handoff 规则和工具编排，不自动训练模型、不自动改生产代码
 
 handoff baseline 目录为：
 
-`D:\codeup\chengjie\cz-broker-web\.workflow\.csv-wave\20260724-analyze-source-acceptor-enterprise-tag-right-align\requirement-baseline`
+`/path/to/org-a/project-c/.workflow/.csv-wave/20260724-analyze-source-acceptor-enterprise-tag-right-align/requirement-baseline`
 
 - `HOF-001`、`HOF-002` 因旧分支/dirty worktree 被阻断；
 - 分支和 commit 稳定后产生 `HOF-003`，标记为 `FRESH` + `READY`，并以 successor
   关系取代旧 snapshot；
 - 源 commit 为 `d54b25cdb28484855153a3f0e3ea5887331b533b`；
-- 承接、兑接均消费同一 HOF-003，只按各自架构 `ADAPT`，不重建源分析；
+- 项目A、项目B均消费同一 HOF-003，只按各自架构 `ADAPT`，不重建源分析；
 - 目标分析工件跨度约 1 秒与 80 秒，源到目标 commit 墙钟跨度约 36 分钟与
   53 分钟。这些跨度需要进一步拆成 active/wait/tool/human attention。
 
@@ -125,7 +125,7 @@ ralph `run.json` 只给 `created_at`/`updated_at`；`progress.md` 可能超出
 - 不从聊天正文、thread 状态或 memory 推进 jj-flow checkpoint；
 - 不把系统做成只看工时的排行榜；
 - 不自动改模型权重、业务仓库、生产规则或批准快照；
-- 不把承接/兑接/承载强行统一成 handoff；
+- 不把项目A/项目B/项目C强行统一成 handoff；
 - 不用伪造对话或论文示例冒充真实项目样本。
 
 ## 5. 系统闭环

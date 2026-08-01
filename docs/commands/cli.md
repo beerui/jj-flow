@@ -4,7 +4,7 @@
 > 正常交付请在 Codex / Claude / Grok / Qoder 里用 **对话入口**（`$jj-ralph` / `/jj-same` / …），**不要**让用户手敲下面命令完成业务。  
 > 本页把 `jj` 表面 **集中列全**，教程与工作流页不再展开 CLI。
 
-入口：`npx @shendu-sdt/jj-flow@beta …` 或本地 `jj`（需已安装包）。
+入口：`npx @brewer/jj-flow@beta …` 或本地 `jj`（需已安装包）。
 
 ---
 

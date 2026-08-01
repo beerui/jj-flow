@@ -8,21 +8,21 @@ paths and verify branch/commit state before using them in a new episode.
 
 | Role | Observed repository | Use in evaluation |
 | --- | --- | --- |
-| 承接前台 | `D:\codeup\chengjie\cj-frontend-web` | target/source role in the older password-reminder wave; verify per episode |
-| 兑接前台 | `D:\codeup\duijie\dj-frontend-web` | target role in the older wave; verify per episode |
-| 承载前台 | `D:\codeup\chengjie\cz-broker-web` | source project for the newer enterprise-tag handoff sample |
-| draft-manager candidate | `D:\codeup\chengjie\cz-draft-manager-web` | exists, but the sampled wave did not establish it as the active source |
+| 项目A | `/path/to/org-a/project-a` | target/source role in the older password-reminder wave; verify per episode |
+| 项目B | `/path/to/org-b/project-b` | target role in the older wave; verify per episode |
+| 项目C | `/path/to/org-a/project-c` | source project for the newer enterprise-tag handoff sample |
+| draft-manager candidate | `/path/to/org-a/project-e` | exists, but the sampled wave did not establish it as the active source |
 
-Do not substitute the last row for 承载 without current evidence.
+Do not substitute the last row for 项目C without current evidence.
 
 ## Representative episodes
 
 Observed evidence roots for the first sample include:
 
-- `D:\codeup\chengjie\cj-frontend-web\.workflow\.csv-wave`
-- `D:\codeup\duijie\dj-frontend-web\.workflow\.csv-wave`
-- `D:\codeup\chengjie\cj-frontend-web\.workflow\ralph`
-- `D:\codeup\chengjie\cz-broker-web\.workflow\.csv-wave\20260724-analyze-source-acceptor-enterprise-tag-right-align\requirement-baseline`
+- `/path/to/org-a/project-a\.workflow\.csv-wave`
+- `/path/to/org-b/project-b\.workflow\.csv-wave`
+- `/path/to/org-a/project-a\.workflow\ralph`
+- `/path/to/org-a/project-c\.workflow\.csv-wave\20260724-analyze-source-acceptor-enterprise-tag-right-align\requirement-baseline`
 
 These paths are input references only. Recheck existence, hashes, branch and
 commit before treating an artifact as part of a new episode.
@@ -45,7 +45,7 @@ correction. Source commit:
 `d54b25cdb28484855153a3f0e3ea5887331b533b`.
 
 Both targets consumed HOF-003 without rebuilding source analysis. The observed
-target artifact spans were about 1 second for 承接 and 80 seconds for 兑接;
+target artifact spans were about 1 second for 项目A and 80 seconds for 项目B;
 source-to-target commit wall spans were about 36 and 53 minutes respectively.
 Those wall spans include waiting and must be split into active, handoff, tool,
 and human attention time in a future export.
@@ -69,12 +69,12 @@ Absolute paths moved off the deprecated `D:\\codeup\\...` roots. Current map-bac
 
 | Role | Current repository | Sample run / head used in 2026-07-29 baseline |
 | --- | --- | --- |
-| 承接用户端 | `D:\\a\\cj-web` | `RALPH-inquiry-face-checkmark-20260729` @ `860417f90` |
-| 兑接用户端 | `D:\\a\\dj-web` | port head `cb2c38a3e` |
-| 承载用户端 | `D:\\a\\cz-broker-web` | port head `8257da360`; incomplete `RALPH-zf-zj-align-huiyuan-20260729` |
-| 承载草稿管理 | `D:\\a\\cz-draft-manager-web` | ticket-face-close + publish-esc-focus |
-| 承载识票 | `D:\\a\\cz-broker-recognize-web` | adjacent 0731 list-tag port `feat/cz-0731-lyj@1e3fb4726` |
-| independent SDK | `D:\\a\\rd-sdt-tracker` | `RALPH-appcode-logger-20260728` |
+| 项目A | `/portfolio/project-a` | `RALPH-inquiry-face-checkmark-20260729` @ `860417f90` |
+| 项目B | `/portfolio/project-b` | port head `cb2c38a3e` |
+| 项目C | `/portfolio/project-c` | port head `8257da360`; incomplete `RALPH-zf-zj-align-huiyuan-20260729` |
+| 项目E | `/portfolio/project-e` | ticket-face-close + publish-esc-focus |
+| 项目D | `/portfolio/project-d` | apbacent 0731 list-tag port `feat/pc-0731-dev@1e3fb4726` |
+| independent SDK | `/portfolio/project-sdk` | `RALPH-appcode-logger-20260728` |
 
 Evaluation write-up: `D:\\daji-docs\\jj-flow\\docs\\evaluations\\2026-07-29-grok-episodes-baseline.md`.
 
@@ -88,47 +88,47 @@ Still true:
 
 | Role | Current repository | Head at iteration-3 |
 | --- | --- | --- |
-| 承接用户端 | `D:\\a\\cj-web` | `fix/inquiry-face-info-checkmark@860417f90ae4` |
-| 兑接用户端 | `D:\\a\\dj-web` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` |
-| 承载用户端 | `D:\\a\\cz-broker-web` | `feat-channel-zj@9f4cff5cba51` (moved off inquiry-face branch) |
-| 承载草稿管理 | `D:\\a\\cz-draft-manager-web` | `dev@e4a5ff98ba80` |
-| 承载识票 | `D:\\a\\cz-broker-recognize-web` | `feat/cz-0731-lyj@1e3fb4726644` |
+| 项目A | `/portfolio/project-a` | `fix/inquiry-face-info-checkmark@860417f90ae4` |
+| 项目B | `/portfolio/project-b` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` |
+| 项目C | `/portfolio/project-c` | `feat-channel-zj@9f4cff5cba51` (moved off inquiry-face branch) |
+| 项目E | `/portfolio/project-e` | `dev@e4a5ff98ba80` |
+| 项目D | `/portfolio/project-d` | `feat/pc-0731-dev@1e3fb4726644` |
 
 New search/regression sample:
 
-- `RALPH-order-filter-bizserialid-20260729` on 承载用户端 (COMPLETED; path-consistent; synthetic progress timestamps).
+- `RALPH-order-filter-bizserialid-20260729` on 项目C (COMPLETED; path-consistent; synthetic progress timestamps).
 - EP-02 `RALPH-zf-zj-align-huiyuan-20260729` still PLAN while deliver commit `459e72f39` exists.
 
 Candidate v1 product-consistency gate is on jj-flow `main@3dd7624`.
 
 ## 2026-07-30 Grok window
 
-Live paths (unchanged map roots under `D:\\a\\...`). Evaluation write-up:
+Live paths (unchanged map roots under `/portfolio/...`). Evaluation write-up:
 `D:\\daji-docs\\jj-flow\\docs\\evaluations\\2026-07-30-grok-episodes.md`.
 
 | Sample | Evidence |
 | --- | --- |
 | EP-H1 harness | Grok thread `019fb1e2-…`; jj-flow commits `f547935` / `35a878c` (beta.34) |
-| EP-B1 sale-draft | `D:\\a\\cz-broker-web\\.workflow\\ralph\\RALPH-sale-draft-pay-channel-20260730` |
-| EP-S1 tracker same | `D:\\a\\cz-broker-recognize-web\\.workflow\\handoffs\\HOF-aliyun-tracker-20260729-2` + branch mis-attach recovery |
-| EP-K1 SDK Node14 | `D:\\a\\rd-sdt-tracker` postinstall `0.6.3` + static compat test |
+| EP-B1 sale-draft | `/portfolio/project-c\\.workflow\\ralph\\RALPH-sale-draft-pay-channel-20260730` |
+| EP-S1 tracker same | `/portfolio/project-d\\.workflow\\handoffs\\HOF-aliyun-tracker-20260729-2` + branch mis-attach recovery |
+| EP-K1 SDK Node14 | `/portfolio/project-sdk` postinstall `0.6.3` + static compat test |
 
 Candidate v5 (branch purpose preflight) lives in `jj-same` skill SSOT; protect EP-S1 golden table and EP-B1 holdout.
 
 ## 2026-07-30 formal dispatch (acceptor-tag-color)
 
 First live multi-target delivery with real control-plane files under
-`D:/a/dispatch-control` (not the null-plane preference-modified export).
+`/portfolio/dispatch-control` (not the null-plane preference-modified export).
 
 | Field | Value |
 | --- | --- |
 | delivery_id | `DEL-acceptor-tag-color-20260730` |
 | task_id | `TASK-DEL-acceptor-tag-color-20260730` |
-| control-plane | `D:/a/dispatch-control/.workflow/dispatch/DEL-acceptor-tag-color-20260730/control-plane.json` |
-| lead / 兑接 | `D:/a/dj-web` @ `feat/dj-0731-lyj` style `5af0b1c6b` |
-| target / 承接 | `D:/a/cj-web` @ `feat/cj-0731-lyj` style `f68b7043f` |
-| target / 承载识票 | `D:/a/cz-broker-recognize-web` @ `feat/cz-0731-lyj` style `493db28c5` |
-| thread | Grok `019fb288-5e92-7a73-bb0a-b6d6edfe1420` (cwd dj-web) |
+| control-plane | `/portfolio/dispatch-control/.workflow/dispatch/DEL-acceptor-tag-color-20260730/control-plane.json` |
+| lead / 项目B | `/portfolio/project-b` @ `feat/pb-0731-dev` style `5af0b1c6b` |
+| target / 项目A | `/portfolio/project-a` @ `feat/pa-0731-dev` style `f68b7043f` |
+| target / 项目D | `/portfolio/project-d` @ `feat/pc-0731-dev` style `493db28c5` |
+| thread | Grok `019fb288-5e92-7a73-bb0a-b6d6edfe1420` (cwd project-b) |
 | evaluation | `docs/evaluations/2026-07-30-acceptor-tag-color-dispatch.md` |
 
 Caveats recorded in that evaluation: PREVIEW + project-branch + ADAPT succeeded;
@@ -145,12 +145,12 @@ scheduler implemented targets in the same session.
 | --- | --- |
 | delivery_id | `DEL-readme-pnpm-install-20260731` |
 | task_id | `TASK-DEL-readme-pnpm-install-20260731` |
-| control-plane | `D:/a/dispatch-control/.../control-plane.json` hash `690410c60e45` |
+| control-plane | `/portfolio/dispatch-control/.../control-plane.json` hash `690410c60e45` |
 | plane-self-check | **OK** |
 | session | `019fb5b3-b1f4-78b3-b79d-ffd601f91e55` (shared Mode S) |
-| lead / 承接 | `D:/a/cj-web` @ `1ec732bd6` ralph COMPLETED |
-| target / 兑接 | `D:/a/dj-web` @ `9093b961d` |
-| target / 承载用户端 | `D:/a/cz-broker-web` @ `f7fbe8818` |
+| lead / 项目A | `/portfolio/project-a` @ `1ec732bd6` ralph COMPLETED |
+| target / 项目B | `/portfolio/project-b` @ `9093b961d` |
+| target / 项目C | `/portfolio/project-c` @ `f7fbe8818` |
 | evaluation | `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md` |
 
 Portfolio under same control_root:
@@ -176,9 +176,9 @@ Live rollback of the Mode S golden delivery (control reopen + feature task-scope
 | plane hash @ eval | `2f07acdfb729` revision **7** |
 | delivery status | **PREVIEW_ONLY** (was VERIFIED) |
 | plane-self-check | **OK** |
-| dj-web tip | `3ee8d3cc4` Revert of `9093b961d` @ `feat/dj-0731-lyj` |
-| cz-broker-web tip | `6d589864f` Revert of `f7fbe8818` @ `feat/cz-0731-lyj` |
-| cj-web tip (lead) | `86dbbdf23` Revert of `1ec732bd6` @ `feat/cj-0731-lyj` |
+| project-b tip | `3ee8d3cc4` Revert of `9093b961d` @ `feat/pb-0731-dev` |
+| project-c tip | `6d589864f` Revert of `f7fbe8818` @ `feat/pc-0731-dev` |
+| project-a tip (lead) | `86dbbdf23` Revert of `1ec732bd6` @ `feat/pa-0731-dev` |
 | on dev? | pnpm commits **not** ancestors of `dev` / `origin/dev` |
 | remote | feature **ahead 2**, not pushed |
 | events | `TARGET_REOPENED`×2 + `GIT_ROLLBACK_REVERT` |
@@ -206,4 +206,4 @@ Offline export package (local only; raw JSONL unredacted):
 | strict validate | FAIL 4 (empty lead_responsibilities; checkpoint recorded_at mismatch) |
 | evaluation | `docs/evaluations/2026-07-31-telemetry-image-codex-dispatch.md` |
 
-Roles at capture (Mac paths): 承接 `cj-frontend-web` @ `c2fc7d7e`; 兑接 `duijie-frontend-web` @ `bbb9c4bc` ADAPT; 承载 `chengjie-broker-web` @ `c243db37` ADAPT.
+Roles at capture (Mac paths): 项目A `project-a` @ `c2fc7d7e`; 项目B `project-b` @ `bbb9c4bc` ADAPT; 项目C `project-c` @ `c243db37` ADAPT.

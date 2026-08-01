@@ -1,6 +1,6 @@
 # Project Family Control
 
-这是一个独立控制项目模板。它可以是空项目，不需要承载业务源码；复制 `control-plane.json` 后，把项目路径、Codex App project binding 和本轮 delivery 引用替换成真实值。
+这是一个独立控制项目模板。它可以是空项目，不需要托管业务源码；复制 `control-plane.json` 后，把项目路径、Codex App project binding 和本轮 delivery 引用替换成真实值。
 
 使用原则：
 

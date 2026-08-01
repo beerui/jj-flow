@@ -55,7 +55,7 @@ Mode S 软 plane 无法直接走严格 `reopenTarget`（共享 session + 软字�
 
 - Agent 默认执行任何 git rewrite / revert
 - 自动 push / force-push / 合 dev / 拆 merge
-- 把 live `D:/a` 写进 harness 必跑路径
+- 把 live `/portfolio` 写进 harness 必跑路径
 
 ---
 
@@ -156,9 +156,9 @@ else → 选项：task-scoped revert | 保留代码 | 取消
 
 ```text
 【Git 怎么处理？】探测摘要：
-- dj-web  feat/…  tip=…  ahead=1  on_dev=no  tip=本任务  dirty=no
-- cz-…    …
-- cj-…    …
+- project-b  feat/…  tip=…  ahead=1  on_dev=no  tip=本任务  dirty=no
+- pc-…    …
+- pa-…    …
 
 请选一项（可按仓不同，默认三仓同一策略）：
 

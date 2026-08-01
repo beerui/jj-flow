@@ -8,8 +8,8 @@ import {
 
 test('local clean tip recommends reset (G-menu [2])', () => {
   const rec = recommendGitStrategy({
-    project_id: 'dj-web',
-    path: 'D:/a/dj-web',
+    project_id: 'project-b',
+    path: '/portfolio/project-b',
     task_shas: ['9093b961dd5eadd88bcc70a7ab2ee64720ae22b2'],
     ahead: 1,
     pushed: false,
@@ -24,8 +24,8 @@ test('local clean tip recommends reset (G-menu [2])', () => {
 
 test('on integration recommends revert not reset', () => {
   const rec = recommendGitStrategy({
-    project_id: 'dj-web',
-    path: 'D:/a/dj-web',
+    project_id: 'project-b',
+    path: '/portfolio/project-b',
     task_shas: ['9093b961dd5eadd88bcc70a7ab2ee64720ae22b2'],
     on_integration: true,
     dirty: false
@@ -41,9 +41,9 @@ test('readme-pnpm style multi-repo fixture matches path-B probes', () => {
     reason: 'fixture: post-reopen path B decision',
     repos: [
       {
-        project_id: 'cj-web',
-        path: 'D:/a/cj-web',
-        branch: 'feat/cj-0731-lyj',
+        project_id: 'project-a',
+        path: '/portfolio/project-a',
+        branch: 'feat/pa-0731-dev',
         task_shas: ['1ec732bd60cf5c526f1699d9b4381bc19149cb46'],
         ahead: 1,
         pushed: false,
@@ -52,9 +52,9 @@ test('readme-pnpm style multi-repo fixture matches path-B probes', () => {
         dirty: false
       },
       {
-        project_id: 'dj-web',
-        path: 'D:/a/dj-web',
-        branch: 'feat/dj-0731-lyj',
+        project_id: 'project-b',
+        path: '/portfolio/project-b',
+        branch: 'feat/pb-0731-dev',
         task_shas: ['9093b961dd5eadd88bcc70a7ab2ee64720ae22b2'],
         ahead: 1,
         pushed: false,
@@ -63,9 +63,9 @@ test('readme-pnpm style multi-repo fixture matches path-B probes', () => {
         dirty: false
       },
       {
-        project_id: 'cz-broker-web',
-        path: 'D:/a/cz-broker-web',
-        branch: 'feat/cz-0731-lyj',
+        project_id: 'project-c',
+        path: '/portfolio/project-c',
+        branch: 'feat/pc-0731-dev',
         task_shas: ['f7fbe8818acbd526f739f41bafe7374ef3c32061'],
         ahead: 1,
         pushed: false,
@@ -79,9 +79,9 @@ test('readme-pnpm style multi-repo fixture matches path-B probes', () => {
   assert.equal(prep.user_confirmation_required, true);
   assert.equal(prep.summary.any_reset_recommended, true);
   assert.deepEqual(prep.summary.recommended_actions, [
-    'cj-web:reset',
-    'dj-web:reset',
-    'cz-broker-web:reset'
+    'project-a:reset',
+    'project-b:reset',
+    'project-c:reset'
   ]);
   for (const repo of prep.repos) {
     assert.equal(repo.recommended, 'reset');

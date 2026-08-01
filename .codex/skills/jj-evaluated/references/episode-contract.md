@@ -14,7 +14,7 @@ Record stable identifiers without inventing them:
 | `episode_id` | Local evaluation case id. |
 | `thread_id` / `export_id` | Source conversation or export reference. |
 | `run_id` / `task_key` | Ralph or dispatch identity, when present. |
-| `role` | One of `承接`, `兑接`, `承载`; keep roles distinct. |
+| `role` | One of `项目A`, `项目B`, `项目C`; keep roles distinct. |
 | `project_path` | Absolute path captured at ingestion time. |
 | `branch` / `commit` | Git fact used for the episode baseline. |
 | `artifact_refs` | Relative/absolute paths plus SHA-256 where possible. |
@@ -29,7 +29,7 @@ Each event should have the following shape (additional fields are allowed):
   "episode_id": "ep-…",
   "kind": "user_request|user_correction|agent_turn|tool_call|subagent|artifact_write|handoff_created|handoff_superseded|commit|verification|review|wait|escalation",
   "phase": "intake|analyze|plan|deliver|accept|archive|dispatch|sync",
-  "role": "承接",
+  "role": "项目A",
   "started_at": "2026-07-24T00:00:00Z",
   "ended_at": "2026-07-24T00:01:00Z",
   "timestamp_provenance": "thread|artifact|git|filesystem|user_export",

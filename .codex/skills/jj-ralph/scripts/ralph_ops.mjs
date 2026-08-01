@@ -9,7 +9,7 @@
  *   1) $JJ_FLOW_ROOT/src/ralph.mjs
  *   2) monorepo checkout: ../../../../src/ralph.mjs (when skill lives under jj-flow)
  *   3) skill-bundled scripts/lib/ralph.mjs  ← business repos without jj-flow
- *   4) walk cwd for package root / node_modules/@shendu-sdt/jj-flow
+ *   4) walk cwd for package root / node_modules/@brewer/jj-flow (legacy @shendu-sdt/jj-flow)
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
@@ -65,7 +65,7 @@ Resolve library:
   1. $JJ_FLOW_ROOT/src/ralph.mjs
   2. jj-flow checkout ../../../../src/ralph.mjs
   3. skill-bundled scripts/lib/ralph.mjs (no jj-flow install required)
-  4. cwd package / node_modules/@shendu-sdt/jj-flow
+  4. cwd package / node_modules/@brewer/jj-flow (legacy @shendu-sdt/jj-flow)
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
@@ -111,15 +111,18 @@ function candidateRalphModules(cwd) {
   // Portable copy shipped with the skill (business repos without jj-flow).
   push(BUNDLED_LIB);
 
+  const PACKAGE_NAMES = new Set(['@brewer/jj-flow', '@shendu-sdt/jj-flow']);
   let dir = path.resolve(cwd || process.cwd());
   for (let i = 0; i < 12; i += 1) {
     push(path.join(dir, 'src', 'ralph.mjs'));
+    push(path.join(dir, 'node_modules', '@brewer', 'jj-flow', 'src', 'ralph.mjs'));
+    // Legacy npm scope (deprecated); keep resolving until installs migrate.
     push(path.join(dir, 'node_modules', '@shendu-sdt', 'jj-flow', 'src', 'ralph.mjs'));
     const pkgPath = path.join(dir, 'package.json');
     if (fs.existsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-        if (pkg.name === '@shendu-sdt/jj-flow') push(path.join(dir, 'src', 'ralph.mjs'));
+        if (PACKAGE_NAMES.has(pkg.name)) push(path.join(dir, 'src', 'ralph.mjs'));
       } catch {
         // ignore
       }

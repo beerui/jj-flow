@@ -3,12 +3,14 @@
 装的是 **对话入口**（skill / 斜杠命令），不是再装一个后台服务。  
 装好后：日常只在对话里用 `$jj-…` 或 `/jj-…`，**不用学命令行**。
 
+包名：`@brewer/jj-flow`（旧 `@shendu-sdt/jj-flow` 已弃用）。
+
 ## 推荐：在当前项目装全套
 
 在项目根目录执行：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
+npx @brewer/jj-flow@beta install-skill --platform all --project
 ```
 
 会装到本项目的 Codex / Claude / Grok / Qoder 配置目录里。
@@ -16,10 +18,10 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
 ## 只装某一个工具
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill
-npx @shendu-sdt/jj-flow@beta install-skill --platform claude
-npx @shendu-sdt/jj-flow@beta install-skill --platform grok
-npx @shendu-sdt/jj-flow@beta install-skill --platform qoder
+npx @brewer/jj-flow@beta install-skill
+npx @brewer/jj-flow@beta install-skill --platform claude
+npx @brewer/jj-flow@beta install-skill --platform grok
+npx @brewer/jj-flow@beta install-skill --platform qoder
 ```
 
 不要 `--project` 时，会装到用户全局目录。
@@ -27,7 +29,7 @@ npx @shendu-sdt/jj-flow@beta install-skill --platform qoder
 ## 卸载（先预览）
 
 ```bash
-npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
+npx @brewer/jj-flow@beta uninstall-skill --platform all --dry-run --json
 ```
 
 只删本工具登记过的文件。你本地改过的默认不会乱删。
@@ -37,8 +39,8 @@ npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
 | 你用的工具 | 写法 | 例子 |
 |------------|------|------|
 | Codex | `$jj-…` | `$jj-ralph 修一下登录提示` |
-| Claude | `/jj-…` | `/jj-same 交接到兑接`（**没有** dispatch） |
-| Grok / Qoder | `/jj-…` | `/jj-dispatch 分发到承接和承载` |
+| Claude | `/jj-…` | `/jj-same 交接到项目B`（**没有** dispatch） |
+| Grok / Qoder | `/jj-…` | `/jj-dispatch 分发到项目A和项目C` |
 
 下一步 → [五分钟上手](usage.html)
 

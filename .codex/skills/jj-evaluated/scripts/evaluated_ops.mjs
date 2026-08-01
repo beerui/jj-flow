@@ -293,7 +293,7 @@ function buildReportSkeleton(episodeId) {
 | Field | Value |
 | --- | --- |
 | episode_id | \`${episodeId}\` |
-| role | <!-- 承接 \\| 兑接 \\| 承载 \\| control harness --> |
+| role | <!-- 项目A \\| 项目B \\| 项目C \\| control harness --> |
 | project_path | |
 | branch / commit | |
 | thread_id / export_id | |

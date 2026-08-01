@@ -10,26 +10,26 @@ test('plane-self-check flags synthetic session ids and VERIFIED without produced
     schema_version: 'jj-flow/control-plane/1.0',
     revision: 1,
     control_project: { id: 'c', name: 'c', path: '/c' },
-    projects: [{ id: 'cj-web', name: 'cj', path: '/cj', status: 'active' }],
+    projects: [{ id: 'project-a', name: 'pa', path: '/pa', status: 'active' }],
     deliveries: [
       {
         delivery_id: 'DEL-test',
         status: 'VERIFIED',
         targets: [
           {
-            project_id: 'cj-web',
+            project_id: 'project-a',
             status: 'VERIFIED'
           }
         ],
         dispatch_intents: [
           {
-            task_key: 'DEL-test/cj-web/development/1',
-            project_id: 'cj-web',
+            task_key: 'DEL-test/project-a/development/1',
+            project_id: 'project-a',
             responsibility: 'development',
             attempt: 1,
             status: 'BOUND',
             host_id: 'grok-build',
-            thread_id: 'session-acceptor-tag-cj-dev-20260730',
+            thread_id: 'session-acceptor-tag-pa-dev-20260730',
             result: { outcome: 'DONE', produced_commit: null }
           }
         ]
@@ -54,7 +54,7 @@ test('plane-self-check accepts real session + matching produced_commit', () => {
         status: 'VERIFIED',
         targets: [
           {
-            project_id: 'cj-web',
+            project_id: 'project-a',
             status: 'VERIFIED',
             checkpoint: { commit: sha, reviewed_commit: sha },
             last_result: { commit: sha, reviewed_commit: sha }
@@ -62,14 +62,14 @@ test('plane-self-check accepts real session + matching produced_commit', () => {
         ],
         dispatch_intents: [
           {
-            task_key: 'DEL-ok/cj-web/development/1',
-            project_id: 'cj-web',
+            task_key: 'DEL-ok/project-a/development/1',
+            project_id: 'project-a',
             responsibility: 'development',
             attempt: 1,
             status: 'BOUND',
             host_id: 'grok-build',
             thread_id: '019fb288-5e92-7a73-bb0a-b6d6edfe1420',
-            sandbox_evidence_ref: '.workflow/dispatch/DEL-ok/attestations/DEL-ok__cj-web__development__1.json',
+            sandbox_evidence_ref: '.workflow/dispatch/DEL-ok/attestations/DEL-ok__project-a__development__1.json',
             result: { outcome: 'DONE', produced_commit: sha }
           }
         ]
@@ -87,11 +87,11 @@ test('plane-self-check C4 flags BOUND review host:string attestation; grades fai
     deliveries: [{
       delivery_id: 'DEL-c4',
       status: 'RUNNING',
-      targets: [{ project_id: 'cj-web', status: 'RUNNING' }],
+      targets: [{ project_id: 'project-a', status: 'RUNNING' }],
       dispatch_intents: [
         {
-          task_key: 'DEL-c4/cj-web/review/1',
-          project_id: 'cj-web',
+          task_key: 'DEL-c4/project-a/review/1',
+          project_id: 'project-a',
           responsibility: 'review',
           status: 'BOUND',
           host_id: 'grok-build',

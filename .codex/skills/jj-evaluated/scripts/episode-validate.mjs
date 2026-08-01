@@ -45,7 +45,7 @@ export const ALLOWED_TIMESTAMP_PROVENANCE = new Set([
   'user_export'
 ]);
 
-export const ALLOWED_ROLES = new Set(['承接', '兑接', '承载']);
+export const ALLOWED_ROLES = new Set(['项目A', '项目B', '项目C']);
 
 /**
  * @typedef {{ severity: 'error'|'warning', path: string, message: string, code?: string }} Finding
@@ -175,7 +175,7 @@ export function validateEvent(value, basePath = '$') {
         severity: 'error',
         code: 'INVALID_ROLE',
         path: `${basePath}.role`,
-        message: 'role if present must be one of 承接|兑接|承载'
+        message: 'role if present must be one of 项目A|项目B|项目C'
       });
     }
   }
@@ -263,7 +263,7 @@ export function validateEpisodeDocument(value) {
           severity: 'error',
           code: 'INVALID_ROLE',
           path: '$.role',
-          message: 'role if present must be one of 承接|兑接|承载'
+          message: 'role if present must be one of 项目A|项目B|项目C'
         });
       }
     }
@@ -490,7 +490,7 @@ Minimums (episode-contract):
   - each event: event_id, episode_id, kind, clock_quality, timestamp_provenance
   - kind ∈ allowed set; clock_quality ∈ exact|derived|inconsistent|unknown
   - timestamp_provenance ∈ thread|artifact|git|filesystem|user_export
-  - role if present ∈ 承接|兑接|承载
+  - role if present ∈ 项目A|项目B|项目C
   - empty files rejected
 
 Exit codes:

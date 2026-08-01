@@ -203,7 +203,7 @@ Grok 分流点仅在 host 执行：
 推荐日常：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --platform grok --force
+npx @brewer/jj-flow@beta install-skill --platform grok --force
 # 业务仓或控制仓
 grok
 # /jj-same 或 /jj-ralph …

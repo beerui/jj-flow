@@ -3,8 +3,8 @@
 Use this **before** creating a target branch, writing business code, or claiming
 `EXECUTION_READY` for `$jj-same` / `/jj-same`.
 
-Episode regression: EP-20260730-S1 (tracker port landed on `feat/cz-0731-lyj`
-instead of `feat/cz-aliyun-tracker-recognize`).
+Episode regression: EP-20260730-S1 (tracker port landed on `feat/pc-0731-dev`
+instead of `feat/pc-aliyun-tracker-recognize`).
 
 ## Hard gate
 
@@ -20,7 +20,7 @@ Do not silently port onto a release-train or unrelated feature branch because it
 
 | # | Check | Evidence |
 | --- | --- | --- |
-| 1 | **Task purpose** | One line: e.g. “aliyun tracker port to 承载识票” |
+| 1 | **Task purpose** | One line: e.g. “aliyun tracker port to 项目D” |
 | 2 | **Current branch purpose** | `git branch --show-current` + naming tokens / plan / user statement |
 | 3 | **Intended work branch** | Match or derive via role-only rewrite of lead branch (see project-family.md) |
 | 4 | **Integration target this turn** | `dev` / `develop` / `main` / `staging` / none |
@@ -40,7 +40,7 @@ action:   CODE | SWITCH | CREATE | BLOCKED
 
 ### G1 — Wrong train, right task
 
-**Q:** Checkout is `feat/cz-0731-lyj`. Task is tracker integration. Start coding?
+**Q:** Checkout is `feat/pc-0731-dev`. Task is tracker integration. Start coding?
 
 **A:** No. Branch purpose is the 0731 release train; task needs a tracker-named
 feature line (or user-confirmed intentional attach). Report `match=NO`, then
@@ -48,7 +48,7 @@ create/switch.
 
 ### G2 — “开始迁移” on wrong checkout
 
-**Q:** User says “开始迁移承载识票” while on a non-tracker branch.
+**Q:** User says “开始迁移项目D” while on a non-tracker branch.
 
 **A:** Run preflight table first. `EXECUTION_READY` is false until branch purpose
 matches or user overrides in writing.
@@ -66,7 +66,7 @@ matches or user overrides in writing.
 
 ### G4 — Staging content question
 
-**Q:** “If we merge `feat/cz-0731-lyj` to staging, does the release include tracker?”
+**Q:** “If we merge `feat/pc-0731-dev` to staging, does the release include tracker?”
 
 **A:** Inspect the **current tip tree**. History may contain both
 `feat(tracker)` and a later `Revert`. Merge ships the tree, not the intermediate
@@ -74,9 +74,9 @@ commits. List presence/absence of tracker entry files and dependency.
 
 ### G5 — Role-only branch derivation
 
-**Q:** Lead is `feat/cj-aliyun-tracker`. Target is 承载.
+**Q:** Lead is `feat/pa-aliyun-tracker`. Target is 项目C.
 
-**A:** Derive by replacing role only → `feat/cz-aliyun-tracker` (tokens per
+**A:** Derive by replacing role only → `feat/pc-aliyun-tracker` (tokens per
 `map.md` / naming rules). Do not attach the port to an unrelated dated train
 branch.
 

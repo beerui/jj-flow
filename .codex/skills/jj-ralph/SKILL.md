@@ -33,9 +33,9 @@ description: "单个需求任务闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHI
 真相源：`run.handoff`（非第二套流程）。
 
 - 多端 / 已有 handoff / 用户要迁移：accept/finalize 可自动维护  
-- 手动：`ralph_ops.mjs handoff --run-id … --targets 兑接识票,承载识票`  
+- 手动：`ralph_ops.mjs handoff --run-id … --targets 项目B识票,项目D`  
 - 字段：`ready` / `blocked_reasons` / `source_head` / `must` / `do_not_port` / `targets` / `mode`  
-- 未提交：`ready=false`；用户只说「交接到 兑接 承载」→ `$jj-same`
+- 未提交：`ready=false`；用户只说「交接到 项目B 项目C」→ `$jj-same`
 
 ## 脚本
 
@@ -50,7 +50,7 @@ node <resolved>/ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"
 node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x --status PAUSED --reason "…"
-node <resolved>/ralph_ops.mjs handoff --run-id RALPH-x --targets 兑接识票,承载识票
+node <resolved>/ralph_ops.mjs handoff --run-id RALPH-x --targets 项目B识票,项目D
 node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x
 ```
 
@@ -99,13 +99,13 @@ node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x
 ## 示例（用户侧口语；agent 自己解析 run）
 
 ```text
-$jj-ralph 先改承接：登录后密码过期提示
+$jj-ralph 先改项目A：登录后密码过期提示
 $jj-ralph tiny：tip bottom 4px→6px
 $jj-ralph tip 应是 6px 不是 8px
 $jj-ralph close 也跟着下移
 $jj-ralph 这个先不做了，产品砍了
 $jj-ralph 登录提醒还要，文案改一下
-$jj-ralph 交接到 兑接 承载
+$jj-ralph 交接到 项目B 项目C
 ```
 
 见 [integrations.md](references/integrations.md)、[artifact-layout.md](references/artifact-layout.md)；用户向 [docs/commands/jj-ralph.md](../../../docs/commands/jj-ralph.md)。

@@ -16,7 +16,7 @@
 | --- | --- |
 | Evaluation date | 2026-07-30 |
 | Host | Grok Build (session export evidence present) |
-| Session root | `C:\Users\motou\.grok\sessions\` |
+| Session root | `~/.grok\sessions\` |
 | Control-plane authority | jj-flow git on `main` |
 | Business evidence authority | Per-repo `.workflow/**` + git at evaluation time |
 
@@ -25,13 +25,13 @@ Role / workspace map observed today:
 | Role / kind | Path | Session thread(s) |
 | --- | --- | --- |
 | jj-flow harness | `D:\daji-docs\jj-flow` | `019fb1e2-8301-73a2-b0a8-b9b617dbbbb0` (+ review sub `019fb20b-…`) |
-| 承载用户端 | `D:\a\cz-broker-web` | `019fb1a6-…` (sale-draft), `019fb193-…` (card-account) |
-| 承载识票 | `D:\a\cz-broker-recognize-web` | `019fad89-2fb5-7cf2-9383-a8410adebd17` |
-| SDK | `D:\a\rd-sdt-tracker` | `019fb0b6-d824-77a3-8a94-77a142a68d7d` |
-| 承接用户端 (adjacent) | `D:\a\cj-web` | `019faca3-…` (cross-day) |
-| DX only | cz-broker-web | `019fb0bf-…`, `019fb0d7-…` |
+| 项目C | `/portfolio/project-c` | `019fb1a6-…` (sale-draft), `019fb193-…` (card-account) |
+| 项目D | `/portfolio/project-d` | `019fad89-2fb5-7cf2-9383-a8410adebd17` |
+| SDK | `/portfolio/project-sdk` | `019fb0b6-d824-77a3-8a94-77a142a68d7d` |
+| 项目A (apbacent) | `/portfolio/project-a` | `019faca3-…` (cross-day) |
+| DX only | project-c | `019fb0bf-…`, `019fb0d7-…` |
 
-Do not rename 承接/兑接/承载. SDK is outside the three product roles.
+Do not rename 项目A/项目B/项目C. SDK is outside the three product roles.
 
 ## 2. Episode inventory
 
@@ -44,7 +44,7 @@ Hashes are SHA-256 prefixes of the listed artifact at evaluation time (when loca
 | episode_id | `EP-20260730-H1` |
 | thread_id | `019fb1e2-8301-73a2-b0a8-b9b617dbbbb0` |
 | repo | `D:\daji-docs\jj-flow` |
-| role | control harness (not 承接/兑接/承载) |
+| role | control harness (not 项目A/项目B/项目C) |
 | wall_span | ~78 min (summary `created_at`→`updated_at`, UTC) |
 | active_duration | unknown |
 | clock_quality | derived |
@@ -61,7 +61,7 @@ Hashes are SHA-256 prefixes of the listed artifact at evaluation time (when loca
 | episode_id | `EP-20260730-B1` |
 | thread_id | `019fb1a6-677d-7850-b8ac-3f674feb6d5d` |
 | run_id | `RALPH-sale-draft-pay-channel-20260730` |
-| repo / role | `cz-broker-web` / 承载 |
+| repo / role | `project-c` / 项目C |
 | status | COMPLETED / ARCHIVE |
 | wall_span | ~86 min (thread summary) |
 | artifact_write_span | short (ledger files share minute-level mtimes) |
@@ -72,7 +72,7 @@ Hashes are SHA-256 prefixes of the listed artifact at evaluation time (when loca
 | tags | `handoff_reuse` (knowledge_refs), `target_native_adaptation`, `evidence_gap` (REV lacks `source`/`host_review`) |
 | key refs | `run.json#64a5eba52b30`, `REV-1.json#9a44484c97f7` |
 
-map-find after archive: 2 capabilities in-repo. Portfolio KB (`D:/a/knowledge`) ~1135 entries / active 99 — candidate must not act as checkpoint.
+map-find after archive: 2 capabilities in-repo. Portfolio KB (`/portfolio/knowledge`) ~1135 entries / active 99 — candidate must not act as checkpoint.
 
 ### EP-20260730-B2 — card-account button color + tooling
 
@@ -80,25 +80,25 @@ map-find after archive: 2 capabilities in-repo. Portfolio KB (`D:/a/knowledge`) 
 | --- | --- |
 | episode_id | `EP-20260730-B2` |
 | thread_id | `019fb193-bf28-7e70-bc37-4f701429652d` |
-| repo / role | `cz-broker-web` / 承载 |
+| repo / role | `project-c` / 项目C |
 | wall_span | ~19 min |
 | tags | `validation_wait` (husky: postcss-scss + postcss@5) |
 | outcome | UI color change + postcss@8 tooling fix; jj-end closeout |
 
-### EP-20260730-S1 — aliyun tracker same → 承载识票 (branch mis-attach)
+### EP-20260730-S1 — aliyun tracker same → 项目D (branch mis-attach)
 
 | Field | Value |
 | --- | --- |
 | episode_id | `EP-20260730-S1` |
 | thread_id | `019fad89-2fb5-7cf2-9383-a8410adebd17` |
-| repo / role | `cz-broker-recognize-web` / 承载识票 |
+| repo / role | `project-d` / 项目D |
 | handoff | `HOF-aliyun-tracker-20260729-2` (`consume.md#98c329910554`) |
-| task | `TASK-aliyun-tracker-port-cz-sp` (`task.md#41d2e5866190`) |
+| task | `TASK-aliyun-tracker-port-pc-sp` (`task.md#41d2e5866190`) |
 | wall_span | multi-hour / multi-day (created 7/29 → updated 7/30) |
 | clock_quality | inconsistent |
 | timestamp_provenance | thread |
 | tags | `branch_correction`, `user_correction`, `handoff_reuse`, `validation_wait` |
-| failure mode | tracker landed on `feat/cz-0731-lyj` instead of `feat/cz-aliyun-tracker-recognize`; recovered via cherry-pick + revert on wrong branch |
+| failure mode | tracker landed on `feat/pc-0731-dev` instead of `feat/pc-aliyun-tracker-recognize`; recovered via cherry-pick + revert on wrong branch |
 | staging lesson | merge decision uses **tree tip**, not historical commits; after revert, tip has no tracker files |
 
 ### EP-20260730-K1 — SDK postinstall Node 14 host break
@@ -107,19 +107,19 @@ map-find after archive: 2 capabilities in-repo. Portfolio KB (`D:/a/knowledge`) 
 | --- | --- |
 | episode_id | `EP-20260730-K1` |
 | thread_id | `019fb0b6-d824-77a3-8a94-77a142a68d7d` |
-| repo | `rd-sdt-tracker` |
+| repo | `project-sdk` |
 | wall_span | ~7 min |
 | tags | `regression`, `validation_wait` |
 | root cause | `postinstall` used `node:fs` (`node:` needs ≥14.18); consumer CI Node 14.17.6 |
 | fix | `0.6.3` uses `require('fs'/'path')`; non-blocking try/catch |
 
-### Adjacent (not primary)
+### Apbacent (not primary)
 
 | Id | Note |
 | --- | --- |
 | DX multi-project | `g` aliases under `~/.grok/shell/projects.*` |
 | Workflow vs jj-flow | Grok Rhai workflow ≠ jj-flow durable state machine |
-| EP-cj history bug | `019faca3-…` master-based fix + same intent; cross-day |
+| EP-pa history bug | `019faca3-…` master-based fix + same intent; cross-day |
 
 ## 3. Baseline scorecard
 
@@ -135,7 +135,7 @@ map-find after archive: 2 capabilities in-repo. Portfolio KB (`D:/a/knowledge`) 
 
 ### H-branch — Wrong branch absorbs correct demand
 
-- Evidence: S1 user correction “应该是 feat/cz-aliyun-tracker-recognize”.
+- Evidence: S1 user correction “应该是 feat/pc-aliyun-tracker-recognize”.
 - Mechanism: agent treated “current checkout + 开始迁移” as sufficient without matching **task purpose** to **branch purpose**.
 - Cost: cherry-pick, dual-end revert narrative, staging anxiety.
 - Optimization: hard preflight (see candidate v5).
@@ -191,7 +191,7 @@ Moves `branch_correction` from mid/late rework to intake (~30s confirmation).
 - `.codex/skills/jj-same/SKILL.md` + new reference
 - light `jj-end` note for work≠task purpose
 - this evaluation doc
-- optional SDK static test in `rd-sdt-tracker` (K1 regression)
+- optional SDK static test in `project-sdk` (K1 regression)
 
 ### Rollback
 
@@ -201,11 +201,11 @@ Revert skill/reference paragraphs; reinstall skills; remove evaluation promotion
 
 | # | Question | Expected agent behavior | Pass if |
 | --- | --- | --- | --- |
-| G1 | 当前分支是 `feat/cz-0731-lyj`，任务是「埋点接入」。可否直接开干？ | 否。声明 train 分支与 tracker 线不匹配；询问/创建 `feat/cz-aliyun-tracker-*` | 不写业务代码直到分支用途对齐 |
-| G2 | 用户说「开始迁移承载识票」且 checkout 在发布需求分支。下一步？ | 打印 branch purpose table；BLOCKED or switch/create correct branch first | 无 silent port onto release train |
-| G3 | 埋点误合进 `0731-lyj` 后如何挽回？ | cherry-pick 到正确 feat 线；在错误线 `revert`（禁止 force-push 共享历史） | 两线 tip 正确 |
-| G4 | 「合 `0731-lyj` 到 staging 会带埋点吗？」 | 查 tip 树文件/`package.json`/entry；有 revert 则树无埋点 | 不拿「历史上出现过 commit」当会发布 |
-| G5 | 领头分支 `feat/cj-aliyun-tracker` 派生承载分支？ | 只替换 role → `feat/cz-aliyun-tracker`（或地图 role token）；不挂到无关 `0731-lyj` | 派生 diff 仅 role |
+| G1 | 当前分支是 `feat/pc-0731-dev`，任务是「埋点接入」。可否直接开干？ | 否。声明 train 分支与 tracker 线不匹配；询问/创建 `feat/pc-aliyun-tracker-*` | 不写业务代码直到分支用途对齐 |
+| G2 | 用户说「开始迁移项目D」且 checkout 在发布需求分支。下一步？ | 打印 branch purpose table；BLOCKED or switch/create correct branch first | 无 silent port onto release train |
+| G3 | 埋点误合进 `0731-dev` 后如何挽回？ | cherry-pick 到正确 feat 线；在错误线 `revert`（禁止 force-push 共享历史） | 两线 tip 正确 |
+| G4 | 「合 `0731-dev` 到 staging 会带埋点吗？」 | 查 tip 树文件/`package.json`/entry；有 revert 则树无埋点 | 不拿「历史上出现过 commit」当会发布 |
+| G5 | 领头分支 `feat/pa-aliyun-tracker` 派生项目C分支？ | 只替换 role → `feat/pc-aliyun-tracker`（或地图 role token）；不挂到无关 `0731-dev` | 派生 diff 仅 role |
 
 ## 8. Data-collection actions (status)
 
@@ -213,7 +213,7 @@ Revert skill/reference paragraphs; reinstall skills; remove evaluation promotion
 | --- | --- |
 | Export/label E1/E2/E4 (H1/B1/S1) | **done** (this file + session ids) |
 | Five golden branch Q&A | **done** (§7 + skill reference) |
-| Node 14 postinstall smoke | **done** in `rd-sdt-tracker` static test (see repo) |
+| Node 14 postinstall smoke | **done** in `project-sdk` static test (see repo) |
 | Business REV fill `source`/`host_review` | **policy**: next `/jj-review` on business repos must set fields (adapter already supports); B1 historical REV not rewritten |
 | Branch purpose preflight skill | **promoted** to `.codex/skills` SSOT |
 

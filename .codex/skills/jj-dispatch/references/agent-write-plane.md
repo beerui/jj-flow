@@ -63,7 +63,7 @@
 [ ] lead∉targets 时：lead_responsibilities 有计划，或 reference_implementation 完整（commit+snapshot+verification）
 [ ] C5：plane-self-check grade=ok 再宣称 VERIFIED；可 setIntegrityGrade
 [ ] C6：push/merge 后 setRemoteCloseout；用户说「已合并」须 git 核对，不单靠聊天
-[ ] 承载等多 feature 合 dev：优先 task-scoped cherry-pick（见 EP-S1 / acceptor-tag 负例）
+[ ] 项目C等多 feature 合 dev：优先 task-scoped cherry-pick（见 EP-S1 / acceptor-tag 负例）
 ```
 
 可选（Agent 自跑，**不**教用户）：

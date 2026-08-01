@@ -8,7 +8,7 @@
 - **`$jj-ralph` / `/jj-ralph`**：单仓全流程闭环（分析 → 计划 → 验收 → 归档）与能力地图
 - **`$jj-dispatch` / `/jj-dispatch`**：在**业务仓**发起多项目预览、批准、派发与恢复（Codex / Grok / Qoder；无 Claude 薄命令）
 
-协调状态默认写 **`~/.jj-flow`**；本机 portfolio（如 `D:/a`）用 `$JJ_GLOBAL_CONFIG_DIR/naming.json` 配置 `dispatch.control_root` / `portfolio_root` / `knowledge_root`。`jj doctor` 可查看解析结果。
+协调状态默认写 **`~/.jj-flow`**；本机 portfolio（如 `/portfolio`）用 `$JJ_GLOBAL_CONFIG_DIR/naming.json` 配置 `dispatch.control_root` / `portfolio_root` / `knowledge_root`。`jj doctor` 可查看解析结果。
 
 它解决的是「单仓如何可追溯地做完一件事」以及「多个已分叉项目如何协同改同一能力」。**产品定位是项目编排协议与工作流**。事实来源是 run ledger、control-plane、Git commit 与验证证据，不是聊天状态。
 
@@ -23,49 +23,51 @@
 
 已移除 `$jj-delivery` / `$jj-validate` / `$jj-evolve` 等入口。控制面里的 `delivery_id` 是调度任务身份，不是对话命令。
 
+**npm 包名（2026-08）：** `@brewer/jj-flow`。旧包 `@shendu-sdt/jj-flow` 已弃用，请改用新 scope 安装。
+
 ## 快速使用
 
 安装 Codex skills 和配套 agents：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill
+npx @brewer/jj-flow@beta install-skill
 ```
 
 安装 Claude Code slash commands：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --platform claude
+npx @brewer/jj-flow@beta install-skill --platform claude
 ```
 
 安装 Grok skills：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --platform grok
+npx @brewer/jj-flow@beta install-skill --platform grok
 ```
 
 当前项目同时安装全部平台资产（Codex / Claude / Qoder / Grok）：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta install-skill --platform all --project
+npx @brewer/jj-flow@beta install-skill --platform all --project
 ```
 
 卸载前先预览；旧版未登记或本地修改过的资产需要审查后显式加 `--force`：
 
 ```bash
-npx @shendu-sdt/jj-flow@beta uninstall-skill --platform all --dry-run --json
+npx @brewer/jj-flow@beta uninstall-skill --platform all --dry-run --json
 ```
 
 Codex：
 
 ```text
-$jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
+$jj-same 会话=019f... 当前需求=保留密码入口 源=项目A 目标=项目B,项目C
 $jj-ralph 目标=登录后密码过期提醒 范围=仅登录成功路径 验收=提示可跳转改密
 ```
 
 Claude Code / Grok：
 
 ```text
-/jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
+/jj-same 会话=019f... 当前需求=保留密码入口 源=项目A 目标=项目B,项目C
 /jj-ralph 目标=登录后密码过期提醒 范围=仅登录成功路径 验收=提示可跳转改密
 ```
 
@@ -73,7 +75,7 @@ Claude Code / Grok：
 
 ```text
 $jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
-$jj-same 交接=@D:\path\to\handoff-snapshot.yaml 当前项目=兑接 开始迁移
+$jj-same 交接=@D:\path\to\handoff-snapshot.yaml 当前项目=项目B 开始迁移
 $jj-dispatch PREVIEW delivery=DEL-password
 jj ralph map-find --query "密码过期"
 jj ralph archive --run-id RALPH-login-reminder-20260722

@@ -28,21 +28,21 @@
 
 | Role | project_id | path (at capture) | branch | head @ export |
 | --- | --- | --- | --- | --- |
-| 承接 lead/owner/origin | `cj-frontend-web` | `…/chengjie/frontend-web` | `feat/cj-0731-jmb` | `c2fc7d7e` (2 commits) |
-| 兑接 target | `duijie-frontend-web` | `…/duijie/frontend-web` | `feat/dj-0731-jmb` | `bbb9c4bc` ADAPT PASS |
-| 承载 target | `chengjie-broker-web` | `…/chengjie/broker-web` | `feat/cz-0731-jmb` | `c243db37` ADAPT PASS |
+| 项目A lead/owner/origin | `project-a` | `…/org-a/frontend-web` | `feat/pa-0731-dev` | `c2fc7d7e` (2 commits) |
+| 项目B target | `project-b` | `…/org-b/frontend-web` | `feat/pb-0731-dev` | `bbb9c4bc` ADAPT PASS |
+| 项目C target | `project-c` | `…/org-a/broker-web` | `feat/pc-0731-dev` | `c243db37` ADAPT PASS |
 
-**Do not** rename roles to handoff. Export uses 承接/兑接/承载 correctly.
+**Do not** rename roles to handoff. Export uses 项目A/项目B/项目C correctly.
 
 ### Thread map (Codex 1:1)
 
 | kind | project | thread_id | JSONL lines |
 | --- | --- | --- | --- |
-| coordinator | 承接 cwd | `019fb5c9-…` | 973 |
-| development | 兑接 | `019fb5e9-…` | 174 |
-| development | 承载 | `019fb5ea-…` | 162 |
-| review | 兑接 | `019fb5f5-…` | 121 |
-| review | 承载 | `019fb5f6-…` | 95 |
+| coordinator | 项目A cwd | `019fb5c9-…` | 973 |
+| development | 项目B | `019fb5e9-…` | 174 |
+| development | 项目C | `019fb5ea-…` | 162 |
+| review | 项目B | `019fb5f5-…` | 121 |
+| review | 项目C | `019fb5f6-…` | 95 |
 
 ### Entry artifacts
 
@@ -62,15 +62,15 @@
 
 | event_id | kind | phase | role | clock | labels |
 | --- | --- | --- | --- | --- | --- |
-| evt-source-image-dom-commit | commit | deliver | 承接 | 09:42:07+08 git exact | — |
-| evt-source-error-isolation-commit | commit | deliver | 承接 | 09:53:35+08 git exact | `user_correction` |
-| evt-dispatch-approval | user_request | dispatch | 承接 | 10:03:09+08 artifact | `role_mapping` `handoff_reuse` `control_root_fallback` |
-| evt-duijie-development | subagent | sync | 兑接 | 10:03:34–10:10:34 thread exact | `handoff_reuse` `target_native_adaptation` `validation_wait` |
-| evt-chengzai-development | subagent | sync | 承载 | 10:04:23–10:11:32 thread exact | same (+ subset only) |
-| evt-review-approval | user_request | dispatch | 承接 | 10:15:42+08 | `human_approval` `review_gate` |
-| evt-duijie-review | review | accept | 兑接 | 10:17:05–10:20:45 | `review_gate` |
-| evt-chengzai-review | review | accept | 承载 | 10:17:47–10:20:48 | `review_gate` `evidence_gap` |
-| evt-delivery-verified | artifact_write | archive | 承接 | 10:20:48+08 | `evidence_integrity` |
+| evt-source-image-dom-commit | commit | deliver | 项目A | 09:42:07+08 git exact | — |
+| evt-source-error-isolation-commit | commit | deliver | 项目A | 09:53:35+08 git exact | `user_correction` |
+| evt-dispatch-approval | user_request | dispatch | 项目A | 10:03:09+08 artifact | `role_mapping` `handoff_reuse` `control_root_fallback` |
+| evt-project-b-development | subagent | sync | 项目B | 10:03:34–10:10:34 thread exact | `handoff_reuse` `target_native_adaptation` `validation_wait` |
+| evt-project-c-development | subagent | sync | 项目C | 10:04:23–10:11:32 thread exact | same (+ subset only) |
+| evt-review-approval | user_request | dispatch | 项目A | 10:15:42+08 | `human_approval` `review_gate` |
+| evt-project-b-review | review | accept | 项目B | 10:17:05–10:20:45 | `review_gate` |
+| evt-project-c-review | review | accept | 项目C | 10:17:47–10:20:48 | `review_gate` `evidence_gap` |
+| evt-delivery-verified | artifact_write | archive | 项目A | 10:20:48+08 | `evidence_integrity` |
 
 ### Time accounting
 
@@ -78,10 +78,10 @@
 | --- | --- | --- | --- |
 | wall_span (first source commit → VERIFIED) | ~**38 min** (09:42→10:20 +08) | git + artifact | exact endpoints |
 | active_seconds sum (4 target threads) | ~**1251 s** (~20.9 min) | thread JSONL `cost.active_seconds` | exact per thread; **parallel** so not wall |
-| dj development active | 420.3 s | thread | exact |
-| cz development active | 429.2 s | thread | exact |
-| dj review active | 220.2 s | thread | exact |
-| cz review active | 181.0 s | thread | exact |
+| pb development active | 420.3 s | thread | exact |
+| pc development active | 429.2 s | thread | exact |
+| pb review active | 220.2 s | thread | exact |
+| pc review active | 181.0 s | thread | exact |
 | handoff_wait | not isolated | — | unknown |
 | human_attention | ≥2 approvals (dev keys, review keys) + prior ralph correction | artifact | derived |
 | tool_wait / tokens | null in export | — | unknown |
@@ -94,7 +94,7 @@ Coordinator JSONL spans ~01:28–02:30 UTC (includes pre-dispatch Ralph/session 
 
 | Layer | Result | Evidence |
 | --- | --- | --- |
-| Business outcome | 三端落地 Image 不上挂 DOM + 同步 try/catch；兑接含 MQTT 适配；承载仅通用 tracking | patches + distribution_prompt |
+| Business outcome | 三端落地 Image 不上挂 DOM + 同步 try/catch；项目B含 MQTT 适配；项目C仅通用 tracking | patches + distribution_prompt |
 | Dispatch delivery | **VERIFIED** rev 6 | control-plane |
 | Targets | both **VERIFIED** | commit == reviewed_commit |
 | Development produced_commit | matches tip | intents COMPLETED |
@@ -105,7 +105,7 @@ Coordinator JSONL spans ~01:28–02:30 UTC (includes pre-dispatch Ralph/session 
 | C4 file attestation | **N/A as Grok rule** | Codex uses `sandbox_evidence_ref=codex-app:create_thread:…` |
 | C5/C6 fields | **absent** | no integrity_grade / remote_closeout |
 | task/result.md | **STALE** | still `EVIDENCE_READY` / “尚无 Review” while plane VERIFIED |
-| Full Jest (承载) | 1 unrelated suite fail | README / review notes |
+| Full Jest (项目C) | 1 unrelated suite fail | README / review notes |
 | Browser/network | not validated | evidence_gaps |
 
 ### Workspace model
@@ -121,10 +121,10 @@ Reference uses dual handoff FRESH (image-request + failure-isolation). Targets d
 
 | Tag | Evidence | Hypothesis |
 | --- | --- | --- |
-| `role_mapping` | origin/owner/lead=承接; targets=兑接+承载 | Correct dynamic roles |
+| `role_mapping` | origin/owner/lead=项目A; targets=项目B+项目C | Correct dynamic roles |
 | `handoff_reuse` | FRESH dual handoff; targets did not re-analyze source | Correct same-protocol reuse |
 | `user_correction` | second Ralph: try/catch after user ask | Source iteration before dispatch |
-| `target_native_adaptation` | 兑接 MQTT+util tests; 承载 no MQTT module | ADAPT not blind DIRECT |
+| `target_native_adaptation` | 项目B MQTT+util tests; 项目C no MQTT module | ADAPT not blind DIRECT |
 | `human_approval` | two PREVIEW_APPROVED waves (dev then review) | Staged gate; good |
 | `review_gate` | independent read threads PASS after commit | Aligns with dispatch review model |
 | `control_root_fallback` | explicit writable control under Codex visualizations | Host approval blocked default `~/.jj-flow` write |
@@ -145,7 +145,7 @@ Here Codex uses **true multi-thread** (4 handles), not shared session. Stronger 
 | --- | --- | --- |
 | **search** | control_root_fallback UX; task result stale after VERIFIED; lead_responsibilities empty when lead∉targets; checkpoint recorded_at drift | use for bounded skill/validator fixes |
 | **holdout** | browser/network acceptance for telemetry; Mode W exclusive worktree | not used to tune this write-up |
-| **regression** | Codex multi-thread ADAPT dispatch with dual handoff FRESH + independent Review PASS + produced_commit match; ADAPT subset-only (承载 no MQTT) | protect against “force DIRECT” or “skip review” |
+| **regression** | Codex multi-thread ADAPT dispatch with dual handoff FRESH + independent Review PASS + produced_commit match; ADAPT subset-only (项目C no MQTT) | protect against “force DIRECT” or “skip review” |
 
 Group keys: `episode_id`, host=codex-app, feature=telemetry-image, time=2026-07-31.
 

@@ -1,6 +1,6 @@
 ---
 name: jj-evaluated
-description: Experimental offline evaluation skill ($jj-evaluated / skill id jj-evaluated). Evaluate and improve jj-same, jj-ralph, and jj-dispatch workflows with real project conversation exports and versioned artifacts. Use for 承接、兑接、承载 workflow time-cost analysis, handoff reuse, rework diagnosis, trace-quality checks, and replay-backed generalization. Platforms Codex/Qoder/Grok only — no Claude slash command (do not invent one). Minimal runner scripts available; full learning loop still expanding.
+description: Experimental offline evaluation skill ($jj-evaluated / skill id jj-evaluated). Evaluate and improve jj-same, jj-ralph, and jj-dispatch workflows with real project conversation exports and versioned artifacts. Use for 项目A、项目B、项目C workflow time-cost analysis, handoff reuse, rework diagnosis, trace-quality checks, and replay-backed generalization. Platforms Codex/Qoder/Grok only — no Claude slash command (do not invent one). Minimal runner scripts available; full learning loop still expanding.
 ---
 
 # jj-evaluated
@@ -22,7 +22,7 @@ workflow harness. Learn workflow strategy, skill text, handoff rules, and tool
 orchestration; do not silently change model weights, business code, production
 rules, or control-plane snapshots.
 
-Keep the three project roles separate: 承接, 兑接, and 承载. Do not rename a role
+Keep the three project roles separate: 项目A, 项目B, and 项目C. Do not rename a role
 to `handoff`, and do not infer a role from an old path or chat phrase without a
 current repository/branch/commit fact.
 
@@ -162,7 +162,7 @@ Read the detailed contracts only when needed:
 - [optimization-loop.md](references/optimization-loop.md) for split, replay,
   review, and promotion rules;
 - [source-evidence-map.md](references/source-evidence-map.md) for the currently
-  observed 承接/兑接/承载 sample and its limitations.
+  observed 项目A/项目B/项目C sample and its limitations.
 
 ## Boundaries
 

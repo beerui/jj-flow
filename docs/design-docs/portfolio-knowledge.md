@@ -2,9 +2,9 @@
 
 > 状态：Implemented
 >
-> 验收证据：`tests/portfolio-knowledge.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`D:/a/knowledge/tools/tests/policy-dedup.test.mjs`、`npm run verify`
+> 验收证据：`tests/portfolio-knowledge.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`/portfolio/knowledge/tools/tests/policy-dedup.test.mjs`、`npm run verify`
 >
-> 实施边界：外置库 `D:/a/knowledge`（git 仓 [jj-portfolio](https://github.com/beerui/jj-portfolio)）+ jj-flow 硬接线读取；不替代 control-plane / ralph run checkpoint
+> 实施边界：外置库 `/portfolio/knowledge`（git 仓 [jj-portfolio](https://github.com/beerui/jj-portfolio)）+ jj-flow 硬接线读取；不替代 control-plane / ralph run checkpoint
 
 ## 目标
 
@@ -23,8 +23,8 @@
 
 | 层 | 路径 | 权威 |
 | --- | --- | --- |
-| L0 注册表 | `project_map`（例 `D:/a/map.md`）、`$JJ_GLOBAL_CONFIG_DIR/naming.json` | 项目定位与目录配置 |
-| L1 Portfolio KB | `knowledge_root/**`（可配；例 `D:/a/knowledge/**`） | active entries |
+| L0 注册表 | `project_map`（例 `/portfolio/map.md`）、`$JJ_GLOBAL_CONFIG_DIR/naming.json` | 项目定位与目录配置 |
+| L1 Portfolio KB | `knowledge_root/**`（可配；例 `/portfolio/knowledge/**`） | active entries |
 | L1b 调度状态 | `control_root`（默认 `~/.jj-flow`） | delivery / task_key |
 | L2 项目工作流 | 各仓 `.workflow/**` | 单次交付事实 |
 

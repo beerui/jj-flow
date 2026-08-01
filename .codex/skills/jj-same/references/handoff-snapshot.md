@@ -111,9 +111,9 @@ handoff_status: READY_FOR_HANDOFF
 execution_readiness: READY
 seal_freshness: FRESH
 source:
-  repo: D:/codeup/chengjie/cj-frontend-web
-  role: 承接前台
-  ref: feat/cj-0717-3
+  repo: /path/to/org-a/project-a
+  role: 项目A
+  ref: feat/pa-0717-3
   head: c0c360f9d
   thread_id: 019f...
 canonical:

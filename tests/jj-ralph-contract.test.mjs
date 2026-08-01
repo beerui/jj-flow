@@ -102,9 +102,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
 
   const userCmd = read('docs/commands/jj-ralph.md');
   for (const marker of [
-    '承接',
-    '兑接',
-    '承载',
+    '项目A',
+    '项目B',
+    '项目C',
     '控制项目',
     'RALPH-login-reminder',
     'DEL-password',
@@ -569,7 +569,7 @@ test('setGate advances phase on PASS and can block', () => {
   }
 });
 
-test('rollbackPhase allows adjacent edges and writes progress; COMPLETED/ARCHIVE/ABANDONED resumable', () => {
+test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE/ABANDONED resumable', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-rollback-'));
   try {
     const runId = 'RALPH-rollback-20260731';
@@ -593,7 +593,7 @@ test('rollbackPhase allows adjacent edges and writes progress; COMPLETED/ARCHIVE
 
     assert.throws(
       () => rollbackPhase(runId, { toPhase: 'ANALYZE', reason: 'skip not allowed', cwd }),
-      /adjacent/
+      /apbacent/
     );
 
     setRunStatus(runId, { status: 'PAUSED', reason: '等 UAT', cwd });

@@ -22,11 +22,11 @@
 **口语（推荐）：**
 
 ```text
-/jj-dispatch 分发当前任务到 承接和承载识票
+/jj-dispatch 分发当前任务到 项目A和项目D
 ```
 
 ```text
-$jj-dispatch 把 README 装依赖从 npm 改成 pnpm，预览分发到承接、兑接、承载
+$jj-dispatch 把 README 装依赖从 npm 改成 pnpm，预览分发到项目A、项目B、项目C
 ```
 
 ```text
@@ -36,7 +36,7 @@ $jj-dispatch 开始回退 DEL-readme-pnpm-install-20260731
 **写整齐一点（可选）：**
 
 ```text
-$jj-dispatch PREVIEW delivery=DEL-password 目标=承接前台,兑接前台,承载前台
+$jj-dispatch PREVIEW delivery=DEL-password 目标=项目A,项目B,项目C
 ```
 
 流程：先 **预览** → 你批准 → 再真正派发。  

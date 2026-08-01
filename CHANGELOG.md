@@ -4,6 +4,16 @@
 
 ## Unreleased
 
+- **信息保护 / 示例脱敏**：文档、skill、评测与样例中的业务项目角色统一改为 **项目A / 项目B / 项目C**（及项目D/E），路径改为 `/portfolio/*` 或 `/path/to/*`；去掉真实仓名、本机绝对路径与开发者缩写示例。
+
+## 0.1.1-beta.45 — 2026-08-01
+
+- **npm 包迁移到 `@brewer/jj-flow`**（原 `@shendu-sdt/jj-flow` 弃用，安装请改用新 scope）
+  - `package.json` name / `publishConfig.access=public` / release-please package-name
+  - 文档与 CLI help 示例：`npx @brewer/jj-flow@beta …`
+  - `ralph_ops` 解析优先 `@brewer/jj-flow`，兼容旧 `node_modules/@shendu-sdt/jj-flow`
+  - 旧包 deprecate 命令见发布后说明（`npm deprecate @shendu-sdt/jj-flow`）
+
 ## 0.1.1-beta.44 — 2026-08-01 14:21
 
 - **ralph 归档提升 E1–E3**：
@@ -31,7 +41,7 @@
   - `accept-layer`：mechanical/judgment；strict 验收前 judgment 必 PASS；`gate_issues` error 挡 accept
   - `recordReview` 自动同步 `accept_layers.judgment`；`map-merge` 派生 STAGNATION/strict lessons（弱信息素）
   - schema/skill/CLI/`phases.md`/设计文档/样例/合约测试同步
-- **docs（ralph）**：用户文档用承接/兑接/承载、控制项目、`RALPH-*`/`DEL-*`/`CAP-*` 真实话术；续作说人话；`cli.md` 补新子命令；内部机制交互演示 `milestones/ralph-demo.html`（根路径重定向）
+- **docs（ralph）**：用户文档用项目A/项目B/项目C、控制项目、`RALPH-*`/`DEL-*`/`CAP-*` 真实话术；续作说人话；`cli.md` 补新子命令；内部机制交互演示 `milestones/ralph-demo.html`（根路径重定向）
 - **docs（end）**：收工机制可交互演示 `milestones/end-demo.html`
 - **docs（dispatch）**：调度演示通俗化 + 输出到 `milestones/dispatch-demo.html`，根路径保留重定向
 - **jj-ralph 续作协议 nits**（随 41 后主线一并进包）：`supersedes_run_id` / `parent_run_id` 规范键；progress.md 链；合约锁定
@@ -45,7 +55,7 @@
 ## 0.1.1-beta.40 — 2026-07-31 14:45
 
 - **技能面 90+ 三波优化（Wave0–2）**
-  - Wave0：可移植命名/map 解析（去掉 ralph 立即动作 `D:/a` 硬编码）；`jj` 路由补全 `/jj-end`、dispatch 多端、evaluated experimental、不确定不默认 same；Claude `jj-same` 瘦身；`jj-review` 去幽灵 `/jj-dispatch` + host 矩阵；`jj-end` monorepo/dry_run 加固；ARCHITECTURE / inventory 平台文案对齐。
+  - Wave0：可移植命名/map 解析（去掉 ralph 立即动作 `/portfolio` 硬编码）；`jj` 路由补全 `/jj-end`、dispatch 多端、evaluated experimental、不确定不默认 same；Claude `jj-same` 瘦身；`jj-review` 去幽灵 `/jj-dispatch` + host 矩阵；`jj-end` monorepo/dry_run 加固；ARCHITECTURE / inventory 平台文案对齐。
   - Wave1：`jj-same` / `jj-dispatch` progressive disclosure（主 SKILL 压缩 + `happy-path` / `workflow-core` / `agent-write-plane` references）；Claude 薄入口行数门禁 `SKI-CLAUDE-005`（≤40 行）。
   - Wave2：`jj-evaluated` experimental MVP runner（`episode-validate.mjs` / `evaluated_ops.mjs`：validate、init-report、check-split）+ 合约测试；design 状态 Implemented（验收证据链）。
 - 测试：`tests/jj-evaluated-contract.test.mjs`；skill-inventory thinness；install/harness 断言适配 progressive disclosure。
@@ -72,12 +82,12 @@
 ## 0.1.1-beta.37 — 2026-07-30 18:29
 
 - **目录配置一等公民**：`naming.json` 支持 `dispatch.control_root` / `portfolio_root` / `knowledge_root` 与 `project_map`；产品默认 control_root=`~/.jj-flow`。解析顺序：CLI `--control-root`/`--manifest` → env → naming.json → 默认。`jj doctor` 打印 paths；`jj dispatch-tick --delivery` / `jj task scaffold --delivery` 可省略 `--manifest`。
-- 修复 skill/docs 真源漂移：去掉「默认 D:/a/dispatch-control / 独占 worktree 才能 DISPATCH」矛盾；dispatch-demo 改为业务仓发起。
+- 修复 skill/docs 真源漂移：去掉「默认 /portfolio/dispatch-control / 独占 worktree 才能 DISPATCH」矛盾；dispatch-demo 改为业务仓发起。
 - CREATE_THREAD 动作尊重 intent.environment（隔离时可升级 exclusive-worktree）；host-trial 写绑定与 exclusive worktree 语义一致。
 - 文档：明确 `jj-dispatch` 支持 Grok（`/jj-dispatch`，`host_id=grok-build` / session）；命令总览补全多端平台列，删除「已移除（非活入口）」段落。
 - **dispatch write workspace 默认改为 `project-branch`**（与 same 一致：命名 feature 分支 + 项目主路径）；`exclusive-worktree` 仅在并发写 / 主仓脏 / 用户显式隔离时启用。host-action-contract + control-plane 校验与 skill 同步（EP-20260730 worktree transfer 负例）。
 - **dispatch 分支/workspace 不确定时先问再派**：PREVIEW 输出判断表；`NEEDS_CONFIRM` 时禁止 DISPATCH / create_thread / 写 intent，用户确认后以用户改判为准。
-- **dispatch 状态默认 `~/.jj-flow`**：产品默认用户主目录；`D:/a` 仅为可选本机 portfolio（map/业务仓布局），须用 `naming.json` 才能把 control_root 指到 `D:/a/dispatch-control`。
+- **dispatch 状态默认 `~/.jj-flow`**：产品默认用户主目录；`/portfolio` 仅为可选本机 portfolio（map/业务仓布局），须用 `naming.json` 才能把 control_root 指到 `/portfolio/dispatch-control`。
 
 ## 0.1.1-beta.36 — 2026-07-30 17:26
 
@@ -114,16 +124,16 @@
 - Contract tests for ledger path extraction and accept/archive gate refusal.
 - jj-same multi-env collect-port-evidence (Node primary + sh/ps1 wrappers) and tests.
 - jj-evaluated: record 2026-07-29 Grok episodes baseline under docs/evaluations; exclude that tree from docs-site orphan GC.
-- Refresh source-evidence-map paths to D:/a role mapping.
+- Refresh source-evidence-map paths to /portfolio role mapping.
 
 ## 0.1.1-beta.31 — 2026-07-27 21:41
 
 - Ralph 硬接线 Portfolio KB: init auto-writes knowledge_refs / knowledge_summary (--no-knowledge-refs / --project / --knowledge-query).
-- Add src/portfolioKnowledge.mjs to read D:/a/knowledge indexes into run/analyze/status.
+- Add src/portfolioKnowledge.mjs to read /portfolio/knowledge indexes into run/analyze/status.
 - Skill portable lib syncs portfolioKnowledge.mjs; ralph:sync/check covers 3 files.
 - knowledge loop package emits knowledge_refs + portfolio_knowledge.
 - schema/sample/skill skeleton + contract tests cover knowledge fields.
-- design-docs index links external portfolio KB at D:/a/knowledge.
+- design-docs index links external portfolio KB at /portfolio/knowledge.
 ## 0.1.1-beta.30 — 2026-07-27 18:00
 
 - 精简 Ralph handoff：交接状态并入 run.handoff（ready/must/targets/source_head），accept/finalize 自动维护。
@@ -133,8 +143,8 @@
 
 ## 0.1.1-beta.29 — 2026-07-27 16:24
 
-- 统一全局命名配置：新增 src/namingConfig.mjs，支持读取 D:/a/config/naming.json（schema_version: jj-flow/naming/1.0）。
-- jj-same 分支派生规则升级：以领头分支为模板，只替换项目 role；req_suffix / 开发者缩写不得擅自增减；role 从 D:/a/map.md 解析。
+- 统一全局命名配置：新增 src/namingConfig.mjs，支持读取 /portfolio/config/naming.json（schema_version: jj-flow/naming/1.0）。
+- jj-same 分支派生规则升级：以领头分支为模板，只替换项目 role；req_suffix / 开发者缩写不得擅自增减；role 从 /portfolio/map.md 解析。
 - jj-ralph 新建 run 强制 RALPH-{kebab}-{YYYYMMDD}，archive 目录强制 YYYY-MM-DD-{kebab}；portable lib 同步 namingConfig.mjs。
 - Grok Host Adapter Phase 1 契约扩展：host_ids / handle_kinds / host_profiles 进入 host-action-contract；control-plane intent 支持 handle_kind；validateHostBindAttestation fail-closed；新增 tests/grok-host-contract.test.mjs 与 harness attestation 反例。
 - 完成并归档 Phase 1 exec plan：docs/exec-plans/completed/2026-07-27-grok-host-adapter.md（契约扩展；不升 A2；Phase 2/3 另开）。
@@ -286,7 +296,7 @@
 ## 0.1.1-beta.5 — 2026-07-13 11:32
 
 - 让 `jj-same` 从领头项目分析阶段进入，并持续维护跨项目家族交付计划。
-- 承接领头时默认按 `cj -> dj -> cz` 串行推进，前置项目验证和评审通过且用户主动触发后才进入下一项目。
+- 项目A领头时默认按 `pa -> pb -> pc` 串行推进，前置项目验证和评审通过且用户主动触发后才进入下一项目。
 - 规范后续项目从本地 `master` 创建派生分支，只替换项目角色前缀并保留日期和任务序号。
 - 增加跨会话交接、目标项目独立差异分析、Codex/Claude 入口和安装资产回归测试。
 

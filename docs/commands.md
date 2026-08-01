@@ -23,8 +23,8 @@
 
 ```text
 $jj-ralph 票面预览关闭按钮点了没反应
-$jj-same 交接到 兑接 承载
-/jj-dispatch 分发当前任务到 承接和承载识票
+$jj-same 交接到 项目B 项目C
+/jj-dispatch 分发当前任务到 项目A和项目D
 $jj-end
 $jj-dispatch 开始回退 DEL-readme-pnpm-install-20260731
 ```

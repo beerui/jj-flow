@@ -1,4 +1,4 @@
-# 承接、兑接、承载项目族
+# 项目A、项目B、项目C族
 
 ## 目录
 
@@ -14,12 +14,12 @@
 
 项目族按产品形态和品牌/业务线形成矩阵：
 
-| 形态 | 承接 | 兑接 | 承载 |
+| 形态 | 项目A | 项目B | 项目C |
 |---|---|---|---|
-| 前台 | 承接前台 | 兑接前台 | 承载前台 |
-| 后管 | 承接后管 | 兑接后管 | 承载后管 |
+| 前台 | 项目A | 项目B | 项目C |
+| 后管 | 项目A后管 | 项目B后管 | 项目C后管 |
 
-任意一个单元格都可能成为源项目。不要固定认为承接永远是源；以用户指定的会话、需求落地仓库或功能分支为源。
+任意一个单元格都可能成为源项目。不要固定认为项目A永远是源；以用户指定的会话、需求落地仓库或功能分支为源。
 
 存在 `$jj-dispatch` 控制项目时，不再用单一 `SOURCE` 同时表示所有角色。分别读取 `origin_project`、`requirement_owner`、`lead_project`、`reference_implementation` 和 `targets`；五者可以不同，reference 在验证前可以为空。没有控制项目时继续使用本文件的任务级登记兼容流程。
 
@@ -27,26 +27,26 @@
 
 路径、角色简称和 aliases **不以本文件硬编码为准**。任务开始时先读全局项目地图：
 
-- 权威文件：`D:\a\map.md`
+- 权威文件：`/portfolio/map.md`
 - 命中键：中文名称 / aliases / 目录名 / package.name / 远程仓名
 - 命中后以该行 `path`（module/electron-production 时再结合 `host`）为工作目标
-- 历史路径 `D:\codeup\...` 已废弃；出现时只作旧证据，不作为 live path
+- 历史绝对路径已废弃；出现时只作旧证据，不作为 live path
 
 从地图推导分支用的 `role_map`（项目简称）时：
 
 1. 用用户说的产品名或当前仓库命中 `map.md` 一行。
-2. 在该行 `aliases` 中取**最短稳定项目简称**作为 role token（常见：`cj` / `dj` / `cz`；管理端等用 `cj-admin` 等地图已有 alias，不要自造）。
+2. 在该行 `aliases` 中取**最短稳定项目简称**作为 role token（常见：`pa` / `pb` / `pc`；管理端等用 `project-a-admin` 等地图已有 alias，不要自造）。
 3. 同一产品线跨仓迁移时，role token 只替换为**目标行**对应简称；path 始终回查地图，不猜目录。
 
 常用前台简称（摘自地图，变更以 `map.md` 为准）：
 
 | 逻辑角色 | 地图中文名示例 | role token | 当前 path（以地图为准） |
 |---|---|---|---|
-| 承接前台 | 承接 ERP | `cj` | `D:\a\cj-web` |
-| 兑接前台 | 兑接 ERP | `dj` | `D:\a\dj-web` |
-| 承载前台 | 承载 | `cz` | `D:\a\cz-broker-web` |
-| 承接后管 | 承接 ERP 管理端 | `cj-admin` | `D:\a\cj-admin` |
-| 兑接后管 | 兑接 ERP 管理端 | `dj-admin` | `D:\a\dj-admin` |
+| 项目A | 项目A | `pa` | `/portfolio/project-a` |
+| 项目B | 项目B | `pb` | `/portfolio/project-b` |
+| 项目C | 项目C | `pc` | `/portfolio/project-c` |
+| 项目A后管 | 项目A 管理端 | `project-a-admin` | `/portfolio/project-a-admin` |
+| 项目B后管 | 项目B 管理端 | `project-b-admin` | `/portfolio/project-b-admin` |
 
 任务开始时重新验证 path、Git 仓库和角色。用户当场给出的路径/角色优先于过期缓存，但仍应回写核对 `map.md`。
 
@@ -54,7 +54,7 @@
 
 业务角色由以下证据确定，优先级从高到低：
 
-1. 用户明确指定“承接/兑接/承载 + 前台/后管”。
+1. 用户明确指定“项目A/项目B/项目C + 前台/后管”。
 2. 项目级架构文档、部署配置和业务入口。
 3. 仓库路径、包名和 README，只作为辅助线索。
 
@@ -88,18 +88,18 @@
 
 ## 默认交付顺序
 
-当承接项目是用户指定的领头项目且 agent 需要自动推荐下一目标时，同一行默认按 `cj -> dj -> cz` 串行交付：
+当项目A是用户指定的领头项目且 agent 需要自动推荐下一目标时，同一行默认按 `pa -> pb -> pc` 串行交付：
 
-1. `cj` 完成分析、开发、验证与评审。
-2. 用户在新会话中引用前一会话 ID，明确触发 `dj`。
-3. `dj` 重新做目标分析，按自身业务和架构实施并完成验证与评审。
-4. 用户再次主动触发后，才进入 `cz`。
+1. `pa` 完成分析、开发、验证与评审。
+2. 用户在新会话中引用前一会话 ID，明确触发 `pb`。
+3. `pb` 重新做目标分析，按自身业务和架构实施并完成验证与评审。
+4. 用户再次主动触发后，才进入 `pc`。
 
 agent 不得自行跳过顺序进入另一个仓库。用户在当前请求明确指定目标并要求实施时，视为主动覆盖默认顺序；此时只检查当前目标的 `EXECUTION_READY`，不因其它 sibling 的评审、UAT 或家族计划状态阻塞编码。未选择项目保持原状态，不能被顺手修改。
 
 前置项目达到交接门禁时，家族计划必须记录唯一 `snapshot_id` 和 `handoff_ref`。后续目标优先消费该 snapshot，而不是重新读取完整源会话和需求文档；snapshot 只复用共享需求语义，不替代目标源码验证。
 
-`cj -> dj -> cz` 是承接领头时的默认顺序，不是永久角色限制。当前项目不是承接、用户指定其它顺序或需求只覆盖部分项目时，以用户当前要求和任务级登记为准；不要倒推补做未授权项目。
+`pa -> pb -> pc` 是项目A领头时的默认顺序，不是永久角色限制。当前项目不是项目A、用户指定其它顺序或需求只覆盖部分项目时，以用户当前要求和任务级登记为准；不要倒推补做未授权项目。
 
 ## 分支派生规则
 
@@ -117,17 +117,17 @@ agent 不得自行跳过顺序进入另一个仓库。用户在当前请求明�
 | 段 | 含义 | 来源 | 例 |
 | --- | --- | --- | --- |
 | `type` | 变更类型 | 领头分支 | `feat` |
-| `role` | 项目简称 | 目标在 `D:\a\map.md` 的 alias/简称 | `cj` / `dj` / `cz` |
+| `role` | 项目简称 | 目标在 `/portfolio/map.md` 的 alias/简称 | `pa` / `pb` / `pc` |
 | `release_date` | 计划发布日 | 领头分支；通常 `MMDD` 或 `YYYYMMDD` | `0731`（2026-07-31） |
 | `req_suffix` | **可选**需求后缀；同一天同开发者要拆多条线时才有 | **仅**领头已有或用户/需求明确要求 | `qi` |
-| `developer` | 开发者缩写 | 领头分支；缺省时可读配置项，不写死业务逻辑 | `lyj` |
+| `developer` | 开发者缩写 | 领头分支；缺省时可读配置项，不写死业务逻辑 | `dev` |
 
 配置项（可选，不覆盖领头分支事实）：
 
-- 权威文件：`D:/a/config/naming.json` 的 `branch.*`
-- `branch.developer`：默认开发者缩写（当前 `lyj`），用于用户未建分支时的提示/补全
+- 权威文件：`/portfolio/config/naming.json` 的 `branch.*`
+- `branch.developer`：默认开发者缩写（示例 `dev`），用于用户未建分支时的提示/补全
 - `branch.date_format`：默认 `MMDD`
-- `role_map`：**不在 skill 内维护第二份表**；一律从 `D:/a/map.md` 解析（见 `branch.role_map_source`）
+- `role_map`：**不在 skill 内维护第二份表**；一律从 `/portfolio/map.md` 解析（见 `branch.role_map_source`）
 
 ### 派生算法
 
@@ -136,15 +136,15 @@ agent 不得自行跳过顺序进入另一个仓库。用户在当前请求明�
 3. 派生结果 = 领头模板，**只替换 `role` 段**。
 4. `type` / `release_date` / `req_suffix` / `developer` **原样拷贝**。
 5. 禁止：
-   - 领头没有 `req_suffix` 时自行添加（例如领头 `feat/cj-0731-lyj` 却生成 `feat/dj-0731-qi-lyj`）
+   - 领头没有 `req_suffix` 时自行添加（例如领头 `feat/pa-0731-dev` 却生成 `feat/pb-0731-qi-dev`）
    - 丢掉领头已有的 `req_suffix` 或 `developer`
-   - 用 `-1 / -2` 表示 `dj / cz` 的项目顺序
+   - 用 `-1 / -2` 表示 `pb / pc` 的项目顺序
 6. 创建前必须打印对照并自检：
 
 ```text
-lead:     feat/cj-0731-lyj
-planned:  feat/dj-0731-lyj
-diff:     role cj -> dj
+lead:     feat/pa-0731-dev
+planned:  feat/pb-0731-dev
+diff:     role pa -> pb
 ```
 
 `diff` 超出 `role` 时标记 `BLOCKED` 或按领头重算，不得带着多出来的 token 建分支。
@@ -153,9 +153,9 @@ diff:     role cj -> dj
 
 | 领头 | 目标 | 合法派生 | 非法派生 |
 | --- | --- | --- | --- |
-| `feat/cj-0731-lyj` | 兑接 ERP | `feat/dj-0731-lyj` | `feat/dj-0731-qi-lyj`（擅自加 `qi`） |
-| `feat/cj-0731-qi-lyj` | 承载 | `feat/cz-0731-qi-lyj` | `feat/cz-0731-lyj`（丢掉 `qi`） |
-| `feat/cj-0717-1` | 兑接 ERP | `feat/dj-0717-1` | `feat/dj-0717-2`（改序号） |
+| `feat/pa-0731-dev` | 项目B | `feat/pb-0731-dev` | `feat/pb-0731-qi-dev`（擅自加 `qi`） |
+| `feat/pa-0731-qi-dev` | 项目C | `feat/pc-0731-qi-dev` | `feat/pc-0731-dev`（丢掉 `qi`） |
+| `feat/pa-0717-1` | 项目B | `feat/pb-0717-1` | `feat/pb-0717-2`（改序号） |
 
 - 领头分支不符合可判定格式时，先从家族计划、会话和 Git 历史验证。能够按“不扩大范围、只替换 role”得到唯一可回退结果时记录假设并继续；仍存在多个有效解释时标记 `BLOCKED`，记录候选分支、缺失证据和解除条件，不启动额外问答流程。
 - 创建前重新检查目标 repo（`map.md` path/host）、origin、工作区、本地 `master` SHA 和目标分支是否已存在；任一事实冲突时标记 `BLOCKED`。
@@ -175,9 +175,9 @@ diff:     role cj -> dj
 
 | 角色 | 路径 | ref | 本次身份 | 是否分析 | 是否修改 |
 |---|---|---|---|---|---|
-| 承接前台 | path | branch/commit | SOURCE/TARGET/OUT | yes/no | yes/no |
+| 项目A | path | branch/commit | SOURCE/TARGET/OUT | yes/no | yes/no |
 
-- `SOURCE`：承载已确认改动和证据的项目。
+- `SOURCE`：已确认改动和证据的源项目。
 - `TARGET`：用户授权实施迁移的项目。
 - `OUT`：不在本次范围，只在必要时说明不分析原因。
 

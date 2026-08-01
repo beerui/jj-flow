@@ -41,7 +41,7 @@ Group keys: delivery_id, host_id, handle_kind, feature (readme-pnpm vs acceptor-
 1. **Evidence integrity** — reopen always writes events + revision++; never silent status flip  
 2. **Mode S operability** — live soft plane can reopen via **one** library/API path  
 3. **Safety** — do not allow two **active** BOUND writes/sessions to collide under Codex thread model  
-4. **Replayability** — unit fixture, no live `D:/a` dependency  
+4. **Replayability** — unit fixture, no live `/portfolio` dependency  
 5. **Efficiency** — cut Agent ad-hoc normalize scripts and user “why can’t you reopen” loops  
 6. **Time** — secondary; path B wall already ~minutes  
 
@@ -133,7 +133,7 @@ Keep `TARGET_REOPENED`. Optional extend payload:
 | `docs/evaluations/2026-07-31-readme-pnpm-rollback.md` | candidate status → implementing/promoted |
 | `CHANGELOG.md` | Unreleased |
 
-**Out of PR:** live `D:/a/dispatch-control` mutation; business git; ralph un-archive; R4 CLI.
+**Out of PR:** live `/portfolio/dispatch-control` mutation; business git; ralph un-archive; R4 CLI.
 
 ## 5. Replay protocol (cheap → expensive)
 
@@ -203,7 +203,7 @@ Live control planes written with new events remain valid (forward-compatible fie
 | --- | --- |
 | Approve **R-soft-reopen** P0–P2 as next implementation? | **Yes** |
 | Include auto-normalize inside `reopenTarget` vs separate `prepareModeSReopen`? | **Auto inside reopenTarget** + export prepare for Agent dry-run |
-| Touch live `D:/a` plane? | **No** (tests only) |
+| Touch live `/portfolio` plane? | **No** (tests only) |
 
 ---
 

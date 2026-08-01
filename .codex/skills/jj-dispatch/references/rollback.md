@@ -49,7 +49,7 @@ import { prepareModeSReopen, reopenTarget } from '…/dispatchControlPlane.mjs';
 // 推荐：reopen 内自动 prepare
 plane = reopenTarget(plane, {
   deliveryId: 'DEL-…',
-  projectId: 'dj-web',
+  projectId: 'project-b',
   reason: '用户回退验收'
 });
 
@@ -141,8 +141,8 @@ const prep = buildRollbackPrep({
   delivery_id: 'DEL-…',
   reason: 'user rollback',
   repos: [{
-    project_id: 'dj-web',
-    path: 'D:/a/dj-web',
+    project_id: 'project-b',
+    path: '/portfolio/project-b',
     branch: 'feat/…',
     task_shas: ['9093b961d…'],
     ahead: 1,

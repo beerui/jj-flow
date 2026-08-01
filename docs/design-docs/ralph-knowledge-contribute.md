@@ -85,7 +85,7 @@ map-merge 的 CAP 可作为贡献包输入（title/modules/lessons 过滤后）�
   "created_at": "ISO-8601",
   "source": {
     "repo_root": "…",
-    "project_key": "cj-web",
+    "project_key": "project-a",
     "git_head": "abc1234…",
     "branch": "feat/…",
     "archive_path": ".workflow/ralph/archive/…",
@@ -152,7 +152,7 @@ map-merge 的 CAP 可作为贡献包输入（title/modules/lessons 过滤后）�
 ```json
 {
   "dispatch": {
-    "knowledge_root": "D:/a/knowledge"
+    "knowledge_root": "/portfolio/knowledge"
   },
   "ralph": {
     "knowledge_contribute": {

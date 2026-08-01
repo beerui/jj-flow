@@ -9,11 +9,11 @@
 1. 登记本轮项目族、授权范围、领头项目和交付顺序。
 2. 在领头项目建立家族交付计划，持续记录分支映射、会话 ID、artifact refs、验证证据、差异和下一个项目门禁。
 3. 源项目形成稳定 commit、共享 `BLP/REQ` 和明确未解决项后，在源 `ANL-SOURCE` artifact 内生成 `PARTIAL_HANDOFF` 或 `READY_FOR_HANDOFF` snapshot，并把唯一 `handoff_ref` 写入家族计划。
-4. 承接项目领头时默认按 `cj -> dj -> cz` 串行；用户指定其它领头项目、顺序或子集时以当前要求为准。
+4. 项目A领头时默认按 `pa -> pb -> pc` 串行；用户指定其它领头项目、顺序或子集时以当前要求为准。
 5. 只为当前项目生成可执行实施任务；未来项目只保留高层范围和待验证差异。
 6. 开发、修复、需求纠正、验证、评审、提交或阻塞状态变化后，先同步更新家族交付计划；共享需求变化时生成 successor snapshot，不原地改写旧版本。
 
-领头分支由用户创建。`cj -> dj -> cz` 是 agent 自动选择下一个目标时的默认协调顺序，不是用来否决用户当前明确指定目标的硬门禁。用户在当前消息明确指定“当前项目/目标 + 开始迁移/实施/开干”时，视为已主动触发该目标；只要该目标满足 `EXECUTION_READY`，即可从本地 `master` 创建开发分支并实施，不要求其它 sibling 已完成 QA、UAT 或评审。未被本轮选择的项目保持原状态并记录原因。分支名沿用领头分支的类型、日期和任务序号，只替换项目角色前缀，例如 `feat/cj-0717-1 -> feat/dj-0717-1 -> feat/cz-0717-1`。不得自动更新本地 `master`，不得修改未授权仓库。
+领头分支由用户创建。`pa -> pb -> pc` 是 agent 自动选择下一个目标时的默认协调顺序，不是用来否决用户当前明确指定目标的硬门禁。用户在当前消息明确指定“当前项目/目标 + 开始迁移/实施/开干”时，视为已主动触发该目标；只要该目标满足 `EXECUTION_READY`，即可从本地 `master` 创建开发分支并实施，不要求其它 sibling 已完成 QA、UAT 或评审。未被本轮选择的项目保持原状态并记录原因。分支名沿用领头分支的类型、日期和任务序号，只替换项目角色前缀，例如 `feat/pa-0717-1 -> feat/pb-0717-1 -> feat/pc-0717-1`。不得自动更新本地 `master`，不得修改未授权仓库。
 
 存在 `$jj-dispatch` 控制项目时，以控制 manifest 中明确批准的角色与 `targets` 为本轮协调事实；`jj-same` 仍只负责迁移、差异适配和同步检查点。没有控制项目时兼容 `源=A 目标=B,C`，不强制升级旧 handoff snapshot。家族计划 ≠ dispatch 批准。
 
@@ -187,7 +187,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 确认操作类型：首次迁移、建立持续同步、继续同步、问题修复、需求新增、需求删除或产品调整。
 - 确认入口模式：准备交接、消费 `handoff_ref`、更新交接、无 snapshot 首次迁移或按 `sync_key` 后续同步。
 - 确认源项目、目标项目、共享 blueprint 的产物归属仓库、证据入口和是否要求提交/推送。
-- 确认领头项目、默认或用户指定的交付顺序、领头分支、目标派生分支和家族交付计划归属；承接领头时默认 `cj -> dj -> cz`。
+- 确认领头项目、默认或用户指定的交付顺序、领头分支、目标派生分支和家族交付计划归属；项目A领头时默认 `pa -> pb -> pc`。
 - **分支用途 preflight（硬门，开干前必做）**：读取 [branch-purpose-preflight.md](branch-purpose-preflight.md)。在写业务代码或创建目标分支前，用当前仓库 `git branch --show-current` / HEAD 回答：任务用途、当前分支用途、意图工作分支、本回合 integration、以及（若用户问发布内容）**tip 树**是否含目标能力。任务用途与当前分支用途不一致时标记 `BLOCKED`，只允许切换/创建正确分支或记录用户显式「就落在此 train 分支」的覆盖；禁止因 checkout 顺手把需求接到发布火车或无关 feature 线（回归：EP-20260730-S1）。
 - 持续同步时确认 `sync_key`、源 ref、触发模式和上一次成功检查点；缺失检查点且无法验证初始基线时保持 `BLOCKED`。
 - 用户只要求分析时，无有效 handoff snapshot 才生成 `ANL-SOURCE` 和 `BLP`；已有有效 snapshot 时只完成 freshness gate 与当前目标 `ANL-TARGET`，不写业务代码。
@@ -283,7 +283,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 证据入口：使用了哪些会话、需求、分支和提交。
 - 同步关系：`sync_key`、源/目标、分析 commit range、旧检查点与新检查点状态。
 - 同步决策：源项目/分支确认结果、候选项目状态、用户对每个目标的选择和延期 issue ID。
-- 家族交付计划：优先引用 `$jj-dispatch` 控制项目的 `delivery_id`、动态角色、任务和状态；没有控制项目时才由领头项目持有 `cj/dj/cz` 顺序、各项目状态与分支、会话交接和下一项目门禁。
+- 家族交付计划：优先引用 `$jj-dispatch` 控制项目的 `delivery_id`、动态角色、任务和状态；没有控制项目时才由领头项目持有 `pa/pb/pc` 顺序、各项目状态与分支、会话交接和下一项目门禁。
 - 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
 - 交接快照：`snapshot_id`、`handoff_ref`、handoff status、freshness、启动动作、source HEAD 和 successor 关系。
 - 最终需求账本及后续要求覆盖关系。

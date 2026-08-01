@@ -8,7 +8,7 @@ import { attachKnowledgeRefs } from '../src/portfolioKnowledge.mjs';
 import { buildKnowledgeLoopPackage } from '../src/knowledgeLoop.mjs';
 
 test('attachKnowledgeRefs reads portfolio index when available', () => {
-  const pack = attachKnowledgeRefs({ q: '零息', project: 'cj-web', limit: 5 });
+  const pack = attachKnowledgeRefs({ q: '零息', project: 'project-a', limit: 5 });
   assert.ok(['ready', 'empty', 'unavailable'].includes(pack.status));
   assert.ok(Array.isArray(pack.knowledge_refs));
   if (pack.status === 'ready') {
@@ -24,7 +24,7 @@ test('ralph init auto-writes knowledge_refs into run.json', () => {
       run_id: 'RALPH-knowledge-wire-20260727',
       title: '零息协议 URL',
       goal: '验证 knowledge_refs 自动挂载',
-      project: 'cj-web',
+      project: 'project-a',
       force: true
     }, cwd);
     assert.ok(Array.isArray(run.knowledge_refs));
@@ -50,7 +50,7 @@ test('knowledge loop package includes knowledge_refs field', () => {
     mode: 'ralph',
     recipe: { id: 'ralph' },
     intent: '零息',
-    project: 'cj-web',
+    project: 'project-a',
     evidence: [],
     guardReport: { status: 'PENDING', results: [] },
     executionDecision: { status: 'disabled' }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildDispatch, routeIntent, renderMarkdown } from '../src/dispatch.mjs';
 
 test('auto routes migration keywords to same', () => {
-  const routed = routeIntent('把承接前台的密码更新迁移到兑接前台并建立 handoff');
+  const routed = routeIntent('把项目A的密码更新迁移到项目B并建立 handoff');
   assert.equal(routed.mode, 'same');
 });
 

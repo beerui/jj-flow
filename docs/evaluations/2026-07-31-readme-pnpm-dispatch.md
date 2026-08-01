@@ -18,7 +18,7 @@
 | feature | README 安装依赖：`npm install` → `pnpm install` |
 | host | Grok Build Mode S |
 | session_id | `019fb5b3-b1f4-78b3-b79d-ffd601f91e55`（四 intent 共享） |
-| control_root | `D:/a/dispatch-control` |
+| control_root | `/portfolio/dispatch-control` |
 | control-plane hash | `690410c60e45` (SHA-256 prefix @ eval) |
 | evaluation_date | 2026-07-31 |
 | prior | `2026-07-30-acceptor-tag-color-dispatch.md`（integrity FAIL 负例） |
@@ -28,9 +28,9 @@
 
 | Role | project_id | path | branch | commit |
 | --- | --- | --- | --- | --- |
-| 承接 lead/owner/origin | `cj-web` | `D:/a/cj-web` | `feat/cj-0731-lyj` | `1ec732bd6` ralph COMPLETED |
-| 兑接 target | `dj-web` | `D:/a/dj-web` | `feat/dj-0731-lyj` | `9093b961d` DIRECT |
-| 承载用户端 target | `cz-broker-web` | `D:/a/cz-broker-web` | `feat/cz-0731-lyj` | `f7fbe8818` DIRECT |
+| 项目A lead/owner/origin | `project-a` | `/portfolio/project-a` | `feat/pa-0731-dev` | `1ec732bd6` ralph COMPLETED |
+| 项目B target | `project-b` | `/portfolio/project-b` | `feat/pb-0731-dev` | `9093b961d` DIRECT |
+| 项目C target | `project-c` | `/portfolio/project-c` | `feat/pc-0731-dev` | `f7fbe8818` DIRECT |
 
 ## 2. Portfolio inventory (control_root @ 2026-07-31)
 
@@ -55,7 +55,7 @@
 | Tag | Evidence |
 | --- | --- |
 | `handoff_reuse` | request_ref / handoff_ref ralph COMPLETED；source_head commit |
-| `branch_correction` | PREVIEW cz NEEDS_CONFIRM → 用户确认 `feat/cz-0731-lyj` |
+| `branch_correction` | PREVIEW pc NEEDS_CONFIRM → 用户确认 `feat/pc-0731-dev` |
 | PREFLIGHT source commit | 源未 commit → DISPATCH **BLOCKED**；用户提交后再派 |
 | Mode S | `execution_mode=S`；真 session；project-branch |
 | C3 terminal | dirty → EVIDENCE_READY；commit → review PASS → VERIFIED + produced_commit |

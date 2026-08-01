@@ -13,20 +13,20 @@ export function expandUserPath(input) {
   return path.resolve(raw);
 }
 
-/** Product default: user-home coordination data (not machine-specific D:/a). */
+/** Product default: user-home coordination data (not machine-specific /portfolio). */
 export function defaultDispatchControlRoot() {
   return path.join(os.homedir(), '.jj-flow');
 }
 
-/** Defaults; local portfolio machines override via D:/a/config/naming.json. */
+/** Defaults; local portfolio machines override via /portfolio/config/naming.json. */
 export const DEFAULT_NAMING_CONFIG = {
   schema_version: 'jj-flow/naming/1.0',
-  project_map: 'D:/a/map.md',
+  project_map: '/portfolio/map.md',
   branch: {
     pattern: '{type}/{role}-{release_date}[-{req_suffix}][-{developer}]',
     date_format: 'MMDD',
-    developer: 'lyj',
-    role_map_source: 'D:/a/map.md',
+    developer: 'dev',
+    role_map_source: '/portfolio/map.md',
     derive_rule: 'replace_role_only'
   },
   ralph: {
@@ -87,7 +87,7 @@ export const DEFAULT_NAMING_CONFIG = {
       'Default state root is ~/.jj-flow under the user home directory',
       'Users launch jj-dispatch from a business project workspace',
       'Configure directories in naming.json: dispatch.control_root / portfolio_root / knowledge_root',
-      'Optional local portfolio (e.g. D:/a) sets portfolio_root and may override control_root',
+      'Optional local portfolio (e.g. /portfolio) sets portfolio_root and may override control_root',
       'Do not create a new control repo per delivery wave',
       'Override control_root with JJ_DISPATCH_CONTROL_ROOT or --control-root / --manifest'
     ]
@@ -97,7 +97,7 @@ export const DEFAULT_NAMING_CONFIG = {
 export function resolveGlobalConfigDir() {
   const fromEnv = process.env.JJ_GLOBAL_CONFIG_DIR || process.env.DAJI_CONFIG_DIR;
   if (fromEnv) return path.resolve(fromEnv);
-  if (process.platform === 'win32') return 'D:\\a\\config';
+  if (process.platform === 'win32') return '/portfolio/config';
   return null;
 }
 
@@ -324,15 +324,15 @@ export function ensureDispatchControlRoot(options = {}) {
         '```json',
         '{',
         '  "dispatch": {',
-        '    "portfolio_root": "D:/a",',
-        '    "control_root": "D:/a/dispatch-control",',
-        '    "knowledge_root": "D:/a/knowledge"',
+        '    "portfolio_root": "/portfolio",',
+        '    "control_root": "/portfolio/dispatch-control",',
+        '    "knowledge_root": "/portfolio/knowledge"',
         '  },',
-        '  "project_map": "D:/a/map.md"',
+        '  "project_map": "/portfolio/map.md"',
         '}',
         '```',
         '',
-        'Config file: `$JJ_GLOBAL_CONFIG_DIR/naming.json` (Windows default `D:/a/config/naming.json`).',
+        'Config file: `$JJ_GLOBAL_CONFIG_DIR/naming.json` (Windows default `/portfolio/config/naming.json`).',
         'Env overrides: `JJ_DISPATCH_CONTROL_ROOT`, `JJ_PORTFOLIO_ROOT`, `PORTFOLIO_KB_ROOT`.',
         '',
         'Layout:',

@@ -1,6 +1,6 @@
 ---
 name: jj-same
-description: 在同源分叉项目间迁移/同步功能。用户侧只说「交接到 兑接/承载」等自然语言；agent 从当前会话的 Ralph run/handoff 解析目标并实施。也可基于会话、commit、旧 handoff snapshot 工作。按稳健/剃刀/精准/最小化/复用适配目标原生架构。
+description: 在同源分叉项目间迁移/同步功能。用户侧只说「交接到 项目B/项目C」等自然语言；agent 从当前会话的 Ralph run/handoff 解析目标并实施。也可基于会话、commit、旧 handoff snapshot 工作。按稳健/剃刀/精准/最小化/复用适配目标原生架构。
 ---
 
 # 跨项目精准迁移
@@ -24,7 +24,7 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 
 ## 用户怎么说
 
-- `交接到 兑接` / `交接到 兑接 承载` / `开始交接` / `提交并交接三端` / `继续迁承载`
+- `交接到 项目B` / `交接到 项目B 项目C` / `开始交接` / `提交并交接三端` / `继续迁项目C`
 - Agent 自解析领头 Ralph run、`handoff_ref`、目标角色、源 commit；**不要**要求用户填 `交接=@...` / `from-ralph=...`。
 
 ## Ralph handoff 优先
@@ -49,7 +49,7 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 
 ## 项目族 + 控制面边界
 
-`2×3` 矩阵（承接/兑接/承载 × 前台/后管）；路径与方向 → [project-family.md](references/project-family.md)。同行默认 sibling；前后台不自动同步。只改明确授权目标。
+`2×3` 矩阵（项目A/项目B/项目C × 前台/后管）；路径与方向 → [project-family.md](references/project-family.md)。同行默认 sibling；前后台不自动同步。只改明确授权目标。
 
 | 场景 | 规则 |
 | --- | --- |
@@ -91,9 +91,9 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 ## 调用示例
 
 ```text
-$jj-same 会话=019f... 当前需求=保留密码入口 源=承接前台 目标=兑接前台,承载前台
+$jj-same 会话=019f... 当前需求=保留密码入口 源=项目A 目标=项目B,项目C
 $jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提醒
-$jj-same 交接=@…/handoff-snapshot.yaml 当前项目=兑接 开始迁移
+$jj-same 交接=@…/handoff-snapshot.yaml 当前项目=项目B 开始迁移
 $jj-same 同步 SYNC-silence-login，检查 A 从上次成功基线到 HEAD 的更新并同步到 B
 $jj-same 源修改完成，列出可同步项目并询问立即同步还是延期
 ```

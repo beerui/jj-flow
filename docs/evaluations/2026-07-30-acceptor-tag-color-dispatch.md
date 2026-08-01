@@ -4,7 +4,7 @@
 >
 > Skill: `jj-evaluated`
 >
-> Scope: first live multi-project dispatch under `D:/a/dispatch-control`（业务可闭环，证据链不绿）
+> Scope: first live multi-project dispatch under `/portfolio/dispatch-control`（业务可闭环，证据链不绿）
 >
 > 2026-07-31：`plane-self-check` 仍 **FAIL 12**（合成 session + VERIFIED 无 produced_commit）。  
 > **成功对照样本**已换成 `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`（Mode S 真闭环）。  
@@ -21,8 +21,8 @@
 | task_id | `TASK-DEL-acceptor-tag-color-20260730` |
 | feature | 承兑人标签：列表模式颜色与本仓卡片列表一致 |
 | host | Grok Build (session export) |
-| thread_id | `019fb288-5e92-7a73-bb0a-b6d6edfe1420` (cwd=`D:\a\dj-web`) |
-| control_root | `D:/a/dispatch-control` |
+| thread_id | `019fb288-5e92-7a73-bb0a-b6d6edfe1420` (cwd=`/portfolio/project-b`) |
+| control_root | `/portfolio/dispatch-control` |
 | control-plane hash | `854d64eb96d4` (SHA-256 prefix) |
 | evaluation_date | 2026-07-30 |
 | prior related | `docs/evaluations/2026-07-30-preference-modified-dispatch.md` (no control-plane holdout → this is that holdout sample) |
@@ -31,32 +31,32 @@
 
 | Role | project_id | path | intended_branch | style commit | note |
 | --- | --- | --- | --- | --- | --- |
-| 兑接 (origin / owner / lead) | `dj-web` | `D:/a/dj-web` | `feat/dj-0731-lyj` | `5af0b1c6b` | ralph `RALPH-acceptor-tag-color-20260730` COMPLETED; later merge to `dev` |
-| 承接 (target) | `cj-web` | `D:/a/cj-web` | `feat/cj-0731-lyj` | `f68b7043f` | ADAPT `#11A560` (bg-green); stylelint/postcss friction on commit |
-| 承载识票 (target) | `cz-broker-recognize-web` | `D:/a/cz-broker-recognize-web` | `feat/cz-0731-lyj` | `493db28c5` (+ pick `204595d2b` on dev) | ADAPT g-tag 体系；整支 merge 曾冲掉 aliyun tracker |
+| 项目B (origin / owner / lead) | `project-b` | `/portfolio/project-b` | `feat/pb-0731-dev` | `5af0b1c6b` | ralph `RALPH-acceptor-tag-color-20260730` COMPLETED; later merge to `dev` |
+| 项目A (target) | `project-a` | `/portfolio/project-a` | `feat/pa-0731-dev` | `f68b7043f` | ADAPT `#11A560` (bg-green); stylelint/postcss friction on commit |
+| 项目D (target) | `project-d` | `/portfolio/project-d` | `feat/pc-0731-dev` | `493db28c5` (+ pick `204595d2b` on dev) | ADAPT g-tag 体系；整支 merge 曾冲掉 aliyun tracker |
 
 Artifact anchors:
 
-- `D:/a/dispatch-control/.workflow/dispatch/DEL-acceptor-tag-color-20260730/control-plane.json` (`854d64eb96d4`)
-- `D:/a/dispatch-control/.workflow/tasks/TASK-DEL-acceptor-tag-color-20260730/*` (`task.json` `58848e2fc0e7`)
-- `D:/a/dj-web/.workflow/ralph/RALPH-acceptor-tag-color-20260730/run.json` (`40d94f585de9`)
-- Thread export: `C:/Users/motou/.grok/sessions/D%3A%5Ca%5Cdj-web/019fb288-…/`
+- `/portfolio/dispatch-control/.workflow/dispatch/DEL-acceptor-tag-color-20260730/control-plane.json` (`854d64eb96d4`)
+- `/portfolio/dispatch-control/.workflow/tasks/TASK-DEL-acceptor-tag-color-20260730/*` (`task.json` `58848e2fc0e7`)
+- `/portfolio/project-b/.workflow/ralph/RALPH-acceptor-tag-color-20260730/run.json` (`40d94f585de9`)
+- Thread export: `~/.grok/sessions/D%3A%5Ca%5Cproject-b/019fb288-…/`
 
 ## 2. Normalized timeline
 
 | event_id | kind | phase | labels | evidence |
 | --- | --- | --- | --- | --- |
 | evt-ralph-source | artifact_write | analyze→archive | handoff gap | ralph COMPLETED ~10:19–10:22Z; `handoff=null`, `host=null` |
-| evt-user-dispatch | user_request | dispatch | role_mapping | `/jj-dispatch 分发当前任务到 承接和承载识票` |
+| evt-user-dispatch | user_request | dispatch | role_mapping | `/jj-dispatch 分发当前任务到 项目A和项目D` |
 | evt-preview | artifact_write | dispatch | | PREVIEW plane revision 1; intake CONFIRMED; branch uncertainty listed |
 | evt-approve | user_correction | dispatch | | `ask_user_question` → 批准全部分发 + project-branch |
 | evt-dispatch-edit | agent_turn | dispatch | evidence_gap | plane hand-edited via PowerShell/node write (not `dispatch-tick` CAS) |
-| evt-implement-inline | tool_call | deliver | target_native_adaptation, subagent_overhead(neg) | **same session** edits cj + cz `table-list.vue`; no real CREATE_THREAD |
+| evt-implement-inline | tool_call | deliver | target_native_adaptation, subagent_overhead(neg) | **same session** edits pa + pc `table-list.vue`; no real CREATE_THREAD |
 | evt-evidence-ready | artifact_write | accept | | result.md: `EVIDENCE_READY`, uncommitted |
-| evt-jj-end | commit | deliver | validation_wait | 三仓 style commit + land; cj postcss; cz cherry-pick then full merge |
+| evt-jj-end | commit | deliver | validation_wait | 三仓 style commit + land; pa postcss; pc cherry-pick then full merge |
 | evt-user-merged | user_request | accept | | `已合并` |
 | evt-verified-write | artifact_write | accept | evidence_gap | plane → `VERIFIED` rev 4 **without** `produced_commit` / target `commit` |
-| evt-tracker-regression | user_correction | — | regression, branch_correction | user: 承载 dev 缺 aliyun-tracker；归因整支 merge 覆盖 |
+| evt-tracker-regression | user_correction | — | regression, branch_correction | user: 项目C dev 缺 aliyun-tracker；归因整支 merge 覆盖 |
 
 Timestamps (UTC unless noted):
 
@@ -67,9 +67,9 @@ Timestamps (UTC unless noted):
 | approve | 10:35:14.141 | plane.approval | exact-ish |
 | synthetic bind | 10:36:30.188 (all 4 intents) | plane intents | **inconsistent** (batch stamp) |
 | user_confirmed_merged | 10:44:41.923 | plane events | exact-ish |
-| dj style commit | 2026-07-30 18:38:03 +0800 | git | exact |
-| cz style commit | 2026-07-30 18:38:13 +0800 | git | exact |
-| cj style commit | 2026-07-30 18:40:29 +0800 | git | exact |
+| pb style commit | 2026-07-30 18:38:03 +0800 | git | exact |
+| pc style commit | 2026-07-30 18:38:13 +0800 | git | exact |
+| pa style commit | 2026-07-30 18:40:29 +0800 | git | exact |
 
 ## 3. Baseline (cautious)
 
@@ -93,13 +93,13 @@ Do not use file mtime as active duration. Do not treat plane `bound_at` as four 
 
 | Tag | Evidence | Hypothesis |
 | --- | --- | --- |
-| `target_native_adaptation` | cj `#11A560`; cz `#22b577` / g-tag 供商供银；未抄兑接 `#0076F6` | distribution_prompt risk notes worked |
+| `target_native_adaptation` | pa `#11A560`; pc `#22b577` / g-tag 供商供银；未抄项目B `#0076F6` | distribution_prompt risk notes worked |
 | `handoff_reuse` (weak) | request_ref ralph; no frozen handoff snapshot | ralph archive without handoff forced re-analysis of targets |
 | `branch_correction` | PREVIEW listed wrong checkout; user approved intended feature branches | C2 confirm-before-DISPATCH **helped** |
 | `evidence_gap` | VERIFIED without commit fields; synthetic threads; reviews empty + same ts | Agent treated chat/closeout as checkpoint authority |
 | `subagent_overhead` (inverted) | Scheduler **did** development in-session | Host Wave / CREATE_THREAD still unavailable or skipped; single-session multi-write |
-| `validation_wait` | cj stylelint/postcss@5 vs 8; cz merge conflicts | tooling + dirty feature history, not color logic |
-| `regression` | `feat/cz-0731-lyj` full merge onto `dev` removed aliyun tracker tree | land strategy used whole branch tip, not task-scoped commit only (echo EP-S1) |
+| `validation_wait` | pa stylelint/postcss@5 vs 8; pc merge conflicts | tooling + dirty feature history, not color logic |
+| `regression` | `feat/pc-0731-dev` full merge onto `dev` removed aliyun tracker tree | land strategy used whole branch tip, not task-scoped commit only (echo EP-S1) |
 | `user_correction` | 已合并；埋点代码去哪了 | Closeout semantics ambiguous (feature merge vs task commit) |
 
 **Dominant success mode:** product ADAPT + project-branch + user-gated PREVIEW.
@@ -151,7 +151,7 @@ Leakage check: preference-modified (no plane) remains separate search for worksp
 | Check | Result |
 | --- | --- |
 | Soft validate plane against runtime VERIFIED rules | **FAIL** (missing commit fields; DONE w/o produced_commit) |
-| Git style commits present | **PASS** (dj/cj/cz) |
+| Git style commits present | **PASS** (pb/pa/pc) |
 | ADAPT not copy-source hex | **PASS** |
 | Browser | skipped (acceptance did not require) |
 | `npm run verify` on jj-flow | not required for this read-only eval |
@@ -170,7 +170,7 @@ Leakage check: preference-modified (no plane) remains separate search for worksp
 
 1. One dispatch wave that **only** mutates plane via runtime CLI and ends with real `produced_commit` hashes.
 2. Capture whether Grok can bind a real session id (not synthetic) for at least one development `task_key`.
-3. On 承载 multi-feature branches: land policy sample for **task-scoped cherry-pick only** vs full feature merge (tracker wipe case).
+3. On 项目C multi-feature branches: land policy sample for **task-scoped cherry-pick only** vs full feature merge (tracker wipe case).
 4. Ralph on lead: require `run.handoff` before multi-target dispatch recommendation.
 
 ## 10. Bottom line

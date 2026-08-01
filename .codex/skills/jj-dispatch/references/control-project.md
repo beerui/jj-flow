@@ -2,30 +2,30 @@
 
 ## 目录与配置（用户可指定）
 
-调度**不强制**本机有 `D:/a`。产品默认状态在用户主目录；有项目族时用配置指到 portfolio。
+调度**不强制**本机有 `/portfolio`。产品默认状态在用户主目录；有项目族时用配置指到 portfolio。
 
 | 概念 | 含义 | 配置 |
 | --- | --- | --- |
-| **配置文件** | 全局命名与目录 SSOT | `$JJ_GLOBAL_CONFIG_DIR/naming.json`（Windows 未设 env 时默认识别 `D:/a/config/naming.json`） |
-| **portfolio 根** | 业务仓 / map / knowledge 所在顶层树 | `dispatch.portfolio_root` 或 `JJ_PORTFOLIO_ROOT`（例：`D:/a`） |
+| **配置文件** | 全局命名与目录 SSOT | `$JJ_GLOBAL_CONFIG_DIR/naming.json`（Windows 未设 env 时默认识别 `/portfolio/config/naming.json`） |
+| **portfolio 根** | 业务仓 / map / knowledge 所在顶层树 | `dispatch.portfolio_root` 或 `JJ_PORTFOLIO_ROOT`（例：`/portfolio`） |
 | **受控项目** | portfolio 下业务仓，见 `project_map` | `project_map` / `JJ_PROJECT_MAP` |
 | **发起 cwd** | 业务仓会话里 `$jj-dispatch` | 不要求是 control 目录 |
-| **dispatch 状态根** | 只存 manifest / task / receipt（**不是**业务工作仓） | **`dispatch.control_root` 默认 `~/.jj-flow`**；可改为如 `D:/a/dispatch-control` |
+| **dispatch 状态根** | 只存 manifest / task / receipt（**不是**业务工作仓） | **`dispatch.control_root` 默认 `~/.jj-flow`**；可改为如 `/portfolio/dispatch-control` |
 | **知识库** | Portfolio KB | `dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT`（默认可推 `{portfolio_root}/knowledge`） |
 | **一波 delivery** | 状态根下 `.workflow/dispatch/<DELIVERY_ID>/` | 不是每波新建控制 git 仓 |
 
-用户在承接或兑接里发起调度是一等路径；Agent 把协调状态写入**解析后的 control_root**（`jj doctor` 可核对）。
+用户在项目A或项目B里发起调度是一等路径；Agent 把协调状态写入**解析后的 control_root**（`jj doctor` 可核对）。
 
 ### `naming.json` 示例（本机 portfolio）
 
 ```json
 {
   "schema_version": "jj-flow/naming/1.0",
-  "project_map": "D:/a/map.md",
+  "project_map": "/portfolio/map.md",
   "dispatch": {
-    "portfolio_root": "D:/a",
-    "control_root": "D:/a/dispatch-control",
-    "knowledge_root": "D:/a/knowledge"
+    "portfolio_root": "/portfolio",
+    "control_root": "/portfolio/dispatch-control",
+    "knowledge_root": "/portfolio/knowledge"
   }
 }
 ```
@@ -38,7 +38,7 @@
 | --- | --- |
 | **产品默认** | **`~/.jj-flow`**（用户主目录，不存在则创建） |
 | **配置项** | `naming.json` → `dispatch.control_root` |
-| 本机可选覆盖 | 如 `D:/a/dispatch-control`（须写进 naming.json 或 env） |
+| 本机可选覆盖 | 如 `/portfolio/dispatch-control`（须写进 naming.json 或 env） |
 | 环境覆盖 | `JJ_DISPATCH_CONTROL_ROOT` |
 | CLI 覆盖 | `--control-root` / `--manifest` |
 | 解析 / 创建 | `resolveDispatchControlRoot()` / `ensureDispatchControlRoot()` |
@@ -74,11 +74,11 @@
   .workflow/tasks/TASK-<DELIVERY_ID>/
 
 # 可选 portfolio（须 naming.json 配置 portfolio_root / control_root 等）
-D:/a/
+/portfolio/
   config/naming.json
   map.md
   knowledge/
-  cj-web/   # 业务仓 cwd 发起
+  project-a/   # 业务仓 cwd 发起
   dispatch-control/   # 若 control_root 指到这里
 ```
 

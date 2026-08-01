@@ -18,19 +18,19 @@
 | Host label used here | `host=inferred:grok` |
 | Control-plane authority | Not used. Grok Host Adapter Phase 1 is contract-only; no Phase 3 real-run attestation. |
 | Business evidence authority | Per-repo `.workflow/ralph/**` artifacts + git heads at evaluation time |
-| Map authority | Absolute paths under `D:\\a\\...` as currently observed |
+| Map authority | Absolute paths under `/portfolio/...` as currently observed |
 
 Role mapping used for this sample:
 
 | Role | Repository | Observed head at evaluation |
 | --- | --- | --- |
-| 承接用户端 | `D:\\a\\cj-web` | `fix/inquiry-face-info-checkmark@860417f90ae4` (clean) |
-| 兑接用户端 | `D:\\a\\dj-web` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` (clean) |
-| 承载用户端 | `D:\\a\\cz-broker-web` | `fix/inquiry-face-info-checkmark@8257da360bd3` (clean) |
-| 承载草稿管理 | `D:\\a\\cz-draft-manager-web` | `dev@e4a5ff98ba80` (clean) |
-| 独立 SDK | `D:\\a\\rd-sdt-tracker` | `master@2fb27ef0e6ff` (clean) |
+| 项目A | `/portfolio/project-a` | `fix/inquiry-face-info-checkmark@860417f90ae4` (clean) |
+| 项目B | `/portfolio/project-b` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` (clean) |
+| 项目C | `/portfolio/project-c` | `fix/inquiry-face-info-checkmark@8257da360bd3` (clean) |
+| 项目E | `/portfolio/project-e` | `dev@e4a5ff98ba80` (clean) |
+| 独立 SDK | `/portfolio/project-sdk` | `master@2fb27ef0e6ff` (clean) |
 
-Do not rename 承接/兑接/承载 to generic `handoff`. Independent SDK is outside the three product roles.
+Do not rename 项目A/项目B/项目C to generic `handoff`. Independent SDK is outside the three product roles.
 
 ## 2. Episode inventory
 
@@ -41,7 +41,7 @@ Evidence hashes are SHA-256 prefixes of the listed artifact at evaluation time.
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-appcode-logger-20260728` |
-| repo / role | `rd-sdt-tracker` / independent SDK |
+| repo / role | `project-sdk` / independent SDK |
 | status | COMPLETED / ARCHIVE |
 | created_at → updated_at | `2026-07-28T08:22:30Z` → `2026-07-28T08:30:39Z` |
 | wall_span (artifact) | ~8.1 min |
@@ -60,7 +60,7 @@ Notes: clean single-repo delivery with machine-checkable acceptance. Good regres
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-zf-zj-align-huiyuan-20260729` |
-| repo / role | `cz-broker-web` / 承载用户端 |
+| repo / role | `project-c` / 项目C |
 | status | IN_PROGRESS / PLAN |
 | created_at → updated_at | `2026-07-29T05:36:10Z` → `2026-07-29T05:38:04Z` |
 | wall_span (artifact) | ~1.9 min (ledger timestamps only) |
@@ -79,7 +79,7 @@ Drift: `run.json` still says PLAN, but `progress.md` already records DELIVER wor
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-ticket-face-close-20260729` |
-| repo / role | `cz-draft-manager-web` / 承载草稿管理 |
+| repo / role | `project-e` / 项目E |
 | status | COMPLETED / ARCHIVE |
 | created_at → updated_at | `2026-07-29T06:36:43Z` → `2026-07-29T06:38:40Z` |
 | wall_span (artifact) | ~2.0 min |
@@ -98,7 +98,7 @@ Causal note: review explicitly says fix was still in the working tree and `revie
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-publish-esc-focus-20260729` |
-| repo / role | `cz-draft-manager-web` / 承载草稿管理 |
+| repo / role | `project-e` / 项目E |
 | status | COMPLETED / ARCHIVE |
 | created_at → updated_at | `2026-07-29T06:45:21Z` → `2026-07-29T06:50:14Z` |
 | wall_span (artifact) | ~4.9 min |
@@ -123,7 +123,7 @@ This is the highest-value failure cluster in the window.
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-inquiry-face-checkmark-20260729` |
-| repo / role | source `cj-web` / 承接; targets `dj-web` 兑接 + `cz-broker-web` 承载 |
+| repo / role | source `project-a` / 项目A; targets `project-b` 项目B + `project-c` 项目C |
 | status | COMPLETED / ARCHIVE |
 | created_at → updated_at | `2026-07-29T08:14:24Z` → `2026-07-29T08:20:29Z` |
 | wall_span (artifact) | ~6.1 min for source ledger only |
@@ -140,15 +140,15 @@ Handoff facts from `handoff.json`:
 
 - mode: `LITE`
 - source_head: `860417f90ae460bfae38690feb0dc0722a5309fe`
-- 兑接: DIRECT, head `cb2c38a3e`, `LANDED_ON_DEV` merge `87581b6f1`
-- 承载: DIRECT, head `8257da360`, `LANDED_ON_DEV` merge `7d5fd4382`
+- 项目B: DIRECT, head `cb2c38a3e`, `LANDED_ON_DEV` merge `87581b6f1`
+- 项目C: DIRECT, head `8257da360`, `LANDED_ON_DEV` merge `7d5fd4382`
 - CDN/native domains preserved per REV-2
 
 This is the holdout / golden-path episode for the window.
 
-### Adjacent evidence (not primary episodes)
+### Apbacent evidence (not primary episodes)
 
-- `D:\\a\\cj-web\\.workflow\\scratch\\20260728-handoff-aliyun-tracker-to-cz\\handoff.md` — same/handoff scratch for tracker port; useful later for cross-repo knowledge attach, not scored here.
+- `/portfolio/project-a\\.workflow\\scratch\\20260728-handoff-aliyun-tracker-to-pc\\handoff.md` — same/handoff scratch for tracker port; useful later for cross-repo knowledge attach, not scored here.
 - Older list-acceptor-tag wave under `.csv-wave` (2026-07-27) remains in historical sample set from skill bootstrap; not re-scored in this baseline.
 
 ## 3. Baseline scorecard
@@ -309,15 +309,15 @@ Re-ran `$jj-evaluated` on the same 2-day Grok claim window. No new business epis
 | Portable skill sync | `.codex/skills/jj-ralph/scripts/lib/ralph.mjs` + `.grok/skills/jj-ralph/**` present with product-consistency text in `phases.md` |
 | Working tree | jj-flow `main` **ahead 1** of origin; gate/eval changes still **uncommitted** (local only) |
 | Host attestation | Still missing: all sampled runs keep `thread_id/task_thread_id/review_thread_id = null` |
-| Role heads re-check | `cj-web@860417f90` / `dj-web@cb2c38a3e` / `cz-broker-web@8257da360` on `fix/inquiry-face-info-checkmark`; draft-manager `dev@e4a5ff9`; recognize `feat/cz-0731-lyj@1e3fb4726` |
+| Role heads re-check | `project-a@860417f90` / `project-b@cb2c38a3e` / `project-c@8257da360` on `fix/inquiry-face-info-checkmark`; draft-manager `dev@e4a5ff9`; recognize `feat/pc-0731-dev@1e3fb4726` |
 
-### Adjacent episodes in the same wall window (not re-scored)
+### Apbacent episodes in the same wall window (not re-scored)
 
 | Episode | Evidence | Note |
 | --- | --- | --- |
-| list-acceptor-tag | `D:/a/cj-web/.workflow/ralph/RALPH-list-acceptor-tag-20260727` | 2026-07-27 family wave |
-| pay-password-autofocus | `D:/a/cj-web/.workflow/ralph/RALPH-pay-password-autofocus-20260727` | 2026-07-27 |
-| aliyun-tracker handoff scratch | cj-web scratch + cz TASK-aliyun-tracker-port-cz | same/port, not full family COMPLETED sample |
+| list-acceptor-tag | `/portfolio/project-a/.workflow/ralph/RALPH-list-acceptor-tag-20260727` | 2026-07-27 family wave |
+| pay-password-autofocus | `/portfolio/project-a/.workflow/ralph/RALPH-pay-password-autofocus-20260727` | 2026-07-27 |
+| aliyun-tracker handoff scratch | project-a scratch + pc TASK-aliyun-tracker-port-pc | same/port, not full family COMPLETED sample |
 | jj-same UX redesign | Codex thread `019fa2ca-e865-...` | workflow evolution (handoff into ralph) |
 
 ### Candidate v2 (proposed, not implemented)
@@ -366,18 +366,18 @@ Role heads at iteration-3:
 
 | Role | Repository | Head |
 | --- | --- | --- |
-| 承接用户端 | `D:\a\cj-web` | `fix/inquiry-face-info-checkmark@860417f90ae4` (clean) |
-| 兑接用户端 | `D:\a\dj-web` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` (clean) |
-| 承载用户端 | `D:\a\cz-broker-web` | `feat-channel-zj@9f4cff5cba51` (clean) **changed from baseline** |
-| 承载草稿管理 | `D:\a\cz-draft-manager-web` | `dev@e4a5ff98ba80` (clean) |
-| 承载识票 | `D:\a\cz-broker-recognize-web` | `feat/cz-0731-lyj@1e3fb4726644` (clean) |
+| 项目A | `/portfolio/project-a` | `fix/inquiry-face-info-checkmark@860417f90ae4` (clean) |
+| 项目B | `/portfolio/project-b` | `fix/inquiry-face-info-checkmark@cb2c38a3e65a` (clean) |
+| 项目C | `/portfolio/project-c` | `feat-channel-zj@9f4cff5cba51` (clean) **changed from baseline** |
+| 项目E | `/portfolio/project-e` | `dev@e4a5ff98ba80` (clean) |
+| 项目D | `/portfolio/project-d` | `feat/pc-0731-dev@1e3fb4726644` (clean) |
 
 ### New episode — EP-20260729-06 order-filter-bizserialid
 
 | Field | Value |
 | --- | --- |
 | run_id | `RALPH-order-filter-bizserialid-20260729` |
-| repo / role | `cz-broker-web` / 承载用户端 |
+| repo / role | `project-c` / 项目C |
 | status | COMPLETED / ARCHIVE |
 | created_at -> updated_at | `2026-07-29T09:10:00Z` -> `2026-07-29T09:10:54Z` |
 | wall_span (artifact) | ~0.9 min |

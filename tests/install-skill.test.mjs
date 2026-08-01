@@ -194,7 +194,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   const sameWorkflow = fs.readFileSync(path.join(target, 'jj-same', 'references', 'workflow-core.md'), 'utf8');
   const sameCorpus = [sameSkill, sameHappy, sameWorkflow].join('\n');
   assert.match(sameSkill, /^---\r?\nname: jj-same/m);
-  assert.match(sameCorpus, /cj -> dj -> cz/);
+  assert.match(sameCorpus, /pa -> pb -> pc/);
   assert.match(sameCorpus, /handoff_ref/);
   assert.match(sameCorpus, /更新交接/);
   assert.match(
@@ -246,7 +246,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(handoffSchema.allOf[1].then.properties.seal_freshness.const, 'FRESH');
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),
-    /feat\/cj-0731-lyj/
+    /feat\/pa-0731-dev/
   );
   assert.doesNotMatch(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'project-family.md'), 'utf8'),

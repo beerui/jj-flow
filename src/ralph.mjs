@@ -1119,7 +1119,7 @@ function shouldMaintainHandoff(run, { force = false, targets_hint = [] } = {}) {
   if (Array.isArray(run.family?.targets) && run.family.targets.length) return true;
   if (Array.isArray(targets_hint) && targets_hint.length) return true;
   const scopeText = [...(run.scope?.in || []), ...(run.scope?.out || []), run.goal || '', run.title || ''].join(' ');
-  return new RegExp('兑接|承载|sibling|交接|迁移|三端|同源').test(scopeText);
+  return new RegExp('项目A|项目B|项目C|sibling|交接|迁移|三端|同源').test(scopeText);
 }
 
 export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [], thread_id = null, must = null, do_not_port = null, mode = null, write_file = true } = {}) {
@@ -1405,7 +1405,7 @@ const GATE_TO_PHASE = {
   archive: 'ARCHIVE'
 };
 
-const LEDGER_CODE_EXT_RE = /\.(?:vue|ts|tsx|js|jsx|mjs|cjs|css|scss|less|sass|json|mdx?)$/i;
+const LEDGER_CODE_EXT_RE = /\.(?:vue|ts|tsx|js|jsx|mjs|pas|css|scss|less|sass|json|mdx?)$/i;
 const LEDGER_PATH_EXCLUDE = new Set([
   'analyze.md', 'plan.md', 'acceptance.md', 'progress.md', 'run.json', 'handoff.json',
   'archive-manifest.json', 'business-map.json', 'package.json', 'package-lock.json',
@@ -1889,7 +1889,7 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   return { run, gate, status, phase: run.phase, handoff: run.handoff || null };
 }
 
-/** Adjacent phase rollback edges (ARCHIVE → ACCEPT allowed for same-run resume after soft archive). */
+/** Apbacent phase rollback edges (ARCHIVE → ACCEPT allowed for same-run resume after soft archive). */
 export const PHASE_ROLLBACK_EDGES = Object.freeze({
   PLAN: 'ANALYZE',
   DELIVER: 'PLAN',
@@ -1906,7 +1906,7 @@ const PHASE_TO_GATE = Object.freeze({
 });
 
 /**
- * Roll back phase along an allowed adjacent edge (e.g. ACCEPT → DELIVER, ARCHIVE → ACCEPT).
+ * Roll back phase along an allowed apbacent edge (e.g. ACCEPT → DELIVER, ARCHIVE → ACCEPT).
  * COMPLETED / ARCHIVE / ABANDONED are resumable in place (no terminal freeze).
  */
 export function rollbackPhase(runId, {
@@ -1930,7 +1930,7 @@ export function rollbackPhase(runId, {
   const allowedTo = PHASE_ROLLBACK_EDGES[run.phase];
   if (allowedTo !== toPhase) {
     throw new Error(
-      'rollbackPhase only allows adjacent edges (got ' + run.phase + '→' + toPhase
+      'rollbackPhase only allows apbacent edges (got ' + run.phase + '→' + toPhase
         + '; allowed from ' + run.phase + ': ' + (allowedTo || 'none')
         + (expectedFrom ? '; ' + toPhase + ' is reached from ' + expectedFrom : '') + ')'
     );

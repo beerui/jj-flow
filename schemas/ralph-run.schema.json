@@ -641,7 +641,7 @@
         "minLength": 1
       },
       "default": [],
-      "description": "Portfolio knowledge entry ids attached at ANALYZE/init (D:/a/knowledge)"
+      "description": "Portfolio knowledge entry ids attached at ANALYZE/init (/portfolio/knowledge)"
     },
     "knowledge_summary": {
       "type": "array",
