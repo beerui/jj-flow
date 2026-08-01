@@ -1,16 +1,16 @@
 # Exec plan — Dispatch / Ralph 任务回退（rollback）
 
-> 状态：active
+> 状态：**completed**（R1–R4 已交付；**Ralph R3-3 语义已被 2026-08-01 无终态冻结 supersede**，见 §10）
 >
-> 备注：R1–R3 已实现；R4 git 协作包仍可选。
+> 备注：R1–R4 已实现。Ralph 续作默认路径改为 **同 run resume / soft archive**（非「COMPLETED 必须新 run」）。
 >
 > 负责人：jj-flow dispatch + ralph
 >
-> 开始日期：2026-07-31
+> 开始日期：2026-07-31 · 收口修订：2026-08-01
 >
 > 关联：
 > - [jj-dispatch skill](../../commands/jj-dispatch.md) · `requestRework` / `abandonDispatchUnknown`（`src/dispatchControlPlane.mjs`）
-> - [jj-ralph 阶段](../../design-docs/jj-ralph.md) · gates / BLOCKED / DELIVER 循环
+> - [jj-ralph 阶段](../../design-docs/jj-ralph.md) · soft archive / resume / ABANDONED
 > - 评估负例：`docs/evaluations/2026-07-30-acceptor-tag-color-dispatch.md`（假 VERIFIED、整支 merge 冲树）
 >
 > 边界：**先定义诚实的控制面/ledger 回退语义**；默认不自动 `git revert` / 不自动 unmerge；用户不跑 CLI 时 Agent 可落盘等价操作
@@ -46,7 +46,7 @@
 | --- | --- |
 | 回退改什么？ | **优先控制面 / ralph ledger**；代码回退用 **git 建议包**（commit list + 建议 message），默认不自动执行 |
 | VERIFIED 能否回退？ | 允许 → **`SUPERSEDED` / `REOPENED` 类终端旁路态或新 attempt**，保留旧 revision 审计；禁止静默改历史 revision 字段冒充未 VERIFIED |
-| COMPLETED archive？ | 不 un-archive 覆盖；**新 run** 或 `reopen` 元数据指向旧 archive |
+| COMPLETED archive？ | **（2026-08-01 修订）** 不擦历史 snapshot；**同 run resume** 可续作/re-archive；新 run 仅真新需求。半途丢弃 → `ABANDONED` |
 | 用户路径 | 自然语言（「回退目标 X」「撤销上次验收」）；Agent 写 plane/run；CLI 可选 |
 
 ## 5. 分波交付
@@ -78,12 +78,12 @@
 
 | ID | 项 | 说明 |
 | --- | --- | --- |
-| R3-1 | `setGate FAIL` + 允许 phase 回退策略 | 显式 `rollbackPhase`：仅允许向前阶段回退到上一 phase（如 ACCEPT→DELIVER），写 progress 事件 |
-| R3-2 | `PAUSED` / `BLOCKED` 正式入口 | skill：「暂停任务」「阻塞原因」 |
-| R3-3 | COMPLETED 不 reopen 旧目录 | `ralph reopen-as-new` 建议：复制 goal + 链 `supersedes_run_id` |
-| R3-4 | 合约测试 | gate 回退、禁止伪造 COMPLETED→IN_PROGRESS 无事件 |
+| R3-1 | `setGate FAIL` + 允许 phase 回退策略 | ✅ 显式 `rollbackPhase`：相邻边（含 **ARCHIVE→ACCEPT** soft），写 progress |
+| R3-2 | `PAUSED` / `BLOCKED` 正式入口 | ✅ skill：「暂停任务」「阻塞原因」；另有 **ABANDONED** |
+| R3-3 | ~~COMPLETED 不 reopen 旧目录~~ → **superseded** | **2026-08-01**：同 run `resumeRun` / soft COMPLETED；`suggestReopenAsNew` 仅真新需求可选；`abandon` 半途丢弃 |
+| R3-4 | 合约测试 | ✅ gate 回退；resume 有 progress 事件；re-archive / ABANDONED 禁 map |
 
-**验收：** ralph 合约测试绿；phases.md 与 schema 字段对齐。
+**验收：** ralph 合约测试绿；phases.md 与 schema 字段对齐（含无终态冻结）。
 
 ### Phase R4 — Git 协作包
 
@@ -109,12 +109,14 @@
 
 禁止：删除 `events` / 把 revision 调小 / 无 git 证据把 produced_commit 清空却保持 VERIFIED。
 
-### Ralph（草案）
+### Ralph（现行，2026-08-01）
 
 ```text
-phase 回退：仅相邻或显式允许的回退边（ACCEPT→DELIVER；ARCHIVE 不可回）
-status：IN_PROGRESS ↔ PAUSED/BLOCKED；COMPLETED → 仅 superseding 新 run
+phase 回退：相邻边（ACCEPT→DELIVER；ARCHIVE→ACCEPT；…）
+status：IN_PROGRESS ↔ PAUSED/BLOCKED；COMPLETED/ABANDONED 可 resume 同 run
+archive：soft 快照 + map；可 re-archive；不擦旧 snapshot 装成「从未归档」
 gate：PASS 可被后续 FAIL 覆盖并记 progress；不得无日志改 gates
+新 run：仅真新需求（可选 progress 链）
 ```
 
 ## 7. 验收总标准
@@ -137,15 +139,17 @@ gate：PASS 可被后续 FAIL 覆盖并记 progress；不得无日志改 gates
 
 ## 9. 下一步
 
-1. ~~R1–R4~~  
+1. ~~R1–R4~~ · ~~Ralph 无终态冻结对齐~~  
 2. 可选：`DEL-acceptor-tag-color` 假 VERIFIED 用正式 reopen 收口（勿伪装历史绿）  
-3. 发版 / `jj install-skill` 按需
+3. 发版 / `jj install-skill` 按需  
+4. 可将本文件移入 `docs/exec-plans/completed/`（状态已 completed）
 
 ## 10. 决策日志
 
 | 日期 | 决策 | 原因 |
 | --- | --- | --- |
 | 2026-07-31 | 回退 = 控制面/ledger 诚实前进，非 git 时光机默认 | 已有 rework/attempt 模型；自动 revert 过险 |
-| 2026-07-31 | COMPLETED/VERIFIED 用 supersede/reopen，不擦除审计 | 检查点不可伪造未发生 |
+| 2026-07-31 | COMPLETED/VERIFIED 用 supersede/reopen，不擦除审计 | 检查点不可伪造未发生（**dispatch VERIFIED** 仍适用） |
 | 2026-07-31 | 用户不跑 CLI | 与 Mode S / C3 一致 |
 | 2026-07-31 | 实现 R1–R3：`reopenTarget`/`blockDispatchIntent`/`rollbackPhase`/`setRunStatus`；保留 checkpoint 审计 | 满足 reopen 负例与 Mode S 落盘 |
+| 2026-08-01 | **Ralph R3-3 supersede**：无终态冻结；同 run resume；soft archive；ABANDONED；close 弃用 | 任务无法真关死；归档=沉淀非墓碑；见 `post-complete-continue.md` / commit feat(ralph) no-freeze |

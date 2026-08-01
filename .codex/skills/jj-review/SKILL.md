@@ -1,18 +1,19 @@
 ---
 name: jj-review
-description: 单仓只读审查适配器：优先调用当前宿主内置 review/code-review，把结论映射为 ralph run 的 reviews/REV-*.json 并回写 run.json。在审查、code review、评审 commit/diff、关联 task/review 会话，或 jj-ralph 完成后补审查记录时使用。跨项目调度与正式 VERIFIED 门用 jj-dispatch。不替代宿主审查引擎，不改业务代码。
+description: 单仓只读审查适配器：优先调用当前宿主内置 review/code-review，把结论映射为 ralph run 的 reviews/REV-*.json 并回写 run.json。在审查、code review、评审 commit/diff、关联 task/review 会话，或对当前/最新 ralph run（含 soft-archive 后）补审查记录时使用。跨项目调度与正式 VERIFIED 门用 jj-dispatch。不替代宿主审查引擎，不改业务代码。
 ---
 
 # jj-review
 
 对现有 ralph run 做**只读审查记录**。审查本身优先交给**当前宿主内置**的 review 能力；本 skill 负责范围绑定、结果映射与落盘。
 
-不改业务代码，不 init run，不建 fix 任务，不走 dispatch。
+不改业务代码，不 init run，不建 fix 任务，不走 dispatch。  
+**可**写到已 soft-archive / `COMPLETED` 的 run（ralph 无终态冻结）；**不要**为「补审查」另 init 新 run。
 
 ## 立即动作
 
 1. **定位 run**
-   读 `.workflow/ralph/RALPH-*/run.json`。用户给了 `run_id` 用它；否则选**最新** run（`updated_at` 降序，并列再比 `run_id` 降序）。**无 run → `BLOCKED`，禁止 init。**
+   读 `.workflow/ralph/RALPH-*/run.json`。用户给了 `run_id` 用它；否则选**最新** run（`updated_at` 降序，并列再比 `run_id` 降序；含已归档目录下的权威 run）。**无 run → `BLOCKED`，禁止 init。**
 
    无 run 时输出模板（停止，不 init）：
 

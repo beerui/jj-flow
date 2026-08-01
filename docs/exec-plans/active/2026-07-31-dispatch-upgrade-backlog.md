@@ -11,7 +11,7 @@
 > 关联：
 > - `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`
 > - `docs/evaluations/2026-07-31-readme-pnpm-rollback.md`
-> - `docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md`（R1–R4 done）
+> - `docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md`（R1–R4 done；Ralph 无终态冻结 2026-08-01）
 
 ## 1. 已落地（勿重复）
 

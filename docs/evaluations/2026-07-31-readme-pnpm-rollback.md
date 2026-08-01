@@ -39,7 +39,7 @@ Artifact anchors:
 - backup pre-reopen: `control-plane.pre-reopen-2026-07-31T01-48-07-073Z.json`
 - task: `…/tasks/TASK-DEL-readme-pnpm-install-20260731/{progress,result}.md`
 - prior success eval: `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`
-- rollback exec plan: `docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md`
+- rollback exec plan: `docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md`
 
 ## 2. Normalized timeline (trace-backed)
 
@@ -180,6 +180,6 @@ Parent golden **readme-pnpm install** 仍为 Mode S success regression；本文�
 - **控制面**：`VERIFIED` → `PREVIEW_ONLY`，attempt 2，事件可追溯，self-check 绿。  
 - **Git**：三仓 feature task-scoped revert，README 恢复 `npm install`，**未**进 `dev`、**未** push。  
 - **主要进化点**：Mode S **软 plane 与严格 `reopenTarget` 之间的缺口**（候选 **R-soft-reopen**）。  
-- **未做**：Ralph COMPLETED 原地回退（符合「新 run / 不 un-archive」裁决）；远端收口。
+- **未做（当时）**：Ralph COMPLETED 原地回退（符合 **2026-07-31** 裁决「新 run / 不 un-archive」）。**2026-08-01 起** product 改为同 run resume / soft archive；本评估仍是历史 episode 事实，不回写改判。远端收口当时亦未做。
 
 **Harness：** 不必为本次改 harness-manifest；把 soft reopen 与 GIT_ROLLBACK 事件形状纳入 skill + 合约测试即可。

@@ -17,7 +17,8 @@
 
 **别用 end：** 只是中途存一下、只要审查、不允许 push 时。
 
-> 调度里显示「验收通过」**不等于** 已经合进 dev。见 [踩坑](pitfalls.html)。
+> 调度里显示「验收通过」**不等于** 已经合进 dev。见 [踩坑](pitfalls.html)。  
+> **end 只做 Git**：不写 ralph `run.json`、不把任务「关死」。归档后再改 / 半途废弃 → 仍用 [ralph](command-jj-ralph.html) 同编号 resume（无终态冻结）。
 
 ## 顺序（心里有数即可）
 

@@ -187,7 +187,8 @@ Candidate **R-soft-reopen**: Mode S soft plane cannot call strict `reopenTarget`
 (shared session `thread_id` uniqueness + DONE/BOUND fields). Soft equivalent used
 live; promote via skill/fixture or session-gated validator exception.
 
-Ralph `RALPH-readme-pnpm-install-20260731` remains COMPLETED/ARCHIVE (no un-archive).
+Ralph `RALPH-readme-pnpm-install-20260731` was COMPLETED/ARCHIVE at capture time.
+> **Note (2026-08-01 product):** historical episode wording “no un-archive” meant “do not erase snapshot facts.” Current ralph allows **same-run resume** after soft archive (re-archive OK); it does not require a new `run_id` merely because status was COMPLETED.
 
 ## 2026-07-31 Codex multi-thread dispatch (telemetry-image)
 

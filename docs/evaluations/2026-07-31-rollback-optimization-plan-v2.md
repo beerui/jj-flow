@@ -6,7 +6,7 @@
 > - `docs/evaluations/2026-07-31-readme-pnpm-rollback.md`
 > - 用户裁决：分支/提交干净且仅本地时，**reset 往往优于 revert**；**策略必须用户决定**
 >
-> Parent exec plan: `docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md`
+> Parent exec plan: `docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md`
 >
 > Non-goals: 自动 force-push、自动 unmerge `dev`、自动改线上、Agent 替用户选定 git 手段
 

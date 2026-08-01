@@ -28,16 +28,16 @@ description: 兼容入口；jj-flow 项目族编排工作流的路由层，把 $
 ```text
 1. 同源多仓迁移 / handoff 消费 / sync_key / 持续同步     → $jj-same  （Claude: /jj-same）
 2. 多目标批准 / delivery_id / task_key / 控制项目调度     → $jj-dispatch（Codex/Qoder/Grok；Claude 无 slash）
-3. 单仓 ANALYZE→ARCHIVE 闭环 / 能力地图 / 验收归档       → $jj-ralph （Claude: /jj-ralph）
-4. 单仓只读审查 / 落盘 REV-*.json                        → $jj-review（Claude: /jj-review）
-5. 单仓 git 收工：commit → push work → merge integration → $jj-end   （Claude: /jj-end）
+3. 单仓 ANALYZE→ARCHIVE 闭环 / 能力地图 / 验收归档 / **归档后再改·废弃** → $jj-ralph （Claude: /jj-ralph）
+4. 单仓只读审查 / 落盘 REV-*.json（含已 soft-archive 的最新 run） → $jj-review（Claude: /jj-review）
+5. 单仓 git 收工：commit → push work → merge integration → $jj-end   （Claude: /jj-end；**不**关死 ralph）
 6. 离线 episode 评估（experimental）                     → $jj-evaluated（无 Claude command）
 7. 不确定                                                → 先澄清意图（不默认 same）
 ```
 
 决策提示：
 
-- 迁移/家族/handoff → same；多项目批准/派发 → dispatch；单仓做到验收 → ralph；只审不改 → review；收工合入 → end；离线复盘 → evaluated
+- 迁移/家族/handoff → same；多项目批准/派发 → dispatch；单仓做到验收 **或归档后续作/abandon** → ralph（**同 run resume 优先**）；只审不改 → review；收工合入 → end（Git only）；离线复盘 → evaluated
 - `jj-dispatch`：**Codex / Qoder / Grok** install；**无 Claude slash = intentional**（勿写「仅 Codex」）
 - `jj-evaluated`：experimental；**禁止**虚构 `/jj-evaluated` Claude 命令
 

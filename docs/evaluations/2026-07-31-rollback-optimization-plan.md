@@ -6,7 +6,7 @@
 > - success: `docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`
 > - rollback: `docs/evaluations/2026-07-31-readme-pnpm-rollback.md`
 >
-> Exec plan parent: `docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md` (R1–R3 done; R4 open)
+> Exec plan parent: `docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md` (R1–R4 done; Ralph R3-3 superseded 2026-08-01 by no-freeze)
 >
 > Non-goals of this plan: auto git revert/unmerge/force-push; rewrite business README; mutate live control_root as part of harness tests.
 

@@ -96,7 +96,7 @@ const DEEP_PAGES = [
   { title: 'jj-evaluated 设计', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html', group: '设计文档' },
   { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html', group: '设计文档' },
   { title: 'Grok Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html', group: '执行计划' },
-  { title: 'Dispatch Ralph 回退', source: 'docs/exec-plans/active/2026-07-31-dispatch-ralph-rollback.md', output: 'exec-plans/active/2026-07-31-dispatch-ralph-rollback.html', group: '执行计划' },
+  { title: 'Dispatch Ralph 回退', source: 'docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md', output: 'exec-plans/completed/2026-07-31-dispatch-ralph-rollback.html', group: '执行计划' },
   { title: 'Dispatch 升级 backlog', source: 'docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md', output: 'exec-plans/active/2026-07-31-dispatch-upgrade-backlog.html', group: '执行计划' },
   { title: 'Grok Host Phase 1', source: 'docs/exec-plans/completed/2026-07-27-grok-host-adapter.md', output: 'exec-plans/completed/2026-07-27-grok-host-adapter.html', group: '执行计划' },
   { title: 'Harness 收口', source: 'docs/exec-plans/completed/2026-07-18-harness-hardening.md', output: 'exec-plans/completed/2026-07-18-harness-hardening.html', group: '执行计划' },
