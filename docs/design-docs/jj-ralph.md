@@ -1,7 +1,9 @@
 # jj-ralph 单仓全流程自治闭环
 
-> 状态：Implemented  
-> 验收：`tests/jj-ralph-contract.test.mjs`、`npm run ralph:check`、`npm run verify`  
+> 状态：Implemented
+>
+> 验收证据：`tests/jj-ralph-contract.test.mjs`、`npm run ralph:check`、`npm run verify`
+>
 > 边界：skill + `ralph_ops` / CLI；无 dispatch CAS；不自动 commit/push/merge
 
 ## 1. 目标

@@ -1,12 +1,14 @@
 # Exec plan — Dispatch / Ralph 任务回退（rollback）
 
-> 状态：**completed**（R1–R4 已交付；**Ralph R3-3 语义已被 2026-08-01 无终态冻结 supersede**，见 §10）
+> 状态：completed
 >
-> 备注：R1–R4 已实现。Ralph 续作默认路径改为 **同 run resume / soft archive**（非「COMPLETED 必须新 run」）。
+> 备注：R1–R4 已实现。Ralph R3-3 已由 2026-08-01 无终态冻结 supersede（同 run resume / soft archive / ABANDONED，见 §10）。
 >
 > 负责人：jj-flow dispatch + ralph
 >
-> 开始日期：2026-07-31 · 收口修订：2026-08-01
+> 开始日期：2026-07-31
+>
+> 完成日期：2026-08-01
 >
 > 关联：
 > - [jj-dispatch skill](../../commands/jj-dispatch.md) · `requestRework` / `abandonDispatchUnknown`（`src/dispatchControlPlane.mjs`）
