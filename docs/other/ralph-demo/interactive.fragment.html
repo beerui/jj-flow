@@ -68,17 +68,17 @@
   if (!root || root.dataset.ready === "1") return;
   root.dataset.ready = "1";
 
-  // 内部机制：阶段门、强度、改代码循环、停表、验收双层、归档、相邻回退、归档后续作
+  // 内部机制：阶段门、强度、DELIVER 循环、验收双层、归档提升 L1/L2、回退、口语续作
   const steps = [
     {
       title: "任务落在本仓库的一个文件夹里",
-      one: "聊天不能当进度；进度在 .workflow/ralph/RALPH-…/ 里。",
-      body: "你在业务仓里说「做这个需求」，会开一个任务目录：run.json 记阶段与检查点，progress.md 记过程。控制层 ~/.jj-flow 是多仓调度用的，不是 ralph 的主账本。",
+      one: "聊天不能当进度；进度在业务仓 .workflow/ralph/ 里。",
+      body: "你在业务仓里用口语说「做这个需求」，会开一个任务目录：run.json 记阶段与检查点，progress.md 记过程。你不必背 RALPH 编号——agent 自己记。控制层 ~/.jj-flow 是多仓调度用的，不是 ralph 的主账本。",
       cmd: "$jj-ralph 先改承接：登录后密码过期要提示",
       facts: [
         "目录：.workflow/ralph/RALPH-…/run.json、progress.md",
-        "还有 analyze.md / plan.md / acceptance.md 等阶段产物",
-        "业务仓本机路径；不是 ~/.jj-flow"
+        "阶段产物：analyze / plan / acceptance 等",
+        "编号写在报告里供核对，不是用户口令"
       ],
       active: { ledger: true, run: true },
       done: {},
@@ -89,12 +89,12 @@
     {
       title: "五段流水线：分析 → 计划 → 改 → 验 → 归档",
       one: "阶段往前走靠「检查点通过」，不是靠聊天说好了。",
-      body: "五个阶段固定顺序。某一段的检查点（gate）通过后，才进下一段。验收通过后默认收尾归档。",
+      body: "五个阶段固定顺序。某一段的检查点（gate）通过后，才进下一段。验收通过后默认 finalize：本仓能力提升 + 快照 + 知识贡献包。",
       cmd: "（跟着 agent 做即可，不必手敲阶段命令）",
       facts: [
-        "ANALYZE 分析 → PLAN 计划 → DELIVER 改代码 → ACCEPT 验收 → ARCHIVE 归档",
-        "终态常见：已完成 / 暂停 / 阻塞 / 等你点头",
-        "验收通过 → 默认 finalize（进地图 + 冻结副本）"
+        "ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE",
+        "状态：进行中 / 暂停 / 阻塞 / 已归档（可再改）/ 废弃",
+        "验收通过 → 默认 finalize（见后面两步「提升」）"
       ],
       active: { p0: true, p1: true, p2: true, p3: true, p4: true },
       done: { ledger: true, run: true },
@@ -106,11 +106,11 @@
       title: "强度档：tiny / standard / strict",
       one: "用口语选速度与严格度；不说就按标准档。",
       body: "tiny 单点快做；standard 正常闭环；strict 更严（预算更紧，验收前多一道「判断层」如审查/复检）。连续两轮改代码没改进会停表，避免空转。",
-      cmd: "$jj-ralph tiny：…\n$jj-ralph strict：…验收前要审查\n（不说强度 = standard）",
+      cmd: "$jj-ralph tiny：tip bottom 4px→6px\n$jj-ralph strict：…验收前要审查\n（不说强度 = standard）",
       facts: [
-        "写入 run.intensity，并带默认预算 / 停表 / 验收层配置",
+        "写入 run.intensity + 预算 / 停表 / 验收层",
         "strict：验收前判断层必须过",
-        "停表：连续无改进 → 阻塞，提示换策略"
+        "停表：连续无改进 → 阻塞，换策略"
       ],
       active: { intensity: true, p2: true },
       done: { ledger: true, run: true },
@@ -121,12 +121,12 @@
     {
       title: "改代码阶段可以循环：改 → 验 → 再改",
       one: "DELIVER 不是一次过：验证失败会在本阶段打转。",
-      body: "每次认真尝试应记一笔 deliver-attempt。验证挂了且还没触顶，就继续改。同一招连败两次要换法。",
-      cmd: "$jj-ralph 继续 RALPH-xxx：验证挂了，按报错改",
+      body: "每次认真尝试记 deliver-attempt。验证挂了就继续改。同一招连败两次要换法。用口语说「按报错改」「再试一下」即可。",
+      cmd: "$jj-ralph 验证挂了，按报错改\n$jj-ralph 换策略：先只接 password_expired 字段",
       facts: [
-        "循环在「改代码」阶段内部，不是跳过验收",
-        "有改进 / 无改进会影响是否停表",
-        "触顶最大次数会停，避免无限磨"
+        "循环在改代码阶段内部，不是跳过验收",
+        "有改进 / 无改进影响是否停表",
+        "触顶会停，避免无限磨"
       ],
       active: { p2: true, loop: true },
       done: { p0: true, p1: true, ledger: true },
@@ -138,11 +138,11 @@
       title: "验收：机械检查 +（严格档）判断层",
       one: "缺证据不能验收通过；严格档还要审查/复检过。",
       body: "机械层：改代码阶段已通过、路径对得上、审查不能是「必须改」。严格档还要判断层 PASS。审查说要改就不能强行验收。",
-      cmd: "$jj-ralph 按 acceptance 清单验收\n$jj-ralph recheck RALPH-xxx：…",
+      cmd: "$jj-ralph 按 acceptance 清单验收\n$jj-ralph 验收不算，退回改",
       facts: [
         "机械层：一致性 / 证据 / 审查状态",
-        "判断层：strict 必过；可用审查记录自动写入",
-        "「验收不算」→ 记失败或退回改代码"
+        "判断层：strict 必过",
+        "「验收不算」→ 失败或退回改代码"
       ],
       active: { p3: true, layers: true },
       done: { p0: true, p1: true, p2: true, ledger: true },
@@ -151,14 +151,14 @@
       intensity: "strict"
     },
     {
-      title: "归档：冻结任务 + 写进能力地图",
-      one: "归档后旧目录不能改回进行中。",
-      body: "finalize = 合并 business-map + 写出归档冻结副本。做完要迁到别的仓，说「交接到 …」走 same，不是在调度控制层里当业务仓硬做。",
-      cmd: "（验收通过后默认归档）\n交接到 兑接 承载",
+      title: "归档提升 L1：本仓能力地图",
+      one: "finalize 会把本轮能力写进 business-map，供 map-find 找回。",
+      body: "归档不是「任务作废」。默认 finalize = map-merge（L1 本仓 CAP + run_refs）+ 写出 archive 快照。过程性 STAGNATION 进 process_lessons，不脏主 lessons。可复用结论用 --lessons 写 durable。",
+      cmd: "（验收通过后默认归档）\n$jj-ralph 做完了，归档",
       facts: [
-        "产物：archive 目录 + business-map.json",
-        "归档后再改 → 同 RALPH resume（见续作）；新 run 仅真新需求",
-        "提交 / 合分支另走 end 或你自己 git"
+        "L1：business-map.json ← CAP + run_refs",
+        "快照：archive/…（可再归档）",
+        "提交合分支另走 $jj-end（只 Git）"
       ],
       active: { p4: true, map: true },
       done: { p0: true, p1: true, p2: true, p3: true, ledger: true, run: true },
@@ -167,14 +167,30 @@
       intensity: "standard"
     },
     {
+      title: "归档提升 L2：知识贡献包 / 投喂",
+      one: "顺带写 knowledge-contribution.json；进全局库要再说「投喂」。",
+      body: "finalize 会落贡献包（candidate 建议），不自动 promote 全局知识库。需要进 Portfolio 时说「投喂知识库」→ knowledge-contribute --hook（fail-open）。",
+      cmd: "$jj-ralph 投喂知识库\n$jj-ralph 补充全局知识",
+      facts: [
+        "包路径：…/knowledge-contribution.json",
+        "默认 auto_promote=false",
+        "钩子可选：RALPH_KNOWLEDGE_HOOK_CMD"
+      ],
+      active: { p4: true, kb: true, map: true },
+      done: { p0: true, p1: true, p2: true, p3: true, ledger: true },
+      edges: ["e34", "arch-kb", "arch-map"],
+      phase: "ARCHIVE",
+      intensity: "standard"
+    },
+    {
       title: "回退只能相邻阶段",
       one: "验收→改代码→计划→分析，一步一步退；归档后可退回验收。",
-      body: "说「验收不算，退回改」会退到相邻阶段。归档是 soft 快照，不是墓碑：可 resume 同 run，或 rollback-phase ARCHIVE→ACCEPT 再改。",
-      cmd: "$jj-ralph 验收不算，退回 DELIVER：…\n$jj-ralph 先暂停 RALPH-xxx",
+      body: "说「验收不算，退回改」会退到相邻阶段。归档是快照不是墓碑：可同任务再改，或 ARCHIVE→ACCEPT 再退。不会默认 git revert。",
+      cmd: "$jj-ralph 验收不算，退回改\n$jj-ralph 先暂停，等样例",
       facts: [
-        "相邻边：不能从验收一次跳回分析",
-        "ARCHIVE→ACCEPT 合法；COMPLETED 可 resume",
-        "不会默认 git revert"
+        "不能从验收一次跳回分析",
+        "ARCHIVE→ACCEPT 合法",
+        "end 只 Git，不关死任务"
       ],
       active: { p2: true, p3: true },
       done: { p0: true, p1: true, ledger: true },
@@ -184,17 +200,17 @@
       blocked: { p3: true }
     },
     {
-      title: "归档后还要改：同 run resume",
-      one: "优先 resume 同一 RALPH-…；一半不做用 abandon。",
-      body: "无终态冻结：归档/COMPLETED 后仍用同一 run_id 续作（可 re-archive）。新 RALPH 仅真新需求；可选 progress 链。做一半不要了 → abandon（可再 resume）。",
-      cmd: "$jj-ralph 继续 RALPH-旧编号：…\n$jj-ralph 不做了 RALPH-xxx：原因…",
+      title: "归档后还要改：口语续作 / 废弃",
+      one: "同一件事继续改——说业务话即可，不必报编号。",
+      body: "无终态冻结：归档后仍同一任务接着做（可再验收、再归档）。一半不做了说「这个先不做了」→ abandon（可救回）。只有另一件事才新开任务。",
+      cmd: "$jj-ralph tip 应是 6px 不是 8px\n$jj-ralph close 也跟着下移\n$jj-ralph 这个先不做了，砍了",
       facts: [
-        "同 run resume / rollback，不要默认新 init",
-        "ABANDONED 禁 map-merge；可救回",
-        "详情见命令页「做完了还要改」"
+        "agent 解析最近/同需求 run，勿默认新 init",
+        "废弃禁 map-merge；可再继续救回",
+        "迁仓：交接到 … → same"
       ],
       active: { run: true, chain: true, ledger: true },
-      done: { p4: true, map: true },
+      done: { p4: true, map: true, kb: true },
       edges: ["chain-run"],
       phase: "ARCHIVE",
       intensity: "standard"
@@ -212,24 +228,26 @@
     p2: { x: 400, y: 160, w: 150, h: 64 },
     p3: { x: 580, y: 160, w: 150, h: 64 },
     p4: { x: 760, y: 160, w: 160, h: 64 },
-    loop: { x: 400, y: 280, w: 150, h: 52 },
-    layers: { x: 560, y: 280, w: 190, h: 52 },
-    chain: { x: 780, y: 280, w: 160, h: 52 }
+    loop: { x: 360, y: 280, w: 140, h: 52 },
+    layers: { x: 520, y: 280, w: 150, h: 52 },
+    kb: { x: 690, y: 280, w: 150, h: 52 },
+    chain: { x: 860, y: 280, w: 100, h: 52 }
   };
 
   const labels = {
     ledger: ["任务目录", ".workflow/ralph/…"],
-    run: ["run.json + progress", "阶段 / 检查点 / 过程"],
+    run: ["run + progress", "阶段 / 检查点 / 过程"],
     intensity: ["强度档", "tiny · standard · strict"],
-    map: ["能力地图", "business-map.json"],
+    map: ["L1 能力地图", "business-map 可检索"],
     p0: ["1 分析", "ANALYZE"],
     p1: ["2 计划", "PLAN"],
     p2: ["3 改代码", "DELIVER"],
     p3: ["4 验收", "ACCEPT"],
     p4: ["5 归档", "ARCHIVE"],
     loop: ["改代码循环", "改→验→再改"],
-    layers: ["验收双层", "机械 + 判断(strict)"],
-    chain: ["归档后续作", "新 RALPH + 关系"]
+    layers: ["验收双层", "机械 + 判断"],
+    kb: ["L2 贡献包", "投喂 → candidate"],
+    chain: ["同任务续作", "口语 · 废弃"]
   };
 
   const edgePaths = {
@@ -241,8 +259,9 @@
     "int-del": "M610 80 V 160",
     "loop": "M475 224 V 280",
     "arch-map": "M840 160 V 80",
+    "arch-kb": "M820 224 V 280 H 840",
     "back32": "M655 210 C 640 240, 540 240, 520 210",
-    "chain-run": "M860 280 C 860 120, 480 40, 380 52"
+    "chain-run": "M910 280 C 910 120, 480 40, 380 52"
   };
 
   const stage = root.querySelector(".ralph-demo__stage");
@@ -304,7 +323,7 @@
     svg += '<rect class="lane" x="20" y="268" width="940" height="100" rx="14"/>';
     svg += '<text class="zone" x="32" y="120">记录层 · 业务仓内 .workflow/ralph/（不是 ~/.jj-flow）</text>';
     svg += '<text class="zone" x="32" y="262">阶段流水线 · 检查点通过才往下</text>';
-    svg += '<text class="zone" x="32" y="388">内部机制 · 循环 / 验收层 / 归档后续作</text>';
+    svg += '<text class="zone" x="32" y="388">内部机制 · 循环 / 验收 / 提升 L1·L2 / 口语续作</text>';
     svg += '<text class="hint" x="700" y="408">蓝=当前 · 绿=完成 · 红=卡住 · 黄=回退</text>';
 
     // intensity badge

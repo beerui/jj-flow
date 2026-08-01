@@ -10,27 +10,29 @@
 
 ## 怎么看
 
-1. 点顶部步骤，或「上一步 / 下一步」
-2. **自动播放** 看蓝灯怎么走
-3. 每步有一句总结 + 你可以怎么说
+1. 点顶部步骤，或「上一步 / 下一步」  
+2. **自动播放** 看蓝灯怎么走  
+3. 每步有一句总结 + **你可以怎么说**（口语优先，不必背编号）
 
 颜色：蓝=当前 · 绿=完成 · 红=卡住 · 黄=回退
 
-## 故事线（8 步）
+## 故事线（9 步）
 
-1. 任务目录与 run / progress  
+1. 任务目录与 run / progress（口语即可）  
 2. 五段流水线  
 3. 强度档 tiny / standard / strict  
 4. 改代码阶段内部循环  
 5. 验收：机械层 + 严格档判断层  
-6. 归档与能力地图  
-7. 相邻阶段回退  
-8. 归档后同 run resume（可 re-archive；新 run 仅真新需求）
+6. **归档提升 L1**：本仓 business-map  
+7. **归档提升 L2**：贡献包 / 投喂知识库  
+8. 相邻阶段回退（含归档后可再改）  
+9. 归档后口语续作 / 废弃（无终态冻结）
 
 ## 相关
 
 - [ralph 命令说明](../command-jj-ralph.html)  
-- [做完了还要改](../command-jj-ralph.html#做完了还要改-还要加东西)  
+- [做完了还要改](../command-jj-ralph.html#做完了还要改)  
+- [归档提升设计](design-docs/ralph-archive-elevation.html)  
 - [调度演示](dispatch-demo.html)  
 
 <!-- embed:docs/other/ralph-demo/interactive.fragment.html -->
