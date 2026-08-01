@@ -55,6 +55,7 @@ run_id: RALPH-zero-interest-url-20260723
 
 ## 收口
 
-1. gates.accept=PASS 后写 archive 冻结副本
+1. gates.accept=PASS 后 `finalize`（map-merge + soft archive 快照；可再改同 run）
 2. 合并 capability：modules 含改动文件；keywords 含业务词
-3. 未要求则不 commit/push
+3. 未要求则不 commit/push；Git 收工用 `$jj-end`（与 run 生死正交）
+4. 归档后再改同一需求：`resume` 同 `run_id`，不要默认新 init

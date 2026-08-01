@@ -8,9 +8,19 @@
 | 计划实施 | `PLAN` | `plan.md`、任务表 | 每 TASK → REQ；范围与不做范围明确 |
 | 实施验证 | `DELIVER` | 代码、`progress.md` 迭代、聚焦验证 | 任务完成且验证非 FAIL；可循环返工 |
 | 验收完成 | `ACCEPT` | `acceptance.md` | 清单项 `PASS` 或 `N/A`+理由；缺证据不得 PASS；**product-consistency**：deliver 已 PASS；最新 review 不得为 `NEEDS_CHANGES`/`BLOCKED`；路径集合一致 |
-| 归档 | `ARCHIVE` | `archive-manifest.json`、archive 目录、地图合并 | 写好 archive 冻结副本 + 合并 `business-map.json`；product-consistency + 若有 PASS review 则必须 commit scope/fix SHA |
+| 归档 | `ARCHIVE` | `archive-manifest.json`、archive 快照、地图合并 | soft archive 快照 + 合并 `business-map.json`；product-consistency + 若有 PASS review 则必须 commit scope/fix SHA；**可再归档** |
 
-终态：`COMPLETED` | `BLOCKED` | `PAUSED` | `READY_FOR_USER_TEST`。
+## 生命周期 status（全部 soft，无终态冻结）
+
+| status | 含义 | continue | 归档 |
+| --- | --- | --- | --- |
+| `IN_PROGRESS` | 在做 | 同 run | 验收够可归档 |
+| `READY_FOR_USER_TEST` | 等人测 | 同 run | 视情况 |
+| `BLOCKED` / `PAUSED` | 堵 / 停 | 同 run | 一般否 |
+| `ABANDONED` | 做一半不要了 | 可 resume → IN_PROGRESS | **禁止**（须先 resume）；**不** map |
+| `COMPLETED` | 兼容展示态（最近一次归档后） | **可** resume 同 run | 可 re-archive |
+
+`COMPLETED` **不是**墓碑。归档后、废弃后 **始终优先同一 `run_id`** 续作。新 RALPH 仅真新需求。
 
 ## 自治循环
 
@@ -20,7 +30,8 @@
   → 追加 progress + 更新 run.json
   → 验证 FAIL 且 iteration < max → 继续 DELIVER
   → 需人决策 → BLOCKED / READY_FOR_USER_TEST 停表
-  → accept PASS → finalize（map-merge + archive）→ COMPLETED
+  → accept PASS → finalize（map-merge + soft archive）→ status=COMPLETED（可 resume 再改、再归档）
+  → 一半不做 → abandon → ABANDONED（可 resume 救回）
 ```
 
 `max_iterations` 默认 20，触顶写 `intervention_needed.kind=MAX_ITERATIONS`。
@@ -50,6 +61,7 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - 触顶 `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
 - `review-record` outcome=PASS/NEEDS_CHANGES → 自动写 `accept_layers.judgment`（strict 可直接 gate accept）
 - `map-merge` / finalize 自动把 STAGNATION、strict 等写入 capability `lessons`（弱信息素，供 map-find）
+- **ABANDONED** 禁止 `map-merge` / `archive`（先 `resume`）
 
 ## 精简执行
 
@@ -58,6 +70,7 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - 同一工具/策略失败 2 次必须换法；每次 verify 后记 `deliver-attempt`。
 - 全部步骤由当前会话直接读写约定路径完成（不绑定特定宿主）。
 - 未要求 commit/push 时给 commit-prep 建议或完成报告即可。
+- `$jj-end` **只做 Git**，与 run status 正交，可多次。
 
 ## 用户介入（仅此）
 
@@ -69,17 +82,25 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 
 阶段 PASS 后默认自动进入下一阶段，不询问「是否继续」。
 
-## 收口
+## 收口（soft archive，非关死）
 
-- accept PASS 后优先 `ralph_ops.mjs finalize`（或 `jj ralph finalize`）= map-merge + archive。
+- accept PASS 后优先 `ralph_ops.mjs finalize`（或 `jj ralph finalize`）= map-merge + **soft** archive。
 - 分步亦可：`map-merge` 再 `archive`；勿只 archive 导致地图漏写。
+- 归档 = 沉淀事件（快照 + map 提升 + `last_archived_at`）；**不**禁止后续同 run 修改。
+- 再改同一需求：`resume` / continue **同 run**，再验后可 **re-archive**（路径冲突则时间戳目录）。
+- 一半不做：`abandon`（`ABANDONED`），不是假关仓；可再 resume。
+- `close` **deprecated**。
+- 真新需求族才 `init` 新 RALPH。
 
 ## 回退（phase / status）
 
 完整矩阵见 [rollback.md](rollback.md)。摘要：
 
-- 相邻 phase 回退：`rollback-phase --to PLAN|DELIVER|ANALYZE`（自当前 phase）；ARCHIVE 与 COMPLETED 不可回旧目录
+- 相邻 phase 回退：`rollback-phase --to PLAN|DELIVER|ANALYZE|ACCEPT`（自当前 phase）；**ARCHIVE→ACCEPT** 合法（soft archive 后续作）
+- COMPLETED / ABANDONED 回退或 resume 时默认回到 `IN_PROGRESS`
 - 暂停/阻塞：`set-status --status PAUSED|BLOCKED`
+- 续作/救回：`resume` / `set-status IN_PROGRESS`
+- 废弃：`abandon` / `set-status ABANDONED`
 - gate 可 FAIL 覆盖先前 PASS，须写 progress / `updated_at`，禁止无日志改 gates
 
 ## gate
@@ -96,3 +117,5 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
   - 运维覆盖可用 `force: true`（库 API / finalize force），默认对话路径不要用
 - host 元数据（可选，不推进检查点）：`run.host.host_id` / `thread_id` / `model_id` / `export_path`；`jj ralph host-record` 或 init 时写入，供评估与会话回溯
 - review 记录可选：`--review-scope working_tree|commit`、`--fix-commit <sha>`
+
+续作决策树（归档后 / 废弃后 / 子需求）：[post-complete-continue.md](post-complete-continue.md)。

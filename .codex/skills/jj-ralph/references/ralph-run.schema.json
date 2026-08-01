@@ -50,8 +50,10 @@
         "READY_FOR_USER_TEST",
         "BLOCKED",
         "PAUSED",
+        "ABANDONED",
         "COMPLETED"
-      ]
+      ],
+      "description": "Soft lifecycle status. COMPLETED is a post-archive display/compat alias and remains resumable; ABANDONED is half-done discarded work that can resume same run_id."
     },
     "goal": {
       "type": "string",
@@ -263,6 +265,7 @@
                 "SCOPE_AMBIGUITY",
                 "PAUSED",
                 "BLOCKED",
+                "ABANDONED",
                 "OTHER"
               ]
             },
@@ -705,6 +708,14 @@
         }
       ],
       "description": "Optional host/session attestation for evaluation and recovery (codex/grok-build/...). Not a checkpoint authority."
+    },
+    "last_archived_at": {
+      "type": "string",
+      "description": "ISO timestamp of the most recent soft archive event (resumable; not a freeze lock)."
+    },
+    "last_archive_path": {
+      "type": "string",
+      "description": "Relative path of the most recent archive snapshot folder under .workflow/ralph/archive/."
     }
   },
   "$defs": {

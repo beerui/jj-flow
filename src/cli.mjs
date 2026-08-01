@@ -27,6 +27,8 @@ import {
   setGate,
   rollbackPhase,
   setRunStatus,
+  resumeRun,
+  abandonRun,
   commitPrep,
   getStatus,
   initRun,
@@ -789,6 +791,28 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     return 0;
   }
 
+  if (command === 'resume' || command === 'continue') {
+    const options = parseRalphResumeAbandonArgs(args, 'resume');
+    const result = resumeRun(options.runId, { reason: options.reason, cwd });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`resume ${result.from}→${result.status} (${options.runId})\n`);
+    return 0;
+  }
+
+  if (command === 'abandon') {
+    const options = parseRalphResumeAbandonArgs(args, 'abandon');
+    const result = abandonRun(options.runId, { reason: options.reason, cwd });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`abandon ${result.from}→${result.status} (${options.runId})\n`);
+    return 0;
+  }
+
+  if (command === 'close') {
+    throw new Error(
+      'close is deprecated; use abandon (half-done discard) or archive/finalize (soft archive). Same run remains resumable.'
+    );
+  }
+
   if (command === 'host-record') {
     const options = parseRalphHostArgs(args);
     const result = recordHostMeta(options.runId, {
@@ -1018,7 +1042,7 @@ function parseRalphRollbackPhaseArgs(args) {
     throw new Error(`Unknown ralph rollback-phase option: ${arg}`);
   }
   if (!options.runId) throw new Error('rollback-phase requires --run-id');
-  if (!options.toPhase) throw new Error('rollback-phase requires --to PLAN|DELIVER|ANALYZE');
+  if (!options.toPhase) throw new Error('rollback-phase requires --to PLAN|DELIVER|ANALYZE|ACCEPT');
   if (!options.reason) throw new Error('rollback-phase requires --reason');
   return options;
 }
@@ -1033,8 +1057,25 @@ function parseRalphSetStatusArgs(args) {
     throw new Error(`Unknown ralph set-status option: ${arg}`);
   }
   if (!options.runId) throw new Error('set-status requires --run-id');
-  if (!options.status) throw new Error('set-status requires --status PAUSED|BLOCKED|IN_PROGRESS|READY_FOR_USER_TEST');
+  if (!options.status) {
+    throw new Error(
+      'set-status requires --status IN_PROGRESS|READY_FOR_USER_TEST|BLOCKED|PAUSED|ABANDONED|COMPLETED'
+    );
+  }
   if (!options.reason) throw new Error('set-status requires --reason');
+  return options;
+}
+
+function parseRalphResumeAbandonArgs(args, commandName) {
+  const options = {};
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--reason') { options.reason = args[++i]; continue; }
+    throw new Error(`Unknown ralph ${commandName} option: ${arg}`);
+  }
+  if (!options.runId) throw new Error(`${commandName} requires --run-id`);
+  if (!options.reason) throw new Error(`${commandName} requires --reason`);
   return options;
 }
 

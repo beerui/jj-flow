@@ -37,6 +37,8 @@ import {
   resolveReviewScope,
   rollbackPhase,
   setRunStatus,
+  resumeRun,
+  abandonRun,
   suggestReopenAsNew,
   loadRun
 } from '../src/ralph.mjs';
@@ -494,7 +496,7 @@ test('defaultArchiveDirName avoids duplicated YYYYMMDD in archive folder', () =>
   assert.equal(defaultArchiveDirName('RALPH-demo', '2026-07-23T00:00:00.000Z'), '2026-07-23-demo');
 });
 
-test('archive freezes COMPLETED run.json and uses de-duplicated slug folder', () => {
+test('archive soft-completes run.json and uses de-duplicated slug folder; re-archive allowed', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-arch-'));
   try {
     const runId = 'RALPH-freeze-20260723';
@@ -509,6 +511,18 @@ test('archive freezes COMPLETED run.json and uses de-duplicated slug folder', ()
     assert.equal(archivedRun.status, 'COMPLETED');
     assert.equal(archivedRun.phase, 'ARCHIVE');
     assert.equal(archivedRun.gates.archive, 'PASS');
+    const active = loadRun(runId, cwd);
+    assert.equal(active.status, 'COMPLETED');
+    assert.ok(active.last_archived_at);
+    assert.equal(active.last_archive_path, result.archive_path);
+    // Soft archive is not a freeze: same run can resume and re-archive.
+    resumeRun(runId, { reason: 'more work after archive', cwd });
+    assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
+    const re = archiveRun(runId, { cwd });
+    assert.ok(re.archive_path.startsWith('.workflow/ralph/archive/2026-07-23-freeze-'));
+    assert.notEqual(re.archive_path, result.archive_path);
+    assert.ok(fs.existsSync(path.join(cwd, re.archive_path, 'run.json')));
+    assert.equal(loadRun(runId, cwd).status, 'COMPLETED');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -554,7 +568,7 @@ test('setGate advances phase on PASS and can block', () => {
   }
 });
 
-test('rollbackPhase allows adjacent edges and writes progress; rejects ARCHIVE/COMPLETED/skip', () => {
+test('rollbackPhase allows adjacent edges and writes progress; COMPLETED/ARCHIVE/ABANDONED resumable', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-rollback-'));
   try {
     const runId = 'RALPH-rollback-20260731';
@@ -588,25 +602,51 @@ test('rollbackPhase allows adjacent edges and writes progress; rejects ARCHIVE/C
     run = loadRun(runId, cwd);
     assert.equal(run.status, 'IN_PROGRESS');
 
-    // COMPLETED cannot reopen in place
+    // COMPLETED / ARCHIVE are soft — same-run resume + ARCHIVE→ACCEPT rollback allowed
     run.status = 'COMPLETED';
     run.phase = 'ARCHIVE';
     run.gates.archive = 'PASS';
+    run.gates.accept = 'PASS';
     saveRun(run, cwd);
+    const resumedStatus = setRunStatus(runId, { status: 'IN_PROGRESS', reason: 'same-run continue after archive', cwd });
+    assert.equal(resumedStatus.status, 'IN_PROGRESS');
+    assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
+
+    // re-apply COMPLETED+ARCHIVE for rollback path
+    run = loadRun(runId, cwd);
+    run.status = 'COMPLETED';
+    run.phase = 'ARCHIVE';
+    run.gates.archive = 'PASS';
+    run.gates.accept = 'PASS';
+    saveRun(run, cwd);
+    const fromArchive = rollbackPhase(runId, { toPhase: 'ACCEPT', reason: 'resume deliver after soft archive', cwd });
+    assert.equal(fromArchive.fromPhase, 'ARCHIVE');
+    assert.equal(fromArchive.toPhase, 'ACCEPT');
+    assert.equal(fromArchive.status, 'IN_PROGRESS');
+    run = loadRun(runId, cwd);
+    assert.equal(run.phase, 'ACCEPT');
+    assert.equal(run.status, 'IN_PROGRESS');
+    assert.equal(run.gates.archive, 'PENDING');
+
+    // ABANDONED → resume same run
+    const abandoned = abandonRun(runId, { reason: 'half-done drop for now', cwd });
+    assert.equal(abandoned.status, 'ABANDONED');
     assert.throws(
-      () => rollbackPhase(runId, { toPhase: 'ACCEPT', reason: 'no', cwd }),
-      /COMPLETED|ARCHIVE/
+      () => mapMergeFromRun(runId, { force: true }, cwd),
+      /ABANDONED/
     );
-    assert.throws(
-      () => setRunStatus(runId, { status: 'IN_PROGRESS', reason: 'no', cwd }),
-      /COMPLETED/
-    );
+    const resumed = resumeRun(runId, { reason: 'pick abandoned work back up', cwd });
+    assert.equal(resumed.status, 'IN_PROGRESS');
+    assert.equal(resumed.from, 'ABANDONED');
+    assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
+
     const suggestion = suggestReopenAsNew(run, { newRunId: 'RALPH-rollback-reopen-20260731' });
     assert.equal(suggestion.supersedes_run_id, runId);
-    assert.match(suggestion.note, /new run/i);
+    assert.match(suggestion.note, /same-run resume|Prefer same-run/i);
     assert.match(suggestion.note, /progress\.md/i);
     assert.match(suggestion.note, /not family/i);
     assert.doesNotMatch(suggestion.note, /progress\/family/i);
+    assert.doesNotMatch(suggestion.note, /Do not un-archive|cannot.*reopen/i);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

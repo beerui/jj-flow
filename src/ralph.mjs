@@ -30,6 +30,15 @@ export const HOST_IDS = ['codex', 'grok-build', 'claude', 'qoder', 'other'];
 
 /** Run intensity tiers: speed/quality tradeoff without multi-agent runtime. */
 export const RALPH_INTENSITIES = Object.freeze(['tiny', 'standard', 'strict']);
+/** Soft lifecycle statuses — none permanently freezes same-run continue/resume. */
+export const RUN_STATUSES = Object.freeze([
+  'IN_PROGRESS',
+  'READY_FOR_USER_TEST',
+  'BLOCKED',
+  'PAUSED',
+  'ABANDONED',
+  'COMPLETED'
+]);
 export const ACCEPT_LAYER_STATUSES = Object.freeze(['PENDING', 'PASS', 'FAIL', 'SKIPPED']);
 export const JUDGMENT_MODES = Object.freeze(['none', 'review', 'recheck', 'adversarial_note']);
 export const GATE_ISSUE_CLASSES = Object.freeze(['error', 'warning', 'info']);
@@ -205,7 +214,7 @@ export function validateRun(run) {
   if (!run.title) errors.push('title required');
   if (!run.goal) errors.push('goal required');
   if (!PHASES.includes(run.phase)) errors.push('invalid phase: ' + run.phase);
-  if (!['IN_PROGRESS', 'READY_FOR_USER_TEST', 'BLOCKED', 'PAUSED', 'COMPLETED'].includes(run.status)) errors.push('invalid status: ' + run.status);
+  if (!RUN_STATUSES.includes(run.status)) errors.push('invalid status: ' + run.status);
   if (!run.scope || !Array.isArray(run.scope.in) || !Array.isArray(run.scope.out)) errors.push('scope.in and scope.out must be arrays');
   if (!Number.isInteger(run.iteration) || run.iteration < 0) errors.push('iteration must be >= 0');
   if (!Number.isInteger(run.max_iterations) || run.max_iterations < 1) errors.push('max_iterations must be >= 1');
@@ -488,21 +497,38 @@ export function defaultArchiveDirName(runId, now = new Date()) {
   return buildArchiveDirNameFromRunId(runId, now, loadNamingConfig());
 }
 
+/**
+ * Soft archive event: snapshot + COMPLETED display status. Same run stays resumable;
+ * re-archive is allowed (timestamped folder when path already exists). Not a tombstone.
+ */
 export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, diff_paths = null } = {}) {
   const run = loadRun(runId, cwd);
+  if (run.status === 'ABANDONED') {
+    throw new Error('archive forbidden for ABANDONED runs; resume first if work continues');
+  }
   if (run.gates.accept !== 'PASS') throw new Error('archive requires gates.accept=PASS');
   const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate: 'archive' });
   if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
-  const folder = slug || defaultArchiveDirName(run.run_id);
-  const destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
-  const destAbs = path.join(cwd, destRel);
-  if (fs.existsSync(destAbs)) throw new Error('archive already exists: ' + destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+  let folder = slug || defaultArchiveDirName(run.run_id);
+  let destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
+  let destAbs = path.join(cwd, destRel);
+  // Re-archive: append UTC timestamp so prior snapshots remain; do not hard-fail.
+  if (fs.existsSync(destAbs)) {
+    const stamp = nowIso().replace(/[:.]/g, '-');
+    folder = folder + '-' + stamp;
+    destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
+    destAbs = path.join(cwd, destRel);
+  }
   const sourceAbs = runDir(runId, cwd);
-  // Finalize active run first so the frozen archive copy includes COMPLETED state.
+  // Soft closeout: COMPLETED is a display/compat alias after archive, not a freeze.
+  const archivedAt = nowIso();
+  const archivePathNorm = destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   run.phase = 'ARCHIVE';
   run.status = 'COMPLETED';
   run.gates.archive = 'PASS';
-  run.updated_at = nowIso();
+  run.last_archived_at = archivedAt;
+  run.last_archive_path = archivePathNorm;
+  run.updated_at = archivedAt;
   saveRun(run, cwd);
   copyTree(sourceAbs, destAbs);
   const files = [];
@@ -518,15 +544,20 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
   const manifest = {
     schema_version: 'jj-flow/ralph-archive/1.0',
     run_id: run.run_id,
-    archived_at: nowIso(),
-    archive_path: destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    archived_at: archivedAt,
+    archive_path: archivePathNorm,
     files
   };
   writeJson(path.join(sourceAbs, 'archive-manifest.json'), manifest);
   writeJson(path.join(destAbs, 'archive-manifest.json'), manifest);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + archivedAt + ' archive soft path=' + archivePathNorm + ' status=COMPLETED (resumable)'
+  );
   // refresh in-memory run after manifest write (active tree now has manifest)
   const latest = loadRun(runId, cwd);
-  return { run: latest, archive_path: destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)), manifest };
+  return { run: latest, archive_path: archivePathNorm, manifest };
 }
 
 /** map-merge then archive; default accept-PASS closeout. */
@@ -623,6 +654,9 @@ function normalizeCapability(capability) {
 
 export function mapMergeFromRun(runId, options = {}, cwd = process.cwd()) {
   const run = loadRun(runId, cwd);
+  if (run.status === 'ABANDONED') {
+    throw new Error('map-merge forbidden for ABANDONED runs (not a durable capability source)');
+  }
   if (run.gates?.accept !== 'PASS' && !options.force) {
     throw new Error('map-merge requires gates.accept=PASS (pass force:true or --force to override)');
   }
@@ -1464,11 +1498,12 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   return { run, gate, status, phase: run.phase, handoff: run.handoff || null };
 }
 
-/** Adjacent phase rollback edges only (ARCHIVE cannot roll back). */
+/** Adjacent phase rollback edges (ARCHIVE → ACCEPT allowed for same-run resume after soft archive). */
 export const PHASE_ROLLBACK_EDGES = Object.freeze({
   PLAN: 'ANALYZE',
   DELIVER: 'PLAN',
-  ACCEPT: 'DELIVER'
+  ACCEPT: 'DELIVER',
+  ARCHIVE: 'ACCEPT'
 });
 
 const PHASE_TO_GATE = Object.freeze({
@@ -1480,8 +1515,8 @@ const PHASE_TO_GATE = Object.freeze({
 });
 
 /**
- * Roll back phase along an allowed adjacent edge (e.g. ACCEPT → DELIVER).
- * COMPLETED runs must open a new run; ARCHIVE is not reopenable in place.
+ * Roll back phase along an allowed adjacent edge (e.g. ACCEPT → DELIVER, ARCHIVE → ACCEPT).
+ * COMPLETED / ARCHIVE / ABANDONED are resumable in place (no terminal freeze).
  */
 export function rollbackPhase(runId, {
   toPhase,
@@ -1500,16 +1535,6 @@ export function rollbackPhase(runId, {
     throw new Error('leaveGateStatus must be a gate status or null');
   }
   const run = loadRun(runId, cwd);
-  if (run.status === 'COMPLETED') {
-    throw new Error(
-      'COMPLETED run cannot rollbackPhase in place; init a new run and chain supersedes_run_id in progress.md (not run.json)'
-    );
-  }
-  if (run.phase === 'ARCHIVE') {
-    throw new Error(
-      'ARCHIVE phase cannot rollback; init a new run and chain supersedes_run_id in progress.md (not run.json)'
-    );
-  }
   const expectedFrom = Object.entries(PHASE_ROLLBACK_EDGES).find(([, to]) => to === toPhase)?.[0];
   const allowedTo = PHASE_ROLLBACK_EDGES[run.phase];
   if (allowedTo !== toPhase) {
@@ -1521,6 +1546,7 @@ export function rollbackPhase(runId, {
   }
 
   const fromPhase = run.phase;
+  const fromStatus = run.status;
   const toIdx = PHASES.indexOf(toPhase);
   const gates = { ...run.gates };
   // Leaving phase gate → FAIL (or leaveGateStatus); later phases → PENDING
@@ -1541,39 +1567,43 @@ export function rollbackPhase(runId, {
 
   run.gates = gates;
   run.phase = toPhase;
-  if (resumeInProgress && (run.status === 'BLOCKED' || run.status === 'PAUSED' || run.status === 'READY_FOR_USER_TEST')) {
+  if (
+    resumeInProgress
+    && (
+      run.status === 'BLOCKED'
+      || run.status === 'PAUSED'
+      || run.status === 'READY_FOR_USER_TEST'
+      || run.status === 'COMPLETED'
+      || run.status === 'ABANDONED'
+    )
+  ) {
     run.status = 'IN_PROGRESS';
+    run.intervention_needed = null;
   }
   run.updated_at = nowIso();
   saveRun(run, cwd);
   appendProgressLine(
     runId,
     cwd,
-    '- ' + run.updated_at + ' rollbackPhase ' + fromPhase + '→' + toPhase + ' reason=' + reason.trim()
+    '- ' + run.updated_at + ' rollbackPhase ' + fromPhase + '→' + toPhase
+      + (fromStatus !== run.status ? ' status=' + fromStatus + '→' + run.status : '')
+      + ' reason=' + reason.trim()
   );
   return { run, fromPhase, toPhase, status: run.status, reason: reason.trim() };
 }
 
 /**
- * Formal status transitions: IN_PROGRESS ↔ PAUSED/BLOCKED; reject COMPLETED reopen.
+ * Formal status transitions. COMPLETED / ABANDONED are soft (same-run resume allowed).
+ * Allowed: IN_PROGRESS, READY_FOR_USER_TEST, BLOCKED, PAUSED, ABANDONED, COMPLETED.
  */
 export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}) {
-  const allowed = ['IN_PROGRESS', 'READY_FOR_USER_TEST', 'BLOCKED', 'PAUSED'];
-  if (!allowed.includes(status)) {
-    throw new Error('setRunStatus status must be one of ' + allowed.join('|') + ' (COMPLETED requires a new run)');
+  if (!RUN_STATUSES.includes(status)) {
+    throw new Error('setRunStatus status must be one of ' + RUN_STATUSES.join('|'));
   }
   if (!reason || typeof reason !== 'string' || !reason.trim()) {
     throw new Error('reason is required for setRunStatus');
   }
   const run = loadRun(runId, cwd);
-  if (run.status === 'COMPLETED') {
-    throw new Error(
-      'COMPLETED run cannot change status in place; init a new run and chain supersedes_run_id in progress.md (not run.json)'
-    );
-  }
-  if (run.phase === 'ARCHIVE' && run.status === 'COMPLETED') {
-    throw new Error('archived COMPLETED run cannot change status');
-  }
   const from = run.status;
   run.status = status;
   run.updated_at = nowIso();
@@ -1583,7 +1613,19 @@ export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}
       reason: reason.trim(),
       at: run.updated_at
     };
-  } else if (from === 'BLOCKED' || from === 'PAUSED') {
+  } else if (status === 'ABANDONED') {
+    run.intervention_needed = {
+      kind: 'ABANDONED',
+      reason: reason.trim(),
+      at: run.updated_at
+    };
+  } else if (
+    from === 'BLOCKED'
+    || from === 'PAUSED'
+    || from === 'ABANDONED'
+    || from === 'COMPLETED'
+    || status === 'IN_PROGRESS'
+  ) {
     run.intervention_needed = null;
   }
   saveRun(run, cwd);
@@ -1595,7 +1637,31 @@ export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}
   return { run, from, status, reason: reason.trim() };
 }
 
-/** Suggest metadata for a new run that supersedes a COMPLETED/ARCHIVE run (does not create files). */
+/**
+ * Resume same run_id to IN_PROGRESS (from COMPLETED / ABANDONED / PAUSED / BLOCKED / etc.).
+ * Preferred path after soft archive or abandon; does not force a new run_id.
+ */
+export function resumeRun(runId, { reason, cwd = process.cwd() } = {}) {
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    throw new Error('reason is required for resumeRun');
+  }
+  const result = setRunStatus(runId, { status: 'IN_PROGRESS', reason: reason.trim(), cwd });
+  return { ...result, action: 'resume' };
+}
+
+/** Mark half-done discarded work as ABANDONED (soft; resumeRun can recover). */
+export function abandonRun(runId, { reason, cwd = process.cwd() } = {}) {
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    throw new Error('reason is required for abandonRun');
+  }
+  const result = setRunStatus(runId, { status: 'ABANDONED', reason: reason.trim(), cwd });
+  return { ...result, action: 'abandon' };
+}
+
+/**
+ * Optional helper for a true new-requirement run only (does not create files).
+ * Primary path after archive/abandon is same-run resume — this does not forbid it.
+ */
 export function suggestReopenAsNew(oldRun, { newRunId } = {}) {
   if (!oldRun || typeof oldRun !== 'object') throw new Error('oldRun required');
   return {
@@ -1604,7 +1670,10 @@ export function suggestReopenAsNew(oldRun, { newRunId } = {}) {
     title: oldRun.title || null,
     goal: oldRun.goal || null,
     scope: oldRun.scope ? { in: [...(oldRun.scope.in || [])], out: [...(oldRun.scope.out || [])] } : null,
-    note: 'Do not un-archive or mutate COMPLETED run status; init a new run and chain supersedes_run_id in progress.md (not run.json; not family).'
+    note:
+      'Optional new-requirement helper only. Prefer same-run resume: resumeRun / setRunStatus → IN_PROGRESS '
+      + '(rollbackPhase ARCHIVE→ACCEPT if needed). Use a new run_id only for a distinct requirement family; '
+      + 'chain supersedes_run_id in progress.md when intentionally starting a new run (not run.json; not family).'
   };
 }
 

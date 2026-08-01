@@ -41,7 +41,17 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | PLAN | 最小计划与验收标准 | plan 可执行 |
 | DELIVER | 实施与验证循环 | 验证证据；`deliver-attempt` 停滞/预算早停 |
 | ACCEPT | 验收结论（双层：mechanical + 可选 judgment） | `gate accept` PASS/FAIL；strict 需 judgment PASS |
-| ARCHIVE | map-merge + archive 冻结 | `finalize` |
+| ARCHIVE | map-merge + soft archive 快照（可再归档） | `finalize` |
+
+### 生命周期 status（无终态冻结）
+
+| status | 含义 |
+| --- | --- |
+| `IN_PROGRESS` / `READY_FOR_USER_TEST` / `BLOCKED` / `PAUSED` | 活跃或停表 |
+| `COMPLETED` | 最近一次 soft archive 后的**兼容展示态**；**可** resume 同 `run_id` |
+| `ABANDONED` | 半做成弃；**禁** map-merge；可 resume 救回 |
+
+归档是**事件**（快照 + map 提升 + `last_archived_at`），不是墓碑。`close` deprecated。`$jj-end` 只做 Git。
 
 ### 强度档 intensity（速度 × 质量）
 
@@ -53,9 +63,9 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 
 不引入 ACO / 多 worker 主循环；对抗只作为 judgment_mode 可选备注，事实源仍是 ledger + verify。
 
-- accept PASS 后默认 `finalize`（map-merge + archive）
-- `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）
-- ARCHIVE 后不可 rollback phase；要再做则 **新 run** 并在 `progress.md` 链 `supersedes_run_id`（纠正）/ `parent_run_id`（子需求）
+- accept PASS 后默认 `finalize`（map-merge + soft archive；可 re-archive）
+- `map-merge` 默认要求 accept=PASS（`--force` 可覆盖）；**ABANDONED 禁止** map-merge
+- ARCHIVE / COMPLETED 后要再做 → **同 run** `resume` / `rollback-phase`（含 ARCHIVE→ACCEPT）；仅真新需求才 `init` 新 run
 
 ## 4. 回退（ledger）
 
@@ -64,11 +74,13 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | 意图 | 动作 |
 | --- | --- |
 | 改 gate | `ralph_ops gate --status FAIL`（或 PASS） |
-| phase 回退 | 仅相邻边：`rollback-phase --to DELIVER` 等 |
+| phase 回退 | 仅相邻边：`rollback-phase --to DELIVER` 等；**ARCHIVE→ACCEPT** 合法 |
 | 暂停 / 阻塞 | `set-status --status PAUSED\|BLOCKED` |
-| COMPLETED 再做 | 新 run + `progress.md` 链 `supersedes_run_id` / `parent_run_id`；不 un-archive 覆盖 |
+| 归档后 / COMPLETED 再做 | **同 run** `resume`（可 re-archive）；不默认新 run |
+| 一半不做 | `abandon` → `ABANDONED`；可再 `resume` |
+| 真新需求 | 才新 run；可选 `progress.md` 链 |
 
-续作（**改错** / **加子需求**：还没归档同任务 / 已归档则新任务 + progress 链）与话术：用户向 [ralph 命令 · 做完了还要改](../command-jj-ralph.html#做完了还要改-还要加东西)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
+续作（**改错** / **加子需求** / **归档后** / **废弃救回**：始终优先同 `run_id`）与话术：用户向 [ralph 命令 · 做完了还要改](../command-jj-ralph.html#做完了还要改-还要加东西)；agent 向 `.codex/skills/jj-ralph/references/post-complete-continue.md`。
 
 默认**不**自动 git revert。
 
@@ -77,11 +89,11 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 ```text
 .workflow/ralph/
   business-map.json
-  RALPH-{slug}-{date}/          # 活跃 run
-    run.json                    # 真相：phase / gates / handoff / knowledge_refs
+  RALPH-{slug}-{date}/          # 权威 run 目录（归档后仍在此续作）
+    run.json                    # 真相：phase / gates / handoff / knowledge_refs / last_archived_*
     handoff/handoff.json        # 可选镜像（same 可读）
     reviews/REV-*.json          # jj-review 映射
-  archive/YYYY-MM-DD-{slug}/    # 冻结副本（含 COMPLETED run.json）
+  archive/YYYY-MM-DD-{slug}/    # soft archive 历史快照（re-archive 可带时间戳）
 .workflow/handoffs/<HOF-ID>/    # handoff 导出（跨仓）
 .workflow/dispatch/recommendations/<SNAP-ID>/
 ```
@@ -106,7 +118,7 @@ archive 目录默认去重 run_id 末尾日期（例 `2026-07-23-smoke`，而非
 | 权威实现 | `src/ralph.mjs` |
 | Skill 可移植副本 | `.codex/skills/jj-ralph/scripts/lib/ralph.mjs`（`npm run ralph:sync`） |
 | Agent 入口 | `.codex/skills/jj-ralph/scripts/ralph_ops.mjs`（优先 live src，否则 bundled；业务仓无需装 npm 包） |
-| CLI | `jj ralph init\|status\|archive\|finalize\|map-merge\|gate\|deliver-attempt\|accept-layer\|map-find\|handoff\|dispatch-snapshot\|commit-prep\|review-record\|rollback-phase\|set-status` |
+| CLI | `jj ralph init\|status\|archive\|finalize\|map-merge\|gate\|deliver-attempt\|accept-layer\|map-find\|handoff\|dispatch-snapshot\|commit-prep\|review-record\|rollback-phase\|set-status\|resume\|abandon`（`close` deprecated） |
 
 解析顺序：repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
 
@@ -116,13 +128,14 @@ archive 目录默认去重 run_id 末尾日期（例 `2026-07-23-smoke`，而非
 - 同操作失败有限次后换策略或升级用户
 - 未要求 commit/push/review/handoff/dispatch 则不做
 - 聊天、thread 状态、memory 不能推进 checkpoint
+- **无终态冻结**：不得以 COMPLETED/已归档拒绝同 run 续作；新 run 仅真新需求；`close` 非一等入口
 
 ## 9. 验收
 
 - 安装含 `jj-ralph` skill 与 Claude/Grok/Qoder 对应入口
 - sample run / map 与 schema 校验通过
 - map-merge 后 map-find 可恢复 run 路径与 lessons
-- archive / handoff / dispatch-snapshot / rollback 路径与合约测试一致
+- archive / resume / abandon / re-archive / rollback 路径与合约测试一致
 - `npm run ralph:check` 与 `tests/jj-ralph-contract.test.mjs` 通过
 
 ## 10. 与产品面位置

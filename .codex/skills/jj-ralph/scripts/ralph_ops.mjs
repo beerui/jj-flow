@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|deliver-attempt|accept-layer|rollback-phase|set-status|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -78,8 +78,10 @@ Commands:
   deliver-attempt --run-id RALPH-x [--improved true|false|auto] [--signal text] [--cwd DIR]
                  (omit --improved or use auto: compare workspace fingerprint)
   accept-layer --run-id RALPH-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--cwd DIR]
-  rollback-phase --run-id RALPH-x --to PLAN|DELIVER|ANALYZE --reason "..." [--cwd DIR]
-  set-status --run-id RALPH-x --status PAUSED|BLOCKED|IN_PROGRESS --reason "..." [--cwd DIR]
+  rollback-phase --run-id RALPH-x --to PLAN|DELIVER|ANALYZE|ACCEPT --reason "..." [--cwd DIR]
+  set-status --run-id RALPH-x --status IN_PROGRESS|READY_FOR_USER_TEST|BLOCKED|PAUSED|ABANDONED|COMPLETED --reason "..." [--cwd DIR]
+  resume --run-id RALPH-x --reason "..." [--cwd DIR]
+  abandon --run-id RALPH-x --reason "..." [--cwd DIR]
   map-find --query "keyword" [--limit N] [--cwd DIR]
   handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
   dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
@@ -186,6 +188,8 @@ async function main() {
     setGate,
     rollbackPhase,
     setRunStatus,
+    resumeRun,
+    abandonRun,
     recordDeliverAttempt,
     setAcceptLayer,
     RALPH_MAP_REL,
@@ -431,6 +435,50 @@ async function main() {
         resolved,
       });
       return;
+    }
+
+    if (cmd === 'resume' || cmd === 'continue') {
+      const runId = args['run-id'];
+      const reason = args.reason;
+      if (!runId || !reason) die('resume needs --run-id --reason');
+      if (typeof resumeRun !== 'function') {
+        die('resolved ralph.mjs has no resumeRun; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = resumeRun(runId, { reason, cwd });
+      printJson({
+        ok: true,
+        action: 'resume',
+        run_id: runId,
+        from: result.from,
+        status: result.status,
+        reason: result.reason,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'abandon') {
+      const runId = args['run-id'];
+      const reason = args.reason;
+      if (!runId || !reason) die('abandon needs --run-id --reason');
+      if (typeof abandonRun !== 'function') {
+        die('resolved ralph.mjs has no abandonRun; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = abandonRun(runId, { reason, cwd });
+      printJson({
+        ok: true,
+        action: 'abandon',
+        run_id: runId,
+        from: result.from,
+        status: result.status,
+        reason: result.reason,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'close') {
+      die('close is deprecated; use abandon (half-done discard) or archive/finalize (soft archive snapshot). Same run remains resumable.');
     }
 
     if (cmd === 'map-find') {
