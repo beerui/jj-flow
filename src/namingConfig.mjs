@@ -49,6 +49,16 @@ export const DEFAULT_NAMING_CONFIG = {
       read_old_paths: true,
       create_must_follow_config: true,
       rename_existing_requires_explicit_cleanup: true
+    },
+    /** Archive elevation L2: package always; hook optional (none|cli). */
+    knowledge_contribute: {
+      hook: 'none',
+      /** Template may use {package} absolute path to knowledge-contribution.json */
+      cli: null,
+      fail_open: true,
+      timeout_ms: 30000,
+      /** If true, finalize also runs hook when hook !== none */
+      on_finalize: false
     }
   },
   /**
@@ -118,6 +128,10 @@ export function loadNamingConfig({ configDir = resolveGlobalConfigDir(), require
       legacy_tolerance: {
         ...DEFAULT_NAMING_CONFIG.ralph.legacy_tolerance,
         ...((raw.ralph && raw.ralph.legacy_tolerance) || {})
+      },
+      knowledge_contribute: {
+        ...DEFAULT_NAMING_CONFIG.ralph.knowledge_contribute,
+        ...((raw.ralph && raw.ralph.knowledge_contribute) || {})
       }
     },
     dispatch: {

@@ -67,5 +67,15 @@ ABANDONED 上禁止 `map-merge` / `archive`（须先 resume）。
 ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
 ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"
-ralph_ops.mjs finalize --run-id RALPH-x
+ralph_ops.mjs finalize --run-id RALPH-x --lessons "可复用规则"
+ralph_ops.mjs knowledge-contribute --run-id RALPH-x --hook   # 用户：投喂知识库
 ```
+
+## 投喂知识库
+
+用户说「投喂知识库 / 补充全局知识」时（**不要**要求用户报编号）：
+
+1. 解析 run（同续作探测）  
+2. `knowledge-contribute --hook`（重写包 + 可选 extract → candidate only）  
+3. 报告：`path`、candidates 数、`hook.status`（ok|skipped|failed）  
+4. 失败 fail-open，不改 archive；提示检查 `knowledge_root` / `RALPH_KNOWLEDGE_HOOK_CMD`

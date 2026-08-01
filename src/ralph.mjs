@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig } from './namingConfig.mjs';
-import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown } from './portfolioKnowledge.mjs';
+import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown, resolvePortfolioKbRoot } from './portfolioKnowledge.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -590,6 +590,7 @@ export function finalizeRun(runId, {
   const archived = archiveRun(runId, { cwd, slug, force, diff_paths });
   let contribution = null;
   let contribution_path = null;
+  let contribute_hook = { status: 'skipped', reason: 'contribution package disabled' };
   if (contribution_package !== false) {
     const written = writeKnowledgeContribution(runId, {
       cwd,
@@ -603,6 +604,18 @@ export function finalizeRun(runId, {
     });
     contribution = written.contribution;
     contribution_path = written.path;
+    const hookCfg = resolveKnowledgeContributeHookConfig({ hook: false, cwd });
+    if (hookCfg.on_finalize && hookCfg.mode && hookCfg.mode !== 'none') {
+      contribute_hook = invokeKnowledgeContributeHook(written.abs, contribution, { cwd, ...hookCfg });
+      appendProgressLine(
+        runId,
+        cwd,
+        '- ' + nowIso() + ' knowledge-contribute hook on_finalize status=' + contribute_hook.status
+          + (contribute_hook.reason ? (' reason=' + contribute_hook.reason) : '')
+      );
+    } else {
+      contribute_hook = { status: 'skipped', reason: 'hook not enabled on finalize (say 投喂知识库 or --hook)' };
+    }
   }
   return {
     run: archived.run,
@@ -613,6 +626,7 @@ export function finalizeRun(runId, {
     handoff: archived.run.handoff || null,
     contribution,
     contribution_path,
+    contribute_hook,
     elevation: {
       durable_lessons: merged.elevation?.durable_lessons || [],
       process_lessons: merged.elevation?.process_lessons || []
@@ -879,10 +893,109 @@ export function writeKnowledgeContribution(runId, options = {}) {
       + ' candidates=' + (contribution.candidates?.length || 0)
       + ' durable=' + (contribution.elevation?.durable_lessons?.length || 0)
   );
-  return { path: rel, contribution, run_id: runId };
+  return { path: rel, abs, contribution, run_id: runId };
 }
 
-/** Re-generate contribution package for a run (post-archive ok). Hook not implemented (fail-open design: package only). */
+/**
+ * Resolve L2 extract hook config from options / env / naming.json.
+ * Env: RALPH_KNOWLEDGE_HOOK=none|cli, RALPH_KNOWLEDGE_HOOK_CMD="node kb.mjs extract --source {package}"
+ */
+export function resolveKnowledgeContributeHookConfig({ hook = false, cwd = process.cwd() } = {}) {
+  const naming = loadNamingConfig();
+  const cfg = naming.ralph?.knowledge_contribute || {};
+  const envMode = process.env.RALPH_KNOWLEDGE_HOOK || null;
+  const envCmd = process.env.RALPH_KNOWLEDGE_HOOK_CMD || null;
+  let mode = 'none';
+  if (hook === true || hook === 'cli') mode = envMode || cfg.hook || 'cli';
+  else if (typeof hook === 'string' && hook) mode = hook;
+  else if (cfg.on_finalize && cfg.hook && cfg.hook !== 'none') mode = cfg.hook;
+  else mode = envMode || cfg.hook || 'none';
+  if (mode === true) mode = 'cli';
+  return {
+    mode,
+    cli: envCmd || cfg.cli || null,
+    fail_open: cfg.fail_open !== false,
+    timeout_ms: Number(cfg.timeout_ms) > 0 ? Number(cfg.timeout_ms) : 30000,
+    on_finalize: Boolean(cfg.on_finalize),
+    cwd
+  };
+}
+
+/**
+ * Best-effort extract hook. Never throws when fail_open (default).
+ * @param {string} packageAbs absolute path to knowledge-contribution.json
+ * @param {object} packageObj parsed package
+ */
+export function invokeKnowledgeContributeHook(packageAbs, packageObj, options = {}) {
+  const cfg = {
+    mode: options.mode || 'none',
+    cli: options.cli || null,
+    fail_open: options.fail_open !== false,
+    timeout_ms: options.timeout_ms || 30000,
+    cwd: options.cwd || process.cwd()
+  };
+  if (!cfg.mode || cfg.mode === 'none' || cfg.mode === false) {
+    return { status: 'skipped', reason: 'hook not requested' };
+  }
+  if (cfg.mode === 'http') {
+    return { status: 'skipped', reason: 'http hook not implemented; use cli or external extract' };
+  }
+  if (cfg.mode !== 'cli' && cfg.mode !== true) {
+    return { status: 'skipped', reason: 'unknown hook mode: ' + String(cfg.mode) };
+  }
+
+  let command = cfg.cli;
+  if (!command) {
+    const root = resolvePortfolioKbRoot();
+    if (!root) {
+      return { status: 'skipped', reason: 'knowledge_root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT)' };
+    }
+    const kbJs = path.join(root, 'tools', 'kb.mjs');
+    if (!fs.existsSync(kbJs)) {
+      return {
+        status: 'skipped',
+        reason: 'default kb CLI missing: ' + kbJs.replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+          + ' (set ralph.knowledge_contribute.cli or RALPH_KNOWLEDGE_HOOK_CMD)'
+      };
+    }
+    command = 'node "' + kbJs + '" extract --source "{package}" --status candidate';
+  }
+
+  const filled = String(command)
+    .replaceAll('{package}', packageAbs)
+    .replaceAll('{package_json}', packageAbs)
+    .replaceAll('{run_id}', packageObj?.run_id || '');
+
+  try {
+    const stdout = execSync(filled, {
+      cwd: cfg.cwd,
+      timeout: cfg.timeout_ms,
+      shell: true,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    return {
+      status: 'ok',
+      command: filled,
+      stdout: String(stdout || '').slice(0, 2000)
+    };
+  } catch (err) {
+    const result = {
+      status: 'failed',
+      command: filled,
+      error: err?.message || String(err),
+      stderr: String(err?.stderr || '').slice(0, 2000),
+      code: err?.status ?? err?.code ?? null
+    };
+    if (cfg.fail_open) return result;
+    throw new Error('knowledge contribute hook failed: ' + result.error);
+  }
+}
+
+/**
+ * Write contribution package; optional extract hook (candidate only, fail-open).
+ * User utterance:「投喂知识库」→ knowledgeContribute(..., { hook: true })
+ */
 export function knowledgeContribute(runId, {
   cwd = process.cwd(),
   modules = [],
@@ -902,11 +1015,28 @@ export function knowledgeContribute(runId, {
     status,
     include_process_lessons_in_map
   });
+  const hookCfg = resolveKnowledgeContributeHookConfig({ hook, cwd });
+  let hookResult;
+  if (!hook && hookCfg.mode === 'none') {
+    hookResult = { status: 'skipped', reason: 'hook not requested' };
+  } else {
+    // explicit hook:true forces cli mode if config is none
+    const mode = hook && (hookCfg.mode === 'none' || !hookCfg.mode) ? 'cli' : hookCfg.mode;
+    hookResult = invokeKnowledgeContributeHook(written.abs, written.contribution, {
+      ...hookCfg,
+      mode
+    });
+    appendProgressLine(
+      runId,
+      cwd,
+      '- ' + nowIso() + ' knowledge-contribute hook status=' + hookResult.status
+        + (hookResult.reason ? (' reason=' + hookResult.reason) : '')
+        + (hookResult.error ? (' error=' + hookResult.error) : '')
+    );
+  }
   return {
     ...written,
-    hook: hook
-      ? { status: 'skipped', reason: 'extract hook not implemented in this wave (package written; use external kb extract)' }
-      : { status: 'skipped', reason: 'hook not requested' }
+    hook: hookResult
   };
 }
 

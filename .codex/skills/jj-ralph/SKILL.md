@@ -24,8 +24,9 @@ description: "单个需求任务闭环 ANALYZE→PLAN→DELIVER→ACCEPT→ARCHI
 4. 阶段 [phases.md](references/phases.md)：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。优先 `gate`。  
    - DELIVER 每次 verify 后：`deliver-attempt`  
    - **strict** accept 前：`accept-layer --layer judgment --status PASS --mode review|recheck`
-5. accept PASS 后默认 `finalize`（L1 map-merge + 归档 + 写 `knowledge-contribution.json`；之后仍可同 run 再改、再归档）。过程性 STAGNATION 进 `process_lessons`，不进主 lessons；显式 `--lessons` 才是 durable。
-6. 完成报告（中文、短）：本仓 CAP id、贡献包路径；用户说「投喂知识库」→ `knowledge-contribute`（钩子 Wave 后续）。
+5. accept PASS 后默认 `finalize`（L1 map-merge + 归档 + 写 `knowledge-contribution.json`）。过程性 STAGNATION 进 `process_lessons`；显式 `--lessons` 才是 durable。
+6. 完成报告（中文、短）：本仓 CAP id、贡献包路径、钩子状态。  
+7. 用户说 **「投喂知识库 / 补充全局知识」** → `knowledge-contribute --hook`（只进 candidate；配置见下）。
 
 ## 交接
 
@@ -69,6 +70,16 @@ node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x
 | Git 收工 | `$jj-end` |
 
 `close` 已弃用 → `abandon` 或 `finalize`。默认不 git revert。
+
+### 投喂知识库（L2）
+
+| 步骤 | 动作 |
+| --- | --- |
+| 归档后 | 已有 `knowledge-contribution.json`（finalize 自动写） |
+| 用户口语 | 「投喂知识库」「补充全局知识」 |
+| 机械 | `ralph_ops knowledge-contribute --run-id …` 或加 `--hook` 调 extract |
+| 配置 | `naming.json` → `ralph.knowledge_contribute`：`hook: none\|cli`，`cli` 模板含 `{package}`；或 env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
+| 默认 | 钩子 **fail-open**；**不** auto promote active |
 
 ## 硬约束
 

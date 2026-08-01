@@ -1,9 +1,8 @@
 # Ralph 归档时的「提升」怎么做
 
-> 状态：Accepted（E1/E2 已实现于代码；E3 hook 待做）  
+> 状态：Accepted（E1/E2/E3-cli 已实现；http hook 与 portfolio extract 契约对齐待联调）  
 > 关联：`jj-ralph.md`、`portfolio-knowledge.md`、`ralph-knowledge-contribute.md`  
-> 问题：归档时是否提升、提升到哪、怎么抽、怎么合并、用户怎么感知。  
-> 实现：`buildElevationFromRun` / `process_lessons` / `knowledge-contribution.json` / `jj ralph knowledge-contribute`
+> 实现：`buildElevationFromRun`、`process_lessons`、`knowledge-contribution.json`、`invokeKnowledgeContributeHook`、`jj ralph knowledge-contribute --hook`
 
 ## 1. 结论（产品）
 

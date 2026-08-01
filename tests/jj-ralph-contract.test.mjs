@@ -1277,6 +1277,47 @@ test('finalize writes knowledge-contribution with durable lessons only by defaul
   }
 });
 
+test('knowledge-contribute hook ok / failed fail-open via RALPH_KNOWLEDGE_HOOK_CMD', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-hook-'));
+  const prevCmd = process.env.RALPH_KNOWLEDGE_HOOK_CMD;
+  const prevMode = process.env.RALPH_KNOWLEDGE_HOOK;
+  try {
+    const runId = 'RALPH-hook-20260801';
+    initRun({
+      run_id: runId,
+      title: 'hook',
+      goal: 'test hook',
+      capability_ids: ['CAP-hook'],
+      attach_knowledge: false
+    }, cwd);
+    const run = loadRun(runId, cwd);
+    run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
+    run.phase = 'ACCEPT';
+    saveRun(run, cwd);
+    finalizeRun(runId, { cwd, modules: ['a.js'], lessons: ['durable'], force: true });
+
+    process.env.RALPH_KNOWLEDGE_HOOK = 'cli';
+    // cross-platform no-op success
+    process.env.RALPH_KNOWLEDGE_HOOK_CMD = process.platform === 'win32'
+      ? 'node -e "process.exit(0)"'
+      : 'node -e "process.exit(0)"';
+    const ok = knowledgeContribute(runId, { cwd, lessons: ['durable'], modules: ['a.js'], hook: true });
+    assert.equal(ok.hook.status, 'ok');
+
+    process.env.RALPH_KNOWLEDGE_HOOK_CMD = 'node -e "process.exit(2)"';
+    const bad = knowledgeContribute(runId, { cwd, lessons: ['durable'], modules: ['a.js'], hook: true });
+    assert.equal(bad.hook.status, 'failed');
+    // fail-open: still returns package path
+    assert.ok(bad.path);
+  } finally {
+    if (prevCmd === undefined) delete process.env.RALPH_KNOWLEDGE_HOOK_CMD;
+    else process.env.RALPH_KNOWLEDGE_HOOK_CMD = prevCmd;
+    if (prevMode === undefined) delete process.env.RALPH_KNOWLEDGE_HOOK;
+    else process.env.RALPH_KNOWLEDGE_HOOK = prevMode;
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('cli deliver-attempt and accept-layer wire through', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-cli-layer-'));
   try {

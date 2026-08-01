@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-- **ralph 归档提升 E1/E2**：`process_lessons` 与 durable `lessons` 分桶；finalize 写 `knowledge-contribution.json`；`jj ralph knowledge-contribute`（钩子占位）；`--include-process-lessons` / `--no-contribution-package`
+- **ralph 归档提升 E1–E3**：`process_lessons` 分桶；finalize 写 `knowledge-contribution.json`；`knowledge-contribute --hook`（cli，fail-open）；env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD`；skill「投喂知识库」
 
 ## 0.1.1-beta.43 — 2026-08-01 10:55
 
