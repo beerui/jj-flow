@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 0.1.1-beta.46 — 2026-08-03
+
+- **CREATE 基线新鲜度（EP-20260803）**：`jj-same` / `jj-dispatch` 新建功能分支前必须 `git fetch` 集成基线，报告 `behind_count`；禁止从陈旧 local `master` tip 静默 `checkout -b`；允许 ff-only 或从 `origin/master` 建分支；仍禁止对脏/分叉 master 做 hard-reset。
+- **same 收工短总结**：五项门禁改为 agent 内心自检，禁止对用户展示「稳健/剃刀/…」清单；聊天只输出决策/改动/验证/Git 小结；`recipes.mjs` 与合约测试对齐。
+- **评测**：`docs/evaluations/2026-08-03-dispatch-stale-master-branch.md`（stale local master CREATE 负例与 C-base-freshness-v1 推广）。
+
 ## 0.1.1-beta.45 — 2026-08-01
 
 - **npm 包迁移到 `@brewer/jj-flow`**（原 `@shendu-sdt/jj-flow` 弃用，安装请改用新 scope）
