@@ -25,9 +25,13 @@ test('same dispatch keeps input parameters minimal', () => {
   assert.ok(dispatch.skill_calls.some((call) => call.skill === 'analyze-source'));
   assert.ok(dispatch.skill_calls.some((call) => call.skill === 'execute'));
   assert.ok(
-    dispatch.workflow_prompt.includes('五项门禁')
+    dispatch.workflow_prompt.includes('短总结')
       || dispatch.workflow_prompt.includes('EXECUTION_READY')
       || dispatch.workflow_prompt.includes('同源')
+  );
+  assert.ok(
+    dispatch.workflow_prompt.includes('禁止对用户展示')
+      || dispatch.workflow_prompt.includes('短总结')
   );
 });
 

@@ -24,7 +24,7 @@ TASK-ID 恢复 -> PREVIEW（分支/workspace 表）
 | 1 | intake 未完成 | 只 `INTAKE_REQUIRED` |
 | 2 | intent=`UNKNOWN` | 只 `RECONCILE` / 人工 BIND；禁止再 create 同 key |
 | 3 | 无 task_keys 批准 | `PREVIEW_ONLY` 只读 |
-| 4 | 写分支/workspace 不确定 | 展示判断表；确认前不 DISPATCH |
+| 4 | 写分支/workspace 不确定；**CREATE 时 base 陈旧** | 展示判断表（含 `behind_count`/`base_action`）；确认前不 DISPATCH；禁止从落后 local master 静默建分支 |
 | 5 | 缺 Codex capabilities | Codex：BLOCKED 且 plane 不变；**Grok→Mode S 降级** |
 | 6 | 已批准且路径就绪 | 写 intent→BIND（Grok：真 session + attestation 文件） |
 | 7 | 有 receipt / 已绑定 | tick/resume；**无 CLI 时 Agent 写 plane**（见 agent-write-plane） |
@@ -120,7 +120,7 @@ CLI 覆盖：`--control-root` / `--manifest`。解析序：CLI → env → namin
 - 不要求用户先打开 control 根或每波新建控制仓
 - **不要求用户跑 CLI** 才能 PREVIEW / 批准 / 收口
 - 不实现常驻 daemon / DB / 完整多智能体引擎
-- **默认不**自动 checkout、merge、push、release
+- **默认不**自动 merge、push、release；**CREATE 功能分支前必须** fetch 并保证 tip 不落后 `origin/<base>`（见 happy-path 判断表 / EP-20260803）
 - 不因 thread 停止或模型文字推进检查点
 - 不手写 `VERIFIED` 却缺 `produced_commit` / 真 session / **attestation 文件**
 - 不合成 `session-…` 占位 thread 伪装 BOUND

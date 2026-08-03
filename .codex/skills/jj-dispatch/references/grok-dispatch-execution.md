@@ -241,6 +241,7 @@ read/review 示例与 write 相同路径规则；`sandbox_mode`/`agent_name` 按
 | 6 | 同 project 无第二 active write | BLOCKED |
 | 7 | control_root 可写 attestation/receipt | BLOCKED |
 | 8 | 无未处理 UNKNOWN intent | 仅 RECONCILE |
+| 9 | **CREATE 基线新鲜度**：`git fetch` 后 `behind_count`；>0 须 `FETCH_FF` 或 `CREATE_FROM_ORIGIN`，禁止陈旧 local master tip（EP-20260803） | 停问/BLOCKED |
 
 ---
 
@@ -326,3 +327,4 @@ jj dispatch-tick --delivery DEL-… --write
 | 2026-07-30 | 用户不跑 CLI | Agent 落盘 + 可选自检 |
 | 2026-07-30 | project-branch 默认 | 避免 worktree transfer 负例 |
 | 2026-07-30 | 源必须 commit | 分发真相漂移负例 |
+| 2026-08-03 | CREATE 前 base freshness | EP-20260803 陈旧 local master 建分支；fetch+ff 或 from origin |

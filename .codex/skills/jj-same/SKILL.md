@@ -11,14 +11,15 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 
 1. Ralph-handoff-first：当前 `RALPH-*/run.json` → `handoff_ref` / `run.handoff`；`ready=true` 禁止重做源分析。
 2. 从用户话解析目标角色；有 control 时**只读**批准的 `targets` / `task_key`。
-3. 分支用途 preflight（硬门）→ [branch-purpose-preflight.md](references/branch-purpose-preflight.md)。
+3. 分支用途 + **CREATE 基线新鲜度** preflight（硬门）→ [branch-purpose-preflight.md](references/branch-purpose-preflight.md)（含 behind_count / G6）。
 4. 默认 `port_profile.mode=LITE`；明显 ADAPT/多文件/持续同步才 FULL。
 5. 核对 **`EXECUTION_READY`**（授权 + 稳定源 commit/diff + 需求可收敛 + 目标调用链 + 无影响 `MUST` 的 `UNRESOLVED`）。
 6. 最窄计划后**同一轮**改业务代码与聚焦测试；不得只更新计划/家族状态收工。
 7. 分层验证：静态/聚焦测试；运行时默认用户确认或 `N/A`（见 workflow-core）。
-8. 五项门禁复审最终 diff；产物进 `.workflow/` 分目录，**禁止** `.workflow/jj-same/`。
-9. **`HANDOFF_READY`** 后才写 `READY_FOR_HANDOFF / COMPLETED` 并推进同步检查点。
-10. 持续同步：恢复 `sync_key` + 检查点 → [continuous-sync.md](references/continuous-sync.md)。
+8. 自检最终 diff（五项门禁**只做内心/过程自检，禁止向用户展示清单或口号**）；产物进 `.workflow/` 分目录，**禁止** `.workflow/jj-same/`。
+9. **对用户**：用中文**短总结**收工（改了什么 / 决策 / 文件 / 验证 / 提交状态）；**不要**输出「五项门禁」「稳健/剃刀/…」分项表格。
+10. **`HANDOFF_READY`** 后才写 `READY_FOR_HANDOFF / COMPLETED` 并推进同步检查点。
+11. 持续同步：恢复 `sync_key` + 检查点 → [continuous-sync.md](references/continuous-sync.md)。
 
 完整编号路径与控制面边界表 → [happy-path.md](references/happy-path.md)。
 
@@ -36,7 +37,7 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 5. 无 Ralph handoff 时再退回旧 snapshot / 会话证据路径。
 6. 默认 `LITE`；明显 ADAPT/多文件/持续同步才 FULL。
 
-## 双门禁 + 五项门禁
+## 双门禁 + 用户可见输出
 
 | 门禁 | 作用 |
 | --- | --- |
@@ -45,7 +46,7 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 
 - 源缺 review/UAT、家族计划待补 → 默认 caveat，**不**挡编码；硬阻塞见 [happy-path.md](references/happy-path.md)。
 - 用户「开始迁移/实施/开干」→ `EXECUTE_NOW`：核对后下一项必须是业务代码或聚焦测试。
-- 五项（均须证据）：**稳健 / 剃刀 / 精准 / 最小化 / 复用**（短定义见 happy-path）。
+- 五项（稳健/剃刀/精准/最小化/复用）= **agent 自检准则**，定义见 happy-path；**禁止**在用户回复里逐条背诵或列「五项门禁结论」。收工只给事实总结。
 
 ## 项目族 + 控制面边界
 
@@ -71,16 +72,16 @@ description: 在同源分叉项目间迁移/同步功能。用户侧只说「交
 
 ## 硬约束 / MUST NOT
 
-- MUST：开干前 branch-purpose preflight；`EXECUTION_READY` 才改业务码；`HANDOFF_READY` 才宣称交接完成。
-- MUST NOT：整分支 cherry-pick / 整文件覆盖（除非同构无专有逻辑）；自动更新本地 `master`；改未授权仓；私有 `.workflow/jj-same/`；无 control 时伪造成 dispatch 批准；聊天摘要替代 Git/源码证据。
+- MUST：开干前 branch-purpose preflight；**CREATE 前** `git fetch` 集成基线且新分支 tip 不落后于 `origin/<base>`（默认 `origin/master`；允许 ff-only 或 `checkout -b` from origin）；`EXECUTION_READY` 才改业务码；`HANDOFF_READY` 才宣称交接完成；收工对用户**只输出短总结**。
+- MUST NOT：整分支 cherry-pick / 整文件覆盖（除非同构无专有逻辑）；在 `behind_count > 0` 时从陈旧 local base tip 静默建分支；对脏/分叉 local `master` 做 `reset --hard` 或未确认改写；改未授权仓；私有 `.workflow/jj-same/`；无 control 时伪造成 dispatch 批准；聊天摘要替代 Git/源码证据；**向用户展示「五项门禁」清单/口号式分项结论**。
 - 未明确要求时不擅自提交/推送；不常驻监听源仓。
 
 ## References
 
 | 文件 | 用途 |
 | --- | --- |
-| [happy-path.md](references/happy-path.md) | 主路径、双门禁、五项、控制面边界 |
-| [workflow-core.md](references/workflow-core.md) | 生命周期、证据、产物细节、工作流 1–7、交付格式 |
+| [happy-path.md](references/happy-path.md) | 主路径、双门禁、自检准则、用户可见总结 |
+| [workflow-core.md](references/workflow-core.md) | 生命周期、证据、产物细节、工作流 1–7、交付总结格式 |
 | [project-family.md](references/project-family.md) | 角色与路径 |
 | [branch-purpose-preflight.md](references/branch-purpose-preflight.md) | 分支用途硬门 |
 | [artifact-routing.md](references/artifact-routing.md) | 产物路由 |

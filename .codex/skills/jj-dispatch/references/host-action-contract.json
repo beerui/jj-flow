@@ -109,6 +109,8 @@
     "confirm_before_dispatch_when": [
       "intended_branch missing, ambiguous, or conflicts with current checkout / branch purpose",
       "workspace mode confidence is low (dirty-main vs isolation unclear)",
+      "CREATE needed but local base behind origin base (behind_count > 0) without FETCH_FF or CREATE_FROM_ORIGIN",
+      "local base dirty or diverged so cannot safely ff without user confirm",
       "main checkout branch != intended_branch and cannot safely align",
       "prior worktree-transfer or user said land on current branch"
     ],

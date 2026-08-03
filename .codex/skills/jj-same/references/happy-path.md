@@ -6,13 +6,13 @@
 
 1. **Ralph-handoff-first**：当前会话 `RALPH-*/run.json` → `artifact_refs.handoff_ref` / `run.handoff`；`ready=true` 禁止重做源分析。
 2. 解析目标角色与授权范围（用户自然语言；有 control 时只读 manifest）。
-3. **分支用途 preflight**（硬门）：[branch-purpose-preflight.md](branch-purpose-preflight.md)。
+3. **分支用途 + CREATE 基线新鲜度 preflight**（硬门）：[branch-purpose-preflight.md](branch-purpose-preflight.md)（purpose 1–5 + base freshness 6–10；CREATE 时 `behind_count>0` 禁止从陈旧 local master 建分支）。
 4. 核对 **`EXECUTION_READY`**；未满足则 `BLOCKED` / caveat，不改业务代码。
 5. 最窄计划 + **实施**目标业务代码与聚焦测试（同一轮，不只更新计划状态）。
 6. 分层验证与证据（静态/聚焦测试；运行时默认用户确认或 `N/A`）。
-7. 五项门禁复审最终 diff。
+7. **内心**按五项准则复审最终 diff（不展示给用户）。
 8. 产物与家族计划最小更新；需要时补 canonical 交接产物。
-9. 核对 **`HANDOFF_READY`** 后才写 `READY_FOR_HANDOFF / COMPLETED` 并推进同步检查点。
+9. 对用户输出**短总结**（见下）；核对 **`HANDOFF_READY`** 后才写 `READY_FOR_HANDOFF / COMPLETED` 并推进同步检查点。
 10. 持续同步场景：恢复 `sync_key` 与检查点 → 见 [continuous-sync.md](continuous-sync.md)。
 
 默认 `port_profile.mode=LITE`（近同构小改）；明显 ADAPT / 多文件 / 持续同步才 FULL。
@@ -26,15 +26,30 @@
 
 源侧缺最新 review / UAT PENDING / 家族计划待补，默认是交付 caveat，**不是** `EXECUTION_READY` 阻塞。用户明确「开始迁移/实施/开干」→ `EXECUTE_NOW`：事实核对后下一项必须是业务代码或聚焦测试。
 
-## 五项门禁（短）
+## 自检准则（agent 内部，勿对用户背诵）
 
-每次迁移须有证据回答，不得当口号：
+写代码与复审 diff 时心里过一遍即可，**禁止**在聊天里输出「五项门禁」标题或「稳健 ✅ / 剃刀 ✅ …」式清单：
 
-- **稳健**：需求、会话、分支提交与目标调用链交叉验证；保护脏工作区与旧功能。
-- **剃刀**：排除与验收无关的文件、提交、文档、格式化、legacy 对齐与顺手重构。
-- **精准**：定位目标真实入口/接口/状态/错误处理/专有场景，非只搜同名文件。
-- **最小化**：更少文件、更少控制流变化、更窄验证范围。
-- **复用**：复用需求语义与目标已有 API wrapper、组件、store、常量、测试模式。
+- **稳健**：交叉验证需求/会话/提交/调用链；保护脏工作区与旧功能。
+- **剃刀**：不扩无关文件、文档、格式化、legacy 对齐。
+- **精准**：走目标真实入口，非只搜同名文件。
+- **最小化**：更少文件与控制流变化。
+- **复用**：用目标现有 wrapper/组件/store/常量。
+
+## 用户可见收工（只总结）
+
+same / 迁移完成后，对用户**只**给紧凑事实（中文），例如：
+
+```text
+## <目标项目> 小结
+- 决策：ADAPT / DIRECT / …
+- 改动：路径 + 一句话行为
+- 验证：跑了什么 / 跳过什么 / 是否待用户测
+- Git：分支 @ tip；已 commit / 未提交
+- 下一步：（可选一句）
+```
+
+**不要**附：五项门禁结论、冗长产物链枚举（除非用户追问或 BLOCKED 需要证据）、仪式性复读 skill 口号。
 
 ## 控制面边界
 

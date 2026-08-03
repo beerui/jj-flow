@@ -250,7 +250,7 @@ git log -1 --oneline <integration>   # 若可解析
 
 缺任一项且非 hard-stop/冲突 → **继续做完**，不要只回复计划。
 
-## Final Response（中文）
+## Final Response
 
 只报事实：
 

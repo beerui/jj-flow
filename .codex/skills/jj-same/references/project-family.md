@@ -104,7 +104,13 @@ agent 不得自行跳过顺序进入另一个仓库。用户在当前请求明�
 ## 分支派生规则
 
 - 领头项目分支由用户创建，`jj-same` 只验证并记录，不替用户创建或改名。
-- agent 自动推进时，仅在前置项目达到 `HANDOFF_READY` 且用户主动触发后，从目标项目本地 `master` 创建开发分支。用户已在当前请求明确指定目标并要求实施时，以该目标 `EXECUTION_READY` 为准。不要自动 pull、更新或改写本地 `master`。
+- agent 自动推进时，仅在前置项目达到 `HANDOFF_READY` 且用户主动触发后，在目标项目从**新鲜**集成基线（默认 `master`）创建开发分支。用户已在当前请求明确指定目标并要求实施时，以该目标 `EXECUTION_READY` 为准。
+- **CREATE 前基线新鲜度（硬门，EP-20260803）**：
+  1. `git fetch <remote> <base>`（默认 `origin master`）。
+  2. 计算 `behind_count = rev-list --count <base>..<remote>/<base>`；写入 preflight 表。
+  3. `behind_count > 0`：优先 `git checkout -b <feat> <remote>/<base>`，或对**干净且可 ff** 的 local base 做 `merge --ff-only` 后再建分支。
+  4. **禁止**从落后的 local tip 静默建分支；**禁止**对脏/分叉 local `master` 做 `reset --hard` 或未确认改写。
+  5. 完整检查表与 G6 → [branch-purpose-preflight.md](branch-purpose-preflight.md)。
 
 ### 命名 grammar
 
@@ -158,7 +164,7 @@ diff:     role pa -> pb
 | `feat/pa-0717-1` | 项目B | `feat/pb-0717-1` | `feat/pb-0717-2`（改序号） |
 
 - 领头分支不符合可判定格式时，先从家族计划、会话和 Git 历史验证。能够按“不扩大范围、只替换 role”得到唯一可回退结果时记录假设并继续；仍存在多个有效解释时标记 `BLOCKED`，记录候选分支、缺失证据和解除条件，不启动额外问答流程。
-- 创建前重新检查目标 repo（`map.md` path/host）、origin、工作区、本地 `master` SHA 和目标分支是否已存在；任一事实冲突时标记 `BLOCKED`。
+- 创建前重新检查目标 repo（`map.md` path/host）、origin、工作区、本地 `master` SHA、**`origin/master`（或配置 base）SHA 与 behind_count**、目标分支是否已存在；任一事实冲突或 base 陈旧未处理时标记 `BLOCKED` / 先执行 `base_action`。
 
 ### 六项目根因检查
 

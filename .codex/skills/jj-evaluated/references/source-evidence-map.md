@@ -190,6 +190,21 @@ live; promote via skill/fixture or session-gated validator exception.
 Ralph `RALPH-readme-pnpm-install-20260731` was COMPLETED/ARCHIVE at capture time.
 > **Note (2026-08-01 product):** historical episode wording “no un-archive” meant “do not erase snapshot facts.” Current ralph allows **same-run resume** after soft archive (re-archive OK); it does not require a new `run_id` merely because status was COMPLETED.
 
+## 2026-08-03 dispatch stale master base (shang-tag-color → 承载)
+
+| Field | Value |
+| --- | --- |
+| episode_id | `EP-20260803-dispatch-stale-master-branch` |
+| delivery_id | `DEL-shang-tag-color-cz-20260803` |
+| control-plane | `D:/a/dispatch-control/.../control-plane.json` rev **2** after `BASE_RECOVERY` |
+| failure | CREATE `feat/cz-0807-lyj` from **stale local master** (64 behind `origin/master`) |
+| recovery | fetch+ff master → recreate feat; ADAPT re-applied; tip `d78af9489` |
+| candidate | **C-base-freshness-v1 promoted** (jj-same G6 + dispatch preflight) |
+| evaluation | `docs/evaluations/2026-08-03-dispatch-stale-master-branch.md` |
+| report | `docs/evaluations/EP-20260803-dispatch-stale-master-branch-report.md`（jj-flow 仓不写 `.workflow/`） |
+
+Protect: EP-S1 purpose gate still required; this episode adds base-freshness, does not replace it.
+
 ## 2026-07-31 Codex multi-thread dispatch (telemetry-image)
 
 Offline export package (local only; raw JSONL unredacted):

@@ -43,10 +43,15 @@
 | dirty | 是否有**非本任务**脏改动 |
 | active_write | 同项目是否已有 active write intent |
 | proposed_mode | `project-branch`（默认）或 `exclusive-worktree` |
+| base / origin_base | 集成基线 ref 与 tip（默认 `master` / `origin/master`） |
+| behind_count | `git rev-list --count <base>..<remote>/<base>`（CREATE 前须 `git fetch`） |
+| base_action | `USE_LOCAL` / `FETCH_FF` / `CREATE_FROM_ORIGIN` / `NEEDS_CONFIRM` / `BLOCKED` |
 | confidence | `high` / `low` |
 | action | `READY` 或 `NEEDS_CONFIRM` |
 
-**何时必须停问（`NEEDS_CONFIRM`）**：目标分支缺失/冲突；主工作区分支 ≠ intended 且无法安全快进；isolation 拿不准；用户曾要求「合到当前分支」或发生 worktree transfer 纠错。
+**CREATE 基线新鲜度（EP-20260803 硬门）**：intended 不存在、需从基线新建时，**禁止**在 `behind_count > 0` 时从陈旧 local `master` tip 静默 `checkout -b`。先 `git fetch`；优先 `CREATE_FROM_ORIGIN` 或干净 base 的 `FETCH_FF`。禁止对脏/分叉 local master 做 `reset --hard`。与 jj-same [branch-purpose-preflight](../../jj-same/references/branch-purpose-preflight.md) checks 6–10 / G6 对齐。
+
+**何时必须停问（`NEEDS_CONFIRM`）**：目标分支缺失/冲突；主工作区分支 ≠ intended 且无法安全快进；isolation 拿不准；用户曾要求「合到当前分支」或发生 worktree transfer 纠错；**local base 脏/分叉无法安全 ff 且需 CREATE**；**无法 fetch 且无法证明 base 新鲜**。
 
 用户确认前：**不** DISPATCH、**不** create_thread、**不**写 `dispatch_intent`。
 

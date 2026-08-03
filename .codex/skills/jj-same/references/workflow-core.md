@@ -13,7 +13,9 @@
 5. 只为当前项目生成可执行实施任务；未来项目只保留高层范围和待验证差异。
 6. 开发、修复、需求纠正、验证、评审、提交或阻塞状态变化后，先同步更新家族交付计划；共享需求变化时生成 successor snapshot，不原地改写旧版本。
 
-领头分支由用户创建。`pa -> pb -> pc` 是 agent 自动选择下一个目标时的默认协调顺序，不是用来否决用户当前明确指定目标的硬门禁。用户在当前消息明确指定“当前项目/目标 + 开始迁移/实施/开干”时，视为已主动触发该目标；只要该目标满足 `EXECUTION_READY`，即可从本地 `master` 创建开发分支并实施，不要求其它 sibling 已完成 QA、UAT 或评审。未被本轮选择的项目保持原状态并记录原因。分支名沿用领头分支的类型、日期和任务序号，只替换项目角色前缀，例如 `feat/pa-0717-1 -> feat/pb-0717-1 -> feat/pc-0717-1`。不得自动更新本地 `master`，不得修改未授权仓库。
+领头分支由用户创建。`pa -> pb -> pc` 是 agent 自动选择下一个目标时的默认协调顺序，不是用来否决用户当前明确指定目标的硬门禁。用户在当前消息明确指定“当前项目/目标 + 开始迁移/实施/开干”时，视为已主动触发该目标；只要该目标满足 `EXECUTION_READY`，即可从**新鲜**集成基线（默认 `master` / `origin/master`）创建开发分支并实施，不要求其它 sibling 已完成 QA、UAT 或评审。未被本轮选择的项目保持原状态并记录原因。分支名沿用领头分支的类型、日期和任务序号，只替换项目角色前缀，例如 `feat/pa-0717-1 -> feat/pb-0717-1 -> feat/pc-0717-1`。
+
+**CREATE 基线新鲜度（EP-20260803）**：创建功能分支前必须 `git fetch` 集成基线，并保证新分支 tip **不落后于** `origin/<base>`（默认 `origin/master`）。允许：干净 local base 上的 **ff-only** 更新，或 **直接从 `origin/<base>` 建分支**（可不移动 local master 指针）。**禁止**：在 `behind_count > 0` 时从陈旧 local tip 静默 `checkout -b`；**禁止**对脏/分叉 local `master` 做 `reset --hard` 或未确认的改写。不得修改未授权仓库。细节见 [branch-purpose-preflight.md](branch-purpose-preflight.md) checks 6–10 / G6。
 
 存在 `$jj-dispatch` 控制项目时，以控制 manifest 中明确批准的角色与 `targets` 为本轮协调事实；`jj-same` 仍只负责迁移、差异适配和同步检查点。没有控制项目时兼容 `源=A 目标=B,C`，不强制升级旧 handoff snapshot。家族计划 ≠ dispatch 批准。
 
@@ -188,7 +190,7 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 - 确认入口模式：准备交接、消费 `handoff_ref`、更新交接、无 snapshot 首次迁移或按 `sync_key` 后续同步。
 - 确认源项目、目标项目、共享 blueprint 的产物归属仓库、证据入口和是否要求提交/推送。
 - 确认领头项目、默认或用户指定的交付顺序、领头分支、目标派生分支和家族交付计划归属；项目A领头时默认 `pa -> pb -> pc`。
-- **分支用途 preflight（硬门，开干前必做）**：读取 [branch-purpose-preflight.md](branch-purpose-preflight.md)。在写业务代码或创建目标分支前，用当前仓库 `git branch --show-current` / HEAD 回答：任务用途、当前分支用途、意图工作分支、本回合 integration、以及（若用户问发布内容）**tip 树**是否含目标能力。任务用途与当前分支用途不一致时标记 `BLOCKED`，只允许切换/创建正确分支或记录用户显式「就落在此 train 分支」的覆盖；禁止因 checkout 顺手把需求接到发布火车或无关 feature 线（回归：EP-20260730-S1）。
+- **分支用途 + 基线新鲜度 preflight（硬门，开干前必做）**：读取 [branch-purpose-preflight.md](branch-purpose-preflight.md)。在写业务代码或创建目标分支前，用当前仓库 `git branch --show-current` / HEAD 回答：任务用途、当前分支用途、意图工作分支、本回合 integration、以及（若用户问发布内容）**tip 树**是否含目标能力。任务用途与当前分支用途不一致时标记 `BLOCKED`，只允许切换/创建正确分支或记录用户显式「就落在此 train 分支」的覆盖；禁止因 checkout 顺手把需求接到发布火车或无关 feature 线（回归：EP-20260730-S1）。**CREATE 时额外**：`git fetch` 后填 `base` / `origin_base` / `behind_count` / `base_action`；`behind_count > 0` 禁止从陈旧 local tip 建分支（回归：EP-20260803）。
 - 持续同步时确认 `sync_key`、源 ref、触发模式和上一次成功检查点；缺失检查点且无法验证初始基线时保持 `BLOCKED`。
 - 用户只要求分析时，无有效 handoff snapshot 才生成 `ANL-SOURCE` 和 `BLP`；已有有效 snapshot 时只完成 freshness gate 与当前目标 `ANL-TARGET`，不写业务代码。
 - 用户要求迁移或修改时，完成分析后继续实施；未明确时不擅自提交或推送。
@@ -272,22 +274,29 @@ powershell -ExecutionPolicy Bypass -File scripts/collect-port-evidence.ps1 `
 3. 判断运行时验证是否必要：构建配置、运行时入口、用户交互、路由、异步状态、权限或跨页面流程发生变化，且静态证据不足以覆盖风险时为必要；无运行时影响时记录 `N/A` 理由并继续。
 4. 必要时提示用户下一步手动测试，按目标能力矩阵输出最小清单，覆盖本次实际风险，并将状态标记为 `READY_FOR_USER_TEST`。
 5. 用户未确认时不得写成验证通过、`COMPLETED` 或 `READY_FOR_HANDOFF`；确认通过后写入 `VRF` 和家族交付计划，反馈失败时回到修复流程。
-6. 检查 `git status`；提交 hook 运行后再次检查工作区，并用五项门禁复审最终 diff。
+6. 检查 `git status`；提交 hook 运行后再次检查工作区；按五项准则**内心**复审最终 diff（不输出给用户）。
 
-交付报告必须明确列出代理实际运行、默认跳过、标记 `N/A` 和等待用户执行的验证，不能把静态检查描述成运行时或用户验收。
+用户可见验证说明：一句话说清代理实际运行、默认跳过、`N/A`、等待用户测；不能把静态检查描述成运行时或用户验收。
 
-## 交付格式
+## 交付格式（用户可见 = 短总结）
 
-用中文按项目报告：
+**默认**对用户按项目输出**紧凑中文小结**，不要长报告、不要「五项门禁」分项：
 
-- 证据入口：使用了哪些会话、需求、分支和提交。
-- 同步关系：`sync_key`、源/目标、分析 commit range、旧检查点与新检查点状态。
-- 同步决策：源项目/分支确认结果、候选项目状态、用户对每个目标的选择和延期 issue ID。
-- 家族交付计划：优先引用 `$jj-dispatch` 控制项目的 `delivery_id`、动态角色、任务和状态；没有控制项目时才由领头项目持有 `pa/pb/pc` 顺序、各项目状态与分支、会话交接和下一项目门禁。
-- 产物链：每个仓库的 `ANL-*`、`BLP-*`、`PLN-*`、`EXC-*`、`VRF-*` 和 `REV-*` 路径及状态。
-- 交接快照：`snapshot_id`、`handoff_ref`、handoff status、freshness、启动动作、source HEAD 和 successor 关系。
-- 最终需求账本及后续要求覆盖关系。
-- 六项目中哪些被分析、哪些被修改、哪些不适用及原因。
-- 每个目标的迁移决策、关键差异、修改文件和剃刀排除项。
-- `稳健 / 剃刀 / 精准 / 最小化 / 复用` 五项门禁结论。
-- 实际验证、残余风险、提交与推送状态。
+| 必含 | 内容 |
+| --- | --- |
+| 目标 | 项目角色 / path / 分支 @ short sha |
+| 决策 | `DIRECT` / `ADAPT` / … + 一句差异 |
+| 改动 | 文件列表或路径 + 行为一句话 |
+| 验证 | 跑了 / 跳过 / 待用户 |
+| Git | 是否 commit/push；脏工作区 |
+| 阻塞/下一步 | 仅当有时写一句 |
+
+**禁止**（除非用户明确要求「详细报告 / 写 artifact / BLOCKED 举证」）：
+
+- 标题或列表背诵「稳健 / 剃刀 / 精准 / 最小化 / 复用」及类似口号式打勾
+- 默认甩完整 `ANL/BLP/PLN/EXC/VRF/REV` 路径清单
+- 复读 skill 全文式交付模板
+
+**需要落盘时**（`.workflow/` artifact、家族计划、dispatch receipt）：可写完整证据链与自检记录；那是文件事实，不是聊天仪式。用户聊天仍以短总结为主。
+
+持续同步场景在小结中补一行：`sync_key`、源/目标 head 范围、检查点是否推进即可。

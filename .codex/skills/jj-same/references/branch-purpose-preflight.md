@@ -11,12 +11,12 @@ instead of `feat/pc-aliyun-tracker-recognize`).
 If **task purpose** and **current branch purpose** disagree, status is
 `BLOCKED` for coding. Allowed next actions only:
 
-1. Create/switch to the correct work branch (from local `master` when required by family rules), or
+1. Create/switch to the correct work branch (from a **fresh** integration base — see checks 6–10), or
 2. Get an explicit user override that this train branch **is** the intentional landing line, recorded in the family plan / task note.
 
 Do not silently port onto a release-train or unrelated feature branch because it is already checked out.
 
-## Five checks (answer in the delivery report)
+## Checks 1–5 — branch purpose (answer in the delivery report)
 
 | # | Check | Evidence |
 | --- | --- | --- |
@@ -26,14 +26,43 @@ Do not silently port onto a release-train or unrelated feature branch because it
 | 4 | **Integration target this turn** | `dev` / `develop` / `main` / `staging` / none |
 | 5 | **Ship tip content** | If user asks “will merge to staging carry X?”, inspect **tip tree** (files, package.json, entrypoints), not only git history |
 
+## Checks 6–10 — base freshness (CREATE hard gate)
+
+Episode regression: **EP-20260803** (`DEL-shang-tag-color-cz-20260803`): purpose gate correctly forced CREATE off a tracker train, but the agent branched from **stale local `master`** (64 commits behind `origin/master`).
+
+When `action` is **CREATE** (or SWITCH that recreates the intended branch from integration base), also answer:
+
+| # | Check | Evidence |
+| --- | --- | --- |
+| 6 | **Base ref** | Family default `master` (or map / user override) |
+| 7 | **Local base tip** | `git rev-parse --short <base>` |
+| 8 | **Remote-tracking tip** | After `git fetch <remote> <base>`: `git rev-parse --short <remote>/<base>` |
+| 9 | **behind_count** | `git rev-list --count <base>..<remote>/<base>` |
+| 10 | **base_action** | See table below |
+
+| `behind_count` / workspace | `base_action` |
+| --- | --- |
+| `0` and local base not diverged | `USE_LOCAL` — create from local `<base>` or `origin/<base>` |
+| `>0` and local `<base>` **clean** (no unique commits / dirty that block ff) | `FETCH_FF` — `git fetch` then `git merge --ff-only <remote>/<base>` on local base, **then** create feature branch; **or** `CREATE_FROM_ORIGIN` — `git checkout -b <feat> <remote>/<base>` without moving local master |
+| local base **dirty** or **ahead/diverged** with unrelated commits | `NEEDS_CONFIRM` / `BLOCKED` — do **not** `reset --hard`; do **not** silently branch from stale tip |
+| cannot fetch remote | `NEEDS_CONFIRM` — report last known lag; user may override with recorded base SHA |
+
+**Hard rule:** never `git checkout -b <feat>` from a local base tip when `behind_count > 0`. Prefer fresh `origin/<base>` (or ff-only updated local base).
+
+**Still forbidden:** `reset --hard` / rewrite of a dirty or divergent local `master` without explicit user confirmation. Fetch + ff-only on a clean tracking base is **required**, not “auto rewrite”.
+
 Print a short table before coding:
 
 ```text
-task:     <one line>
-current:  <branch> @ <short sha> — purpose: <train|feature|unknown>
-intended: <branch or CREATE>
-match:    YES | NO
-action:   CODE | SWITCH | CREATE | BLOCKED
+task:          <one line>
+current:       <branch> @ <short sha> — purpose: <train|feature|unknown>
+intended:      <branch or CREATE>
+match:         YES | NO
+base:          <ref> @ <local short sha>
+origin_base:   <remote/ref> @ <short sha>   # after fetch when CREATE
+behind_count:  <n>
+base_action:   USE_LOCAL | FETCH_FF | CREATE_FROM_ORIGIN | NEEDS_CONFIRM | BLOCKED
+action:        CODE | SWITCH | CREATE | BLOCKED
 ```
 
 ## Golden Q&A (must not regress)
@@ -80,9 +109,22 @@ commits. List presence/absence of tracker entry files and dependency.
 `map.md` / naming rules). Do not attach the port to an unrelated dated train
 branch.
 
+### G6 — Stale local master on CREATE
+
+**Q:** Intended feature branch does not exist. Current checkout is an unrelated
+train. Local `master` is behind `origin/master` by many commits. Worktree is
+clean enough to leave the train branch. CREATE?
+
+**A:** Run purpose table **and** base-freshness checks. `git fetch` the base.
+Do **not** `checkout -b` from the stale local master tip. Use `FETCH_FF` (clean
+local master) or `CREATE_FROM_ORIGIN` (`git checkout -b <feat> origin/master`).
+Report `behind_count` in the preflight table. Regression:
+`EP-20260803-dispatch-stale-master-branch`.
+
 ## Non-goals
 
 - Does not replace handoff freshness gates.
 - Does not require extra user interrogation when the user already named the
-  correct branch and checkout matches.
+  correct branch and checkout matches **and** base is not stale for CREATE.
 - Does not invent branch names that expand `req_suffix` or drop lead tokens.
+- Does not force-push or hard-reset a divergent local `master`.
