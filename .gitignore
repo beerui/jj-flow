@@ -13,6 +13,7 @@ site/
 .qoder
 .codex
 .claude
+.grok
 # One-shot local patch / wire scripts (do not land on main)
 _w_*.py
 _write_*.cjs

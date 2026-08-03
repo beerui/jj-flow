@@ -48,10 +48,3 @@ Decision hints:
 3. Locate code with Read, Glob, Grep, Bash, or an approved skill.
 4. Do not shell-exec conversation commands like `jj-same`; use `npx`/`jj` for installing assets or `jj ralph *` mechanical steps.
 5. When evidence is insufficient keep `PENDING`/`BLOCKED`; only ask the user where the answer would change delivery outcomes.
-
-## 已移除 / no longer used
-
-Do **not** route to these **已移除** entries:
-
-- `$jj-delivery` — **已移除**；use `$jj-dispatch` for multi-project schedule
-- `$jj-validate` / `$jj-evolve` / `$jj-feat` / `$jj-fix` / `$jj-knowhow` / `$jj-auto` — **已移除 / 不再使用**

@@ -14,8 +14,6 @@
 3. 像「就在这个仓做完」→ [ralph](command-jj-ralph.html)  
 4. 仍不清 → 先问你目标  
 
-**不是** 已删除的 `$jj-delivery`。
-
 ## 相关
 
 [命令总览](commands.html)

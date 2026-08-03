@@ -152,12 +152,6 @@ npm 发布走 GitHub Actions `NPM Publish`，勿依赖本机 `npm publish` token
 
 ---
 
-## 已移除对话入口（勿当 CLI 复活）
-
-`$jj-delivery` / `$jj-validate` / `$jj-evolve` 已删除。维护用 `npm run verify`。
-
----
-
 ## 相关
 
 用户路径：[安装](installation.html) · [命令总览](commands.html) · [五分钟上手](usage.html)  

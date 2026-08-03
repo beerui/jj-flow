@@ -21,7 +21,7 @@
 
 它不是新的应用框架。`npx` 管理 skills / agents / slash commands，并提供 `jj ralph *` 机械步骤；真实分析与编码在 Codex / Claude Code 对话里完成。
 
-已移除 `$jj-delivery` / `$jj-validate` / `$jj-evolve` 等入口。控制面里的 `delivery_id` 是调度任务身份，不是对话命令。
+控制面里的 `delivery_id` 是调度任务身份，不是对话 skill 入口。
 
 **npm 包名（2026-08）：** `@brewer/jj-flow`。旧包 `@shendu-sdt/jj-flow` 已弃用，请改用新 scope 安装。
 

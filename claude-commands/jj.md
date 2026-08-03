@@ -28,8 +28,6 @@ allowed-tools:
 5. 多项目调度 → `$jj-dispatch`（Codex/Qoder/Grok；Claude **无** slash = intentional）
 6. 离线评估（experimental）→ `$jj-evaluated`（无 Claude `/jj-evaluated`）
 
-已移除 `/jj-delivery`、`/jj-validate`、`/jj-evolve` 以及更早的 feat/fix/knowhow/auto。
-
 Skill 权威正文只在 `skills/`（多端 SSOT）；本目录仅 Claude 薄入口。改 skill 后需 `jj install-skill --platform all --force`。
 
 保留原始动机和证据；`npx`/`jj` 只用于安装或 `jj ralph *` 机械步骤。
