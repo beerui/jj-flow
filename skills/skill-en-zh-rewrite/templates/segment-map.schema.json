@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jj-flow/skill-en-zh-rewrite/segment-map/1.0",
+  "title": "Skill EN/ZH segment map",
+  "type": "object",
+  "required": ["schema_version", "sessionId", "skills", "segments"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "skill-en-zh-rewrite/segment-map/1.0"
+    },
+    "sessionId": { "type": "string" },
+    "ssotRoot": { "type": "string" },
+    "bridgeRoot": { "type": "string" },
+    "dryRun": { "type": "boolean" },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "glossary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["zh", "en"],
+        "properties": {
+          "zh": { "type": "string" },
+          "en": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "seg_id",
+          "file",
+          "skill_id",
+          "kind",
+          "source_lang",
+          "source_text",
+          "en_draft",
+          "status"
+        ],
+        "properties": {
+          "seg_id": { "type": "string" },
+          "file": { "type": "string" },
+          "skill_id": { "type": "string" },
+          "heading_path": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["prose", "table", "list", "code", "frontmatter"]
+          },
+          "source_lang": {
+            "type": "string",
+            "enum": ["en", "zh", "mixed", "code-only"]
+          },
+          "source_text": { "type": "string" },
+          "en_draft": { "type": "string" },
+          "zh_gloss": { "type": "string" },
+          "preserve_hits": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "needs_review", "skip", "blocked"]
+          }
+        }
+      }
+    }
+  }
+}

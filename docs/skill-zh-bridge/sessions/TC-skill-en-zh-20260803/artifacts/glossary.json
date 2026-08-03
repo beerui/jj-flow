@@ -1,0 +1,25 @@
+{
+  "schema_version": "skill-en-zh-rewrite/glossary/1.0",
+  "terms": [
+    { "zh": "承接", "en": "source / 承接 role (project family)", "notes": "do not rename role labels in product" },
+    { "zh": "兑接", "en": "port target / 兑接 role" },
+    { "zh": "承载", "en": "carry target / 承载 role" },
+    { "zh": "交接", "en": "handoff" },
+    { "zh": "验收", "en": "ACCEPT / acceptance" },
+    { "zh": "归档", "en": "ARCHIVE / archive" },
+    { "zh": "需求分析", "en": "ANALYZE" },
+    { "zh": "计划实施", "en": "PLAN" },
+    { "zh": "实施验证", "en": "DELIVER" },
+    { "zh": "控制平面", "en": "control plane" },
+    { "zh": "派发", "en": "dispatch" },
+    { "zh": "审查", "en": "review" },
+    { "zh": "收工", "en": "closeout (jj-end)" },
+    { "zh": "能力地图", "en": "business-map / capability map" },
+    { "zh": "薄入口", "en": "thin entry / thin wrapper" },
+    { "zh": "权威源", "en": "SSOT / authoritative source" },
+    { "zh": "门禁", "en": "gate" },
+    { "zh": "产物", "en": "artifact" },
+    { "zh": "续作", "en": "continue / resume same run" },
+    { "zh": "废弃", "en": "abandon" }
+  ]
+}

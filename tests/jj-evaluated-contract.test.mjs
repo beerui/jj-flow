@@ -7,10 +7,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const scriptsDir = path.join(root, '.codex', 'skills', 'jj-evaluated', 'scripts');
+const scriptsDir = path.join(root, 'skills', 'jj-evaluated', 'scripts');
 const validateScript = path.join(scriptsDir, 'episode-validate.mjs');
 const opsScript = path.join(scriptsDir, 'evaluated_ops.mjs');
-const skillMd = path.join(root, '.codex', 'skills', 'jj-evaluated', 'SKILL.md');
+const skillMd = path.join(root, 'skills', 'jj-evaluated', 'SKILL.md');
 const fixturePath = path.join(root, 'tests', 'fixtures', 'evaluated-episode.valid.json');
 
 function runNode(script, args, options = {}) {

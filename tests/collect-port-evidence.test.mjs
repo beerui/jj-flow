@@ -6,11 +6,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { collectPortEvidence } from '../.codex/skills/jj-same/scripts/collect-port-evidence.mjs';
+import { collectPortEvidence } from '../skills/jj-same/scripts/collect-port-evidence.mjs';
 
 const scriptDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../.codex/skills/jj-same/scripts',
+  '../skills/jj-same/scripts',
 );
 const mjsPath = path.join(scriptDir, 'collect-port-evidence.mjs');
 const shPath = path.join(scriptDir, 'collect-port-evidence.sh');

@@ -8,7 +8,7 @@
 >
 > 关联设计：[Grok Host Adapter](../../design-docs/grok-host-adapter.md)
 >
-> Spec SSOT：`.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`
+> Spec SSOT：`skills/jj-dispatch/references/grok-dispatch-execution.md`
 >
 > 边界：Phase 2a skill MVP（Mode S + agent artifacts）；不关闭 Host Wave 2；不要求用户 CLI
 >
@@ -34,7 +34,7 @@ Make Grok `/jj-dispatch` **repeatable** without forcing multi-session or user CL
 
 ### Phase 2a (skill MVP)
 
-- [x] Spec in `.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`
+- [x] Spec in `skills/jj-dispatch/references/grok-dispatch-execution.md`
 - [x] SKILL.md Grok section + gate 5 Mode S degrade
 - [x] `agents/openai.yaml` Mode S prompt
 - [x] `docs/commands/jj-dispatch.md` wording

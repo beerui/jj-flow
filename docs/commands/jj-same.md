@@ -56,7 +56,7 @@ $jj-same
 
 - 准备交接：源仓形成可验证状态后生成 snapshot（`parent_snapshot` 链）  
 - 消费侧 freshness：`REUSE` / `REFRESH_SOURCES` / `REBASELINE` / `BLOCKED`  
-- 权威规程：仓库 skill `.codex/skills/jj-same/`（`references/handoff-snapshot.md`）
+- 权威规程：仓库 skill `skills/jj-same/`（`references/handoff-snapshot.md`）
 
 ## 会怎么做（简版）
 

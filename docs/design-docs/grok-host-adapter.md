@@ -5,7 +5,7 @@
 > 范围注记：Wave 2 真 Host；**不是** Mode S 日常路径的完成态
 >
 > 范围：真 Host attestation / Wave 2。日常 Grok 分发 Mode S skill MVP 见
-> [`.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`](../../.codex/skills/jj-dispatch/references/grok-dispatch-execution.md)
+> [`skills/jj-dispatch/references/grok-dispatch-execution.md`](../../skills/jj-dispatch/references/grok-dispatch-execution.md)
 > 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)，**不**等同关闭本文验收。
 >
 > 与 [真实 Host 验收](../milestones/real-host-acceptance.html) 并列：任一已批准宿主路径达标即可评估 A2。
@@ -209,7 +209,7 @@ grok
 # /jj-same 或 /jj-ralph …
 ```
 
-项目级安装写入 `./.grok/skills`（优先级高于用户级）；安装产物 **不是** 仓库权威源（权威源仍是包内 `.codex/skills`）。
+项目级安装写入 `./.grok/skills`（优先级高于用户级）；安装产物 **不是** 仓库权威源（权威源仍是包内 `skills`）。
 
 ## 8. 分阶段实施
 
@@ -296,6 +296,6 @@ grok
 
 - `docs/milestones/real-host-acceptance.md`
 - `docs/milestones/m7-acceptance.md` / `m7-host-trial.json`
-- `.codex/skills/jj-dispatch/references/host-action-contract.json`
+- `skills/jj-dispatch/references/host-action-contract.json`
 - `docs/design-docs/harness-engineering.md` §自主等级
 - Grok skill 发现：`~/.grok/skills`、`./.grok/skills`、`AGENTS.md`

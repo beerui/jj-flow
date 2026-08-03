@@ -1,0 +1,4 @@
+interface:
+  display_name: "jj-ralph"
+  short_description: "Single-repo analyze through archive; artifacts are auditable"
+  default_prompt: "$jj-ralph goal=… scope=… acceptance=…"

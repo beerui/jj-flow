@@ -17,7 +17,7 @@ dispatch: plane → tick → host actions → receipts → 下一检查点
 
 | 区域 | 职责 |
 |------|------|
-| `.codex/skills/jj-*` | 对话协议 SSOT（多端 install） |
+| `skills/jj-*` | 对话协议 SSOT（多端 install） |
 | `src/dispatch*.mjs` | 控制面状态机、tick、CAS、host 契约 |
 | `src/ralph.mjs` | 单仓机械步骤 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |

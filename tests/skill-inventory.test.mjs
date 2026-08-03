@@ -49,14 +49,14 @@ test('claude commands required by inventory exist', () => {
 test('checkSkillInventory fails when skill missing from inventory', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ski-'));
   try {
-    fs.mkdirSync(path.join(cwd, '.codex', 'skills', 'jj-orphan'), { recursive: true });
-    fs.writeFileSync(path.join(cwd, '.codex', 'skills', 'jj-orphan', 'SKILL.md'), '# orphan\n', 'utf8');
-    fs.mkdirSync(path.join(cwd, '.claude', 'commands'), { recursive: true });
+    fs.mkdirSync(path.join(cwd, 'skills', 'jj-orphan'), { recursive: true });
+    fs.writeFileSync(path.join(cwd, 'skills', 'jj-orphan', 'SKILL.md'), '# orphan\n', 'utf8');
+    fs.mkdirSync(path.join(cwd, 'claude-commands'), { recursive: true });
     fs.copyFileSync(path.join(root, 'skill-inventory.json'), path.join(cwd, 'skill-inventory.json'));
     // minimal package.json for pkg checks
     fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({
       name: 'tmp',
-      files: ['.codex/skills/', '.claude/commands/']
+      files: ['skills/', 'claude-commands/', 'agents/']
     }), 'utf8');
     // also need inventory skills present or more findings — copy inventory expects all skills
     // Use empty inventory-like failure: only orphan on disk vs full inventory → many missing, plus PARITY-003
@@ -72,20 +72,20 @@ test('checkSkillInventory fails SKI-CLAUDE-005 when claude command exceeds thin 
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ski-claude-'));
   try {
     const skillId = 'jj-demo';
-    fs.mkdirSync(path.join(cwd, '.codex', 'skills', skillId), { recursive: true });
-    fs.writeFileSync(path.join(cwd, '.codex', 'skills', skillId, 'SKILL.md'), '# demo\n', 'utf8');
-    fs.mkdirSync(path.join(cwd, '.claude', 'commands'), { recursive: true });
+    fs.mkdirSync(path.join(cwd, 'skills', skillId), { recursive: true });
+    fs.writeFileSync(path.join(cwd, 'skills', skillId, 'SKILL.md'), '# demo\n', 'utf8');
+    fs.mkdirSync(path.join(cwd, 'claude-commands'), { recursive: true });
     const fatLines = Array.from({ length: CLAUDE_COMMAND_MAX_LINES + 5 }, (_, i) => `line ${i + 1}`);
     fs.writeFileSync(
-      path.join(cwd, '.claude', 'commands', skillId + '.md'),
+      path.join(cwd, 'claude-commands', skillId + '.md'),
       fatLines.join('\n') + '\n',
       'utf8'
     );
     fs.writeFileSync(path.join(cwd, 'skill-inventory.json'), JSON.stringify({
       schema_version: SKILL_INVENTORY_SCHEMA_VERSION,
       canonical_skills_root: CANONICAL_SKILLS_ROOT_REL,
-      claude_commands_root: '.claude/commands',
-      install_discipline: ['edit .codex/skills only'],
+      claude_commands_root: 'claude-commands',
+      install_discipline: ['edit skills/ only'],
       skills: [{
         id: skillId,
         claude_command: skillId + '.md',
@@ -94,7 +94,7 @@ test('checkSkillInventory fails SKI-CLAUDE-005 when claude command exceeds thin 
     }, null, 2), 'utf8');
     fs.writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({
       name: 'tmp',
-      files: ['.codex/skills/', '.claude/commands/']
+      files: ['skills/', 'claude-commands/', 'agents/']
     }), 'utf8');
 
     const result = checkSkillInventory({ cwd });
@@ -109,7 +109,7 @@ test('checkSkillInventory fails SKI-CLAUDE-005 when claude command exceeds thin 
 });
 
 test('repository jj-same Claude command is within thin budget', () => {
-  const sameCmd = path.join(root, '.claude', 'commands', 'jj-same.md');
+  const sameCmd = path.join(root, 'claude-commands', 'jj-same.md');
   assert.ok(fs.existsSync(sameCmd));
   const text = fs.readFileSync(sameCmd, 'utf8');
   const lineCount = text.length === 0 ? 0 : text.replace(/\n$/, '').split('\n').length;

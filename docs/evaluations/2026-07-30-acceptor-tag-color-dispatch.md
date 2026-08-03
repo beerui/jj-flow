@@ -126,7 +126,7 @@ Leakage check: preference-modified (no plane) remains separate search for worksp
 
 1. **Skill 门禁 8 +「Agent 写 plane 硬门禁」**：无 `produced_commit` 最多 `EVIDENCE_READY`；禁止聊天「已合并」升 `VERIFIED`；git 自取 sha。
 2. **同会话合法**：Grok 可同 session 实施多目标，但 `thread_id` 必须是**真实** session id（可共享）；禁止 `session-*-YYYYMMDD` 合成 BOUND。
-3. **Agent 可选自检脚本**（不教用户）：`node .codex/skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`
+3. **Agent 可选自检脚本**（不教用户）：`node skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`
 
 **Expected effect**
 
@@ -135,9 +135,9 @@ Leakage check: preference-modified (no plane) remains separate search for worksp
 
 **Promoted artifacts**
 
-- `.codex/skills/jj-dispatch/SKILL.md`（门禁 8 + Agent 硬门禁 A–D）
-- `.codex/skills/jj-dispatch/references/control-project.md`（EVIDENCE_READY / 手写 plane）
-- `.codex/skills/jj-dispatch/scripts/plane-self-check.mjs`
+- `skills/jj-dispatch/SKILL.md`（门禁 8 + Agent 硬门禁 A–D）
+- `skills/jj-dispatch/references/control-project.md`（EVIDENCE_READY / 手写 plane）
+- `skills/jj-dispatch/scripts/plane-self-check.mjs`
 - `tests/plane-self-check.test.mjs`
 
 **Out of scope**

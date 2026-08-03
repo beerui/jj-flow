@@ -28,7 +28,7 @@ import {
 } from '../src/dispatchControlPlane.mjs';
 
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/jj-dispatch-control-plane.json', import.meta.url), 'utf8'));
-const schema = JSON.parse(fs.readFileSync(new URL('../.codex/skills/jj-dispatch/references/control-plane.schema.json', import.meta.url), 'utf8'));
+const schema = JSON.parse(fs.readFileSync(new URL('../skills/jj-dispatch/references/control-plane.schema.json', import.meta.url), 'utf8'));
 const appCapabilities = [...REQUIRED_APP_CAPABILITIES];
 
 function makePlane() {
@@ -89,8 +89,8 @@ test('published schema exposes the same version and task responsibility contract
 });
 
 test('persistent reviewer and developer agents declare distinct sandbox boundaries', () => {
-  const reviewer = fs.readFileSync(new URL('../.codex/agents/jj-workflow-reviewer.toml', import.meta.url), 'utf8');
-  const developer = fs.readFileSync(new URL('../.codex/agents/jj-workflow-developer.toml', import.meta.url), 'utf8');
+  const reviewer = fs.readFileSync(new URL('../agents/jj-workflow-reviewer.toml', import.meta.url), 'utf8');
+  const developer = fs.readFileSync(new URL('../agents/jj-workflow-developer.toml', import.meta.url), 'utf8');
   assert.match(reviewer, /name = "jj-workflow-reviewer"/);
   assert.match(reviewer, /model = "gpt-5\.6-sol"/);
   assert.match(reviewer, /model_reasoning_effort = "high"/);

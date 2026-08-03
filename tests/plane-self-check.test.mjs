@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   checkPlaneTerminalIntegrity,
   gradePlaneTerminalIntegrity
-} from '../.codex/skills/jj-dispatch/scripts/plane-self-check.mjs';
+} from '../skills/jj-dispatch/scripts/plane-self-check.mjs';
 
 test('plane-self-check flags synthetic session ids and VERIFIED without produced_commit', () => {
   const plane = {

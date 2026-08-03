@@ -44,7 +44,7 @@ test('trace replay fails at the earliest tampered step and executes no host acti
 
 test('handoff validator fails closed when READY evidence is incomplete', () => {
   const snapshot = readJson(path.join(process.cwd(), 'examples/scenarios/jj-same-handoff-snapshot.json'));
-  const schema = readJson(path.join(process.cwd(), '.codex/skills/jj-same/references/handoff-snapshot.schema.json'));
+  const schema = readJson(path.join(process.cwd(), 'skills/jj-same/references/handoff-snapshot.schema.json'));
   snapshot.requirement_ledger.unresolved.push({ id: 'REQ-X', requirement_ref: 'REQ-X', status: 'UNRESOLVED' });
   const validation = validateHandoffSnapshot(snapshot, schema);
   assert.equal(validation.status, 'FAIL');

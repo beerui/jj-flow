@@ -96,7 +96,7 @@ Harness Control Plane **不**接管 same / ralph / dispatch 的业务职责。�
 
 - 控制状态默认 `control_root`（`~/.jj-flow`），业务仓发起调度  
 - Portfolio KB 外置；ralph 硬接线 `knowledge_refs`  
-- Skill SSOT：`.codex/skills/`（多端 install）；Claude 仅 `.claude/commands/` 薄入口  
+- Skill SSOT：`skills/`（多端 install）；Claude 仅 `.claude/commands/` 薄入口  
 
 ## 5. Repository Truth Plane
 
@@ -119,7 +119,7 @@ Harness Control Plane **不**接管 same / ralph / dispatch 的业务职责。�
 - `docs/design-docs/`：跨模块目标设计；Implemented 后须与产品面回写或明确“历史实施记录”  
 - `docs/adr/`：已接受且需长期追溯的决策  
 - `docs/exec-plans/`：复杂实施计划（`active/` / `completed/`）  
-- `.codex/skills/`、schemas、tests：可执行协议  
+- `skills/`、schemas、tests：可执行协议  
 - 未索引本地目录、聊天、memory：不参与仓库事实判断  
 
 ### 5.3 Harness Manifest

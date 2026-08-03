@@ -2,11 +2,11 @@
 
 > 状态：Implemented
 >
-> 验收证据：`tests/jj-evaluated-contract.test.mjs` · `tests/fixtures/evaluated-episode.valid.json` · `.codex/skills/jj-evaluated/scripts/episode-validate.mjs` · `.codex/skills/jj-evaluated/scripts/evaluated_ops.mjs`
+> 验收证据：`tests/jj-evaluated-contract.test.mjs` · `tests/fixtures/evaluated-episode.valid.json` · `skills/jj-evaluated/scripts/episode-validate.mjs` · `skills/jj-evaluated/scripts/evaluated_ops.mjs`
 >
 > 范围注记：完整 eval 闭环未关闭；MVP runner ≠ 全量自动化学习环
 >
-> 已落地：`.codex/skills/jj-evaluated` skill 入口（experimental；`$jj-evaluated` / skill id；**无** Claude slash）；`scripts/episode-validate.mjs` + `scripts/evaluated_ops.mjs` 最小 runner；`docs/evaluations/*` episode 与回放笔记；业务仓报告根 `.workflow/evaluated/`
+> 已落地：`skills/jj-evaluated` skill 入口（experimental；`$jj-evaluated` / skill id；**无** Claude slash）；`scripts/episode-validate.mjs` + `scripts/evaluated_ops.mjs` 最小 runner；`docs/evaluations/*` episode 与回放笔记；业务仓报告根 `.workflow/evaluated/`
 >
 > 未关闭：标准化 holdout / regression 套件、批准后自动演进 skill 的机械门禁、与 harness GC 的联动
 >

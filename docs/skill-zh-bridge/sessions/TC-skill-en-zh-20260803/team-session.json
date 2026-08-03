@@ -1,0 +1,33 @@
+{
+  "session_id": "TC-skill-en-zh-20260803",
+  "task_description": "skill全面英文化 — full English SSOT for skills/ + Chinese对照 packs",
+  "status": "completed",
+  "team_name": "skill-en-zh",
+  "roles": [
+    { "name": "inventory-lexicographer", "prefix": "INV", "inner_loop": false, "role_spec": "role-specs/inventory-lexicographer.md" },
+    { "name": "en-writer-same", "prefix": "SAME", "inner_loop": true, "role_spec": "role-specs/en-writer-same.md" },
+    { "name": "en-writer-dispatch", "prefix": "DISP", "inner_loop": true, "role_spec": "role-specs/en-writer-dispatch.md" },
+    { "name": "en-writer-ralph-router", "prefix": "RALPH", "inner_loop": true, "role_spec": "role-specs/en-writer-ralph-router.md" },
+    { "name": "en-writer-review-end-eval", "prefix": "REV", "inner_loop": true, "role_spec": "role-specs/en-writer-review-end-eval.md" }
+  ],
+  "pipeline": {
+    "dependency_graph": {
+      "INV-1": [],
+      "SAME-1": ["INV-1"],
+      "DISP-1": ["INV-1"],
+      "RALPH-1": ["INV-1"],
+      "REV-1": ["INV-1"],
+      "BRIDGE-1": ["SAME-1", "DISP-1", "RALPH-1", "REV-1"]
+    },
+    "tasks_total": 6,
+    "tasks_completed": 0
+  },
+  "active_workers": [],
+  "completed_tasks": [],
+  "completion_action": "auto_keep",
+  "created_at": "2026-08-03T00:00:00Z",
+  "notes": {
+    "session_root": "docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803",
+    "harness": "avoid top-level .workflow/ in jj-flow repo"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "session_id": "TC-skill-en-zh-20260803",
+  "task_description": "Execute full English localization of jj-flow product skills under skills/ SSOT; keep Chinese对照 in docs/skill-zh-bridge only.",
+  "needs_research": false,
+  "scope": {
+    "ssot": "skills/",
+    "bridge": "docs/skill-zh-bridge/",
+    "preserve": ["paths", "CLI names", "schema keys", "skill ids", "code fences", "scripts"],
+    "non_goals": ["business app UI copy", "forcing Chinese into agent SSOT"]
+  },
+  "capabilities": [
+    "inventory_and_glossary",
+    "en_rewrite_same",
+    "en_rewrite_dispatch",
+    "en_rewrite_ralph_router",
+    "en_rewrite_review_end_eval",
+    "zh_bridge_and_validate"
+  ],
+  "complexity": { "score": 8, "parallel_tracks": 4, "file_count_p0": 32 },
+  "dependency_graph": {
+    "INV-1": [],
+    "SAME-1": ["INV-1"],
+    "DISP-1": ["INV-1"],
+    "RALPH-1": ["INV-1"],
+    "REV-1": ["INV-1"],
+    "BRIDGE-1": ["SAME-1", "DISP-1", "RALPH-1", "REV-1"]
+  },
+  "roles": [
+    {
+      "name": "inventory-lexicographer",
+      "prefix": "INV",
+      "inner_loop": false,
+      "responsibility_type": "analysis",
+      "tasks": ["INV-1"]
+    },
+    {
+      "name": "en-writer-same",
+      "prefix": "SAME",
+      "inner_loop": true,
+      "responsibility_type": "document",
+      "tasks": ["SAME-1"]
+    },
+    {
+      "name": "en-writer-dispatch",
+      "prefix": "DISP",
+      "inner_loop": true,
+      "responsibility_type": "document",
+      "tasks": ["DISP-1"]
+    },
+    {
+      "name": "en-writer-ralph-router",
+      "prefix": "RALPH",
+      "inner_loop": true,
+      "responsibility_type": "document",
+      "tasks": ["RALPH-1"]
+    },
+    {
+      "name": "en-writer-review-end-eval",
+      "prefix": "REV",
+      "inner_loop": true,
+      "responsibility_type": "document",
+      "tasks": ["REV-1"]
+    }
+  ],
+  "bridge_role_note": "BRIDGE-1 run by coordinator after writers complete (validate + zh-bridge update + install)",
+  "adaptation": {
+    "session_path": "docs/skill-zh-bridge/sessions/ (jj-flow harness forbids top-level .workflow/)",
+    "worker_agent": "general-purpose (team-worker not available on this host)"
+  }
+}

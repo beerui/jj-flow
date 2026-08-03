@@ -18,7 +18,7 @@
 | 变更 | 先改 |
 |------|------|
 | 上手 / 安装 | `docs/index.md` · `installation.md` · `usage.md` |
-| 工作流行为 | `docs/commands/*` + skill SSOT `.codex/skills/` |
+| 工作流行为 | `docs/commands/*` + skill SSOT `skills/` |
 | 架构 | `docs/architecture.md` + 根 `ARCHITECTURE.md` |
 | 设计 | `docs/design-docs/*` + 索引 |
 
@@ -35,7 +35,7 @@ npm run harness:gc
 
 ## Skill SSOT
 
-只编辑 `.codex/skills/`。Claude 仅 `.claude/commands/` 薄入口。  
+只编辑 `skills/`。Claude 仅 `.claude/commands/` 薄入口。  
 命令行全集见 [CLI 参考](command-cli.html)（维护/调试用，不写进用户教程）。
 
 ## 发布

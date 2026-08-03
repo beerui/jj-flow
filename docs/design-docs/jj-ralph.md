@@ -29,7 +29,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 
 ## 3. 阶段
 
-权威：`.codex/skills/jj-ralph/references/phases.md`。
+权威：`skills/jj-ralph/references/phases.md`。
 
 | 阶段 | 含义 |
 | --- | --- |

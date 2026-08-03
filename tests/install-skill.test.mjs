@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { runCli } from '../src/cli.mjs';
 import {
+  defaultClaudeSkillsTarget,
   defaultClaudeTarget,
   defaultCodexAgentsTarget,
   defaultCodexTarget,
@@ -13,6 +14,7 @@ import {
   INSTALL_MANIFEST_FILENAME,
   INSTALL_MANIFEST_VERSION,
   installSkill,
+  projectClaudeSkillsTarget,
   projectClaudeTarget,
   projectCodexAgentsTarget,
   projectCodexTarget,
@@ -27,9 +29,10 @@ const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import
 const packageVersion = packageJson.version;
 const currentReleaseLog = loadCurrentReleaseLog();
 
-test('published package includes Codex skills and agent profiles', () => {
-  assert.ok(packageJson.files.includes('.codex/skills/'));
-  assert.ok(packageJson.files.includes('.codex/agents/'));
+test('published package includes skills SSOT, agents, and Claude command wrappers', () => {
+  assert.ok(packageJson.files.includes('skills/'));
+  assert.ok(packageJson.files.includes('agents/'));
+  assert.ok(packageJson.files.includes('claude-commands/'));
 });
 
 test('jj-same docs describe the complete handoff lifecycle', () => {
@@ -98,7 +101,9 @@ test('project skill target points to project Codex directory', () => {
   assert.equal(projectCodexAgentsTarget({ cwd: '/repo/example' }), path.join('/repo/example', '.codex', 'agents'));
 });
 
-test('Claude command targets point to Claude commands directories', () => {
+test('Claude skill and command targets point to Claude Code directories', () => {
+  assert.equal(defaultClaudeSkillsTarget({ homeDir: '/home/example', claudeHome: '' }), path.join('/home/example', '.claude', 'skills'));
+  assert.equal(projectClaudeSkillsTarget({ cwd: '/repo/example' }), path.join('/repo/example', '.claude', 'skills'));
   assert.equal(defaultClaudeTarget({ homeDir: '/home/example', claudeHome: '' }), path.join('/home/example', '.claude', 'commands'));
   assert.equal(projectClaudeTarget({ cwd: '/repo/example' }), path.join('/repo/example', '.claude', 'commands'));
 });
@@ -130,7 +135,7 @@ test('installSkill dry run does not write files', () => {
   assert.ok(result.agents.includes('jj-workflow-developer'));
   assert.equal(result.agent_target, path.join(workspace, 'agents'));
   assert.equal(fs.existsSync(path.join(target, 'jj-same')), false);
-  assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), false);
+  assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), false);
 });
 
 test('installSkill installs global Codex skills and agents under the same CODEX_HOME', () => {
@@ -179,6 +184,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch', 'references', 'control-project.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch', 'references', 'control-plane.schema.json')), true);
+  // targetDir=…/skills → agents install beside it as …/agents (not host .codex layout)
   assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-developer.toml')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md')), true);
@@ -196,16 +202,16 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(sameSkill, /^---\r?\nname: jj-same/m);
   assert.match(sameCorpus, /pa -> pb -> pc/);
   assert.match(sameCorpus, /handoff_ref/);
-  assert.match(sameCorpus, /更新交接/);
+  assert.match(sameCorpus, /update handoff|handoff|更新交接/i);
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md'), 'utf8'),
     /REUSE \/ REFRESH_SOURCES \/ REBASELINE \/ BLOCKED/
   );
   assert.doesNotMatch(sameCorpus, /grill-me|grill-with-doc|workflow-grill/);
   assert.match(sameCorpus, /READY_FOR_USER_TEST/);
-  assert.match(sameCorpus, /默认跳过编译、build、浏览器/);
-  assert.match(sameCorpus, /必要时提示用户下一步手动测试|提示用户下一步手动测试/);
-  assert.match(sameCorpus, /不需要时记录 `N\/A` 理由|N\/A/);
+  // English SSOT markers (formerly Chinese instructions)
+  assert.match(sameCorpus, /skip compile|build|browser|默认跳过编译/i);
+  assert.match(sameCorpus, /manual test|N\/A|必要时提示用户|提示用户下一步手动测试/i);
   assert.match(sameCorpus, /EXECUTION_READY/);
   assert.match(sameCorpus, /HANDOFF_READY/);
   assert.match(sameCorpus, /EXECUTE_NOW/);
@@ -213,9 +219,9 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /RECONCILE/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /origin_project/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /reference_implementation/);
-  assert.match(sameCorpus, /不得继续用补齐 `.workflow`|不得只更新计划/);
-  assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Happy path/);
-  assert.match(sameCorpus, /分析阶段/);
+  assert.match(sameCorpus, /\.workflow|must not|不得继续用补齐|不得只更新计划/i);
+  assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Happy path|happy path/i);
+  assert.match(sameCorpus, /analysis|ANALYZE|分析阶段/i);
   assert.doesNotMatch(sameCorpus, /[Mm]aestro|maestro explore/);
   assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);
   assert.equal(fs.existsSync(path.join(target, 'jj-fix', 'SKILL.md')), false);
@@ -229,7 +235,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   );
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'artifact-routing.md'), 'utf8'),
-    /家族协调计划/
+    /family|coordination|handoff|家族协调计划|\.workflow\//i
   );
   assert.match(
     fs.readFileSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md'), 'utf8'),
@@ -296,32 +302,39 @@ test('an agent-only conflict blocks the whole Codex install until force is used'
   assert.match(fs.readFileSync(reviewerTarget, 'utf8'), /sandbox_mode = "read-only"/);
 });
 
-test('installSkill can install Claude slash commands', () => {
+test('installSkill can install Claude full skills and slash commands', () => {
   const workspace = makeWorkspace('jj-flow-install-claude-');
-  const target = path.join(workspace, 'commands');
+  const skillsTarget = path.join(workspace, '.claude', 'skills');
+  const commandsTarget = path.join(workspace, '.claude', 'commands');
 
-  const installed = installSkill({ platform: 'claude', targetDir: target });
+  const installed = installSkill({
+    platform: 'claude',
+    claudeSkillsTargetDir: skillsTarget,
+    claudeTargetDir: commandsTarget
+  });
   assert.equal(installed.ok, true);
   assert.equal(installed.platform, 'claude');
-  assert.ok(installed.commands.includes('jj-same'));
+  assert.ok(installed.skills.includes('jj-same'));
+  assert.ok(installed.skills.includes('jj-dispatch'));
   assert.ok(installed.commands.includes('jj-same'));
   assert.ok(installed.commands.includes('jj-ralph'));
   assert.equal(installed.commands.includes('jj-dispatch'), false);
-  assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
-  assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
-  assert.equal(fs.existsSync(path.join(target, 'jj-ralph.md')), true);
-  assert.equal(fs.existsSync(path.join(target, 'jj-dispatch.md')), false);
-  // Claude entry must stay thin and point at SSOT (full protocol lives under .codex/skills/jj-same).
-  const claudeSame = fs.readFileSync(path.join(target, 'jj-same.md'), 'utf8');
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-dispatch', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-ralph.md')), true);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-dispatch.md')), false);
+  // Claude slash entry must stay thin; full protocol lives under skills/jj-same SSOT.
+  const claudeSame = fs.readFileSync(path.join(commandsTarget, 'jj-same.md'), 'utf8');
   assert.match(claudeSame, /^---\r?\nname: jj-same/m);
-  assert.match(claudeSame, /\.codex\/skills\/jj-same\/SKILL\.md|Authoritative procedure|薄入口|SSOT/);
+  assert.match(claudeSame, /skills\/jj-same\/SKILL\.md|Authoritative procedure|薄入口|SSOT/);
   assert.match(claudeSame, /EXECUTION_READY|HANDOFF_READY|Ralph-handoff-first|handoff/);
   assert.doesNotMatch(claudeSame, /grill-me|grill-with-doc|workflow-grill/);
   assert.doesNotMatch(claudeSame, /[Mm]aestro|maestro explore/);
   assert.ok(claudeSame.split(/\r?\n/).length <= 40, 'Claude jj-same.md must stay thin (<=40 lines)');
   assert.match(claudeSame, /\/jj-same|# \/jj-same/);
-  assert.equal(fs.existsSync(path.join(target, 'jj-feat.md')), false);
-  assert.equal(fs.existsSync(path.join(target, 'jj-fix.md')), false);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-feat.md')), false);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-fix.md')), false);
   assert.doesNotMatch(claudeSame, /jj-same\s+"/);
 });
 
@@ -342,9 +355,10 @@ test('installSkill can install Grok skills from Codex skill sources', () => {
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
 });
 
-test('installSkill can install Codex skills and Claude commands together', () => {
+test('installSkill can install Codex skills and Claude skills+commands together', () => {
   const workspace = makeWorkspace('jj-flow-install-all-');
   const codexTarget = path.join(workspace, '.codex', 'skills');
+  const claudeSkillsTarget = path.join(workspace, '.claude', 'skills');
   const claudeTarget = path.join(workspace, '.claude', 'commands');
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
@@ -352,6 +366,7 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   const installed = installSkill({
     platform: 'all',
     codexTargetDir: codexTarget,
+    claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
     grokTargetDir: grokTarget
@@ -360,11 +375,11 @@ test('installSkill can install Codex skills and Claude commands together', () =>
   assert.equal(installed.ok, true);
   assert.equal(installed.platform, 'all');
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-developer.toml')), true);
-  assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-dispatch.md')), false);
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same', 'SKILL.md')), true);
@@ -398,12 +413,14 @@ test('uninstallSkill removes owned Codex assets and preserves unrelated files', 
 test('uninstallSkill removes Codex and Claude assets together', () => {
   const workspace = makeWorkspace('jj-flow-uninstall-all-');
   const codexTarget = path.join(workspace, '.codex', 'skills');
+  const claudeSkillsTarget = path.join(workspace, '.claude', 'skills');
   const claudeTarget = path.join(workspace, '.claude', 'commands');
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
   installSkill({
     platform: 'all',
     codexTargetDir: codexTarget,
+    claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
     grokTargetDir: grokTarget
@@ -412,6 +429,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   const result = uninstallSkill({
     platform: 'all',
     codexTargetDir: codexTarget,
+    claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
     grokTargetDir: grokTarget
@@ -421,6 +439,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   assert.equal(result.status, 'uninstalled');
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-developer.toml')), false);
+  assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), false);
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-same')), false);
@@ -573,18 +592,21 @@ test('CLI install-skill omits version log for dry run and failed install', () =>
   assert.doesNotMatch(failedStdout.output, /版本日志/);
 });
 
-test('CLI install-skill can install Claude command assets', () => {
+test('CLI install-skill can install Claude skills and command assets', () => {
   const workspace = makeWorkspace('jj-flow-install-cli-');
-  const target = path.join(workspace, 'commands');
+  const commandsTarget = path.join(workspace, '.claude', 'commands');
+  const skillsTarget = path.join(workspace, '.claude', 'skills');
   const stdout = createStdout();
-  const status = runCli(['install-skill', '--platform', 'claude', '--target', target, '--json'], { stdout });
+  // --target …/commands: skills go to sibling …/skills, commands to --target
+  const status = runCli(['install-skill', '--platform', 'claude', '--target', commandsTarget, '--json'], { stdout });
   const parsed = JSON.parse(stdout.output);
 
   assert.equal(status, 0);
   assert.equal(parsed.ok, true);
+  assert.ok(parsed.skills.includes('jj-same'));
   assert.ok(parsed.commands.includes('jj-same'));
-  assert.ok(parsed.commands.includes('jj-same'));
-  assert.equal(fs.existsSync(path.join(target, 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-same.md')), true);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-same', 'SKILL.md')), true);
 });
 
 test('CLI install-skill can target the current project', () => {
@@ -598,6 +620,7 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(parsed.status, 'dry-run');
   assert.deepEqual(parsed.target, [
     path.join(workspace, '.codex', 'skills'),
+    path.join(workspace, '.claude', 'skills'),
     path.join(workspace, '.claude', 'commands'),
     path.join(workspace, '.qoder', 'skills'),
     path.join(workspace, '.grok', 'skills')
@@ -605,6 +628,7 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(parsed.agent_target, path.join(workspace, '.codex', 'agents'));
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'skills', 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), false);
+  assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills', 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(workspace, '.grok', 'skills', 'jj-same')), false);
@@ -613,6 +637,7 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(runCli(['install-skill', '--platform', 'all', '--project', '--json'], { cwd: workspace, stdout: installStdout }), 0);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.grok', 'skills', 'jj-same', 'SKILL.md')), true);

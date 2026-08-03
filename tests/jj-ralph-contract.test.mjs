@@ -60,22 +60,22 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'schemas/ralph-business-map.schema.json',
     'examples/ralph/sample-run.json',
     'examples/ralph/sample-business-map.json',
-    '.codex/skills/jj-ralph/SKILL.md',
-    '.codex/skills/jj-ralph/references/artifact-layout.md',
-    '.codex/skills/jj-ralph/references/phases.md',
-    '.codex/skills/jj-ralph/references/rollback.md',
-    '.codex/skills/jj-ralph/references/business-map.md',
-    '.codex/skills/jj-ralph/references/integrations.md',
-    '.codex/skills/jj-ralph/references/ralph-run.schema.json',
-    '.codex/skills/jj-ralph/references/business-map.schema.json',
-    '.claude/commands/jj-ralph.md',
+    'skills/jj-ralph/SKILL.md',
+    'skills/jj-ralph/references/artifact-layout.md',
+    'skills/jj-ralph/references/phases.md',
+    'skills/jj-ralph/references/rollback.md',
+    'skills/jj-ralph/references/business-map.md',
+    'skills/jj-ralph/references/integrations.md',
+    'skills/jj-ralph/references/ralph-run.schema.json',
+    'skills/jj-ralph/references/business-map.schema.json',
+    'claude-commands/jj-ralph.md',
     'docs/commands/jj-ralph.md',
     'docs/design-docs/jj-ralph.md'
   ]) {
     assert.ok(fs.existsSync(path.join(root, rel)), `missing ${rel}`);
   }
 
-  const skill = read('.codex/skills/jj-ralph/SKILL.md');
+  const skill = read('skills/jj-ralph/SKILL.md');
   for (const marker of [
     'ANALYZE',
     'PLAN',
@@ -116,34 +116,35 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
-  const phases = read('.codex/skills/jj-ralph/references/phases.md');
-  assert.match(phases, /强度档/);
+  const phases = read('skills/jj-ralph/references/phases.md');
+  // English SSOT: intensity tier section (was Chinese 「强度档」)
+  assert.match(phases, /[Ii]ntensity|intensity tier|tiny\|standard\|strict/);
   assert.match(phases, /deliver-attempt/);
   assert.match(phases, /accept-layer|accept_layers/);
 
   const schema = read('schemas/ralph-run.schema.json');
   assert.match(schema, /"intensity"/);
   assert.match(schema, /STAGNATION/);
-  assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs')));
-assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs')));
-  assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/namingConfig.mjs')));
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs')));
+assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs')));
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/namingConfig.mjs')));
 assert.equal(
-    fs.readFileSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs'), 'utf8'),
+    fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/ralph.mjs'), 'utf8')
   );
-  assert.ok(fs.existsSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs')));
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs')));
   assert.equal(
-    fs.readFileSync(path.join(root, '.codex/skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'), 'utf8'),
+    fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/portfolioKnowledge.mjs'), 'utf8')
   );
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
-  const command = read('.claude/commands/jj-ralph.md');
+  const command = read('claude-commands/jj-ralph.md');
   assert.match(command, /\.workflow\/ralph\/RALPH/);
   assert.match(command, /map-find/);
   assert.doesNotMatch(command, /[Mm]aestro/);
 
-  const layout = read('.codex/skills/jj-ralph/references/artifact-layout.md');
+  const layout = read('skills/jj-ralph/references/artifact-layout.md');
   assert.match(layout, /\.workflow\/ralph\/RALPH/);
   assert.doesNotMatch(layout, /ralph\/ralphs\//);
   assert.doesNotMatch(layout, /ralphs\/RALPH/);
@@ -362,7 +363,7 @@ test('review-record persists source and host_review provenance', () => {
 
 test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + map-find', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-ops-'));
-  const ops = path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs');
+  const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
   const runNode = (args) => {
     const result = spawnSync(process.execPath, [ops, ...args, '--cwd', cwd], { encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr || result.stdout);
@@ -426,19 +427,19 @@ test('skill portable lib works without jj-flow in business cwd', () => {
     const scriptsDir = path.join(skillDir, 'scripts');
     fs.mkdirSync(path.join(scriptsDir, 'lib'), { recursive: true });
     fs.copyFileSync(
-      path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs'),
+      path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs'),
       path.join(scriptsDir, 'ralph_ops.mjs')
     );
     fs.copyFileSync(
-      path.join(root, '.codex/skills/jj-ralph/scripts/lib/ralph.mjs'),
+      path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs'),
       path.join(scriptsDir, 'lib', 'ralph.mjs')
     );
     fs.copyFileSync(
-      path.join(root, '.codex/skills/jj-ralph/scripts/lib/namingConfig.mjs'),
+      path.join(root, 'skills/jj-ralph/scripts/lib/namingConfig.mjs'),
       path.join(scriptsDir, 'lib', 'namingConfig.mjs')
     );
     fs.copyFileSync(
-      path.join(root, '.codex/skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'),
+      path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'),
       path.join(scriptsDir, 'lib', 'portfolioKnowledge.mjs')
     );
     const ops = path.join(scriptsDir, 'ralph_ops.mjs');
@@ -472,7 +473,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
 
 test('skill ralph_ops.mjs fails clearly when library candidates are all missing', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-ops-miss-'));
-  const ops = path.join(root, '.codex/skills/jj-ralph/scripts/ralph_ops.mjs');
+  const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
   const isolated = path.join(cwd, 'ralph_ops.mjs');
   const original = fs.readFileSync(ops, 'utf8');
   const forced = original.replace(

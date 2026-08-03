@@ -1,0 +1,399 @@
+{
+  "schema_version": "skill-en-zh-rewrite/inventory/1.0",
+  "sessionId": "SEZ-20260803-path-migrate",
+  "ssotRoot": "skills",
+  "bridgeRoot": "docs/skill-zh-bridge",
+  "dryRun": true,
+  "note": "Path migration to top-level skills/ applied; full EN rewrite of mixed files is staged (entry points next).",
+  "skills": [
+    "jj",
+    "jj-dispatch",
+    "jj-end",
+    "jj-evaluated",
+    "jj-ralph",
+    "jj-review",
+    "jj-same",
+    "skill-en-zh-rewrite"
+  ],
+  "product_skills": [],
+  "files": [
+    {
+      "path": "skills\\jj\\SKILL.md",
+      "skill_id": "jj",
+      "language": "mixed",
+      "han_chars": 382,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\agent-write-plane.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 727,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\control-project.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 1382,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\grok-dispatch-execution.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 1200,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\happy-path.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 596,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\host-action-contract.json",
+      "skill_id": "jj-dispatch",
+      "language": "en",
+      "han_chars": 0,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\references\\rollback.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 637,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-dispatch\\SKILL.md",
+      "skill_id": "jj-dispatch",
+      "language": "mixed",
+      "han_chars": 740,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-end\\SKILL.md",
+      "skill_id": "jj-end",
+      "language": "mixed",
+      "han_chars": 1344,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-evaluated\\references\\episode-contract.md",
+      "skill_id": "jj-evaluated",
+      "language": "en",
+      "han_chars": 8,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-evaluated\\references\\optimization-loop.md",
+      "skill_id": "jj-evaluated",
+      "language": "en",
+      "han_chars": 0,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-evaluated\\references\\source-evidence-map.md",
+      "skill_id": "jj-evaluated",
+      "language": "mixed",
+      "han_chars": 57,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-evaluated\\SKILL.md",
+      "skill_id": "jj-evaluated",
+      "language": "en",
+      "han_chars": 18,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\artifact-layout.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 143,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\business-map.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 165,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\integrations.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 203,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\must-evidence.md",
+      "skill_id": "jj-ralph",
+      "language": "en",
+      "han_chars": 0,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\phases.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 849,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\post-complete-continue.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 417,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\rollback.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 162,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\references\\tiny-example.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 188,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-ralph\\SKILL.md",
+      "skill_id": "jj-ralph",
+      "language": "mixed",
+      "han_chars": 628,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-review\\references\\host-review.md",
+      "skill_id": "jj-review",
+      "language": "mixed",
+      "han_chars": 1006,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-review\\references\\report-layout.md",
+      "skill_id": "jj-review",
+      "language": "mixed",
+      "han_chars": 285,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-review\\SKILL.md",
+      "skill_id": "jj-review",
+      "language": "mixed",
+      "han_chars": 761,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\artifact-routing.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 1497,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\branch-purpose-preflight.md",
+      "skill_id": "jj-same",
+      "language": "en",
+      "han_chars": 14,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\continuous-sync.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 2754,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\handoff-snapshot.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 1191,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\happy-path.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 786,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\project-family.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 2041,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\silence-account-case.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 1227,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\references\\workflow-core.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 5281,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\jj-same\\SKILL.md",
+      "skill_id": "jj-same",
+      "language": "mixed",
+      "han_chars": 1104,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\phases\\01-scope-inventory.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "en",
+      "han_chars": 0,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\phases\\02-segment-map.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "en",
+      "han_chars": 12,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\phases\\03-apply-rewrite.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "mixed",
+      "han_chars": 53,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\phases\\04-validate-install.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "mixed",
+      "han_chars": 44,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\SKILL.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "mixed",
+      "han_chars": 55,
+      "agent_facing": true
+    },
+    {
+      "path": "skills\\skill-en-zh-rewrite\\templates\\zh-bridge-skill.md",
+      "skill_id": "skill-en-zh-rewrite",
+      "language": "mixed",
+      "han_chars": 156,
+      "agent_facing": true
+    }
+  ],
+  "bySkill": {
+    "jj": {
+      "mixed": 1,
+      "zh": 0,
+      "en": 0,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj\\SKILL.md"
+      ]
+    },
+    "jj-dispatch": {
+      "mixed": 6,
+      "zh": 0,
+      "en": 1,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-dispatch\\references\\agent-write-plane.md",
+        "skills\\jj-dispatch\\references\\control-project.md",
+        "skills\\jj-dispatch\\references\\grok-dispatch-execution.md",
+        "skills\\jj-dispatch\\references\\happy-path.md",
+        "skills\\jj-dispatch\\references\\rollback.md",
+        "skills\\jj-dispatch\\SKILL.md"
+      ]
+    },
+    "jj-end": {
+      "mixed": 1,
+      "zh": 0,
+      "en": 0,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-end\\SKILL.md"
+      ]
+    },
+    "jj-evaluated": {
+      "mixed": 1,
+      "zh": 0,
+      "en": 3,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-evaluated\\references\\source-evidence-map.md"
+      ]
+    },
+    "jj-ralph": {
+      "mixed": 8,
+      "zh": 0,
+      "en": 1,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-ralph\\references\\artifact-layout.md",
+        "skills\\jj-ralph\\references\\business-map.md",
+        "skills\\jj-ralph\\references\\integrations.md",
+        "skills\\jj-ralph\\references\\phases.md",
+        "skills\\jj-ralph\\references\\post-complete-continue.md",
+        "skills\\jj-ralph\\references\\rollback.md",
+        "skills\\jj-ralph\\references\\tiny-example.md",
+        "skills\\jj-ralph\\SKILL.md"
+      ]
+    },
+    "jj-review": {
+      "mixed": 3,
+      "zh": 0,
+      "en": 0,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-review\\references\\host-review.md",
+        "skills\\jj-review\\references\\report-layout.md",
+        "skills\\jj-review\\SKILL.md"
+      ]
+    },
+    "jj-same": {
+      "mixed": 8,
+      "zh": 0,
+      "en": 1,
+      "code_only": 0,
+      "p0": [
+        "skills\\jj-same\\references\\artifact-routing.md",
+        "skills\\jj-same\\references\\continuous-sync.md",
+        "skills\\jj-same\\references\\handoff-snapshot.md",
+        "skills\\jj-same\\references\\happy-path.md",
+        "skills\\jj-same\\references\\project-family.md",
+        "skills\\jj-same\\references\\silence-account-case.md",
+        "skills\\jj-same\\references\\workflow-core.md",
+        "skills\\jj-same\\SKILL.md"
+      ]
+    },
+    "skill-en-zh-rewrite": {
+      "mixed": 4,
+      "zh": 0,
+      "en": 2,
+      "code_only": 0,
+      "p0": [
+        "skills\\skill-en-zh-rewrite\\phases\\03-apply-rewrite.md",
+        "skills\\skill-en-zh-rewrite\\phases\\04-validate-install.md",
+        "skills\\skill-en-zh-rewrite\\SKILL.md",
+        "skills\\skill-en-zh-rewrite\\templates\\zh-bridge-skill.md"
+      ]
+    }
+  }
+}

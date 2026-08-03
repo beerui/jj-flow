@@ -9,10 +9,10 @@ dist/
 site/
 .tmp/
 .plans
-# Local install targets (authoritative skills live in package .codex/skills)
-.grok/skills/
-.qoder/skills/
-.qoder/better-harness/
+# Host install / IDE dirs (not repo SSOT; package sources are skills/ agents/ claude-commands/)`n.grok
+.qoder
+.codex
+.claude
 # One-shot local patch / wire scripts (do not land on main)
 _w_*.py
 _write_*.cjs
@@ -23,3 +23,5 @@ agent/
 docs/other/dispatch-demo/frames/
 docs/other/dispatch-demo/dispatch-demo.gif
 docs/other/dispatch-demo/dispatch-demo.mp4
+
+.cursor

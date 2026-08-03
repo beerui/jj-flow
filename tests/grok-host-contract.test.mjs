@@ -22,10 +22,10 @@ import {
 
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/jj-dispatch-control-plane.json', import.meta.url), 'utf8'));
 const hostContract = JSON.parse(
-  fs.readFileSync(new URL('../.codex/skills/jj-dispatch/references/host-action-contract.json', import.meta.url), 'utf8')
+  fs.readFileSync(new URL('../skills/jj-dispatch/references/host-action-contract.json', import.meta.url), 'utf8')
 );
 const controlPlaneSchema = JSON.parse(
-  fs.readFileSync(new URL('../.codex/skills/jj-dispatch/references/control-plane.schema.json', import.meta.url), 'utf8')
+  fs.readFileSync(new URL('../skills/jj-dispatch/references/control-plane.schema.json', import.meta.url), 'utf8')
 );
 const appCapabilities = [...REQUIRED_APP_CAPABILITIES];
 

@@ -49,12 +49,12 @@
       },
       {
         "id": "same-contract",
-        "path": ".codex/skills/jj-same/SKILL.md",
+        "path": "skills/jj-same/SKILL.md",
         "authority_for": ["same-workflow-contract"]
       },
       {
         "id": "ralph-contract",
-        "path": ".codex/skills/jj-ralph/SKILL.md",
+        "path": "skills/jj-ralph/SKILL.md",
         "authority_for": ["ralph-workflow-contract"]
       },
       {
@@ -79,27 +79,27 @@
       },
       {
         "id": "evaluated-contract",
-        "path": ".codex/skills/jj-evaluated/SKILL.md",
+        "path": "skills/jj-evaluated/SKILL.md",
         "authority_for": ["evaluated-workflow-contract"]
       },
       {
         "id": "evaluated-runner-scripts",
-        "path": ".codex/skills/jj-evaluated/scripts/evaluated_ops.mjs",
+        "path": "skills/jj-evaluated/scripts/evaluated_ops.mjs",
         "authority_for": ["evaluated-mvp-runner"]
       },
       {
         "id": "dispatch-contract",
-        "path": ".codex/skills/jj-dispatch/SKILL.md",
+        "path": "skills/jj-dispatch/SKILL.md",
         "authority_for": ["dispatch-workflow-contract"]
       },
       {
         "id": "control-plane-schema",
-        "path": ".codex/skills/jj-dispatch/references/control-plane.schema.json",
+        "path": "skills/jj-dispatch/references/control-plane.schema.json",
         "authority_for": ["serialized-control-plane"]
       },
       {
         "id": "receipt-schema",
-        "path": ".codex/skills/jj-dispatch/references/task-receipt.schema.json",
+        "path": "skills/jj-dispatch/references/task-receipt.schema.json",
         "authority_for": ["serialized-task-receipt"]
       },
       {
@@ -119,7 +119,7 @@
       },
       {
         "id": "dispatch-host-skill-contract",
-        "path": ".codex/skills/jj-dispatch/references/host-action-contract.json",
+        "path": "skills/jj-dispatch/references/host-action-contract.json",
         "authority_for": ["host-action-allowlist", "dispatch-protocol-enums"]
       },
       {
@@ -267,7 +267,7 @@
       "contains": "exec-plans/index.html"
     },
     {
-      "source": ".codex/skills/jj-dispatch/SKILL.md",
+      "source": "skills/jj-dispatch/SKILL.md",
       "contains": "references/host-action-contract.json"
     }
   ],
@@ -278,13 +278,13 @@
       "AGENTS.md",
       "ARCHITECTURE.md",
       "skill-inventory.json",
-      ".codex/skills/jj/SKILL.md",
-      ".codex/skills/jj-ralph/SKILL.md",
-      ".codex/skills/jj-dispatch/SKILL.md",
-      ".codex/skills/jj-end/SKILL.md"
+      "skills/jj/SKILL.md",
+      "skills/jj-ralph/SKILL.md",
+      "skills/jj-dispatch/SKILL.md",
+      "skills/jj-end/SKILL.md"
     ],
     "site_builder": "scripts/build-docs.mjs",
-    "excluded_paths": ["docs/other", "docs/evaluations"],
+    "excluded_paths": ["docs/other", "docs/evaluations", "docs/skill-zh-bridge"],
     "removed_entrypoints": [
       "$jj-delivery",
       "/jj-delivery",
@@ -340,12 +340,12 @@
   "protocol_contracts": [
     {
       "id": "dispatch-host-contract",
-      "contract": ".codex/skills/jj-dispatch/references/host-action-contract.json",
-      "schema": ".codex/skills/jj-dispatch/references/host-action-contract.schema.json",
+      "contract": "skills/jj-dispatch/references/host-action-contract.json",
+      "schema": "skills/jj-dispatch/references/host-action-contract.schema.json",
       "runtime": "src/dispatchHostContract.mjs",
-      "control_plane_schema": ".codex/skills/jj-dispatch/references/control-plane.schema.json",
-      "receipt_schema": ".codex/skills/jj-dispatch/references/task-receipt.schema.json",
-      "skill": ".codex/skills/jj-dispatch/SKILL.md",
+      "control_plane_schema": "skills/jj-dispatch/references/control-plane.schema.json",
+      "receipt_schema": "skills/jj-dispatch/references/task-receipt.schema.json",
+      "skill": "skills/jj-dispatch/SKILL.md",
       "fixture": "tests/fixtures/dispatch-host-actions.json"
     }
   ],
@@ -353,9 +353,9 @@
     "path": "skill-inventory.json",
     "schema": "schemas/skill-inventory.schema.json",
     "checker": "src/skillInventory.mjs",
-    "canonical_skills_root": ".codex/skills",
-    "claude_commands_root": ".claude/commands",
-    "note": "Universal skill SSOT is .codex/skills (historical path name). Qoder/Grok install from it; Claude uses thin .claude/commands wrappers only."
+    "canonical_skills_root": "skills",
+    "claude_commands_root": "claude-commands",
+    "note": "Universal skill SSOT is top-level skills/. install-skill distributes to host skill dirs; Claude uses thin .claude/commands wrappers only."
   },
   "scenarios": {
     "runner": "src/scenarioRunner.mjs",

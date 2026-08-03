@@ -6,9 +6,9 @@ const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
 
 export const SKILL_INVENTORY_SCHEMA_VERSION = 'jj-flow/skill-inventory/1.0';
-/** Historical path; universal skill SSOT for Codex / Qoder / Grok install. */
-export const CANONICAL_SKILLS_ROOT_REL = '.codex/skills';
-export const CLAUDE_COMMANDS_ROOT_REL = '.claude/commands';
+/** Top-level repo skill SSOT; install distributes into host skill dirs. */
+export const CANONICAL_SKILLS_ROOT_REL = 'skills';
+export const CLAUDE_COMMANDS_ROOT_REL = 'claude-commands';
 export const SKILL_INVENTORY_REL = 'skill-inventory.json';
 /** Claude command thin-wrapper budget (lines including frontmatter). */
 export const CLAUDE_COMMAND_MAX_LINES = 40;
@@ -71,6 +71,8 @@ export function listFilesystemSkillIds(cwd = PROJECT_ROOT) {
   if (!fs.existsSync(root)) return [];
   return fs.readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    // Product inventory only tracks jj-* skills; other dirs under skills/ may be local tooling.
+    .filter((entry) => /^jj(-[a-z0-9]+)*$/.test(entry.name))
     .filter((entry) => fs.existsSync(path.join(root, entry.name, 'SKILL.md')))
     .map((entry) => entry.name)
     .sort((a, b) => a.localeCompare(b));
@@ -103,7 +105,7 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
       'SKI-INV-001',
       SKILL_INVENTORY_REL,
       error.message,
-      '恢复 skill-inventory.json 并与 .codex/skills 对齐。'
+      'Restore skill-inventory.json and align with skills/.'
     );
     return {
       ok: false,
@@ -120,7 +122,7 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
       'SKI-SSOT-001',
       CANONICAL_SKILLS_ROOT_REL,
       '权威 skill 根目录不存在。',
-      '恢复 .codex/skills（多端 SSOT，名称历史遗留）。'
+      'Restore top-level skills/ (multi-host skill SSOT).'
     );
   }
 
@@ -135,7 +137,7 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
         'SKI-PARITY-001',
         path.join(CANONICAL_SKILLS_ROOT_REL, id),
         '清单有 skill，磁盘缺少 SKILL.md 目录：' + id,
-        '创建 .codex/skills/' + id + '/SKILL.md 或从 skill-inventory.json 移除。'
+        '创建 skills/' + id + '/SKILL.md 或从 skill-inventory.json 移除。'
       );
     } else {
       const skillMd = path.join(skillsRoot, id, 'SKILL.md');
@@ -172,7 +174,7 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
           'SKI-CLAUDE-001',
           claudeRel,
           '清单要求 Claude 薄入口但文件缺失：' + skill.claude_command,
-          '新增 .claude/commands/' + skill.claude_command + '（薄路由，勿复制完整 skill 规程）。'
+          'Add claude-commands/' + skill.claude_command + ' (thin route only).'
         );
       } else {
         const claudeAbs = path.join(cwd, CLAUDE_COMMANDS_ROOT_REL, skill.claude_command);
@@ -185,8 +187,8 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
               claudeRel,
               'Claude 薄入口超过 ' + CLAUDE_COMMAND_MAX_LINES + ' 行预算：' +
                 skill.claude_command + ' 现有 ' + lineCount + ' 行（含 frontmatter）。',
-              '瘦身为 pointer 级入口（指向 .codex/skills/' + skill.id +
-                '/SKILL.md），勿在 .claude/commands 复述完整 lifecycle/gates。'
+              '瘦身为 pointer 级入口（指向 skills/' + skill.id +
+                '/SKILL.md); do not restate full lifecycle in claude-commands.'
             );
           }
         } catch (error) {
@@ -194,7 +196,7 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
             'SKI-CLAUDE-001',
             claudeRel,
             '无法读取 Claude 薄入口：' + skill.claude_command + ' — ' + error.message,
-            '修复或重建 .claude/commands/' + skill.claude_command + '。'
+            'Fix or rebuild claude-commands/' + skill.claude_command + '.'
           );
         }
       }
@@ -235,20 +237,31 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
   try {
     const packageJson = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
     const files = packageJson.files || [];
-    if (!files.some((item) => String(item).replace(/\\/g, '/').includes('.codex/skills'))) {
+    if (!files.some((item) => String(item).replace(/\\/g, '/').includes('skills'))) {
       add(
         'SKI-PKG-001',
         'package.json',
-        'package.json files 未包含 .codex/skills/（发布会丢 SSOT）。',
-        '把 .codex/skills/ 加入 package.json files。'
+        'package.json files 未包含 skills/（发布会丢 SSOT）。',
+        '把 skills/ 加入 package.json files。'
       );
     }
-    if (!files.some((item) => String(item).replace(/\\/g, '/').includes('.claude/commands'))) {
+    if (!files.some((item) => {
+      const n = String(item).replace(/\\/g, '/');
+      return n.includes('claude-commands') || n.includes('.claude/commands');
+    })) {
       add(
         'SKI-PKG-002',
         'package.json',
-        'package.json files 未包含 .claude/commands/。',
-        '把 .claude/commands/ 加入 package.json files。'
+        'package.json files missing claude-commands/ (thin Claude slash entries).',
+        'Add claude-commands/ to package.json files.'
+      );
+    }
+    if (!files.some((item) => String(item).replace(/\\/g, '/').includes('agents'))) {
+      add(
+        'SKI-PKG-004',
+        'package.json',
+        'package.json files missing agents/ (Codex agent profiles).',
+        'Add agents/ to package.json files.'
       );
     }
   } catch (error) {

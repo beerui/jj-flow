@@ -52,7 +52,7 @@ Hashes are SHA-256 prefixes of the listed artifact at evaluation time (when loca
 | outcome | shipped `0.1.1-beta.34` |
 | git | `f547935` host-first review; `35a878c` beta.34 release |
 | tags | `user_correction`, `tool_unavailable` (no ralph run BLOCKED review), `branch_correction` (jj-end order) |
-| key facts | Skill SSOT = `.codex/skills`; host-neutral wording; host-first `/jj-review`; jj-end fetch-before-push; `skill-inventory.json` |
+| key facts | Skill SSOT = `skills`; host-neutral wording; host-first `/jj-review`; jj-end fetch-before-push; `skill-inventory.json` |
 
 ### EP-20260730-B1 — sale-draft pay channel (ralph COMPLETED)
 
@@ -179,7 +179,7 @@ Before `jj-same` creates branches or writes business code (and before `jj-end` t
 
 Golden answers (S1-shaped) live in:
 
-- `.codex/skills/jj-same/references/branch-purpose-preflight.md`
+- `skills/jj-same/references/branch-purpose-preflight.md`
 - §7 below
 
 ### Expected mechanism
@@ -188,7 +188,7 @@ Moves `branch_correction` from mid/late rework to intake (~30s confirmation).
 
 ### Bounded surface
 
-- `.codex/skills/jj-same/SKILL.md` + new reference
+- `skills/jj-same/SKILL.md` + new reference
 - light `jj-end` note for work≠task purpose
 - this evaluation doc
 - optional SDK static test in `project-sdk` (K1 regression)
@@ -215,7 +215,7 @@ Revert skill/reference paragraphs; reinstall skills; remove evaluation promotion
 | Five golden branch Q&A | **done** (§7 + skill reference) |
 | Node 14 postinstall smoke | **done** in `project-sdk` static test (see repo) |
 | Business REV fill `source`/`host_review` | **policy**: next `/jj-review` on business repos must set fields (adapter already supports); B1 historical REV not rewritten |
-| Branch purpose preflight skill | **promoted** to `.codex/skills` SSOT |
+| Branch purpose preflight skill | **promoted** to `skills` SSOT |
 
 ## 9. Promotion status
 

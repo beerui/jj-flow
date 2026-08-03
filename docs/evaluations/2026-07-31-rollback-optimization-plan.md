@@ -99,7 +99,7 @@ Optional export: `prepareModeSReopen(plane, { deliveryId, projectId })` → plan
 
 #### 4.4 Skill / agent surface
 
-Update `.codex/skills/jj-dispatch/references/rollback.md`:
+Update `skills/jj-dispatch/references/rollback.md`:
 
 ```text
 Mode S reopen:
@@ -128,8 +128,8 @@ Keep `TARGET_REOPENED`. Optional extend payload:
 | `src/dispatchControlPlane.mjs` | session-share uniqueness; optional `prepareModeSReopen`; wire into `reopenTarget` preflight |
 | `tests/jj-dispatch-contract.test.mjs` | fixture: shared session COMPLETED intents validate; reopen succeeds |
 | `tests/fixtures/…` or inline fixture | soft Mode S mini-plane (anonymized from readme-pnpm) |
-| `.codex/skills/jj-dispatch/references/rollback.md` | Mode S reopen steps |
-| `.codex/skills/jj-dispatch/SKILL.md` | one-line pointer |
+| `skills/jj-dispatch/references/rollback.md` | Mode S reopen steps |
+| `skills/jj-dispatch/SKILL.md` | one-line pointer |
 | `docs/evaluations/2026-07-31-readme-pnpm-rollback.md` | candidate status → implementing/promoted |
 | `CHANGELOG.md` | Unreleased |
 

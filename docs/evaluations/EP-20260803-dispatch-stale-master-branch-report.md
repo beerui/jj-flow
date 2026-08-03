@@ -158,11 +158,11 @@ with:
 
 Touch points (promotion only after human OK):
 
-1. `.codex/skills/jj-same/references/branch-purpose-preflight.md` — checks 6–10 + G6
-2. `.codex/skills/jj-same/references/project-family.md` §分支派生规则
-3. `.codex/skills/jj-same/references/workflow-core.md` L17
-4. `.codex/skills/jj-same/SKILL.md` MUST NOT wording
-5. `.codex/skills/jj-dispatch/references/happy-path.md` + control-project workspace table
+1. `skills/jj-same/references/branch-purpose-preflight.md` — checks 6–10 + G6
+2. `skills/jj-same/references/project-family.md` §分支派生规则
+3. `skills/jj-same/references/workflow-core.md` L17
+4. `skills/jj-same/SKILL.md` MUST NOT wording
+5. `skills/jj-dispatch/references/happy-path.md` + control-project workspace table
 6. Then `jj install-skill --platform all --force`
 
 ### Immediate recovery for this delivery (ops, not promotion)
@@ -196,7 +196,7 @@ Token / time trade-offs:
 | Field | Value |
 | --- | --- |
 | human decision | **approved** — user: A+B both do |
-| promotion status | **promoted** to `.codex/skills` SSOT + `jj install-skill --platform all --force` |
+| promotion status | **promoted** to `skills` SSOT + `jj install-skill --platform all --force` |
 | recovery (A) | `cz-broker-web`: stash ADAPT → fetch+ff master `f45576c02→d78af9489` → recreate `feat/cz-0807-lyj` → stash pop clean; plane rev 2 `BASE_RECOVERY`; behind_count=0 |
 | skill assets (B) | jj-same: branch-purpose-preflight checks 6–10 + G6; project-family / workflow-core / SKILL / happy-path; jj-dispatch: happy-path table, control-project, SKILL gate 4, host-action-contract confirm list, grok-dispatch preflight #9 |
 | rollback path | revert skill text commits; keep EP report as regression narrative; business branch already on fresh master |

@@ -15,6 +15,15 @@ npx @brewer/jj-flow@beta install-skill --platform all --project
 
 会装到本项目的 Codex / Claude / Grok / Qoder 配置目录里。
 
+| 平台 | 安装目标 |
+| --- | --- |
+| Codex | `.codex/skills` + `agents` |
+| **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（薄入口） |
+| Grok | `.grok/skills` |
+| Qoder | `.qoder/skills` |
+
+npm 包内 SSOT 为顶层 `skills/`，Claude 薄命令源为 `claude-commands/`。
+
 ## 只装某一个工具
 
 ```bash
@@ -24,7 +33,7 @@ npx @brewer/jj-flow@beta install-skill --platform grok
 npx @brewer/jj-flow@beta install-skill --platform qoder
 ```
 
-不要 `--project` 时，会装到用户全局目录。
+不要 `--project` 时，会装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`）。
 
 ## 卸载（先预览）
 

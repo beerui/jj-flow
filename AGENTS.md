@@ -2,7 +2,7 @@
 
 - `jj-flow` 是 **项目族编排工作流**（同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch）。
 - 代码定位先读 `ARCHITECTURE.md`；跨模块目标设计从 `docs/design-docs/index.md` 进入。仓库事实以 `harness-manifest.json` 索引的 versioned 资产为准。
-- **Skill 多端 SSOT**：完整 skill 只编辑 `.codex/skills/`（路径名历史遗留；Qoder/Grok install 同源）。Claude 只维护 `.claude/commands/` 薄入口。清单与对账见 `skill-inventory.json`；改后执行 `jj install-skill --platform all --force`。勿把 `.grok/skills` / `.qoder/skills` 当编辑源。
+- **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目写工作区（默认 `project-branch` 主路径，isolation 时 `exclusive-worktree`）中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。
@@ -10,6 +10,13 @@
 - 控制平面中的 `delivery_id` 是多项目调度任务身份，不是已移除的 `$jj-delivery` 对话入口。
 - **npm 发布只走 GitHub Actions `NPM Publish` 工作流**（`workflow_dispatch`，tag 通常为 `beta`）；不要用本地 `npm publish`（本机 token 非事实源，易 401/404）。推送版本 commit 到 `main` 后触发 Actions，确认 `run_verify=true` 通过后再发布。
 - 修改调度协议后至少运行 `node --test tests/jj-dispatch-contract.test.mjs`、`npm run verify` 和 `git diff --check`；修改 ralph 后至少运行 `tests/jj-ralph-contract.test.mjs`。
+
+## Host compatibility（Grok ↔ Claude Code / AGENTS）
+
+- **Grok 与 Claude Code 零配置兼容**：无需额外 setup，即可自动读取 Claude Code 的 marketplaces、plugins、skills、MCPs、agents、hooks，以及指令文件 `CLAUDE.md` / `Claude.md` / `CLAUDE.local.md` / `.claude/rules/`（与 `.grok/` 并行）。
+- **AGENTS.md 族**：从 cwd 向上走到 repo root 读取 `AGENTS.md` / `Agents.md` / `AGENT.md`。
+- **用户级发现路径**：`~/.agents/skills/`、`~/.agents/commands/`（以及 Claude 侧同类资产）。
+- **因此 Claude 侧 mem / MEMORY / 共享 skill·command·agent 说明在 Grok 会话中可用**，当作跨宿主上下文与工具发现来源；**仍不得**用 chat/thread/memory 推进 ralph / dispatch / evaluated 的 checkpoint。
 
 ## 核心路径
 

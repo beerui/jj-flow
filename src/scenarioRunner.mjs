@@ -263,13 +263,13 @@ function partialFailureScenario() {
 
 function handoffContractScenario() {
   const snapshot = readJson(new URL('../examples/scenarios/jj-same-handoff-snapshot.json', import.meta.url));
-  const schema = readJson(new URL('../.codex/skills/jj-same/references/handoff-snapshot.schema.json', import.meta.url));
+  const schema = readJson(new URL('../skills/jj-same/references/handoff-snapshot.schema.json', import.meta.url));
   const recorder = createTraceRecorder({
     runId: 'SCN-same-handoff-contract-001',
     scenario: 'same-handoff-contract',
     initialState: snapshot,
     createdAt: NOW,
-    context: { schema: '.codex/skills/jj-same/references/handoff-snapshot.schema.json' }
+    context: { schema: 'skills/jj-same/references/handoff-snapshot.schema.json' }
   });
   const validation = recorder.apply('validate_handoff_snapshot', { schema });
   const assertions = [

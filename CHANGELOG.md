@@ -4,6 +4,16 @@
 
 ## Unreleased
 
+## 0.1.1-beta.47 — 2026-08-03
+
+- **Skill SSOT 顶层化**：完整 skill 编辑/发布源为 `skills/`（不再以仓库内 `.codex/skills` 为权威源）；`install-skill` 仍分发到各宿主 skills 目录
+- **Claude 安装目标**：`--platform claude|all` 同时安装完整 skill 到 `~/.claude/skills` 与薄入口到 `~/.claude/commands`
+- **打包源与宿主目录分离**：
+  - 仓库跟踪：`skills/`、`agents/`（Codex agent 配置）、`claude-commands/`（Claude 薄入口）
+  - **git 忽略且从远端移除**：`.claude/`、`.codex/`、`.cursor/`（宿主安装/本机配置，禁止再当 SSOT 推送）
+- **Skill 正文英文化**：产品 skill 协议改为英文 SSOT；中文对照见 `docs/skill-zh-bridge/`
+- **must-evidence**：ralph ACCEPT 证据形状契约（`evidence_class`）
+
 ## 0.1.1-beta.46 — 2026-08-03
 
 - **CREATE 基线新鲜度（EP-20260803）**：`jj-same` / `jj-dispatch` 新建功能分支前必须 `git fetch` 集成基线，报告 `behind_count`；禁止从陈旧 local `master` tip 静默 `checkout -b`；允许 ff-only 或从 `origin/master` 建分支；仍禁止对脏/分叉 master 做 hard-reset。
@@ -54,7 +64,7 @@
 ## 0.1.1-beta.41 — 2026-07-31 18:23
 
 - **jj-ralph 续作协议（改错 / 加子需求）**：归档前同 `run_id` 扩 scope 或按相邻边回退；归档后新 run + `progress.md` 链（纠正用 `supersedes_run_id`，纯子需求用 `parent_run_id`）；禁止 reopen COMPLETED / invent 未 schema 的 run.json 字段。
-- Skill：`.codex/skills/jj-ralph/references/post-complete-continue.md`；`rollback.md` / `SKILL.md` 交叉引用。
+- Skill：`skills/jj-ralph/references/post-complete-continue.md`；`rollback.md` / `SKILL.md` 交叉引用。
 - 文档：`docs/commands/jj-ralph.md` §1；`docs/design-docs/jj-ralph.md` 站点链接 `command-jj-ralph.html`。
 
 ## 0.1.1-beta.40 — 2026-07-31 14:45
@@ -80,7 +90,7 @@
 ## 0.1.1-beta.38 — 2026-07-30 19:30
 
 - **Grok dispatch Mode S（skill MVP）**：默认单会话串行 + project-branch；缺多 session API 时降级 Mode S，禁止合成 session id；用户不跑 CLI。
-- 新增 `.codex/skills/jj-dispatch/references/grok-dispatch-execution.md`（PREFLIGHT / attestation / receipt / Mode S·W·P / 与 Workflow 边界）。
+- 新增 `skills/jj-dispatch/references/grok-dispatch-execution.md`（PREFLIGHT / attestation / receipt / Mode S·W·P / 与 Workflow 边界）。
 - Agent 写 plane 硬门禁（C3）：无 `produced_commit` 最多 `EVIDENCE_READY`；`scripts/plane-self-check.mjs` + 合约测试。
 - 文档：`docs/commands/jj-dispatch.md`、`usage`、`grok-host-adapter` 脚注；exec plan `docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md`；评估 `docs/evaluations/2026-07-30-acceptor-tag-color-dispatch.md`。
 
@@ -113,7 +123,7 @@
 - `$jj-review` / `/jj-review` 改为宿主内置 review 优先的适配器：发现并调用当前宿主 review/code-review，将结论映射为 `reviews/REV-*.json`（`source`/`host_review` 溯源）；仅在宿主不可用时最小内联回退。
 - `jj ralph review-record` / `ralph_ops review-record` 支持 `--source` 与 `--host-review-json`，progress 写入 `source=`；校验可选 provenance 枚举。
 - `$jj-end`：强制 `fetch → 同步 work → push → 同步 integration → merge → push → 回切`；提交前/推送前必须拉远端；禁止中途只 commit 不 merge；integration 回退链 `dev→develop→main`；冲突 abort 后回 work 并明确失败。
-- Skill 多端统一：新增 `skill-inventory.json` + `src/skillInventory.mjs`；harness 对账磁盘 skill ↔ 清单 ↔ Claude commands；补 `.claude/commands/jj-end.md`；安装文档写明 SSOT（`.codex/skills`）与 reinstall 纪律。
+- Skill 多端统一：新增 `skill-inventory.json` + `src/skillInventory.mjs`；harness 对账磁盘 skill ↔ 清单 ↔ Claude commands；补 `.claude/commands/jj-end.md`；安装文档写明 SSOT（`skills`）与 reinstall 纪律。
 
 ## 0.1.1-beta.33 — 2026-07-29 17:52
 
@@ -333,7 +343,7 @@
 
 - 增加 npm beta 发布准备：版本号、`npx` 安装入口和 GitHub Actions 发布流程。
 - 修正 npm `bin` 路径，确保发布后 `npx @shendu-sdt/jj-flow@beta` 能调用 `jj`。
-- 增加 `jj install-skill --project`，支持安装到当前项目的 `./.codex/skills/jj`。
+- 增加 `jj install-skill --project`，支持安装到当前项目的 `./skills/jj`。
 - 更新安装文档：默认用户级安装，可选项目级安装。
 
 ## 0.1.0

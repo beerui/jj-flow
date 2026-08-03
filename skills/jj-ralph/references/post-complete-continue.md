@@ -1,0 +1,82 @@
+# Continue after complete (agent)
+
+User-facing: `docs/commands/jj-ralph.md` § “done but still need changes”.  
+Rollback edges: `rollback.md`.
+
+## Principles
+
+- **Same requirement → same `run_id`** (includes archived, `COMPLETED`, recover from `ABANDONED`).
+- **Archive** = map-merge + snapshot; may edit and re-archive.
+- **New run** only when the user clearly states a new requirement / new id.
+- Chat does not advance checkpoints.
+- **Users do not default to saying `RALPH-…`.** Speech like “tweak the tip again”, “that one from earlier”, “drop this for now” (「再改 tip」「刚才那个」「这个先不做了」) = continue signals; the agent resolves the run.
+
+## Detection
+
+1. **Resolve target run (order):**
+   a. User explicitly names `RALPH-…` (optional, uncommon)
+   b. Run already in use in this session
+   c. Latest `updated_at` whose title/goal/keywords match user speech
+   d. `map-find` / directory scan as assist
+   e. Still ambiguous → ask with a **title list** (id optional); do not force the user to recite the number
+2. Same requirement → **do not init**:
+   - `ABANDONED` → `resume`
+   - Archived / `COMPLETED` / `phase=ARCHIVE` → `resume` or `rollback-phase` (e.g. →DELIVER)
+   - Active → edit directly; if accept already PASS: first `gate accept FAIL` or rollback
+3. Truly new requirement (user clearly says “do another thing”, “new run”, or semantic is brand new) → `init`; optional progress notes `parent_run_id` / `supersedes_run_id` (**do not** invent these into run.json)
+
+## Fix mistakes
+
+| Stage | Action |
+| --- | --- |
+| During DELIVER | Change code + progress + re-verify |
+| accept wrongly PASS | `gate accept FAIL` or `rollback-phase --to DELIVER` |
+| Plan/analyze wrong | Roll back on **adjacent edges** only (no skipping) |
+| Already archived | `resume` → same as above → may `finalize` again |
+| User correction / path still failing | `resume`; progress records `failed_must`, `failed_evidence_class`, `over_claimed` (if weak evidence once claimed a strong MUST); next loop prioritizes closing the evidence gap — see [must-evidence.md](must-evidence.md) |
+
+## Add requirements
+
+Same run: add REQ in analyze, TASK in plan, expand `scope.in`; one re-acceptance covers all.  
+If accept already passed or archived: return to DELIVER first, then edit and re-verify.
+
+## Abandon
+
+```bash
+ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
+# recover
+ralph_ops.mjs resume --run-id RALPH-x --reason "…"
+```
+
+`map-merge` / `archive` forbidden on ABANDONED (resume first).  
+`close` is deprecated.
+
+## Anti-patterns
+
+| Wrong | Right |
+| --- | --- |
+| Require “please provide RALPH- id” before continue | Resolve nearest / same-requirement run yourself |
+| Default to new init after archive | Same-run resume |
+| One-step rollback ACCEPT → ANALYZE | Adjacent edges only |
+| Write lineage fields into run.json | Write parent/supersedes in progress.md for a truly new run |
+| finalize while ABANDONED | resume first |
+| Treat `$jj-end` as task completion | end is Git only |
+
+## Commands
+
+```bash
+ralph_ops.mjs resume --run-id RALPH-x --reason "…"
+ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
+ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"
+ralph_ops.mjs finalize --run-id RALPH-x --lessons "reusable rule"
+ralph_ops.mjs knowledge-contribute --run-id RALPH-x --hook   # user: feed knowledge base
+```
+
+## Knowledge contribute
+
+When the user says 「投喂知识库 / 补充全局知识」 or “feed knowledge base / contribute global knowledge” (**do not** require a run id):
+
+1. Resolve run (same continue detection)
+2. `knowledge-contribute --hook` (rewrite package + optional extract → candidate only)
+3. Report: `path`, candidate count, `hook.status` (ok|skipped|failed)
+4. Failures are fail-open; archive unchanged; hint checking `knowledge_root` / `RALPH_KNOWLEDGE_HOOK_CMD`

@@ -1,0 +1,4 @@
+interface:
+  display_name: "jj-review"
+  short_description: "Map host review to REV report"
+  default_prompt: "$jj-review use host built-in review on the current commit; record result on the latest ralph run"

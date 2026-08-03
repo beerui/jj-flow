@@ -27,12 +27,12 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 ### 对话入口资产
 
-- `.codex/skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
-- `.codex/skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
-- `.codex/skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
-- `.codex/skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）或 experimental `jj-evaluated`。
-- `.claude/commands/` 保存 Claude Code 对应命令。`jj-dispatch` / `jj-evaluated` 有意不在此暴露。
-- `.codex/agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。
+- `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
+- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
+- `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
+- `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）或 experimental `jj-evaluated`。
+- `claude-commands/` 保存 Claude Code 对应命令。`jj-dispatch` / `jj-evaluated` 有意不在此暴露。
+- `agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。
 
 修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装、ralph 机械步骤或控制平面运行时行为才应先进入 npm CLI。
 
@@ -40,11 +40,11 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `src/dispatchControlPlane.mjs` 是纯控制平面状态机。它负责 manifest 校验、稳定 `task_key`、派发批准、task 绑定与对账、任务和审查结果、返工，以及目标完成状态。
 - `src/dispatchRuntime.mjs` 是单次 tick 的宿主边界。它校验并幂等应用 receipts，计算下一批 host actions，并通过 `persistPlaneCas` 以 revision compare-and-swap 方式持久化 manifest。
-- `src/dispatchHostContract.mjs` 定义 runtime 可输出的 host action 类型、receipt 枚举、已批准 `host_ids` / `handle_kinds` / `host_profiles`，以及 read/write 的 agent、sandbox、environment 和 worktree policy。Grok 与 Codex 共用 `CREATE_THREAD` / `RECONCILE_THREAD` 类型名，靠 `host_id` + `handle_kind` 分流；`validateHostBindAttestation` 对缺 evidence / 伪 semi-real 证据 fail-closed。`.codex/skills/jj-dispatch/references/host-action-contract.json` 是 skill 侧结构化契约，Harness 检查两者与 schemas、fixtures 的一致性。
+- `src/dispatchHostContract.mjs` 定义 runtime 可输出的 host action 类型、receipt 枚举、已批准 `host_ids` / `handle_kinds` / `host_profiles`，以及 read/write 的 agent、sandbox、environment 和 worktree policy。Grok 与 Codex 共用 `CREATE_THREAD` / `RECONCILE_THREAD` 类型名，靠 `host_id` + `handle_kind` 分流；`validateHostBindAttestation` 对缺 evidence / 伪 semi-real 证据 fail-closed。`skills/jj-dispatch/references/host-action-contract.json` 是 skill 侧结构化契约，Harness 检查两者与 schemas、fixtures 的一致性。
 - `src/dispatchTrace.mjs` 为纯状态转换记录 before/after hash、输入、输出与 evidence refs，并在 replay 时重新执行状态转换；记录到的 host actions 只计数，不执行。
 - `src/scenarioRunner.mjs` 登记 4 个确定性场景，覆盖 dispatch happy path、中断恢复、部分目标失败和 `jj-same` handoff 契约。`src/handoffContract.mjs` 对 handoff snapshot 做 fail-closed 校验。
 - `src/hostTrialRunner.mjs` 位于核心状态机之外，在系统临时目录创建控制仓、真实 Git repo 和独占 worktree，验证 CAS、receipt、中断对账及 Reviewer/Developer 返工。它是半真实 Host adapter，不创建或伪造 Codex App task。
-- `.codex/skills/jj-dispatch/references/control-plane.schema.json` 和 `task-receipt.schema.json` 是 JavaScript 模块外部消费的序列化契约。修改协议时，必须同步 schemas、skill 说明、fixtures 和运行时校验。
+- `skills/jj-dispatch/references/control-plane.schema.json` 和 `task-receipt.schema.json` 是 JavaScript 模块外部消费的序列化契约。修改协议时，必须同步 schemas、skill 说明、fixtures 和运行时校验。
 - `tests/jj-dispatch-contract.test.mjs` 检查跨文件的 dispatch 契约；`tests/dispatch-runtime.test.mjs` 覆盖 tick、receipt、恢复和 CAS 行为；`tests/scenario-runner.test.mjs` 覆盖确定性、篡改检测、无副作用与 CLI replay。
 
 状态模块不会创建 task、切换仓库或启动 daemon。它们只返回供已批准宿主（Codex App 或 Grok Build）执行的 actions。执行结果通过结构化 receipts 返回，并且只有通过协议校验后才能进入状态机。
@@ -105,9 +105,9 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 
 | 需求 | 起点 |
 | --- | --- |
-| 修改同源迁移或持续同步行为 | `.codex/skills/jj-same/` |
-| 修改单仓闭环或能力地图 | `.codex/skills/jj-ralph/`、`src/ralph.mjs` |
-| 修改多项目调度策略 | `.codex/skills/jj-dispatch/` |
+| 修改同源迁移或持续同步行为 | `skills/jj-same/` |
+| 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs` |
+| 修改多项目调度策略 | `skills/jj-dispatch/` |
 | 修改持久调度状态转换 | `src/dispatchControlPlane.mjs` |
 | 修改 tick、receipt 或 manifest 持久化 | `src/dispatchRuntime.mjs` |
 | 修改 scenario、trace 或 replay | `src/scenarioRunner.mjs`、`src/dispatchTrace.mjs` |

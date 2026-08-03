@@ -140,7 +140,7 @@ test('~/custom-control expands under home', () => {
 });
 
 test('jj-dispatch skill states product default ~/.jj-flow and NEEDS_CONFIRM gate', () => {
-  const skillRoot = path.join(process.cwd(), '.codex', 'skills', 'jj-dispatch');
+  const skillRoot = path.join(process.cwd(), 'skills', 'jj-dispatch');
   const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
   const happyPath = fs.readFileSync(path.join(skillRoot, 'references', 'happy-path.md'), 'utf8');
   const corpus = skill + '\n' + happyPath;

@@ -306,7 +306,7 @@ Re-ran `$jj-evaluated` on the same 2-day Grok claim window. No new business epis
 | --- | --- |
 | Contract tests | `node --test tests/jj-ralph-contract.test.mjs` -> **15/15 PASS** |
 | Gate surface | `evaluateAcceptArchiveGate` wired into `setGate(accept|archive)` and `archiveRun` |
-| Portable skill sync | `.codex/skills/jj-ralph/scripts/lib/ralph.mjs` + `.grok/skills/jj-ralph/**` present with product-consistency text in `phases.md` |
+| Portable skill sync | `skills/jj-ralph/scripts/lib/ralph.mjs` + `.grok/skills/jj-ralph/**` present with product-consistency text in `phases.md` |
 | Working tree | jj-flow `main` **ahead 1** of origin; gate/eval changes still **uncommitted** (local only) |
 | Host attestation | Still missing: all sampled runs keep `thread_id/task_thread_id/review_thread_id = null` |
 | Role heads re-check | `project-a@860417f90` / `project-b@cb2c38a3e` / `project-c@8257da360` on `fix/inquiry-face-info-checkmark`; draft-manager `dev@e4a5ff9`; recognize `feat/pc-0731-dev@1e3fb4726` |

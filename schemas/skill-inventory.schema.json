@@ -20,14 +20,14 @@
     },
     "canonical_skills_root": {
       "type": "string",
-      "const": ".codex/skills"
+      "const": "skills"
     },
     "canonical_skills_root_note": {
       "type": "string"
     },
     "claude_commands_root": {
       "type": "string",
-      "const": ".claude/commands"
+      "const": "claude-commands"
     },
     "install_targets": {
       "type": "object"

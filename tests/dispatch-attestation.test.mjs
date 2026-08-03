@@ -13,7 +13,7 @@ import {
 import {
   checkPlaneTerminalIntegrity,
   gradePlaneTerminalIntegrity
-} from '../.codex/skills/jj-dispatch/scripts/plane-self-check.mjs';
+} from '../skills/jj-dispatch/scripts/plane-self-check.mjs';
 import {
   setIntegrityGrade,
   setRemoteCloseout,
