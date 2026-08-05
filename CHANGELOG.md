@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 0.1.1-beta.48 — 2026-08-05
+
+- **jj-team-coordinate**：可选多角色执行引擎（`TC-*` session）；catalog fail-closed；Codex degraded（tasks.json / 文件消息总线）；嵌套 ralph/review/dispatch 时一句提示「开启 team 模式，开始任务… 约…」；直接调用无强制 banner。
+- **jj-team-swarm**：可选对抗蚁群搜索（`TAS-*`，Python `aco.py` + explore/score/converge/synthesize）；默认 3×3 与非 adversarial 评分；嵌套时「开启 swarm 模式，开始任务… 约…」；合约测 + aco 回归。
+- **路由 / 文档**：`jj` 与 inventory / Claude 薄入口；design + skill-zh-bridge 中文对照；ralph integrations 接缝；不推进 checkpoint。
+
 ## 0.1.1-beta.47 — 2026-08-03
 
 - **Skill SSOT 顶层化**：完整 skill 编辑/发布源为 `skills/`（不再以仓库内 `.codex/skills` 为权威源）；`install-skill` 仍分发到各宿主 skills 目录
