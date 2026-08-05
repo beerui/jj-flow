@@ -130,7 +130,7 @@ P1+ 可增加 `jj team-bridge summarize --session TC-… --run-id RALPH-…`（�
 | 调用方式 | 提示 |
 | --- | --- |
 | 用户直接 `/jj-team-coordinate` | **不**打多行 banner |
-| 嵌套在 **ralph / review / dispatch** | **一句话**：`[team] 嵌套于 … · 约 … · 不推进 gate` |
+| 嵌套在 **ralph / review / dispatch** | **一句话**：`开启 team 模式，开始任务XXX 约 10-25分钟` |
 
 契约：`skills/jj-team-coordinate/references/user-transparency.md`。
 

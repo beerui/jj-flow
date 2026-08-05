@@ -68,13 +68,13 @@ If only **one** agent can run: run worker work **inline in the same turn only wh
 
 ## Nested notice (Codex)
 
-Only when nested under ralph/review/dispatch — **one line**, e.g.:
+Only when nested under ralph/review/dispatch — one sentence, e.g.:
 
 ```text
-[team] 嵌套于 ralph DELIVER：串行 worker · 约 20–40 分钟 · 不推进 gate
+开启 team 模式，开始任务跨模块实现 约 20-40分钟
 ```
 
-Direct `$jj-team-coordinate` on Codex: no mandatory banner.
+Direct `$jj-team-coordinate` on Codex: no mandatory notice.
 
 ## What still must work
 

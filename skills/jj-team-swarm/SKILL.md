@@ -17,12 +17,11 @@ Python owns pheromone math; coordinator owns the outer loop and user communicati
 
 ## User notice (nested jj-flow only)
 
-- **Direct** `/jj-team-swarm` / `$jj-team-swarm`: **no** mandatory multi-line banner; just run.
-- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before heavy work, e.g.  
-  `[swarm] 嵌套于 ralph PLAN：多假设搜索 · 约 15–40 分钟 · 不推进 gate`
+- **Direct** `/jj-team-swarm` / `$jj-team-swarm`: **no** mandatory notice; just run.
+- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before heavy work:  
+  `开启 swarm 模式，开始任务<简述> 约 15-40分钟`
 
 Full rules: [references/user-transparency.md](references/user-transparency.md).  
-High cost when nested (`n_ants×max_iter≥9`, adversarial, or degraded) → optional one-line confirm.  
 Default template is conservative (3×3, non-adversarial scoring).
 
 ## jj-flow hard boundaries

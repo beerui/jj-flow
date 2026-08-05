@@ -193,8 +193,8 @@ For callback/check/resume/adapt/complete: load `@commands/monitor.md` and execut
 6. **Output** (only if gate passed): write analysis to a path that Phase 2 will place under the session as `task-analysis.json` (include `why_team`, `host_mode`, `time_estimate`). Do not create full `TC-*` tree until Phase 2 after pre-flight acceptance.
 
 7. **Nested notice** (only if nested under jj-ralph / jj-review / jj-dispatch):
-   - One line: `[team] 嵌套于 <…>：<原因> · 约 <区间> · 不推进 gate`
-   - Direct user invoke: **skip** banner
+   - One sentence: `开启 team 模式，开始任务<简述> 约 <区间>`
+   - Direct user invoke: **skip** notice
    - Confirm only if high cost or auto-selected without naming team; decline → **STOP**
 
 8. **If `needs_research: true`**: Phase 2 will spawn researcher worker first

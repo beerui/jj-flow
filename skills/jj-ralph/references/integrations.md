@@ -40,7 +40,7 @@ Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for
 | Gates | Team completion **does not** set ACCEPT PASS or flip `run.json` gates |
 | Dispatch | Never creates `DEL-*` / durable `task_key` |
 | Design | `docs/design-docs/jj-team-coordinate.md` |
-| User notice | **Only when nested here**: one line e.g. `[team] 嵌套于 ralph DELIVER：… · 约 … · 不推进 gate` — not multi-line; direct `$jj-team-coordinate` needs no banner |
+| User notice | **Only when nested here**: `开启 team 模式，开始任务XXX 约 10-25分钟`；direct invoke needs no notice |
 | Codex | Degraded path OK (`tasks.json` + file bus); see `references/host-codex.md` |
 
 Typical nesting: ralph PLAN ready → one-line nested notice → team multi-module DELIVER → cite `artifacts/` into evidence → ACCEPT as usual.
@@ -55,7 +55,7 @@ Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** 
 | Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `RALPH-*` |
 | Facts | Cite `artifacts/best-solution.md` into plan/evidence only |
 | Gates | Swarm **does not** set ACCEPT PASS |
-| User notice | Nested only: one line `[swarm] 嵌套于 ralph … · 约 … · 不推进 gate` |
+| User notice | Nested only: `开启 swarm 模式，开始任务XXX 约 15-40分钟` |
 | Hosts | Python `aco.py` everywhere; Claude Workflow full; Codex/Grok agent-module fallback |
 | Design | `docs/design-docs/jj-team-swarm.md` |
 

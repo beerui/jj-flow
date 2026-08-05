@@ -4,44 +4,35 @@
 
 | Invocation | User-facing notice |
 | --- | --- |
-| **Normal / direct** — user ran `/jj-team-swarm` or `$jj-team-swarm` (or explicit 蚁群 / ACO / 对抗搜索) | **No** multi-line banner. Run search; optional short progress if useful. |
-| **Nested in jj-flow delivery workflow** — parent is **jj-ralph**, **jj-review**, or **jj-dispatch** | **One sentence** before ACO init / first heavy iteration. |
+| **Normal / direct** — user ran `/jj-team-swarm` or `$jj-team-swarm` | **No** mandatory notice. Run search. |
+| **Nested in jj-flow delivery workflow** — parent is **jj-ralph**, **jj-review**, or **jj-dispatch** | **One sentence** before heavy work (format below). |
 
-Do **not** print long `[swarm] 为什么用 / 当前在做 / 预计用时 / 宿主…` blocks in normal use.
+Detect nested mode from: parent skill context, `parent_skill=…`, `nested=true`, or clear in-workflow framing.
 
-Detect nested mode from: parent skill context, `parent_skill=jj-ralph|jj-review|jj-dispatch`, `nested=true`, or clear in-workflow framing (e.g. ralph PLAN multi-hypothesis search).
-
-## Nested notice (one line only)
-
-Before Phase 2 init when nested:
+## Nested notice (one sentence)
 
 ```text
-[swarm] 嵌套于 <ralph|review|dispatch>：<一句话搜索目标> · 约 <用时区间> · 不推进 gate
+开启 swarm 模式，开始任务<任务简述> 约 <用时区间>
 ```
 
 Examples:
 
 ```text
-[swarm] 嵌套于 ralph PLAN：多假设方案搜索 · 约 15–40 分钟 · 不推进 gate
-[swarm] 嵌套于 review：对抗评分候选 · 约 10–20 分钟 · 不推进 gate
+开启 swarm 模式，开始任务多假设方案搜索 约 15-40分钟
+开启 swarm 模式，开始任务路径优选 约 10-20分钟
 ```
 
 Rules:
 
-- **Exactly one line** (plus optional confirm if high cost).
-- No host/mode/session dump unless asked.
-- High cost (`n_ants × max_iterations ≥ 9`, `mode: adversarial`, or degraded) → one yes/no confirm only.
+- Exactly this shape: `开启 swarm 模式，开始任务… 约 …`
+- `<任务简述>` = short search objective
+- `<用时区间>` = rough range, e.g. `15-40分钟`
+- Optional confirm only if high cost (`n_ants×max_iter≥9`, adversarial, degraded)
 
 ## Catalog gate (always, silent unless refusing)
 
-Internal why-swarm code still required (`search-space` | `multi-hypothesis` | `adversarial-score` | `path-optimize` | `resume-swarm`).  
-If none fit → do not start swarm (one short refusal).
+Internal why-swarm code still required. If none fit → do not start swarm (one short refusal).
 
-## Live status
+## Live / completion
 
-- **Direct use:** no forced multi-line status; normal iteration notes optional.
-- **Nested:** at most one line per iteration, e.g. `[swarm] iter 2/3 explore · 约已用 12 分钟`.
-
-## Completion
-
-Point to `artifacts/best-solution.md`. If nested: 可引用进 plan/evidence · gate 未改. No multi-line closeout banner.
+No multi-line banners. Point to `best-solution.md` when done. Nested: optional short progress; no forced triple lines.

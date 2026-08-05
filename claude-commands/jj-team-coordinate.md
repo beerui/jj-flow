@@ -29,7 +29,7 @@ Session：`.workflow/.team/TC-*/`。权威 skill：`skills/jj-team-coordinate/`�
 ## 执行要点
 
 1. 加载 skill `jj-team-coordinate`（含 `roles/coordinator/role.md`）。
-2. **直接调用**：不要打多行提示。仅嵌套在 ralph/review/dispatch 时一句：`[team] 嵌套于 … · 约 … · 不推进 gate`。
+2. **直接调用**：无强制提示。仅嵌套在 ralph/review/dispatch 时一句：`开启 team 模式，开始任务XXX 约 10-25分钟`。
 3. **禁止**用 team 结果直接改 ralph gate / dispatch。
 4. Worker 优先 `team-worker`；degraded 用 `tasks.json` + `.msg/`。
 5. 命令：`check` / `resume` / `revise` / `feedback` / `improve`。

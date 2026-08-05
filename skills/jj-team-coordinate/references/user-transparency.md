@@ -4,44 +4,35 @@
 
 | Invocation | User-facing notice |
 | --- | --- |
-| **Normal / direct** — user ran `/jj-team-coordinate` or `$jj-team-coordinate` (or explicit “Team Coordinate”) | **No** multi-line banner. Work normally; optional short progress only if useful. |
-| **Nested in jj-flow delivery workflow** — parent is **jj-ralph**, **jj-review**, or **jj-dispatch** (or agent is inside those skills and spawns team) | **One sentence** before spawn (see below). |
+| **Normal / direct** — user ran `/jj-team-coordinate` or `$jj-team-coordinate` | **No** mandatory notice. Work normally. |
+| **Nested in jj-flow delivery workflow** — parent is **jj-ralph**, **jj-review**, or **jj-dispatch** | **One sentence** before spawn (format below). |
 
-Do **not** print long `[team] 为什么用 / 当前在做 / 预计用时 / 宿主…` blocks in normal use.
+Detect nested mode from: parent skill context, `parent_skill=jj-ralph|jj-review|jj-dispatch`, `nested=true`, or clear in-workflow framing.
 
-Detect nested mode from: parent skill context, prompt fields (`parent_skill=jj-ralph|jj-review|jj-dispatch`, `nested=true`), or clear in-workflow framing (e.g. active ralph DELIVER asking for multi-role team).
-
-## Nested notice (one line only)
-
-Before Phase 4 spawn when nested:
+## Nested notice (one sentence)
 
 ```text
-[team] 嵌套于 <ralph|review|dispatch>：<一句话原因或阶段> · 约 <用时区间> · 不推进 gate
+开启 team 模式，开始任务<任务简述> 约 <用时区间>
 ```
 
 Examples:
 
 ```text
-[team] 嵌套于 ralph DELIVER：跨模块并行实现 · 约 10–25 分钟 · 不推进 gate
-[team] 嵌套于 review：多角度只读分析 · 约 5–15 分钟 · 不推进 gate
+开启 team 模式，开始任务跨模块并行实现 约 10-25分钟
+开启 team 模式，开始任务多角色只读分析 约 5-15分钟
 ```
 
 Rules:
 
-- **Exactly one line** (plus optional confirm question if high cost).
-- No host/mode/session dump unless the user asks.
-- High cost (roles≥3 or tasks≥5 or degraded host or auto-selected without user naming team) → one yes/no confirm, still no multi-line banner.
+- Exactly this shape: `开启 team 模式，开始任务… 约 …`
+- `<任务简述>` = short task title/goal (not a multi-clause essay)
+- `<用时区间>` = rough range, e.g. `10-25分钟`
+- Optional confirm (yes/no) only if high cost; still no multi-line banner
 
 ## Catalog gate (always, silent unless refusing)
 
-Still require a primary why-team code internally (`parallel-modules` | `multi-angle-analysis` | `role-isolation` | `capability-split` | `resume-team`).  
-If none fit → do not start team (one short refusal is enough, e.g. “单点改动建议直接 ralph，不开 team”)。
+Primary why-team code still required internally. If none fit → do not start team (one short refusal is enough).
 
-## Live status
+## Live / completion
 
-- **Direct use:** normal coordinator status / `check` graph; no forced `[team]` triple lines.
-- **Nested:** at most one progress line when advancing, e.g. `[team] 进度 2/5 · implementer · 约已用 8 分钟`.
-
-## Completion
-
-List artifact paths as usual. If nested under ralph, one short note is enough: artifacts 可写入 evidence · gate 未改. No multi-line closeout banner.
+No forced multi-line banners. Normal status graph on `check`. If nested and useful, one short progress line is optional.

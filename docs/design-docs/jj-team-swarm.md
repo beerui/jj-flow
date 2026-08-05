@@ -52,7 +52,7 @@ Python：`scripts/aco.py` + `pheromone.py` + `scoring.py`（skill 内自包含�
 | 调用方式 | 提示 |
 | --- | --- |
 | 用户直接 `/jj-team-swarm` | **不**打多行 banner |
-| 嵌套在 **ralph / review / dispatch** | **一句话**：`[swarm] 嵌套于 … · 约 … · 不推进 gate` |
+| 嵌套在 **ralph / review / dispatch** | **一句话**：`开启 swarm 模式，开始任务XXX 约 15-40分钟` |
 
 内部仍要 why-swarm catalog；无理由则不开。契约：`skills/jj-team-swarm/references/user-transparency.md`。
 

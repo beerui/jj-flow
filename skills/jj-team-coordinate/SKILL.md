@@ -16,12 +16,12 @@ Only the **coordinator** is built-in. Worker roles are **dynamically generated**
 
 ## User notice (nested jj-flow only)
 
-- **Direct** `/jj-team-coordinate` / `$jj-team-coordinate`: **no** mandatory banner; just run.
-- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before spawn, e.g.  
-  `[team] 嵌套于 ralph DELIVER：跨模块并行 · 约 10–25 分钟 · 不推进 gate`
+- **Direct** `/jj-team-coordinate` / `$jj-team-coordinate`: **no** mandatory notice; just run.
+- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before spawn:  
+  `开启 team 模式，开始任务<简述> 约 10-25分钟`
 
 Full rules: [references/user-transparency.md](references/user-transparency.md).  
-High cost when nested → optional one-line confirm. Catalog gate still applies (no weak reason → do not start team).
+Catalog gate still applies (no weak reason → do not start team).
 
 ## jj-flow hard boundaries
 

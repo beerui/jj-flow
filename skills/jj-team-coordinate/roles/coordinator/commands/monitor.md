@@ -113,8 +113,7 @@ Include in status output:
 [coordinator] Commands: 'resume' | 'check'
 ```
 
-If **nested** under ralph/review/dispatch and progress matters, one optional line:  
-`[team] 进度 <done>/<total> · <role> · 约已用 <elapsed>`
+If **nested** and progress matters, optional short progress (not the open-mode sentence again).
 
 On Codex/degraded: read `tasks.json` + `.msg/messages.jsonl` when TaskList/team_msg unavailable.
 

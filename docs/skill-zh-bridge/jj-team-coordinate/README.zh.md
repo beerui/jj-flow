@@ -105,9 +105,9 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 
 ## 用户提示（摘要）
 
-- **直接** `/jj-team-coordinate`：**不要**多行提示。  
+- **直接** `/jj-team-coordinate`：无强制提示。  
 - **嵌套** ralph / review / dispatch：一句  
-  `[team] 嵌套于 ralph DELIVER：… · 约 10–25 分钟 · 不推进 gate`  
+  `开启 team 模式，开始任务XXX 约 10-25分钟`  
 - 内部 catalog 仍要；无一适用 → 不开 team。
 
 ## Codex / 降级（摘要）

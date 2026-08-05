@@ -121,9 +121,9 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 
 ## 用户提示（摘要）
 
-- **直接** `/jj-team-swarm`：**不要**多行提示。  
+- **直接** `/jj-team-swarm`：无强制提示。  
 - **嵌套** ralph / review / dispatch：一句  
-  `[swarm] 嵌套于 ralph PLAN：多假设搜索 · 约 15–40 分钟 · 不推进 gate`  
+  `开启 swarm 模式，开始任务XXX 约 15-40分钟`  
 - 内部 catalog 仍要；高成本时最多多问一句确认。
 
 ## 宿主兼容（摘要）
