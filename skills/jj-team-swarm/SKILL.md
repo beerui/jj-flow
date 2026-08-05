@@ -1,6 +1,6 @@
 ---
 name: jj-team-swarm
-description: "Adversarial ACO search engine for jj-flow (vendored team-adversarial-swarm). Python aco.py + explore/score/converge/synthesize modules under .workflow/.team/TAS-*. MUST tell user why/what/time before iterations. Codex/Grok: agent-module fallback when Claude Workflow unavailable. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team-swarm, $jj-team-swarm, team-adversarial-swarm, ACO, 蚁群, 对抗搜索."
+description: "Adversarial ACO search engine for jj-flow (vendored team-adversarial-swarm). Python aco.py + explore/score/converge/synthesize under .workflow/.team/TAS-*. Nested under ralph/review/dispatch: one-line notice only; direct invoke has no mandatory banner. Codex/Grok agent-module fallback. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team-swarm, $jj-team-swarm, team-adversarial-swarm, ACO, 蚁群, 对抗搜索."
 ---
 
 # jj-team-swarm
@@ -15,27 +15,15 @@ description: "Adversarial ACO search engine for jj-flow (vendored team-adversari
 ACO (ant colony) + modular explore/score/converge/synthesize with adversarial decision patterns.  
 Python owns pheromone math; coordinator owns the outer loop and user communication.
 
-## User transparency (mandatory)
+## User notice (nested jj-flow only)
 
-**Before ACO init / first iteration**, and on each iteration boundary:
+- **Direct** `/jj-team-swarm` / `$jj-team-swarm`: **no** mandatory multi-line banner; just run.
+- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before heavy work, e.g.  
+  `[swarm] 嵌套于 ralph PLAN：多假设搜索 · 约 15–40 分钟 · 不推进 gate`
 
-1. **为什么用 swarm** — search space / multi-hypothesis / adversarial scoring (concrete)
-2. **当前在做** — phase + `iter k/K` + module name
-3. **用时** — estimate from `n_ants × max_iterations` (+ degraded penalty)
-
-Full protocol: [references/user-transparency.md](references/user-transparency.md).
-
-```text
-[swarm] 即将使用对抗蚁群 (jj-team-swarm)
-[swarm] 为什么用：…
-[swarm] 当前在做：…
-[swarm] 预计用时：…（区间）
-[swarm] 宿主：… · 模式：full|workflow-degraded|python-only-degraded
-[swarm] 不会：推进 ralph gate / dispatch checkpoint
-```
-
-High cost (`n_ants × max_iterations ≥ 9`, `mode: adversarial`, or degraded) → confirm before Phase 2.  
-Default template is conservative (3×3, non-adversarial scoring); scale up only when the user asks.
+Full rules: [references/user-transparency.md](references/user-transparency.md).  
+High cost when nested (`n_ants×max_iter≥9`, adversarial, or degraded) → optional one-line confirm.  
+Default template is conservative (3×3, non-adversarial scoring).
 
 ## jj-flow hard boundaries
 
@@ -44,7 +32,7 @@ Default template is conservative (3×3, non-adversarial scoring); scale up only 
 | Session under `.workflow/.team/TAS-*` | Advance ralph/dispatch checkpoints |
 | Cite `best-solution.md` into parent skills only as evidence paths | Pretend swarm done == ACCEPT PASS |
 | Degrade when Workflow/Python missing (document mode) | Hard-fail only because Claude Workflow API is absent |
-| Pre-flight + live **为什么/当前/用时** | Silent multi-iteration token burn |
+| When nested in ralph/review/dispatch: one-line notice | Spam multi-line [swarm] banners on direct use |
 
 **When to use:** multi-hypothesis search, architecture/path choice, adversarial scoring of candidates.  
 **When not to:** tiny single-point edits; pure multi-role implement (use **jj-team-coordinate**); multi-project schedule (**jj-dispatch**).
@@ -54,7 +42,7 @@ Default template is conservative (3×3, non-adversarial scoring); scale up only 
 ```text
 SKILL.md (Coordinator)
   Phase 0: Resume TAS-* session
-  Phase 1: swarm-config.json + user transparency pre-flight
+  Phase 1: swarm-config.json (+ one-line notice only if nested in ralph/review/dispatch)
   Phase 2: python aco.py --session … init
   Phase 3: for k in 1..K
     aco select → explore module → score module → aco update → converge module
@@ -143,32 +131,31 @@ Optional coordinator notes: `wisdom/status.md` (why/current/time snapshots).
 2. Active + incomplete converge → resume at next iter (announce 当前在做 + 已用时)
 3. Else Phase 1
 
-### Phase 1 — Config + transparency
+### Phase 1 — Config
 
 1. Parse intent; AskUserQuestion if search space / objective / scoring / budget unclear
 2. Write `swarm-config.json` (from template + user answers)
 3. Detect host mode: `full` | `workflow-degraded` | `python-only-degraded`
-4. **User transparency pre-flight** (+ confirm if needed)
-5. If user declines → STOP without creating heavy session
+4. If **nested** in ralph/review/dispatch: one-line notice (+ confirm if high cost)
+5. If user declines confirm → STOP without creating heavy session
 
 ### Phase 2 — ACO init
 
 1. Create `TAS-<slug>-<date>` dirs
 2. Resolve `aco.py`; run `init`
-3. Tell user: 当前在做 = init done, n_nodes/n_edges
+3. Optional brief: n_nodes/n_edges (no multi-line banner)
 
 ### Phase 3 — Iteration loop
 
 For `k = 1..max_iterations`:
 
-1. Announce `[swarm] 当前在做：iter k/K · select`
-2. `aco.py select --iter k` → assignments
-3. **Explore** module (Workflow or agent fallback) → write `workflows/explore-k.json` + ant artifacts
-4. **Score** module → `scores/iter-k-scores.json`
-5. `aco.py update --iter k`
-6. **Converge** module → `workflows/converge-k.json`
-7. Status line: progress + elapsed + whether continuing
-8. If converged → break
+1. `aco.py select --iter k` → assignments
+2. **Explore** module (Workflow or agent fallback) → write `workflows/explore-k.json` + ant artifacts
+3. **Score** module → `scores/iter-k-scores.json`
+4. `aco.py update --iter k`
+5. **Converge** module → `workflows/converge-k.json`
+6. Nested only: optional one progress line; direct use: no forced banner
+7. If converged → break
 
 On total ant failure or >50% hallucination demotion → pause + AskUserQuestion.
 
@@ -176,7 +163,7 @@ On total ant failure or >50% hallucination demotion → pause + AskUserQuestion.
 
 1. `aco.py report`
 2. **Synthesize** module → `artifacts/best-solution.md`
-3. Closeout: why used / 完成 / elapsed vs estimate / paths
+3. Closeout: paths to best-solution (if nested: gate 未改)
 4. AskUserQuestion: Archive / Keep / Export / Another round
 
 ## Module composition patterns

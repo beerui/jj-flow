@@ -1,6 +1,6 @@
 ---
 name: jj-team-coordinate
-description: "Session multi-role execution engine for jj-flow (vendored team-coordinate). Analyze task → dynamic role-specs → dispatch workers → deliver under .workflow/.team/TC-*. MUST tell user why team / what now / time estimate before spawn. Codex-compatible degraded path. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team-coordinate, $jj-team-coordinate, Team Coordinate, multi-role team pipeline."
+description: "Session multi-role execution engine for jj-flow (vendored team-coordinate). Analyze task → dynamic role-specs → dispatch workers → deliver under .workflow/.team/TC-*. Nested under ralph/review/dispatch: one-line notice only; direct invoke has no mandatory banner. Codex-compatible degraded path. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team-coordinate, $jj-team-coordinate, Team Coordinate, multi-role team pipeline."
 ---
 
 # jj-team-coordinate
@@ -14,26 +14,14 @@ description: "Session multi-role execution engine for jj-flow (vendored team-coo
 Universal team coordination: analyze task → generate role-specs → dispatch → execute → deliver.  
 Only the **coordinator** is built-in. Worker roles are **dynamically generated** as lightweight role-spec files and spawned via `team-worker` (or host fallback).
 
-## User transparency (mandatory)
+## User notice (nested jj-flow only)
 
-**Before spawning workers**, and on every meaningful progress wake, tell the user in chat:
+- **Direct** `/jj-team-coordinate` / `$jj-team-coordinate`: **no** mandatory banner; just run.
+- **Nested** under **jj-ralph / jj-review / jj-dispatch**: **one sentence** before spawn, e.g.  
+  `[team] 嵌套于 ralph DELIVER：跨模块并行 · 约 10–25 分钟 · 不推进 gate`
 
-1. **为什么用 team** — concrete reason for *this* task (not generic “better collaboration”)
-2. **当前在做** — phase + human step (e.g. “Phase 3 建任务链 / 等待 implementer”)
-3. **用时** — estimate range up front; elapsed + next step while running
-
-Full protocol: [references/user-transparency.md](references/user-transparency.md).  
-High cost (roles≥3, tasks≥5, or **degraded host**) → confirm before Phase 4.
-
-```text
-[team] 即将使用多角色 team 模式
-[team] 为什么用：…
-[team] 当前在做：…
-[team] 预计用时：…（区间；Codex 降级可能更长）
-[team] 宿主：… · 模式：full|degraded
-```
-
-If no catalog reason fits (`parallel-modules` / `multi-angle-analysis` / …) → **do not** start team.
+Full rules: [references/user-transparency.md](references/user-transparency.md).  
+High cost when nested → optional one-line confirm. Catalog gate still applies (no weak reason → do not start team).
 
 ## jj-flow hard boundaries
 
@@ -43,7 +31,7 @@ If no catalog reason fits (`parallel-modules` / `multi-angle-analysis` / …) �
 | Produce artifacts / wisdom for humans or parent skills to cite | Create `delivery_id` / durable dispatch `task_key` |
 | Prefer this skill when multi-role parallelism helps DELIVER/analyze | Replace `jj-same` / `jj-ralph` / `jj-dispatch` |
 | On missing maestro / TeamCreate: degrade to file bus + available subagents | Pretend team completion == ACCEPT PASS |
-| Run user-transparency pre-flight + live status | Silent multi-agent work with no time/why notice |
+| When nested in ralph/review/dispatch: one-line notice before spawn | Spam multi-line [team] banners on direct use |
 
 **Identity separation:** `TC-*` ≠ `RALPH-*` ≠ `DEL-*`. See [jj-ralph integrations](../jj-ralph/references/integrations.md).
 
@@ -138,8 +126,7 @@ Skill(skill="jj-team-coordinate", args="task description")
 User provides task description
   -> Phase 0: resume check (active/paused TC-* sessions)
   -> Detect host mode (full vs degraded; see host-codex.md)
-  -> Phase 1: task analysis (capabilities, dependency graph)
-  -> USER TRANSPARENCY: why / what-now / time estimate (+ confirm if needed)
+  -> Phase 1: task analysis + catalog gate (+ one-line notice only if nested in ralph/review/dispatch)
   -> Phase 2: generate role-specs + initialize session
   -> Phase 3: create task chain (Task* API or tasks.json on Codex)
   -> Phase 4: spawn first batch (or serial on Codex) -> status to user -> STOP

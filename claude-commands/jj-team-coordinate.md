@@ -29,10 +29,9 @@ Session：`.workflow/.team/TC-*/`。权威 skill：`skills/jj-team-coordinate/`�
 ## 执行要点
 
 1. 加载 skill `jj-team-coordinate`（含 `roles/coordinator/role.md`）。
-2. **派工前必须告诉用户**：为什么用 team、当前在做什么、预计用时（见 `references/user-transparency.md`）。
-3. **禁止**用 team 完成结果直接改 ralph gate / dispatch manifest。
-4. Worker 优先 `team-worker`；Codex 等无则 `general-purpose` + `tasks.json`（`references/host-codex.md`）。
-5. 无 maestro 时用 `.msg/` 文件总线；Codex 常需用户 `resume` 推进。
-6. 命令：`check` / `resume` / `revise` / `feedback` / `improve`。
+2. **直接调用**：不要打多行提示。仅嵌套在 ralph/review/dispatch 时一句：`[team] 嵌套于 … · 约 … · 不推进 gate`。
+3. **禁止**用 team 结果直接改 ralph gate / dispatch。
+4. Worker 优先 `team-worker`；degraded 用 `tasks.json` + `.msg/`。
+5. 命令：`check` / `resume` / `revise` / `feedback` / `improve`。
 
 细则：skill `SKILL.md` + `docs/design-docs/jj-team-coordinate.md`。

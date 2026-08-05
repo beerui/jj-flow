@@ -102,27 +102,19 @@ Include in status output:
 - Per-worker latest milestone (phase + progress_pct) next to task status
 - Active blockers section (if any)
 
-**Output format** (always include user-transparency block first — see `references/user-transparency.md`):
+**Output format** (status graph only; **no** multi-line [team] why/current/time banner on direct use):
 
 ```
-[team] 为什么用：<session.why_team / reason>
-[team] 当前在做：check/status · Progress <completed>/<total>
-[team] 已用时：约 <elapsed> · 宿主：<host_mode>
-
-[coordinator] Pipeline Status
-[coordinator] Progress: <completed>/<total> (<percent>%)
-
+[coordinator] Pipeline Status · <completed>/<total> (<percent>%)
 [coordinator] Execution Graph:
-  <visual representation of dependency graph with status icons>
-
   done=completed  >>>=running  o=pending  .=not created
-
-[coordinator] Active Workers:
-  > <subject> (<role>) - running <elapsed> [inner-loop: N/M tasks done]
-
-[coordinator] Ready to spawn: <subjects>
-[coordinator] Commands: 'resume' to advance | 'check' to refresh
+[coordinator] Active Workers: …
+[coordinator] Ready to spawn: …
+[coordinator] Commands: 'resume' | 'check'
 ```
+
+If **nested** under ralph/review/dispatch and progress matters, one optional line:  
+`[team] 进度 <done>/<total> · <role> · 约已用 <elapsed>`
 
 On Codex/degraded: read `tasks.json` + `.msg/messages.jsonl` when TaskList/team_msg unavailable.
 

@@ -47,22 +47,14 @@ Python：`scripts/aco.py` + `pheromone.py` + `scoring.py`（skill 内自包含�
 | P0 保证 Claude Workflow 在 Codex/Grok 原样执行 | 宿主编排不同；P0 提供 **agent-parallel 降级** |
 | 自动写 ralph ACCEPT | 仅可引用 best-solution 路径 |
 
-## 4. 用户透明（强制）
+## 4. 用户提示（仅嵌套 jj-flow 工作流）
 
-与 coordinate 同原则，swarm 特化：
+| 调用方式 | 提示 |
+| --- | --- |
+| 用户直接 `/jj-team-swarm` | **不**打多行 banner |
+| 嵌套在 **ralph / review / dispatch** | **一句话**：`[swarm] 嵌套于 … · 约 … · 不推进 gate` |
 
-```text
-[swarm] 即将使用对抗蚁群 (jj-team-swarm)
-[swarm] 为什么用：<搜索空间 / 多假设优选 / 对抗收敛 …>
-[swarm] 当前在做：Phase … · iter k/K · n_ants=…
-[swarm] 预计用时：…（迭代×蚁数；degraded 更长）
-[swarm] 宿主：… · 模式：full|workflow-degraded|python-only-degraded
-```
-
-理由 catalog：`search-space` | `multi-hypothesis` | `adversarial-score` | `path-optimize` | `resume-swarm`。  
-无合适理由 → 不要开 swarm（tiny 改动用 ralph）。
-
-契约：`skills/jj-team-swarm/references/user-transparency.md`。
+内部仍要 why-swarm catalog；无理由则不开。契约：`skills/jj-team-swarm/references/user-transparency.md`。
 
 ## 5. 宿主兼容
 

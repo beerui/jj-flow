@@ -34,7 +34,7 @@ Then:
 3. **Converge:** debate continue vs stop; write `workflows/converge-<k>.json` with `converged` boolean  
 4. **Synthesize:** produce markdown → `artifacts/best-solution.md`
 
-**Serial ants:** if parallel agents unavailable, run one ant after another and extend time estimate in user transparency.
+**Serial ants:** if parallel agents unavailable, run one ant after another; if nested under ralph/review/dispatch, mention longer time in the **one-line** nested notice only.
 
 ## Python
 
@@ -65,6 +65,6 @@ If Python missing: stop with clear message (cannot invent pheromone math).
 
 - `TAS-*` directory layout  
 - Valid `swarm-config.json`  
-- User transparency protocol  
+- Nested one-line notice when under ralph/review/dispatch; no multi-line banners on direct use
 - Final `best-solution.md` path for parent skills to cite  
 - No checkpoint writes

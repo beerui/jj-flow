@@ -20,7 +20,7 @@ Orchestrate the jj-team-coordinate (team-coordinate) workflow: task analysis, dy
 - Dispatch tasks with proper dependency chains from task-analysis.json (host Task* **or** `<session>/tasks.json`)
 - Monitor progress via worker callbacks and route messages (or file bus + user `resume` on Codex)
 - Maintain session state persistence (team-session.json)
-- **User transparency** ([references/user-transparency.md](../../references/user-transparency.md)): before Phase 4 and on each advance, tell user **为什么用 / 当前在做 / 用时**；high cost or degraded host → confirm
+- **Nested notice only** ([references/user-transparency.md](../../references/user-transparency.md)): if parent is ralph/review/dispatch, one-line notice before Phase 4; **no** multi-line banner on direct user invoke
 - Detect host mode early; on Codex follow [references/host-codex.md](../../references/host-codex.md)
 - Handle capability_gap reports (generate new role-specs mid-pipeline)
 - Handle consensus_blocked HIGH verdicts (create revision tasks or pause)
@@ -192,14 +192,14 @@ For callback/check/resume/adapt/complete: load `@commands/monitor.md` and execut
 
 6. **Output** (only if gate passed): write analysis to a path that Phase 2 will place under the session as `task-analysis.json` (include `why_team`, `host_mode`, `time_estimate`). Do not create full `TC-*` tree until Phase 2 after pre-flight acceptance.
 
-7. **User transparency pre-flight** (required before Phase 2):
-   - Print: 为什么用 / 当前在做 / 预计用时 / 宿主·模式
-   - Confirm if roles≥3 or tasks≥5 or host degraded or team was auto-selected
-   - If user chooses single-agent / declines: **STOP** — no Phase 2 / no durable team session
+7. **Nested notice** (only if nested under jj-ralph / jj-review / jj-dispatch):
+   - One line: `[team] 嵌套于 <…>：<原因> · 约 <区间> · 不推进 gate`
+   - Direct user invoke: **skip** banner
+   - Confirm only if high cost or auto-selected without naming team; decline → **STOP**
 
 8. **If `needs_research: true`**: Phase 2 will spawn researcher worker first
 
-**Success**: Task analyzed; catalog reason valid; user accepted team (or low-cost explicit request); ready for Phase 2.
+**Success**: Task analyzed; catalog reason valid; ready for Phase 2 (nested: one-line notice done if required).
 
 **CRITICAL - After team is accepted (not before)**:
 
@@ -283,7 +283,7 @@ mcp__maestro__team_msg({
 
 11. **Write team-session.json** with: session_id, task_description, status="active", roles, pipeline (empty), active_workers=[], completion_action="interactive", created_at, `host_mode`, `why_team`, `time_estimate`, `started_at`
 
-12. **Refresh user status**: 当前在做 = session 已初始化 / 角色列表；重申预计用时
+12. **Optional short status** (nested: keep to one line; direct: no mandatory banner)
 
 **Success**: Session created, role-spec files generated, shared infrastructure initialized.
 
@@ -318,13 +318,13 @@ Delegate to `@commands/dispatch.md` which creates the full task chain:
 2. Find tasks with: status=pending, blockedBy all resolved, owner assigned
 3. **full host**: for each ready task → spawn `team-worker` (SKILL.md template)
 4. **Codex / limited parallel**: spawn **one** ready worker (or serial handoff); note serial mode in chat
-5. Output status summary + **[team] 进度 / 当前在做 / 已用时·下一步** to the user
-6. Write `wisdom/status.md` snapshot
+5. Output status graph; if **nested**, at most one `[team] 进度 …` line (no multi-line banner)
+6. Write `wisdom/status.md` snapshot (internal)
 7. STOP
 
 **Pipeline advancement** driven by:
 - Worker callback (automatic) -> Entry Router -> handleCallback
-- User "check" -> handleCheck (status only; always restate why/current/time)
+- User "check" -> handleCheck (status graph only; no forced why/time triple)
 - User "resume" -> handleResume (advance; required on Codex when no auto-callback)
 - File bus / tasks.json poll when SendMessage unavailable
 
@@ -339,26 +339,13 @@ Delegate to `@commands/dispatch.md` which creates the full task chain:
 2. List all deliverables with output paths in `<session>/artifacts/`
 3. Include discussion summaries (if inline discuss was used)
 4. Summarize wisdom accumulated during execution
-5. Output report (include transparency closeout):
+5. Output short completion report (no multi-line [team] banner):
 
 ```
-[coordinator] ============================================
-[coordinator] TASK COMPLETE
-[coordinator] 为什么用过 team: <why_team>
-[coordinator] 当前在做: 完成
-[coordinator] 用时: <elapsed>（预估曾为 <time_estimate>）
-[coordinator] 宿主模式: <host_mode>
-[coordinator]
-[coordinator] Deliverables:
-[coordinator]   - <artifact-1.md> (<producer role>)
-[coordinator]   - <artifact-2.md> (<producer role>)
-[coordinator]
-[coordinator] Pipeline: <completed>/<total> tasks
-[coordinator] Roles: <role-list>
-[coordinator]
+[coordinator] TASK COMPLETE · <completed>/<total> · <elapsed if known>
+[coordinator] Deliverables: <paths>
 [coordinator] Session: <session-folder>
-[coordinator] (ralph/dispatch gates not modified)
-[coordinator] ============================================
+[coordinator] Nested under ralph/review/dispatch only: note gates not modified
 ```
 
 6. **Execute Completion Action** (based on session.completion_action):

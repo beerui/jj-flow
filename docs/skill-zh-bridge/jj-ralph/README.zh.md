@@ -92,7 +92,7 @@
 4. product-consistency 在 accept/archive gate 机械执行 → `phases.md` § gate  
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
 6. `$jj-end` 只做 Git，与 run status 正交  
-7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；派工前须说明为什么/当前/用时  
+7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；**嵌套时**一句提示即可，直接调用不打 banner  
 
 ## 刻意不对照的内容
 

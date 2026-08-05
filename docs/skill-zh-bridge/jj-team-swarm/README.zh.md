@@ -53,7 +53,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| User transparency (mandatory) | 用户透明（强制） | 为什么用 / 当前在做 / 用时 |
+| User notice (nested only) | 用户提示（仅嵌套） | 直接调用无 banner；嵌套 ralph/review/dispatch 一句话 |
 | jj-flow hard boundaries | jj-flow 硬边界 | 禁止静默烧 token 多轮迭代 |
 | Architecture | 架构 | Coordinator 外环 + ACO 内环 |
 | Module registry | 模块登记 | explore / score / converge / synthesize |
@@ -71,7 +71,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 
 | File | 中文含义 |
 | --- | --- |
-| `user-transparency.md` | 透明协议：swarm 特化预估、理由码、每轮进度、收口 |
+| `user-transparency.md` | 提示协议：直接无 banner；嵌套一句话 |
 | `host-compatibility.md` | 宿主兼容：Workflow 缺失时 agent-module 降级；Codex/Grok 串行蚁 |
 
 ## 章节对照 — specs / scripts / workflows
@@ -96,7 +96,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | 阶段 | 中文理解 |
 | --- | --- |
 | Phase 0 | 恢复未收敛的 `TAS-*` |
-| Phase 1 | 写 `swarm-config.json`；宿主模式；**透明 pre-flight**（可确认后取消） |
+| Phase 1 | 写 `swarm-config.json`；宿主模式；仅嵌套时一句话提示 |
 | Phase 2 | `aco.py init`；报告 n_nodes / n_edges |
 | Phase 3 | 循环 k=1…K：select → explore → score → update → converge；每轮向用户报进度 |
 | Phase 4 | `report` + synthesize → `best-solution.md`；归档 / 保留 / 导出 / 再跑 |
@@ -119,18 +119,12 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | 单轮调试 | explore(k=1) → score(k=1) |
 | 仅评分 / 仅综合 | 已有产物时独立跑 |
 
-## 用户透明协议（摘要）
+## 用户提示（摘要）
 
-```text
-[swarm] 即将使用对抗蚁群 (jj-team-swarm)
-[swarm] 为什么用：…
-[swarm] 当前在做：Phase … · iter k/K · …
-[swarm] 预计用时：…（区间；degraded 更长）
-[swarm] 宿主：… · 模式：full|workflow-degraded|python-only-degraded
-```
-
-理由码：`search-space` · `multi-hypothesis` · `adversarial-score` · `path-optimize` · `resume-swarm`。  
-`N×K` 较大或 degraded → 确认后再 init。
+- **直接** `/jj-team-swarm`：**不要**多行提示。  
+- **嵌套** ralph / review / dispatch：一句  
+  `[swarm] 嵌套于 ralph PLAN：多假设搜索 · 约 15–40 分钟 · 不推进 gate`  
+- 内部 catalog 仍要；高成本时最多多问一句确认。
 
 ## 宿主兼容（摘要）
 

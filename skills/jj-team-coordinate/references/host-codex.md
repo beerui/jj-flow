@@ -13,7 +13,7 @@ jj-team-coordinate must remain usable on **Codex** without Claude-only primitive
 | `SendMessage` team bus | Yes | Often **no** | Coordinator chat + `.msg/messages.jsonl` |
 | `mcp__maestro__team_msg` | Optional | Usually **no** | File bus only |
 | `maestro` CLI | Optional | Usually **no** | Direct Read/Grep/Glob/ApplyPatch/Bash |
-| Parallel background agents | Yes | Limited / sequential | Spawn ready workers **one-at-a-time** if parallel unsafe; note in pre-flight |
+| Parallel background agents | Yes | Limited / sequential | Spawn ready workers **one-at-a-time** if parallel unsafe; nested notice may mention serial |
 | AskUserQuestion | Yes | May be plain prompt | Yes/no text is enough |
 
 ## File task board (`tasks.json`)
@@ -64,22 +64,23 @@ spawn worker:
                 surface short [team] progress to user (coordinator turn)
 ```
 
-If only **one** agent can run: run worker work **inline in the same turn only when** role count is 1; for multi-role, finish one worker prompt fully, update status, then start next (serial pipeline). Always show **当前在做** between roles.
+If only **one** agent can run: run worker work **inline in the same turn only when** role count is 1; for multi-role, finish one worker prompt fully, update status, then start next (serial pipeline).
 
-## Pre-flight extras for Codex
+## Nested notice (Codex)
 
-Always set in the user-facing block:
+Only when nested under ralph/review/dispatch — **one line**, e.g.:
 
 ```text
-[team] 宿主：codex · 模式：degraded
-[team] 说明：无 Team/Task/maestro 时用文件会话 + general-purpose；可能串行，用时偏长
+[team] 嵌套于 ralph DELIVER：串行 worker · 约 20–40 分钟 · 不推进 gate
 ```
+
+Direct `$jj-team-coordinate` on Codex: no mandatory banner.
 
 ## What still must work
 
 - Session dir under `.workflow/.team/TC-*`
 - Dynamic role-specs
-- User transparency protocol ([user-transparency.md](user-transparency.md))
+- Nested one-line notice only under ralph/review/dispatch ([user-transparency.md](user-transparency.md))
 - No checkpoint writes to ralph/dispatch
 
 ## What is OK to drop on Codex

@@ -40,10 +40,10 @@ Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for
 | Gates | Team completion **does not** set ACCEPT PASS or flip `run.json` gates |
 | Dispatch | Never creates `DEL-*` / durable `task_key` |
 | Design | `docs/design-docs/jj-team-coordinate.md` |
-| User notice | Before team spawn: **为什么用 / 当前在做 / 预计用时**（skill `references/user-transparency.md`） |
+| User notice | **Only when nested here**: one line e.g. `[team] 嵌套于 ralph DELIVER：… · 约 … · 不推进 gate` — not multi-line; direct `$jj-team-coordinate` needs no banner |
 | Codex | Degraded path OK (`tasks.json` + file bus); see `references/host-codex.md` |
 
-Typical nesting: ralph PLAN ready → **tell user why/time** → spawn team for multi-module DELIVER → on team Archive, list `artifacts/` paths back into ralph deliver evidence → continue ACCEPT as usual.
+Typical nesting: ralph PLAN ready → one-line nested notice → team multi-module DELIVER → cite `artifacts/` into evidence → ACCEPT as usual.
 
 ## Optional: jj-team-swarm (adversarial ACO search)
 
@@ -55,7 +55,7 @@ Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** 
 | Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `RALPH-*` |
 | Facts | Cite `artifacts/best-solution.md` into plan/evidence only |
 | Gates | Swarm **does not** set ACCEPT PASS |
-| User notice | 为什么用 / 当前在做 / 用时 before iterations |
+| User notice | Nested only: one line `[swarm] 嵌套于 ralph … · 约 … · 不推进 gate` |
 | Hosts | Python `aco.py` everywhere; Claude Workflow full; Codex/Grok agent-module fallback |
 | Design | `docs/design-docs/jj-team-swarm.md` |
 

@@ -67,8 +67,11 @@ test('team skills declare checkpoint non-authority and session prefixes', () => 
   }
   assert.match(coord, /TC-/);
   assert.match(swarm, /TAS-/);
-  assert.match(coord, /User transparency|user-transparency/);
-  assert.match(swarm, /User transparency|user-transparency/);
+  assert.match(coord, /user-transparency|User notice|nested/i);
+  assert.match(swarm, /user-transparency|User notice|nested/i);
+  // Direct use must not mandate multi-line banners
+  assert.match(coord, /no\*\* mandatory banner|no mandatory|Direct.*no/i);
+  assert.match(swarm, /no\*\* mandatory multi-line|no mandatory|Direct.*no/i);
 });
 
 test('coordinator role fail-closes without catalog reason (not always-team)', () => {

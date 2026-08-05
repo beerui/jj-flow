@@ -125,17 +125,14 @@ P1+ 可增加 `jj team-bridge summarize --session TC-… --run-id RALPH-…`（�
 3. 宿主：`~/.claude|/.codex|/.grok|/.qoder/skills/jj-team-coordinate`
 4. 兼容旧名：`…/team-coordinate`（仅只读回落，不作为 SSOT）
 
-### 5.2 用户透明协议（强制）
+### 5.2 用户提示（仅嵌套 jj-flow 工作流）
 
-使用 team 时，coordinator **必须**对用户可见地说明：
-
-| 项 | 何时 |
+| 调用方式 | 提示 |
 | --- | --- |
-| **为什么用** | 派工前；选 catalog 理由码 |
-| **当前在做** | 派工前 + 每次进度推进 / check |
-| **用时** | 派工前给区间；运行中给已用时 + 下一步 |
+| 用户直接 `/jj-team-coordinate` | **不**打多行 banner |
+| 嵌套在 **ralph / review / dispatch** | **一句话**：`[team] 嵌套于 … · 约 … · 不推进 gate` |
 
-高成本或 **Codex degraded** 须确认后再 Phase 4。契约：`skills/jj-team-coordinate/references/user-transparency.md`。
+契约：`skills/jj-team-coordinate/references/user-transparency.md`。
 
 ### 5.3 Codex 兼容（degraded 一等公民）
 

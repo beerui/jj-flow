@@ -51,7 +51,7 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| User transparency (mandatory) | 用户透明（强制） | 为什么用 / 当前在做 / 用时 |
+| User notice (nested only) | 用户提示（仅嵌套） | 直接调用无 banner；嵌套 ralph/review/dispatch 一句话 |
 | jj-flow hard boundaries | jj-flow 硬边界 | MUST / MUST NOT |
 | Architecture | 架构 | coordinator + 动态 worker |
 | Shared constants | 共享常量 | TC 前缀、max 5 roles 等 |
@@ -103,18 +103,12 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 
 用户命令：`check`/`status`（只读状态图）· `resume`/`continue`（推进）· `revise` · `feedback` · `improve`。
 
-## 用户透明协议（摘要）
+## 用户提示（摘要）
 
-派工前必须对用户可见写出：
-
-1. **为什么用 team** — 本任务具体原因（禁止空话）  
-2. **当前在做** — phase + 人类可读步骤  
-3. **用时** — 区间预估；运行中改为已用时 + 下一步  
-
-高成本（≥3 角色 / ≥5 任务 / degraded / 非用户主动要 team）→ **先确认**再 Phase 4。
-
-理由码（catalog）：`parallel-modules` · `multi-angle-analysis` · `role-isolation` · `capability-split` · `resume-team`。  
-无一适用 → **不要**开 team。
+- **直接** `/jj-team-coordinate`：**不要**多行提示。  
+- **嵌套** ralph / review / dispatch：一句  
+  `[team] 嵌套于 ralph DELIVER：… · 约 10–25 分钟 · 不推进 gate`  
+- 内部 catalog 仍要；无一适用 → 不开 team。
 
 ## Codex / 降级（摘要）
 

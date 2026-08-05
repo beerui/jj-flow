@@ -1,80 +1,47 @@
-# User transparency protocol (mandatory)
+# User notice protocol (jj-team-coordinate)
 
-When this skill runs (or a parent skill chooses team mode), the coordinator **must** tell the user — in plain language — three things **before** spawning workers, and keep them updated.
+## When to notify (and when not)
 
-## 1. Pre-flight notice (required before Phase 4 spawn)
+| Invocation | User-facing notice |
+| --- | --- |
+| **Normal / direct** — user ran `/jj-team-coordinate` or `$jj-team-coordinate` (or explicit “Team Coordinate”) | **No** multi-line banner. Work normally; optional short progress only if useful. |
+| **Nested in jj-flow delivery workflow** — parent is **jj-ralph**, **jj-review**, or **jj-dispatch** (or agent is inside those skills and spawns team) | **One sentence** before spawn (see below). |
 
-Output a short block to the user (chat), then optionally ask confirm if cost/time is high:
+Do **not** print long `[team] 为什么用 / 当前在做 / 预计用时 / 宿主…` blocks in normal use.
+
+Detect nested mode from: parent skill context, prompt fields (`parent_skill=jj-ralph|jj-review|jj-dispatch`, `nested=true`), or clear in-workflow framing (e.g. active ralph DELIVER asking for multi-role team).
+
+## Nested notice (one line only)
+
+Before Phase 4 spawn when nested:
 
 ```text
-[team] 即将使用多角色 team 模式
-[team] 为什么用：<one sentence — e.g. 跨 3 模块并行实现/多角色分析，单 agent 易丢上下文>
-[team] 当前在做：<phase + step — e.g. Phase 1 任务分析完成，准备生成 3 个角色并派工>
-[team] 预计用时：<range — e.g. 约 10–25 分钟 / N 角色 × 约 M 任务；不确定则写「视 worker 与验证而定，可能较长」>
-[team] Session：TC-…（若已创建）· 宿主：<claude|codex|grok|qoder> · 模式：<full|degraded>
-[team] 不会：推进 ralph gate / dispatch checkpoint
+[team] 嵌套于 <ralph|review|dispatch>：<一句话原因或阶段> · 约 <用时区间> · 不推进 gate
 ```
 
-| Field | Rule |
-| --- | --- |
-| **为什么用** | 必须具体到本任务，禁止空话「更好协作」 |
-| **当前在做** | 用 phase + 人类可读步骤；resume/check 时也要写 |
-| **预计用时** | 给区间或数量级；可写「较慢 / token 较高」；禁止假装精确到秒 |
-| **宿主模式** | Codex 等 degraded 时必须标明「兼容降级」 |
-
-### Confirm threshold
-
-If any of the following hold, **AskUserQuestion** (or plain yes/no) before Phase 4:
-
-- Estimated roles ≥ 3 **or** tasks ≥ 5
-- Host is **degraded** (no TeamCreate / no parallel workers / sequential only)
-- User did not explicitly ask for team (parent skill auto-selected team)
-
-Options: **继续 team** / **改单 agent** / **缩小范围**.
-
-Tiny explicit user request (`$jj-team-coordinate` with a clear task) may skip confirm but **must still print** the pre-flight block.
-
-## 2. Live status (during pipeline)
-
-On every coordinator wake that advances work (`handleCallback`, Phase 4 stop, `resume`):
+Examples:
 
 ```text
-[team] 进度 <done>/<total> · 当前：<role> 做 <task-id 或简述>
-[team] 已用时：约 <elapsed> · 下一步：<next ready roles/tasks or wait>
+[team] 嵌套于 ralph DELIVER：跨模块并行实现 · 约 10–25 分钟 · 不推进 gate
+[team] 嵌套于 review：多角度只读分析 · 约 5–15 分钟 · 不推进 gate
 ```
 
-On `check` / `status`: full graph + same three headings (为什么用 / 当前 / 用时).
+Rules:
 
-Write the same summary into session `wisdom/status.md` (overwrite) so resume stays honest.
+- **Exactly one line** (plus optional confirm question if high cost).
+- No host/mode/session dump unless the user asks.
+- High cost (roles≥3 or tasks≥5 or degraded host or auto-selected without user naming team) → one yes/no confirm, still no multi-line banner.
 
-## 3. Why-team reasons (allowed catalog)
+## Catalog gate (always, silent unless refusing)
 
-Pick **one primary** reason; add secondary if needed:
+Still require a primary why-team code internally (`parallel-modules` | `multi-angle-analysis` | `role-isolation` | `capability-split` | `resume-team`).  
+If none fit → do not start team (one short refusal is enough, e.g. “单点改动建议直接 ralph，不开 team”)。
 
-| Code | Use when |
-| --- | --- |
-| `parallel-modules` | Multiple modules/files with weak coupling |
-| `multi-angle-analysis` | Need separate research/design/risk views |
-| `role-isolation` | Implement vs review must not share one context |
-| `capability-split` | Distinct skills (docs, code, tests) in one ask |
-| `resume-team` | Continuing an existing `TC-*` session |
+## Live status
 
-If none apply → **do not start team**; say so and stay single-agent / ralph.
+- **Direct use:** normal coordinator status / `check` graph; no forced `[team]` triple lines.
+- **Nested:** at most one progress line when advancing, e.g. `[team] 进度 2/5 · implementer · 约已用 8 分钟`.
 
-## 4. Time heuristics (order-of-magnitude only)
+## Completion
 
-| Scale | Rough wall time (chat active) |
-| --- | --- |
-| 1 role · 1–2 tasks | 5–15 min |
-| 2–3 roles · few tasks | 10–30 min |
-| 4–5 roles · many tasks / degraded sequential | 30–90+ min |
-
-Always label as **estimate**. On degraded hosts, multiply mental budget (sequential subagents).
-
-## 5. Completion reminder
-
-Phase 5 report must include:
-
-- Actual elapsed (if known) vs pre-flight estimate
-- Final **当前在做：完成** + artifact paths
-- Reminder: cite into ralph if nested; **gates not flipped**
+List artifact paths as usual. If nested under ralph, one short note is enough: artifacts 可写入 evidence · gate 未改. No multi-line closeout banner.
