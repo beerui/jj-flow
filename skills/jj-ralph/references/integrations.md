@@ -28,6 +28,37 @@ When a control plane is needed, write a dispatch recommendation. dispatch owns d
 Example: `$jj-dispatch PREVIEW delivery=DEL-password targets=ProjectA,ProjectB,ProjectC`  
 → Separate line from `RALPH-login-reminder-20260722` in ProjectA; may cross-reference but do not write the wrong directory.
 
+## Optional: jj-team-coordinate (session multi-role engine)
+
+Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for tiny single-point edits.
+
+| Item | Rule |
+| --- | --- |
+| Skill | `jj-team-coordinate` (`/jj-team-coordinate` · `$jj-team-coordinate`; legacy speech “Team Coordinate”) |
+| Session | `.workflow/.team/TC-<slug>-<date>/` — **≠** `RALPH-*` |
+| Facts | Team artifacts may be **cited** in ralph progress / evidence paths |
+| Gates | Team completion **does not** set ACCEPT PASS or flip `run.json` gates |
+| Dispatch | Never creates `DEL-*` / durable `task_key` |
+| Design | `docs/design-docs/jj-team-coordinate.md` |
+| User notice | Before team spawn: **为什么用 / 当前在做 / 预计用时**（skill `references/user-transparency.md`） |
+| Codex | Degraded path OK (`tasks.json` + file bus); see `references/host-codex.md` |
+
+Typical nesting: ralph PLAN ready → **tell user why/time** → spawn team for multi-module DELIVER → on team Archive, list `artifacts/` paths back into ralph deliver evidence → continue ACCEPT as usual.
+
+## Optional: jj-team-swarm (adversarial ACO search)
+
+Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** — not for ordinary multi-role implement (that is `jj-team-coordinate`).
+
+| Item | Rule |
+| --- | --- |
+| Skill | `jj-team-swarm` (`/jj-team-swarm` · `$jj-team-swarm`; legacy TAS / 蚁群) |
+| Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `RALPH-*` |
+| Facts | Cite `artifacts/best-solution.md` into plan/evidence only |
+| Gates | Swarm **does not** set ACCEPT PASS |
+| User notice | 为什么用 / 当前在做 / 用时 before iterations |
+| Hosts | Python `aco.py` everywhere; Claude Workflow full; Codex/Grok agent-module fallback |
+| Design | `docs/design-docs/jj-team-swarm.md` |
+
 ## Boundaries
 
 | Capability | Owner |
@@ -35,3 +66,5 @@ Example: `$jj-dispatch PREVIEW delivery=DEL-password targets=ProjectA,ProjectB,P
 | Single-repo loop + run.handoff + intensity | jj-ralph |
 | Cross-repo migration | jj-same |
 | Schedule identity `DEL-*` / task_key | jj-dispatch |
+| Session multi-role execution (`TC-*`) | jj-team-coordinate (optional) |
+| Adversarial ACO search (`TAS-*`) | jj-team-swarm (optional) |

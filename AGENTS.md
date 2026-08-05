@@ -1,6 +1,6 @@
 # jj-flow agent rules
 
-- `jj-flow` 是 **项目族编排工作流**（同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch）。
+- `jj-flow` 是 **项目族编排工作流**（同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch；可选会话多角色 `jj-team-coordinate` / 对抗蚁群 `jj-team-swarm`，均不推进 checkpoint）。
 - 代码定位先读 `ARCHITECTURE.md`；跨模块目标设计从 `docs/design-docs/index.md` 进入。仓库事实以 `harness-manifest.json` 索引的 versioned 资产为准。
 - **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。

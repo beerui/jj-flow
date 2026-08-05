@@ -25,6 +25,8 @@
 | jj-review | [jj-review/README.zh.md](jj-review/README.zh.md) |
 | jj-end | [jj-end/README.zh.md](jj-end/README.zh.md) |
 | jj-evaluated | [jj-evaluated/README.zh.md](jj-evaluated/README.zh.md) |
+| jj-team-coordinate | [jj-team-coordinate/README.zh.md](jj-team-coordinate/README.zh.md) |
+| jj-team-swarm | [jj-team-swarm/README.zh.md](jj-team-swarm/README.zh.md) |
 | skill-en-zh-rewrite | [skill-en-zh-rewrite/README.zh.md](skill-en-zh-rewrite/README.zh.md) |
 
 ## 进度
@@ -36,6 +38,7 @@
 | Claude 目标：`~/.claude/skills` + commands | **done** |
 | 入口级中文对照 | **done**（本目录） |
 | **全量协议正文英文化（Agent SSOT）** | **done**（session `TC-skill-en-zh-20260803`） |
+| `jj-team-coordinate` / `jj-team-swarm` 入口对照 | **done**（2026-08-05） |
 
 ## Sessions
 
@@ -43,3 +46,4 @@
 | --- | --- |
 | `sessions/SEZ-20260803-path-migrate/` | 路径迁移 + 初扫 |
 | `sessions/TC-skill-en-zh-20260803/` | team-coordinate 全面英文化 |
+| （产品入库）2026-08-05 | `jj-team-coordinate` + `jj-team-swarm` vendor 与对照包 |

@@ -67,6 +67,20 @@
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok"],
       "note": "experimental; minimal runner (episode-validate + evaluated_ops); no Claude command; do not invent /jj-evaluated slash"
+    },
+    {
+      "id": "jj-team-coordinate",
+      "claude_command": "jj-team-coordinate.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"],
+      "note": "Session multi-role execution engine (vendored team-coordinate). TC-* sessions under .workflow/.team/; does not advance ralph/dispatch checkpoints. Claude preferred; other hosts degraded (general-purpose + file message bus). Design: docs/design-docs/jj-team-coordinate.md"
+    },
+    {
+      "id": "jj-team-swarm",
+      "claude_command": "jj-team-swarm.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"],
+      "note": "Adversarial ACO search (vendored team-adversarial-swarm). TAS-* under .workflow/.team/; Python aco.py + explore/score/converge/synthesize. Workflow full on Claude; agent-module fallback on Codex/Grok. Does not advance checkpoints. Design: docs/design-docs/jj-team-swarm.md"
     }
   ]
 }

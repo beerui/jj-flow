@@ -63,7 +63,7 @@
 | `artifact-layout.md` | Ralph artifact layout | Ralph 产物布局 |
 | `business-map.md` | Business / capability map | 能力地图 |
 | `rollback.md` | Ralph rollback (agent) | Ralph 回退（agent） |
-| `integrations.md` | Integration with jj-same / jj-dispatch | 与 same / dispatch 边界 |
+| `integrations.md` | Integration with jj-same / jj-dispatch | 与 same / dispatch 边界；另含 optional team-coordinate / team-swarm |
 | `must-evidence.md` | MUST evidence class (acceptance contract) | 验收证据类（原已 EN） |
 
 ## 阶段 / 产物
@@ -92,6 +92,7 @@
 4. product-consistency 在 accept/archive gate 机械执行 → `phases.md` § gate  
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
 6. `$jj-end` 只做 Git，与 run status 正交  
+7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；派工前须说明为什么/当前/用时  
 
 ## 刻意不对照的内容
 

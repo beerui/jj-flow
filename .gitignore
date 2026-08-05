@@ -26,3 +26,8 @@ docs/other/dispatch-demo/dispatch-demo.gif
 docs/other/dispatch-demo/dispatch-demo.mp4
 
 .cursor
+# Python (jj-team-swarm ACO scripts; never ship host bytecode)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python

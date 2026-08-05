@@ -7,7 +7,7 @@
 
 ## 技能用途
 
-兼容路由入口：把 `$jj` / `/jj` 转到 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）或 experimental 的 `jj-evaluated`。  
+兼容路由入口：把 `$jj` / `/jj` 转到 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-swarm`，或 experimental 的 `jj-evaluated`。  
 `jj` 不是终端命令入口；正式使用主推原生 skill。
 
 ## 仓库规范（2026-08-03）
@@ -33,7 +33,7 @@
 | --- | --- | --- |
 | Role | 定位 | 兼容入口 vs 终端命令 |
 | Pre-route checks (read-only) | 路由前检查（只读） | handoff / run / control manifest |
-| Routing priority | 路由优先级 | 1 same … 7 clarify |
+| Routing priority | 路由优先级 | 1 same … 9 clarify（含 team / swarm） |
 | Execution contract | 执行契约 | 保留原始需求；证据不足则 PENDING/BLOCKED |
 | Removed | 已移除 | 旧 skill id 列表 |
 
@@ -47,7 +47,11 @@
 | 4 | 单仓只读审查 / REV-*.json | `jj-review` |
 | 5 | 单仓 git 收工 | `jj-end`（不关死 ralph） |
 | 6 | 离线 episode 评估 | `jj-evaluated`（experimental） |
-| 7 | 不确定 | 先澄清，不默认 same |
+| 7 | 显式多角色 team / Team Coordinate | `jj-team-coordinate`（`TC-*`；不推进 checkpoint） |
+| 8 | 显式蚁群 / 对抗搜索 / multi-hypothesis | `jj-team-swarm`（`TAS-*`；不推进 checkpoint） |
+| 9 | 不确定 | 先澄清，不默认 same |
+
+对照：`jj-team-coordinate/README.zh.md`、`jj-team-swarm/README.zh.md`。
 
 ## 关键规则摘要
 
