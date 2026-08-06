@@ -59,6 +59,18 @@ Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** 
 | Hosts | Python `aco.py` everywhere; Claude Workflow full; Codex/Grok agent-module fallback |
 | Design | `docs/design-docs/jj-team-swarm.md` |
 
+## Optional: CodeGraph (host code-intelligence MCP)
+
+Orthogonal accelerator for **code location**, not a workflow identity or gate.
+
+| Item | Rule |
+| --- | --- |
+| Product | [CodeGraph](https://github.com/colbymchenry/codegraph) — host MCP + per-repo `.codegraph/` index |
+| When useful | Large-repo ANALYZE, blast radius, call paths (see [phases.md](phases.md) § Code exploration) |
+| When skip | `tiny` single-file, known paths, run/git mechanics |
+| Gates | Graph output **does not** flip `run.json` gates or replace verify evidence |
+| Availability | Prefer if MCP + index present; else Read/Grep; never hard-require install |
+
 ## Boundaries
 
 | Capability | Owner |
@@ -68,3 +80,4 @@ Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** 
 | Schedule identity `DEL-*` / task_key | jj-dispatch |
 | Session multi-role execution (`TC-*`) | jj-team-coordinate (optional) |
 | Adversarial ACO search (`TAS-*`) | jj-team-swarm (optional) |
+| Semantic code graph (host MCP) | CodeGraph (optional; not shipped by jj-flow) |

@@ -80,6 +80,20 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 - When commit/push not requested: give commit-prep suggestions or a completion report; if still dirty after finalize, say so in the report.
 - `$jj-end` is **Git only**, orthogonal to run status, and may run multiple times.
 
+## Code exploration (optional accelerator)
+
+Host-level only — not a jj-flow dependency. Same pattern as optional team engines: use when present, never block a phase.
+
+| When | Action |
+| --- | --- |
+| Host has CodeGraph MCP (e.g. `codegraph_explore`) **and** workspace index is usable (`.codegraph/` or healthy `codegraph status`) | Prefer graph for **ANALYZE** (and impact-heavy PLAN): call paths, blast radius, cross-file entry points, “where used / what breaks” |
+| Known path, pure presentational `tiny`, reading `run.json`/gates, git/workflow mechanics | Skip graph; use Read / Glob / Grep / Bash / `rg` |
+| CodeGraph missing, errors, stale banner without recovery, or empty/irrelevant | Fall back immediately to Read/Grep family; do not retry graph as STAGNATION filler |
+
+- Do **not** invent CodeGraph availability or require the user to install it mid-run.
+- Graph snippets are exploration aid only: they **do not** advance gates, replace verification, or count as MUST evidence by themselves.
+- Install/index (host-side, outside this skill): `codegraph install` once per agent; `codegraph init` once per project ([colbymchenry/codegraph](https://github.com/colbymchenry/codegraph)).
+
 ## User intervention (only these)
 
 1. Affects MUST/acceptance/scope and cannot be safely inferred

@@ -6,7 +6,7 @@
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目写工作区（默认 `project-branch` 主路径，isolation 时 `exclusive-worktree`）中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。
-- 代码与资料定位使用 Read、Glob、Grep、Bash、`rg` 或已批准的 skill。
+- 代码与资料定位使用 Read、Glob、Grep、Bash、`rg` 或已批准的 skill。若宿主已挂 **CodeGraph** MCP 且当前仓索引可用（`.codegraph/` / `codegraph status` 健康），结构探索（调用链、影响面、跨文件入口）可优先走图谱；缺省或失败立即回退。图谱输出不推进 checkpoint、不替代验证证据。
 - 控制平面中的 `delivery_id` 是多项目调度任务身份，不是对话 skill 入口。
 - **npm 发布只走 GitHub Actions `NPM Publish` 工作流**（`workflow_dispatch`，tag 通常为 `beta`）；不要用本地 `npm publish`（本机 token 非事实源，易 401/404）。推送版本 commit 到 `main` 后触发 Actions，确认 `run_verify=true` 通过后再发布。
 - 修改调度协议后至少运行 `node --test tests/jj-dispatch-contract.test.mjs`、`npm run verify` 和 `git diff --check`；修改 ralph 后至少运行 `tests/jj-ralph-contract.test.mjs`。

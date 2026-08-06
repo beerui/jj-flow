@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## 0.1.1-beta.49 — 2026-08-06
+
+- **CodeGraph soft prefer**：`jj` 入口与 ralph `phases` / `integrations` 约定——宿主已挂 CodeGraph MCP 且仓内索引可用时，结构探索（调用链、影响面、跨文件入口）可优先走图谱；缺省/失败立即回退 Read/Grep；图谱不推进 checkpoint、不替代验证证据。非硬依赖，jj-flow 不随包安装 CodeGraph。
+- **AGENTS**：代码定位规则与上述 soft prefer 对齐。
+
 ## 0.1.1-beta.48 — 2026-08-05
 
 - **jj-team-coordinate**：可选多角色执行引擎（`TC-*` session）；catalog fail-closed；Codex degraded（tasks.json / 文件消息总线）；嵌套 ralph/review/dispatch 时一句提示「开启 team 模式，开始任务… 约…」；直接调用无强制 banner。
