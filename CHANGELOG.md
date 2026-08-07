@@ -4,6 +4,87 @@
 
 ## Unreleased
 
+## [0.2.0](https://github.com/beerui/jj-flow/compare/jj-flow-v0.1.0...jj-flow-v0.2.0) (2026-08-07)
+
+
+### Features
+
+* add Grok platform support for install-skill and uninstall-skill ([4589bf8](https://github.com/beerui/jj-flow/commit/4589bf8cc1c0a4497d3ded002c1c9013ed12b5b4))
+* add Qoder platform support for install-skill and uninstall-skill ([622decc](https://github.com/beerui/jj-flow/commit/622deccc291329af11706c2d6255202810511b81))
+* **dispatch:** confirm branch/workspace before DISPATCH when uncertain ([074a167](https://github.com/beerui/jj-flow/commit/074a1675a0e9192b06acb8b1acdc0e114581dd1e))
+* **dispatch:** default write workspace to project-branch ([10da281](https://github.com/beerui/jj-flow/commit/10da281f2e4e0e225ba5aa612af53320173eb3db))
+* **dispatch:** fall back to workspace .jj-flow for control data ([065dd74](https://github.com/beerui/jj-flow/commit/065dd747e97bb48bc894d7a836198f31a11f0c49))
+* **dispatch:** prefer one top-level control project ([abccc93](https://github.com/beerui/jj-flow/commit/abccc93da2db83e7cbd9225ceba45a782d8c3832))
+* **dispatch:** rollback R1-R4, Mode S reopen, and C4-C6 integrity ([ad540de](https://github.com/beerui/jj-flow/commit/ad540de0f77bf0b4470fda8dfecb5560026cfd07))
+* **dispatch:** 增加多项目双角色调度闭环 ([1d1a433](https://github.com/beerui/jj-flow/commit/1d1a4336978d5f7a488c3acd8cbbafc77549a71b))
+* **dispatch:** 完成 Grok Host Adapter Phase 1 契约扩展 ([6933596](https://github.com/beerui/jj-flow/commit/69335964a5ed46760a6b9f6a33c075d6b4696fa2))
+* **jj-end:** 新增任务收尾 skill 并接入 jj 路由 ([a8f5681](https://github.com/beerui/jj-flow/commit/a8f5681e7d9f09df3b20e8e463dc0bc71781b5d6))
+* **jj-evaluated:** add design doc and offline evaluation skill ([ee85ed4](https://github.com/beerui/jj-flow/commit/ee85ed40c0c62868a3e65f5a9f8f6e17d9b28cd0))
+* **jj-ralph:** 可移植机械步骤并收敛单事实源 ([ed3a973](https://github.com/beerui/jj-flow/commit/ed3a973502ee0fb95a5b23279e81f65342c5a2a3))
+* **jj-same:** 增加迁移交接快照 ([c36cfe0](https://github.com/beerui/jj-flow/commit/c36cfe0ea4b062824041e95fa70e47fe2600e3a3))
+* **naming:** 统一分支与 Ralph 命名配置并强化派生校验 ([808d114](https://github.com/beerui/jj-flow/commit/808d114d1df5df43054ff3a4891c86db16744854))
+* **ralph:** hard-wire portfolio knowledge_refs and release 0.1.1-beta.31 ([45d3c44](https://github.com/beerui/jj-flow/commit/45d3c44638ab0de1e4fdfa2595260f72d6c8c93f))
+* **ralph:** intensity 档位、双层 accept 与停滞早停 ([adfaf9a](https://github.com/beerui/jj-flow/commit/adfaf9a43dd3f6ea48bf469580702525ed5bbfeb))
+* **ralph:** product-consistency gate and multi-env port evidence ([3dd7624](https://github.com/beerui/jj-flow/commit/3dd7624d04f0327e285765ecb4cf02e836f1a8cb))
+* **ralph:** release 0.1.1-beta.33 with review/host gates and Maestro cleanup ([fa7f5e6](https://github.com/beerui/jj-flow/commit/fa7f5e68e127418c3c3e7ecd5d269901882de783))
+* **ralph:** 归档提升 E1/E2 — process_lessons 分桶与 knowledge-contribution ([3b1e190](https://github.com/beerui/jj-flow/commit/3b1e190e2418e8949236a8efce1cd1200d3ad843))
+* **ralph:** 无终态冻结——同 run 续作、软归档与 ABANDONED ([f1e86e0](https://github.com/beerui/jj-flow/commit/f1e86e0a05ecb2c560007a75c5663a25a6bd1634))
+* **ralph:** 知识库投喂钩子 E3（cli fail-open） ([983a86b](https://github.com/beerui/jj-flow/commit/983a86b8e8b00e7807ad0a5a1e6b00b1d0910cb5))
+* **ralph:** 精简 handoff 并入 run 并发布 0.1.1-beta.30 ([3a6dc4f](https://github.com/beerui/jj-flow/commit/3a6dc4f8de1993e68448d969b6a396f61dbcdf6f))
+* release 0.1.1-beta.34 (jj-end sync, skill inventory, review provenance) ([35a878c](https://github.com/beerui/jj-flow/commit/35a878c2cc521932a576c28e4be21b700b20c7ba))
+* release 0.1.1-beta.35 (branch purpose preflight) ([345cdb6](https://github.com/beerui/jj-flow/commit/345cdb6c0953d06d66c3956b1569d4555f24c240))
+* release 0.1.1-beta.36 (docs site header) ([90de714](https://github.com/beerui/jj-flow/commit/90de7149a6a2b20a84768113a6966b8d9c521bcd))
+* release 0.1.1-beta.37 (dispatch path config + review parity) ([5393abb](https://github.com/beerui/jj-flow/commit/5393abb6e991152aa8a4fe76434f6a08789af5f3))
+* release 0.1.1-beta.38 (Grok dispatch Mode S skill MVP) ([b688202](https://github.com/beerui/jj-flow/commit/b688202a646e5ed1fd937c58003ad369c44a2d07))
+* release 0.1.1-beta.39 (dispatch rollback + C4-C6 + lead-outside) ([10fc768](https://github.com/beerui/jj-flow/commit/10fc76845e9726f5424032d6869701e8296c2088))
+* release 0.1.1-beta.40 (skills 90+ Wave0-2 + harness fix) ([4672f9d](https://github.com/beerui/jj-flow/commit/4672f9d77aae0b4ad135ee91feb288da20d85329))
+* release 0.1.1-beta.41 (ralph 续作：改错与子需求) ([577e46f](https://github.com/beerui/jj-flow/commit/577e46fc852e94f75f9170341532204dbcb56e61))
+* release 0.1.1-beta.42 (ralph intensity + demos) ([ae55f87](https://github.com/beerui/jj-flow/commit/ae55f8703985699e1ea545ef6c3f2ad59e2cba5b))
+* **review:** host-first jj-review adapter and REV provenance ([f547935](https://github.com/beerui/jj-flow/commit/f5479353f92d3b7f8d56ef5c3941dce7446d1259))
+* **same,dispatch:** CREATE 基线新鲜度门禁与 same 收工短总结 ([4b570b0](https://github.com/beerui/jj-flow/commit/4b570b026c40cfaef09db1ffa55b5ad9bb226f95))
+* **same:** branch purpose preflight and 2026-07-30 eval set ([e4a1126](https://github.com/beerui/jj-flow/commit/e4a1126eda9c85bbb901717e44832eeac8923974))
+* **skills:** 技能面 90+ 三波优化（路由纪律、渐进披露、evaluated MVP） ([a9eab0b](https://github.com/beerui/jj-flow/commit/a9eab0bd81f0e5dcfd8528ddda7b07c0e2ee8e93))
+* **team:** 入库 jj-team-coordinate / jj-team-swarm 并修复 harness 审查项 ([e11cfdd](https://github.com/beerui/jj-flow/commit/e11cfdd91cde532b4b6d8424736d84f91eab0d85))
+* 初始化 jj-flow beta 发布流程 ([ed45a22](https://github.com/beerui/jj-flow/commit/ed45a22b814133429c27f334d73a56001ca8d396))
+* 加固 Harness 并新增安全卸载命令 ([6444b5a](https://github.com/beerui/jj-flow/commit/6444b5a01f4abe7bf035d17f8acce5bac6eabe72))
+* 加固 jj-dispatch 可恢复 tick 与目标差异门禁 ([5647fe7](https://github.com/beerui/jj-flow/commit/5647fe70e261d798bb69712b902b0842d6946e7c))
+* 增加 jj-same 条件式手动验收提示 ([706c3b3](https://github.com/beerui/jj-flow/commit/706c3b346587a8ac6cc3f5a6534afe5476aad4e3))
+* 安装后输出最新版本日志 ([c69a937](https://github.com/beerui/jj-flow/commit/c69a937448e97ccf3d99dc089e7a4986c0e7c37d))
+* 支持 jj-same 家族串行交付 ([8c47ca0](https://github.com/beerui/jj-flow/commit/8c47ca03a23438d5ccd1d59ca7c6fe64f7ef8e09))
+* 支持 jj-same 持续同步决策 ([9e70683](https://github.com/beerui/jj-flow/commit/9e70683324f92b0963f56bb323d80b007cc8d5e3))
+* 支持任务 ID 恢复与状态查询 ([ce5d9a5](https://github.com/beerui/jj-flow/commit/ce5d9a5c2c4035771a1c0e4d822f0731a06ce6d4))
+* 支持多平台安装资产发布 ([f070da8](https://github.com/beerui/jj-flow/commit/f070da8756da7a17e7721722843ba9b1784cb84f))
+* 收敛 jj 命令入口并发布 0.1.1-beta.12 ([be732e1](https://github.com/beerui/jj-flow/commit/be732e1712efe629956e0724e5c411b5cd9731d6))
+* 收敛入口至 same/dispatch 并发布 0.1.1-beta.13 ([0b2e9b8](https://github.com/beerui/jj-flow/commit/0b2e9b848c8df7c4216817f173a175d8237dd9b9))
+* 新增 jj-same 跨项目迁移入口 ([a726319](https://github.com/beerui/jj-flow/commit/a726319293642626866c7d0e1fb75a17f3b01659))
+* 构建 repository-native Agent Harness ([d40c810](https://github.com/beerui/jj-flow/commit/d40c81085ffa2453dcabd9632f8f119118ba75d5))
+* 补齐任务资产与分发上下文 ([ea59785](https://github.com/beerui/jj-flow/commit/ea59785279e7bc0bf5181f340ca8cfa8a7b241d8))
+* 规范 jj-same 的 Maestro 产物链 ([c4625a4](https://github.com/beerui/jj-flow/commit/c4625a414fc17f02bc6fb92a14ec80b779d44a93))
+
+
+### Bug Fixes
+
+* **dispatch:** default control data root to ~/.jj-flow ([471073a](https://github.com/beerui/jj-flow/commit/471073a6fd00186edd6f3b5538ac5f7ac058c75c))
+* **dispatch:** lead-outside reference and task result sync ([8a0338e](https://github.com/beerui/jj-flow/commit/8a0338e65e7dcec50768477ec1df042a47718092))
+* **docs:** harness 设计状态行 Accepted 纯枚举 ([79bf595](https://github.com/beerui/jj-flow/commit/79bf5957aec8784ad1caf9038a21dff352c32248))
+* **docs:** harness 验收证据与 completed 状态行格式 ([de2a7fa](https://github.com/beerui/jj-flow/commit/de2a7fa33a3abe28422ce11943745ff84b0bc4b5))
+* **docs:** 用户 ralph 页补回合约 marker（intensity/DEL/CAP） ([6cd0c64](https://github.com/beerui/jj-flow/commit/6cd0c643099891a8da9077695b97336e9ec18a7b))
+* **docs:** 调度演示页迁到 milestones 并保留根路径重定向 ([3bd82f8](https://github.com/beerui/jj-flow/commit/3bd82f8418bc7b8c5cef955fc831527d75dbe79c))
+* **harness:** keep empty exec-plans/active in git for CI ([98c3d7d](https://github.com/beerui/jj-flow/commit/98c3d7d025dd3f50e4524ea4109e4cfe9f2863cb))
+* **jj-dispatch:** 对齐 runtime 门禁优先级与状态语义 ([90d5b60](https://github.com/beerui/jj-flow/commit/90d5b609fed2b955feb46c1ca84268363a59e4c4))
+* **jj-review:** 收敛为直接写 REV 的只读审查 ([3042955](https://github.com/beerui/jj-flow/commit/30429554774e6673b0eebee8f3dffed2df73c871))
+* ralph 续作协议 nits（规范键、progress.md、合约测试） ([9408ff4](https://github.com/beerui/jj-flow/commit/9408ff4f84e5c45c861d43eef1d726dd9b04f38e))
+* **release:** align npm latest dist-tag so package homepage is current ([ae56217](https://github.com/beerui/jj-flow/commit/ae562177b5c83360c1ad21582502c1d7d1e4ac43))
+* **team:** 嵌套提示改用「开启 team/swarm 模式，开始任务… 约…」 ([af239a0](https://github.com/beerui/jj-flow/commit/af239a0510471cfc2b57c2a0b995297fb92231de))
+* **team:** 直接调用不打多行提示，仅嵌套 ralph/review/dispatch 时一句话 ([a92bcf8](https://github.com/beerui/jj-flow/commit/a92bcf8d7a6d8efa5487a245b4a862341d1006a2))
+* 修复 fresh clone 的 Harness 指纹漂移 ([ee1f6c1](https://github.com/beerui/jj-flow/commit/ee1f6c19dca08b552509e0324c9bc5dd598eeb89))
+* 修复 GitHub 发布流程配置 ([8f1ec15](https://github.com/beerui/jj-flow/commit/8f1ec1587d02e0dbc1800ccade7f15023d2dc2ab))
+* 强制控制项目先完成 intake ([68e5301](https://github.com/beerui/jj-flow/commit/68e530129e430db14bbe1940157a9efb1068679d))
+* 收紧 jj-same 的 grill 提问门禁 ([2905c3f](https://github.com/beerui/jj-flow/commit/2905c3f2f043d4d4285e6f4eb53767e6077b4c1e))
+* 移除 jj-same 的 grill 流程 ([401c499](https://github.com/beerui/jj-flow/commit/401c499a90634cc384f67ac3aef42630f66e1dcb))
+* 稳定 clean checkout 测试 fixture ([15f8604](https://github.com/beerui/jj-flow/commit/15f8604733edec9f4069e2b4529b11305079607e))
+* 补充 npm provenance 仓库来源 ([6562b9d](https://github.com/beerui/jj-flow/commit/6562b9d27c45fe4e804c84f50cc35ed7169c8957))
+
 ## 0.1.1-beta.50 — 2026-08-07
 
 - **jj-team-lifecycle**：可选固定 SDLC 会话执行引擎（`TLV4-*`；vendor `team-lifecycle-v4`；固定角色 + `spec-only`/`impl-only`/`full-lifecycle`；CHECKPOINT supervisor；Codex degraded；嵌套 ralph/review/dispatch 时一句「开启 lifecycle 模式…」；不推进 checkpoint）。
@@ -369,4 +450,3 @@
 - 初始化独立 `jj-flow` 项目。
 - 增加 `/jj` 薄入口的 CLI、recipe、guard、evidence schema。
 - 增加 Codex skill 草案、GitHub CI、Release Please、Dependabot。
-
