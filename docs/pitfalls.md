@@ -85,6 +85,25 @@
 
 ---
 
+## 7. team 流水线跑完当成验收通过
+
+**出什么事：** `/jj-team-coordinate` / lifecycle / swarm 提示 complete，就以为 ralph ACCEPT 或 dispatch VERIFIED 过了。
+
+**怎么做：**
+
+| 引擎 | 会话 | 算不算验收 |
+|------|------|------------|
+| coordinate | `TC-*` | **不算**；只产 artifacts |
+| lifecycle | `TLV4-*` | **不算**；只产 spec/plan/artifacts |
+| swarm | `TAS-*` | **不算**；只产 best-solution 等 |
+
+验收仍只认：ralph `run.json` 门禁 + 证据、或 dispatch receipt / VERIFIED。  
+team 产物可以**引用进** evidence，不会自动翻 gate。
+
+→ [team-coordinate](command-jj-team-coordinate.html) · [证据](concepts-evidence.html)
+
+---
+
 ## 7. 默认以为必须独占目录
 
 **出什么事：** 每次都开单独 worktree，或在脏的主分支上直接写。

@@ -43,6 +43,9 @@ const SIDEBAR_GROUPS = [
       { title: 'review 审查', source: 'docs/commands/jj-review.md', output: 'command-jj-review.html' },
       { title: 'end 收工', source: 'docs/commands/jj-end.md', output: 'command-jj-end.html' },
       { title: 'evaluated 评估', source: 'docs/commands/jj-evaluated.md', output: 'command-jj-evaluated.html' },
+      { title: 'team-coordinate 多角色', source: 'docs/commands/jj-team-coordinate.md', output: 'command-jj-team-coordinate.html' },
+      { title: 'team-lifecycle SDLC', source: 'docs/commands/jj-team-lifecycle.md', output: 'command-jj-team-lifecycle.html' },
+      { title: 'team-swarm 搜索', source: 'docs/commands/jj-team-swarm.md', output: 'command-jj-team-swarm.html' },
       { title: 'jj 路由', source: 'docs/commands/jj.md', output: 'command-jj.html' }
     ]
   },
@@ -98,6 +101,7 @@ const DEEP_PAGES = [
   { title: 'jj-evaluated 设计', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html', group: '设计文档' },
   { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html', group: '设计文档' },
   { title: 'jj-team-coordinate 设计', source: 'docs/design-docs/jj-team-coordinate.md', output: 'design-docs/jj-team-coordinate.html', group: '设计文档' },
+  { title: 'jj-team-lifecycle 设计', source: 'docs/design-docs/jj-team-lifecycle.md', output: 'design-docs/jj-team-lifecycle.html', group: '设计文档' },
   { title: 'jj-team-swarm 设计', source: 'docs/design-docs/jj-team-swarm.md', output: 'design-docs/jj-team-swarm.html', group: '设计文档' },
   { title: 'Grok Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html', group: '执行计划' },
   { title: 'Dispatch Ralph 回退', source: 'docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md', output: 'exec-plans/completed/2026-07-31-dispatch-ralph-rollback.html', group: '执行计划' },

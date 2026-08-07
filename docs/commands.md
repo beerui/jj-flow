@@ -13,9 +13,13 @@
 | [review](command-jj-review.html) | 把审查结论写进任务记录 | 全平台 |
 | [end](command-jj-end.html) | 提交并合进 dev/main | 全平台 |
 | [evaluated](command-jj-evaluated.html) | 复盘真实交付、改进流程 | skill |
+| [team-coordinate](command-jj-team-coordinate.html) | 会话内**动态**多角色（不推进验收门） | 全平台 |
+| [team-lifecycle](command-jj-team-lifecycle.html) | 固定 **SDLC** 规格/实现流水线（不推进验收门） | 全平台 |
+| [team-swarm](command-jj-team-swarm.html) | 对抗蚁群**搜索**方案（不推进验收门） | 全平台 |
 | [jj](command-jj.html) | 说不清时让它帮你选路 | 全平台 |
 
-**拿不准：** 只改一个仓 → ralph；要搬到别的仓 → same；好几个仓一起协调 → dispatch。
+**拿不准：** 只改一个仓 → ralph；要搬到别的仓 → same；好几个仓一起协调 → dispatch。  
+**可选协作（不是交付主路径）：** 动态多角色 → coordinate；固定 PRD/架构链 → lifecycle；多假设搜索 → swarm。三者**都不会**单独算验收通过。
 
 ## 可以怎么说
 

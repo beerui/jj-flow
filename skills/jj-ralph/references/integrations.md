@@ -45,14 +45,32 @@ Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for
 
 Typical nesting: ralph PLAN ready → one-line nested notice → team multi-module DELIVER → cite `artifacts/` into evidence → ACCEPT as usual.
 
+## Optional: jj-team-lifecycle (fixed SDLC session engine)
+
+Use when **ANALYZE / PLAN / DELIVER needs a fixed engineering document chain** (brief → PRD → architecture → epics and/or plan → impl → test → review) with CHECKPOINT consistency — not for dynamic multi-role without fixed docs (that is `jj-team-coordinate`).
+
+| Item | Rule |
+| --- | --- |
+| Skill | `jj-team-lifecycle` (`/jj-team-lifecycle` · `$jj-team-lifecycle`; legacy `team-lifecycle-v4`) |
+| Session | `.workflow/.team/TLV4-<slug>-<date>/` — **≠** `TC-*` / `TAS-*` / `RALPH-*` |
+| Pipelines | `spec-only` · `impl-only` · `full-lifecycle` |
+| Facts | Cite `spec/` / `plan/` / `artifacts/` into ralph progress / evidence paths |
+| Gates | Lifecycle completion **does not** set ACCEPT PASS or flip `run.json` gates |
+| Dispatch | Never creates `DEL-*` / durable `task_key` |
+| Design | `docs/design-docs/jj-team-lifecycle.md` |
+| User notice | **Only when nested here**: `开启 lifecycle 模式，开始任务XXX 约 20-45分钟`；direct invoke needs no notice |
+| Codex | Degraded path OK (`tasks.json` + file bus); see skill `references/host-codex.md` |
+
+Typical nesting: ralph PLAN needs formal specs → one-line nested notice → lifecycle `spec-only` → cite `spec/` into plan → DELIVER / ACCEPT as usual.
+
 ## Optional: jj-team-swarm (adversarial ACO search)
 
-Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** — not for ordinary multi-role implement (that is `jj-team-coordinate`).
+Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** — not for ordinary multi-role implement (that is `jj-team-coordinate`) or fixed SDLC docs (that is `jj-team-lifecycle`).
 
 | Item | Rule |
 | --- | --- |
 | Skill | `jj-team-swarm` (`/jj-team-swarm` · `$jj-team-swarm`; legacy TAS / 蚁群) |
-| Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `RALPH-*` |
+| Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `TLV4-*` / `RALPH-*` |
 | Facts | Cite `artifacts/best-solution.md` into plan/evidence only |
 | Gates | Swarm **does not** set ACCEPT PASS |
 | User notice | Nested only: `开启 swarm 模式，开始任务XXX 约 15-40分钟` |
@@ -79,5 +97,6 @@ Orthogonal accelerator for **code location**, not a workflow identity or gate.
 | Cross-repo migration | jj-same |
 | Schedule identity `DEL-*` / task_key | jj-dispatch |
 | Session multi-role execution (`TC-*`) | jj-team-coordinate (optional) |
+| Fixed SDLC session engine (`TLV4-*`) | jj-team-lifecycle (optional) |
 | Adversarial ACO search (`TAS-*`) | jj-team-swarm (optional) |
 | Semantic code graph (host MCP) | CodeGraph (optional; not shipped by jj-flow) |

@@ -33,10 +33,10 @@ Catalog gate still applies (no weak reason → do not start team).
 | On missing maestro / TeamCreate: degrade to file bus + available subagents | Pretend team completion == ACCEPT PASS |
 | When nested in ralph/review/dispatch: one-line notice before spawn | Spam multi-line [team] banners on direct use |
 
-**Identity separation:** `TC-*` ≠ `RALPH-*` ≠ `DEL-*`. See [jj-ralph integrations](../jj-ralph/references/integrations.md).
+**Identity separation:** `TC-*` ≠ `TLV4-*` ≠ `TAS-*` ≠ `RALPH-*` ≠ `DEL-*`. See [jj-ralph integrations](../jj-ralph/references/integrations.md).
 
 **When to use:** multi-module implementation, multi-angle analysis, dynamic role pipelines.  
-**When not to:** tiny single-point edits (use ralph directly); multi-project schedule (use dispatch); pure review (prefer `jj-review`).
+**When not to:** tiny single-point edits (use ralph directly); multi-project schedule (use dispatch); pure review (prefer `jj-review`); fixed SDLC document chain (prefer **`jj-team-lifecycle`**); multi-hypothesis search (prefer **`jj-team-swarm`**).
 
 ## Architecture
 
@@ -311,4 +311,4 @@ If this session was nested under a ralph DELIVER, list artifact paths for the pa
 
 Detect host once per session; store `host_mode` in `team-session.json` (`full` | `codex-degraded` | `generic-degraded`).
 
-See design doc §5. Search/ACO swarm lives in sibling skill **`jj-team-swarm`** (not this skill).
+See design doc §5. Fixed SDLC pipeline lives in sibling skill **`jj-team-lifecycle`** (TLV4-*; not this skill). Search/ACO swarm lives in **`jj-team-swarm`** (TAS-*; not this skill).

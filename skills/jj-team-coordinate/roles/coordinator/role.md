@@ -36,7 +36,7 @@ Orchestrate the jj-team-coordinate (team-coordinate) workflow: task analysis, dy
 - Generate more than 5 worker roles (merge if exceeded)
 - Override consensus_blocked HIGH without user confirmation
 - Prefer a non-worker agent type when `team-worker` is available (MUST prefer `team-worker`; only if missing, fall back to `general-purpose` with the same role-assignment prompt)
-- Start multi-agent work **without** the pre-flight transparency block
+- Start multi-agent work **without** a valid why-team catalog reason (or without nested one-line notice when nested under ralph/review/dispatch)
 - Abort solely because TeamCreate/Task*/maestro are missing — degrade per host-codex.md
 
 ---

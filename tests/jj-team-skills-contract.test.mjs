@@ -1,5 +1,6 @@
 /**
- * Contracts for optional team execution engines (jj-team-coordinate / jj-team-swarm).
+ * Contracts for optional team execution engines
+ * (jj-team-coordinate / jj-team-lifecycle / jj-team-swarm).
  * Does not execute multi-agent pipelines; checks SSOT, inventory, routing, hygiene.
  */
 import assert from 'node:assert/strict';
@@ -23,12 +24,13 @@ function exists(rel) {
   return fs.existsSync(path.join(root, rel));
 }
 
-test('jj-team-coordinate and jj-team-swarm are inventory + disk + claude commands', () => {
+test('jj-team-coordinate, jj-team-lifecycle, and jj-team-swarm are inventory + disk + claude commands', () => {
   const inv = loadSkillInventory(root);
   const ids = new Set(inv.skills.map((s) => s.id));
   assert.ok(ids.has('jj-team-coordinate'));
+  assert.ok(ids.has('jj-team-lifecycle'));
   assert.ok(ids.has('jj-team-swarm'));
-  for (const id of ['jj-team-coordinate', 'jj-team-swarm']) {
+  for (const id of ['jj-team-coordinate', 'jj-team-lifecycle', 'jj-team-swarm']) {
     const row = inv.skills.find((s) => s.id === id);
     assert.equal(row.claude_command, id + '.md');
     assert.ok(row.platforms.includes('claude'));
@@ -46,32 +48,54 @@ test('jj-team-coordinate and jj-team-swarm are inventory + disk + claude command
 test('jj router places team engines after delivery paths and keeps checkpoint language', () => {
   const skill = read('skills/jj/SKILL.md');
   assert.match(skill, /description:[\s\S]*?jj-team-coordinate/);
+  assert.match(skill, /description:[\s\S]*?jj-team-lifecycle/);
   assert.match(skill, /description:[\s\S]*?jj-team-swarm/);
   const body = skill.split('## Routing priority')[1] || skill;
   const iSame = body.indexOf('jj-same');
   const iRalph = body.indexOf('jj-ralph');
   const iTeam = body.indexOf('jj-team-coordinate');
+  const iLife = body.indexOf('jj-team-lifecycle');
   const iSwarm = body.indexOf('jj-team-swarm');
-  assert.ok(iSame >= 0 && iRalph >= 0 && iTeam >= 0 && iSwarm >= 0);
+  assert.ok(iSame >= 0 && iRalph >= 0 && iTeam >= 0 && iLife >= 0 && iSwarm >= 0);
   assert.ok(iTeam > iRalph, 'team-coordinate must route after ralph');
-  assert.ok(iSwarm > iTeam, 'swarm after coordinate in routing table');
+  assert.ok(iLife > iTeam, 'lifecycle after coordinate in routing table');
+  assert.ok(iSwarm > iLife, 'swarm after lifecycle in routing table');
   assert.match(skill, /do not advance checkpoint|never default delivery path|does not advance checkpoint/i);
 });
 
 test('team skills declare checkpoint non-authority and session prefixes', () => {
   const coord = read('skills/jj-team-coordinate/SKILL.md');
+  const life = read('skills/jj-team-lifecycle/SKILL.md');
   const swarm = read('skills/jj-team-swarm/SKILL.md');
-  for (const text of [coord, swarm]) {
+  for (const text of [coord, life, swarm]) {
     assert.match(text, /MUST NOT|does NOT|Do not|不得/i);
     assert.match(text, /ralph|dispatch|checkpoint/i);
   }
   assert.match(coord, /TC-/);
+  assert.match(life, /TLV4-/);
   assert.match(swarm, /TAS-/);
   assert.match(coord, /user-transparency|User notice|nested/i);
+  assert.match(life, /user-transparency|User notice|nested/i);
   assert.match(swarm, /user-transparency|User notice|nested/i);
   // Direct use must not mandate multi-line banners
   assert.match(coord, /no\*\* mandatory banner|no mandatory|Direct.*no/i);
+  assert.match(life, /no\*\* mandatory banner|no mandatory|Direct.*no/i);
   assert.match(swarm, /no\*\* mandatory multi-line|no mandatory|Direct.*no/i);
+});
+
+test('jj-team-lifecycle ships fixed roles, pipelines, and templates', () => {
+  assert.ok(exists('skills/jj-team-lifecycle/roles/coordinator/role.md'));
+  assert.ok(exists('skills/jj-team-lifecycle/roles/supervisor/role.md'));
+  assert.ok(exists('skills/jj-team-lifecycle/specs/pipelines.md'));
+  assert.ok(exists('skills/jj-team-lifecycle/templates/product-brief.md'));
+  assert.ok(exists('skills/jj-team-lifecycle/agents/team-worker.md'));
+  assert.ok(exists('skills/jj-team-lifecycle/references/host-codex.md'));
+  const skill = read('skills/jj-team-lifecycle/SKILL.md');
+  assert.match(skill, /spec-only|impl-only|full-lifecycle/);
+  assert.match(skill, /jj-team-coordinate/);
+  assert.match(skill, /Do \*\*not\*\* hardcode|never hardcode/i);
+  assert.match(skill, /jj-team-lifecycle/);
+  assert.match(skill, /Legacy|fallback|只读回落/i);
 });
 
 test('coordinator role fail-closes without catalog reason (not always-team)', () => {

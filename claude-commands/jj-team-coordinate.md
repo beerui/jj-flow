@@ -33,5 +33,6 @@ Session：`.workflow/.team/TC-*/`。权威 skill：`skills/jj-team-coordinate/`�
 3. **禁止**用 team 结果直接改 ralph gate / dispatch。
 4. Worker 优先 `team-worker`；degraded 用 `tasks.json` + `.msg/`。
 5. 命令：`check` / `resume` / `revise` / `feedback` / `improve`。
+6. 固定 SDLC 文档链用 `/jj-team-lifecycle`，不是本命令。
 
 细则：skill `SKILL.md` + `docs/design-docs/jj-team-coordinate.md`。

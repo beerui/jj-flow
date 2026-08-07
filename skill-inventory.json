@@ -81,6 +81,13 @@
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok", "claude"],
       "note": "Adversarial ACO search (vendored team-adversarial-swarm). TAS-* under .workflow/.team/; Python aco.py + explore/score/converge/synthesize. Workflow full on Claude; agent-module fallback on Codex/Grok. Does not advance checkpoints. Design: docs/design-docs/jj-team-swarm.md"
+    },
+    {
+      "id": "jj-team-lifecycle",
+      "claude_command": "jj-team-lifecycle.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"],
+      "note": "Fixed SDLC session engine (vendored team-lifecycle-v4). Fixed roles + prefab pipelines under .workflow/.team/TLV4-*; does not advance ralph/dispatch checkpoints. Claude preferred; other hosts degraded. Design: docs/design-docs/jj-team-lifecycle.md"
     }
   ]
 }

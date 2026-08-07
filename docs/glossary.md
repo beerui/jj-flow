@@ -19,5 +19,9 @@
 | Mode S | Grok 上：尽量 **一个会话** 串完多个任务 |
 | PENDING | 证据不够，不能当「已通过」 |
 | 证据 | 提交、审查文件、调度记录等 **可核对** 的东西 |
+| team-coordinate / `TC-*` | 会话内**动态多角色**执行；**不是**验收真相 |
+| team-lifecycle / `TLV4-*` | 固定 **SDLC** 规格→实现流水线；**不是**验收真相 |
+| team-swarm / `TAS-*` | 对抗蚁群**搜索**；**不是**验收真相 |
+| 会话执行引擎 | team-*：只管「这轮怎么干」；验收仍认 ralph/dispatch |
 
 更深的架构词见 [架构](architecture.html)。

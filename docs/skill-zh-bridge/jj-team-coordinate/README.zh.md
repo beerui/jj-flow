@@ -4,7 +4,7 @@
 > **不是** Agent 运行时 SSOT。发生冲突时以英文 skill 正文为准。  
 > English SSOT: `skills/jj-team-coordinate/`  
 > 设计：`docs/design-docs/jj-team-coordinate.md`  
-> 上游：Claude `team-coordinate` · Updated: 2026-08-05
+> 上游：Claude `team-coordinate` · Updated: 2026-08-07
 
 ## 技能用途
 
@@ -25,6 +25,7 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 | 跨多模块并行实施 | 单点 tiny 改动（直接 ralph） |
 | 多角度分析、动态拆角色 | 多项目调度（用 `jj-dispatch`） |
 | 需要可恢复的 `TC-*` 会话流水线 | 纯审查（优先 `jj-review`） |
+| | 固定规格文档链 / SDLC（用 `jj-team-lifecycle`） |
 | | 方案搜索 / 多假设对抗（用 `jj-team-swarm`） |
 
 ## 身份对照（禁止混写）
@@ -32,6 +33,8 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 | 身份 | Owner | 中文理解 |
 | --- | --- | --- |
 | `TC-*` | 本 skill | team 会话 id |
+| `TLV4-*` | jj-team-lifecycle | 固定 SDLC 会话 |
+| `TAS-*` | jj-team-swarm | 蚁群搜索会话 |
 | `RALPH-*` | jj-ralph | 单仓闭环 run |
 | `DEL-*` / `task_key` | jj-dispatch | 多项目调度身份 |
 | host Task 主题 `IMPL-1` 等 | team 会话内部 | ≠ ralph plan 的 TASK |
@@ -73,7 +76,7 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 
 | File | 中文含义 |
 | --- | --- |
-| `user-transparency.md` | 用户透明协议：派工前三要素、确认门槛、用时量级、完成收口 |
+| `user-transparency.md` | 用户透明：嵌套时一句 notice；catalog 无理由不开；直接调用无 banner |
 | `host-codex.md` | Codex 等降级：`tasks.json`、文件消息总线、串行 worker |
 
 ## 章节对照 — roles / specs

@@ -3,6 +3,7 @@
 ## 一句话
 
 `jj-flow` = **项目族编排协议**：same 迁移、ralph 单仓闭环、dispatch 多项目调度。  
+可选会话引擎：team-coordinate / team-lifecycle / team-swarm（**不**推进 checkpoint）。  
 产品中心是编排与证据门禁，不是重写外部 coding agent。
 
 ## 三条主路径
@@ -11,6 +12,14 @@
 same:     源证据 → 目标差异 → 原生架构实施 → 验证 → 同步检查点
 ralph:    需求 → 计划 → 实施/验证 → 验收 → 归档 → 能力地图
 dispatch: plane → tick → host actions → receipts → 下一检查点
+```
+
+可选（会话执行/搜索，非交付真相）：
+
+```text
+coordinate: 动态多角色 → TC-* artifacts（可引用进 evidence）
+lifecycle:  固定 SDLC   → TLV4-* spec/plan/artifacts
+swarm:      对抗搜索   → TAS-* best-solution
 ```
 
 ## 模块（定位）

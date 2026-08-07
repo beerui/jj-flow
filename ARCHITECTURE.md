@@ -30,11 +30,12 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
 - `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
-- `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
+- `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
 - `skills/jj-team-coordinate/` 是会话内多角色**执行引擎**（动态 role-spec / `TC-*` session），不是交付主路径；不得推进 ralph / dispatch checkpoint。设计见 `docs/design-docs/jj-team-coordinate.md`。
+- `skills/jj-team-lifecycle/` 是固定 SDLC **执行引擎**（固定角色 + prefab pipeline / `TLV4-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-lifecycle.md`。
 - `skills/jj-team-swarm/` 是对抗蚁群**搜索引擎**（ACO + explore/score/converge/synthesize / `TAS-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-swarm.md`。
 - `claude-commands/` 保存 Claude Code 对应命令。`jj-dispatch` / `jj-evaluated` 有意不在此暴露。
-- `agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。`jj-team-coordinate` 的 worker 定义随 skill 提供于 `skills/jj-team-coordinate/agents/team-worker.md`。
+- `agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。`jj-team-coordinate` / `jj-team-lifecycle` 的 worker 定义随 skill 提供于各自 `agents/team-worker.md`。
 
 修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装、ralph 机械步骤或控制平面运行时行为才应先进入 npm CLI。
 
@@ -110,6 +111,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | 修改同源迁移或持续同步行为 | `skills/jj-same/` |
 | 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs` |
 | 修改会话多角色执行引擎 | `skills/jj-team-coordinate/`、`docs/design-docs/jj-team-coordinate.md` |
+| 修改固定 SDLC 会话执行引擎 | `skills/jj-team-lifecycle/`、`docs/design-docs/jj-team-lifecycle.md` |
 | 修改对抗蚁群搜索引擎 | `skills/jj-team-swarm/`、`docs/design-docs/jj-team-swarm.md` |
 | 修改多项目调度策略 | `skills/jj-dispatch/` |
 | 修改持久调度状态转换 | `src/dispatchControlPlane.mjs` |

@@ -1,6 +1,6 @@
 ---
 name: jj
-description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-same, jj-ralph, jj-review, jj-end, jj-dispatch (when supported), optional jj-team-coordinate / jj-team-swarm (explicit multi-role or ACO search only; never default delivery path; do not advance checkpoints), or experimental jj-evaluated."
+description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-same, jj-ralph, jj-review, jj-end, jj-dispatch (when supported), optional jj-team-coordinate / jj-team-lifecycle / jj-team-swarm (explicit multi-role, fixed SDLC, or ACO search only; never default delivery path; do not advance checkpoints), or experimental jj-evaluated."
 ---
 
 # jj
@@ -11,8 +11,8 @@ description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-same, jj-r
 
 | Host | Entry |
 | --- | --- |
-| Codex / Qoder / Grok | `$jj-same` / `$jj-ralph` / `$jj-review` / `$jj-end` / `$jj-dispatch`; optional `$jj-team-coordinate` / `$jj-team-swarm`; experimental `$jj-evaluated` |
-| Claude Code | `/jj-same` / `/jj-ralph` / `/jj-review` / `/jj-end` / `/jj-team-coordinate` / `/jj-team-swarm` (**no** `/jj-dispatch`, **no** `/jj-evaluated` — intentional) |
+| Codex / Qoder / Grok | `$jj-same` / `$jj-ralph` / `$jj-review` / `$jj-end` / `$jj-dispatch`; optional `$jj-team-coordinate` / `$jj-team-lifecycle` / `$jj-team-swarm`; experimental `$jj-evaluated` |
+| Claude Code | `/jj-same` / `/jj-ralph` / `/jj-review` / `/jj-end` / `/jj-team-coordinate` / `/jj-team-lifecycle` / `/jj-team-swarm` (**no** `/jj-dispatch`, **no** `/jj-evaluated` — intentional) |
 
 ## Pre-route checks (read-only)
 
@@ -33,14 +33,16 @@ Before choosing a target skill, probe when available (read if present, skip if m
 5. Single-repo git closeout: commit → push work → merge integration                 → $jj-end   (Claude: /jj-end; does **not** kill ralph)
 6. Offline episode evaluation (experimental)                                       → $jj-evaluated (no Claude command)
 7. Explicit multi-role team pipeline / “Team Coordinate” / dynamic role-specs      → $jj-team-coordinate (Claude: /jj-team-coordinate)
-8. Explicit ACO / adversarial swarm / multi-hypothesis search / 蚁群                 → $jj-team-swarm (Claude: /jj-team-swarm)
-9. Unclear                                                                         → clarify intent first (do not default to same)
+8. Explicit fixed SDLC / team-lifecycle-v4 / spec-only|impl-only|full-lifecycle     → $jj-team-lifecycle (Claude: /jj-team-lifecycle)
+9. Explicit ACO / adversarial swarm / multi-hypothesis search / 蚁群                 → $jj-team-swarm (Claude: /jj-team-swarm)
+10. Unclear                                                                        → clarify intent first (do not default to same)
 ```
 
 Decision hints:
 
 - Migration/family/handoff → same; multi-project approval/dispatch → dispatch; single-repo through acceptance **or post-archive continue/abandon** → ralph (**same-run resume first**); review-only → review; closeout merge → end (Git only); offline retrospective → evaluated
 - **Multi-role execution** (explicit “team coordinate”, dynamic roles, TC session) → `jj-team-coordinate`; nested under ralph DELIVER when useful — **does not** replace ralph/dispatch facts
+- **Fixed SDLC pipeline** (brief/PRD/architecture/epics, CHECKPOINT gates, team-lifecycle-v4) → `jj-team-lifecycle` (TLV4-*); not a substitute for coordinate when roles must be dynamic
 - **Search / ACO / adversarial multi-hypothesis** → `jj-team-swarm` (TAS-*); not for tiny edits; not a substitute for coordinate implement pipelines
 - `jj-dispatch`: install on **Codex / Qoder / Grok**; **no Claude slash = intentional** (do not write “Codex only”)
 - `jj-evaluated`: experimental; **do not** invent a `/jj-evaluated` Claude command

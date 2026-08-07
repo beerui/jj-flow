@@ -16,7 +16,7 @@
 Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>/`。  
 最终产物常为 `artifacts/best-solution.md`，只可被父 skill **引用为证据路径**，不能单独当作 ACCEPT PASS。
 
-兄弟 skill：`jj-team-coordinate`（多角色**实施**流水线，`TC-*`）。本 skill 管**搜索 / 多假设 / 对抗评分**，不管动态 role 实施流水线。
+兄弟 skill：`jj-team-coordinate`（动态多角色实施，`TC-*`）、`jj-team-lifecycle`（固定 SDLC，`TLV4-*`）。本 skill 管**搜索 / 多假设 / 对抗评分**。
 
 ## 何时用 / 何时不用
 
@@ -24,7 +24,8 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | --- | --- |
 | 大搜索空间、路径/方案迭代优选 | 单点 tiny 改动 |
 | 多假设竞争、需对抗评分 | 已知方案的多角色实施（用 `jj-team-coordinate`） |
-| 架构选型、多路径比较 | 跨仓调度（用 `jj-dispatch`） |
+| 架构选型、多路径比较 | 固定规格文档链（用 `jj-team-lifecycle`） |
+| | 跨仓调度（用 `jj-dispatch`） |
 | 用户明确说蚁群 / 对抗搜索 / TAS | 替代 ralph 验收门 |
 
 ## 身份对照（禁止混写）
@@ -33,6 +34,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | --- | --- | --- |
 | `TAS-*` | 本 skill | swarm 会话 id |
 | `TC-*` | jj-team-coordinate | 多角色实施会话 |
+| `TLV4-*` | jj-team-lifecycle | 固定 SDLC 会话 |
 | `RALPH-*` | jj-ralph | 单仓闭环 run |
 | `DEL-*` | jj-dispatch | 调度交付 |
 

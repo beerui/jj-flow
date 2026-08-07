@@ -16,6 +16,9 @@
 | **多个项目一起派、一起盯** | [dispatch](command-jj-dispatch.html) | 多项目调度 |
 | 把审查结论记下来 | [review](command-jj-review.html) | 审查落盘 |
 | 提交并合进 dev/main | [end](command-jj-end.html) | 收工 |
+| 会话内**动态多角色**协作（可选） | [team-coordinate](command-jj-team-coordinate.html) | 不推进验收门 |
+| **固定 SDLC** 规格/实现流水线（可选） | [team-lifecycle](command-jj-team-lifecycle.html) | 不推进验收门 |
+| **对抗搜索** 多方案（可选） | [team-swarm](command-jj-team-swarm.html) | 不推进验收门 |
 
 还没装？→ [安装](installation.html)  
 装好了？→ [五分钟上手](usage.html)  

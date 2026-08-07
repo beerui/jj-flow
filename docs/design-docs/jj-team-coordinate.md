@@ -80,6 +80,8 @@ jj-flow 主路径保持：
 | `RALPH-*` | ralph | `RALPH-login-20260805` |
 | `DEL-*` / `task_key` | dispatch | 控制面调度 |
 | `TC-*` session_id | **team-coordinate** | `TC-multi-role-impl-20260805` |
+| `TLV4-*` | **jj-team-lifecycle** | 固定 SDLC（非本 skill） |
+| `TAS-*` | **jj-team-swarm** | 对抗搜索（非本 skill） |
 | 动态 role / `TASK-*`（host TaskCreate） | team session 内部 | 仅会话调度，≠ ralph plan TASK |
 
 ### 4.3 何时调用
@@ -88,6 +90,8 @@ jj-flow 主路径保持：
 | --- | --- |
 | 单点 tiny 改动 | **不要**上 team；直接 ralph |
 | DELIVER 跨多模块、需并行角色 | 调 `jj-team-coordinate` |
+| 需要 brief/PRD/架构固定文档链 | **`jj-team-lifecycle`**（非 coordinate） |
+| 多假设 / 对抗搜索 | **`jj-team-swarm`** |
 | 只读审查 | 优先 `jj-review`；team 仅当需要多角度分析报告 |
 | 跨仓迁移 | `jj-same`；team 可辅助目标分析，不替代 handoff 契约 |
 | 多项目批准调度 | **只** `jj-dispatch` |
@@ -203,7 +207,7 @@ jj-flow 产品仓：禁止提交 `.workflow`；示例 session 可放 `docs/…/s
 | **P0**（本次） | 设计 + vendor skill + inventory + 薄 command + ralph integrations 指针 + docs | `checkSkillInventory` 通过；`docs:check`；无 dispatch/ralph 状态机 diff |
 | **P1** | Host adapter 文档硬化 + 用户透明协议 + Codex 兼容说明 | `references/host-codex.md` + `user-transparency.md` 已入 skill |
 | **P2** | 可选 bridge：session → ralph progress 引用清单 | 脚本 + 合约测试（只写引用，不写 gate）— **未做** |
-| **P3** | 与 `jj-team-swarm`（TAS）并列 | 见 `docs/design-docs/jj-team-swarm.md` |
+| **P3** | 与 `jj-team-swarm`（TAS）/ `jj-team-lifecycle`（TLV4）并列 | 见各自 design doc；**已并列（P0 vendor）** |
 
 ## 9. 风险
 
@@ -228,4 +232,5 @@ jj-flow 产品仓：禁止提交 `.workflow`；示例 session 可放 `docs/…/s
 
 1. P1 是否把 `team-worker` 同步装到 `~/.agents/agents` / Codex agents？（现随 skill 目录提供）
 2. Bridge 引用清单 schema 是否挂在 ralph run 下 `team-refs.json`？
-3. `jj` 兼容路由是否增加第 8 条「显式多角色 team」——倾向 **是，但优先级低于 same/ralph/dispatch**。
+3. ~~`jj` 兼容路由是否增加「显式多角色 team」~~ → **已关闭**：`skills/jj/SKILL.md` 路由第 7 条 `jj-team-coordinate`（低于 same/ralph/dispatch；另有 lifecycle 第 8、swarm 第 9）。
+4. 与 lifecycle 长期是否合并为单一 skill 双 mode？（产品决策；P0 **保持双入口**）

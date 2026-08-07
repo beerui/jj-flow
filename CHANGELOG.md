@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 0.1.1-beta.50 — 2026-08-07
+
+- **jj-team-lifecycle**：可选固定 SDLC 会话执行引擎（`TLV4-*`；vendor `team-lifecycle-v4`；固定角色 + `spec-only`/`impl-only`/`full-lifecycle`；CHECKPOINT supervisor；Codex degraded；嵌套 ralph/review/dispatch 时一句「开启 lifecycle 模式…」；不推进 checkpoint）。
+- **用户文档**：`docs/commands` 增加 coordinate / lifecycle / swarm 页；首页 / 命令总览 / 术语 / `jj` 路由分流同步。
+- **交叉引用**：coordinate / swarm design 与 zh-bridge 补齐 `TLV4` 与三引擎选型；ralph integrations 接缝。
+- **合约**：`tests/jj-team-skills-contract.test.mjs` 覆盖 lifecycle inventory/路由/前缀。
+
 ## 0.1.1-beta.49 — 2026-08-06
 
 - **CodeGraph soft prefer**：`jj` 入口与 ralph `phases` / `integrations` 约定——宿主已挂 CodeGraph MCP 且仓内索引可用时，结构探索（调用链、影响面、跨文件入口）可优先走图谱；缺省/失败立即回退 Read/Grep；图谱不推进 checkpoint、不替代验证证据。非硬依赖，jj-flow 不随包安装 CodeGraph。

@@ -17,6 +17,7 @@
 | 引擎 | 解决什么 |
 | --- | --- |
 | `jj-team-coordinate` | 动态多角色 **实施流水线**（TC-*） |
+| `jj-team-lifecycle` | 固定 SDLC **规格→实现→测审**（TLV4-*） |
 | **`jj-team-swarm`** | ACO + 对抗评分的 **搜索空间迭代**（TAS-*） |
 | `jj-ralph` / `jj-dispatch` | 交付事实源 |
 
@@ -85,6 +86,7 @@ Python：`scripts/aco.py` + `pheromone.py` + `scoring.py`（skill 内自包含�
 | ralph PLAN 不确定 | swarm 搜方案 → `best-solution.md` 回写 plan 引用 |
 | 架构/路径多选 | 用户显式 `$jj-team-swarm` |
 | 多角色实施 | **coordinate**，不是 swarm |
+| 固定规格文档链 | **lifecycle**，不是 swarm |
 | 跨仓调度 | **dispatch** |
 
 ## 7. 仓库落地（P0）
