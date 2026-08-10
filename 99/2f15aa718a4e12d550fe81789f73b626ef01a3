@@ -1,0 +1,24 @@
+skills/jj-dispatch/SKILL.md
+  s_966d212d58f8d2::t_377dbb7c3c88f8 3,14,18-21,24-39,44-87,89,97,99,104,108,110,113,121-124,130,136-137,139,158,162,164,166,168,172,174,176-180,183,185,188,194
+skills/jj-dispatch/test-prompts.json
+  s_966d212d58f8d2::t_da49a36233a99c 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "992f15aa718a4e12d550fe81789f73b626ef01a3",
+  "prompts": {},
+  "sessions": {
+    "s_966d212d58f8d2": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fead8-b8af-7f03-b540-58f53690464e",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
