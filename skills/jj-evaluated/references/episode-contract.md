@@ -67,7 +67,8 @@ Derive and report these separately:
 
 `artifact_write_span` must never overwrite a stronger thread or user-export
 timestamp. If sources disagree, set `clock_quality: inconsistent`, retain both
-values, and explain the disagreement.
+values, and explain the disagreement. 🔴 Do not treat filesystem mtime as
+authoritative when thread/export/git timestamps exist (SKILL.md blacklist #6).
 
 ## Behavioral labels
 

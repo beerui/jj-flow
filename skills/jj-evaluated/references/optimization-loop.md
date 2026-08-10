@@ -30,7 +30,7 @@ split manifest so it can be audited.
 8. Freeze the candidate and evaluate holdout plus immutable regression.
 9. Ask a human to review leakage, reward hacking, token waste, unsafe authority,
    target-native adaptation, and reviewer attention cost.
-10. Promote only after approval; otherwise archive the candidate and diagnosis.
+10. 🔴 CHECKPOINT · Promote only after **explicit human approval**; otherwise archive the candidate and diagnosis (see SKILL.md red-light + failure table).
 
 ## Objective
 
