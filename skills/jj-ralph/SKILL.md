@@ -11,6 +11,18 @@ Single repo: requirement → acceptance → archive. Durable state is written on
 
 **Users do not lead with run ids.** Real speech is like “nudge the tip a bit”, “change that one again”, “drop this for now”. You resolve/write `RALPH-…` in reports; **never** require the user to memorize a run_id first.
 
+### Entry decision (route first)
+
+```text
+Same requirement (incl. COMPLETED/ABANDONED)? → resume
+No matching run? → init
+Mid-flight drop / product cut? → abandon (no map)
+Truly new requirement only? → init new run_id
+Cross-repo port? → handoff; if ready → $jj-same
+Multi-project schedule? → $jj-dispatch (not this skill)
+Git closeout only? → $jj-end (orthogonal to run status)
+```
+
 ## Immediate actions
 
 1. **Locate run (natural language first):**
@@ -22,14 +34,38 @@ Single repo: requirement → acceptance → archive. Durable state is written on
    - 🔴 **CHECKPOINT · hard-stop:** missing naming/map config → stop and report how to set `JJ_GLOBAL_CONFIG_DIR` / `DAJI_CONFIG_DIR`; **do not invent** host-local paths
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
-4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. Prefer `gate`.
+4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate).
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
    - After every DELIVER verify: `deliver-attempt`
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
+   - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
 5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, contribution package path, hook status.
 7. User says **「投喂知识库 / 补充全局知识」** or “feed knowledge base / contribute global knowledge” → `knowledge-contribute --hook` (candidate only; config below).
+8. 🔴 **CHECKPOINT (irreversible):** push / merge / release / delete data → prepare only (`commit-prep` / report); **do not execute** until the user explicitly asks.
+
+### Step I/O
+
+| Step | In | Out (durable) |
+| --- | --- | --- |
+| 1 Locate | user speech + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
+| 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
+| 3 map-find | title/goal/keywords | CAP hits (may be empty) |
+| 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
+| 5 finalize | accept PASS | archive snapshot + map merge + `knowledge-contribution.json` |
+| 6 report | run + CAP paths | short completion report |
+
+### Happy path (default command chain)
+
+```text
+map-find → init | resume
+→ short analyze/plan (tiny: see tiny-example) → edit files
+→ deliver-attempt → gate deliver PASS → gate accept PASS
+→ finalize → completion report
+# strict only: accept-layer judgment PASS before gate accept
+# stop only at 🔴 CHECKPOINT or failure table
+```
 
 After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. Only stop at 🔴 CHECKPOINTs or the failure table below.
 
@@ -41,6 +77,8 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Script resolve fails (`ralph_ops.mjs` not found) | Try: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph <cmd>` | Report resolve chain; stop mechanical steps |
 | Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; record signal | `set-status BLOCKED` + ask user; no third identical attempt |
 | `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
+| `finalize` / archive reject | Fix accept gates, paths, or review scope; re-`gate accept` | Report blockers; no conversational `--force` |
+| `map-find` empty | Continue with scope from user speech + repo search | Do not block init/resume solely because map is empty |
 | Verify FAIL under `max_iterations` | Stay DELIVER; rework; append progress | On ceiling: `intervention_needed.kind=MAX_ITERATIONS`; stop and report |
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
@@ -112,11 +150,12 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | 5 | PASS write-then-read / cross-path MUST on static diff alone | Match `evidence_class`; see [must-evidence.md](references/must-evidence.md) |
 | 6 | Third identical failed tool/strategy attempt | Change approach or 🔴 ask user (STAGNATION) |
 | 7 | Run business ralph inside the control project | Business repo only; `DEL-*` ≠ `RALPH-*` |
-| 8 | Unrelated refactors; long analyze/plan for single-point work | Short MUST + file list; prefer `tiny` |
+| 8 | Unrelated refactors; long analyze/plan for single-point work | Short MUST + file list; use `tiny` for single-point |
 | 9 | Auto-promote knowledge hook results to active KB | Candidate package only; fail-open |
 | 10 | `git revert` / force gate on conversational path by default | Suggest revert; no `--force` unless user overrides |
 | 11 | Treat chat/memory as checkpoint advance | Only `run.json` + artifacts + Git evidence |
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
+| 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
 
 ## Completion report
 
