@@ -1,0 +1,40 @@
+skills/jj-dispatch/references/grok-dispatch-execution.md
+  s_46abd3bba9090a::t_87a67bbcb01e27 244,331
+skills/jj-same/SKILL.md
+  s_46abd3bba9090a::t_7c17731c33e6ff 78-79
+skills/jj-same/references/project-family.md
+  s_46abd3bba9090a::t_bd2cda6fe6eacf 108,111-112
+skills/jj-dispatch/references/happy-path.md
+  s_46abd3bba9090a::t_7019c8a3af5325 48,50-51,55-62
+skills/jj-dispatch/references/host-action-contract.json
+  s_46abd3bba9090a::t_89efbcaaf49a99 112
+skills/jj-same/references/happy-path.md
+  s_46abd3bba9090a::t_48754c56b9e935 9
+skills/jj-dispatch/SKILL.md
+  s_46abd3bba9090a::t_631469603158b8 27,123
+skills/jj-dispatch/references/control-project.md
+  s_46abd3bba9090a::t_c10985f1f65b75 204-205
+skills/jj-same/references/branch-purpose-preflight.md
+  s_46abd3bba9090a::t_31c50d7b86a51b 26,29,31,37,45-46,48-49,51,53-55,64-65,67-68,122-130
+skills/jj-same/references/workflow-core.md
+  s_46abd3bba9090a::t_de8345ec25a58b 18,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "3aa7cd0573a133d0188669a8407785fdfbc4b2c7",
+  "prompts": {},
+  "sessions": {
+    "s_46abd3bba9090a": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fea68-a043-74e2-b7ee-5d41fffb21e1",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
