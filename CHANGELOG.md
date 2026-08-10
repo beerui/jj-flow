@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 0.1.1-beta.51 — 2026-08-10 14:56
+
+- **CREATE 仅从最新本地 master**：`jj-dispatch` / `jj-same` 新建 feature 分支前必须 `git fetch`，在 local `master` 干净且 behind 时 `FF_LOCAL_MASTER`（`checkout master` + `merge --ff-only origin/master`），再 `CREATE_FROM_LOCAL_MASTER`（`checkout -b <feat> master`）。
+- **移除 `CREATE_FROM_ORIGIN` 主路径**：禁止在 local master 仍旧时从 `origin/master` 直接建分支；禁止静默从 `dev`/`develop` CREATE；脏/分叉 master 仅 `NEEDS_CONFIRM`/`BLOCKED`（禁止静默 `reset --hard`）。
+- **决策表枚举对齐**：`base_action` = `FF_LOCAL_MASTER` | `CREATE_FROM_LOCAL_MASTER` | `NEEDS_CONFIRM` | `BLOCKED`（happy-path / preflight G6 / grok PREFLIGHT / host-action-contract）。
+
 ## 0.1.1-beta.50 — 2026-08-07
 
 - **jj-team-lifecycle**：可选固定 SDLC 会话执行引擎（`TLV4-*`；vendor `team-lifecycle-v4`；固定角色 + `spec-only`/`impl-only`/`full-lifecycle`；CHECKPOINT supervisor；Codex degraded；嵌套 ralph/review/dispatch 时一句「开启 lifecycle 模式…」；不推进 checkpoint）。
