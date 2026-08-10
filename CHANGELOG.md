@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 0.1.1-beta.52 — 2026-08-10 17:57
+
+- **Skill 可执行性（darwin）**：`jj-same` / `jj-dispatch` / `jj-ralph` / `jj-evaluated` 等补齐 In→Out 或门控路径、Failure recovery 三段式、🔴 CHECKPOINT / 🛑 STOP、用户可见 closeout/PREVIEW 模板；附 `test-prompts.json`（同/dispatch）。
+- **jj-same**：Ralph 指针化、LITE/FULL 单点、STALE/多目标部分失败/control-scope 失败行；paired 3-0 keep。
+- **jj-dispatch**：PREVIEW→approve→DISPATCH 逐步 I/O、假 VERIFIED / 未批准 DISPATCH / CREATE 基线恢复表；paired 3-0 keep。
+- **说明**：控制面语义与 CREATE 本地 master 纪律不变；本批为 skill SSOT 文案与门控清晰度。
+
 ## 0.1.1-beta.51 — 2026-08-10 14:56
 
 - **CREATE 仅从最新本地 master**：`jj-dispatch` / `jj-same` 新建 feature 分支前必须 `git fetch`，在 local `master` 干净且 behind 时 `FF_LOCAL_MASTER`（`checkout master` + `merge --ff-only origin/master`），再 `CREATE_FROM_LOCAL_MASTER`（`checkout -b <feat> master`）。
