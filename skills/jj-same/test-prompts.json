@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "prompt": "交接到项目B（当前会话有 RALPH-*/run.json，run.handoff.ready=true）",
+    "expected": "Ralph-first 不重做源分析 → 解析 B → 🔴 branch-purpose+CREATE 新鲜度 preflight → 🔴 EXECUTION_READY 后同 turn 改业务码+聚焦测试 → 用户侧用 closeout 模板短摘要无五门；未达 HANDOFF_READY 不宣称完成"
+  },
+  {
+    "id": 2,
+    "prompt": "同步 SYNC-silence-login，检查 A 从上次成功基线到 HEAD 的更新并同步到 B",
+    "expected": "恢复 sync_key/checkpoint → 只处理有效 delta → 单点 LITE/FULL → 窄适配 B → 验证与 handoff 边界；缺 checkpoint 走 Failure recovery"
+  },
+  {
+    "id": 3,
+    "prompt": "当前在 release train 分支上说「开始迁项目C」，且 local master behind_count>0",
+    "expected": "🔴 preflight 硬挡 purpose mismatch；behind+clean 则 FF_LOCAL_MASTER 再 CREATE_FROM_LOCAL_MASTER；否则 🛑 STOP 要书面 override；禁止静默从 stale tip/dev CREATE；不把聊天当 Git 证据"
+  },
+  {
+    "id": 4,
+    "prompt": "交接到项目B和项目C；B 已改完测试绿，C 缺调用链 EXECUTION_READY 未满足",
+    "expected": "按目标分别记账：B 可走验证/HANDOFF_READY；C BLOCKED 不写业务码；禁止因 B 成功宣称双端/全家完成；用户 closeout 分 target 块"
+  }
+]
+
