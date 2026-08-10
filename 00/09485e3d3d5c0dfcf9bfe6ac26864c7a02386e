@@ -1,0 +1,26 @@
+skills/jj-evaluated/references/episode-contract.md
+  s_95124590b873ea::t_3971f0a1f02b52 70-71
+skills/jj-evaluated/references/optimization-loop.md
+  s_95124590b873ea::t_18b2c2a3f5290d 33
+skills/jj-evaluated/SKILL.md
+  s_95124590b873ea::t_0b42726345b439 3,8-11,13,15-16,18-33,41-42,44,53-68,70,72-82,86-123,127-130,134-137,139-143,145-157,161,167-169,175,177-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "0009485e3d3d5c0dfcf9bfe6ac26864c7a02386e",
+  "prompts": {},
+  "sessions": {
+    "s_95124590b873ea": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019feab0-9eb5-71c3-9153-2a7f183a7d4f",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
