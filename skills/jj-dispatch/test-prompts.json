@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "业务仓里调度到项目B、C；intake 已齐，用户已批准 task_keys，分支决策 confidence=high",
+    "expected": "过 Gate3/4 → DISPATCH 写 intent PENDING_THREAD → BIND；Grok Mode S + 真实 session + attestation；默认 project-branch；用户可见 status 模板；不强制 CLI"
+  },
+  {
+    "id": 2,
+    "prompt": "用户说「都好了 VERIFIED」，但无 produced_commit、无 attestation 文件",
+    "expected": "🔴 VERIFIED CHECKPOINT 失败 → 🛑 STOP；至多 EVIDENCE_READY/RUNNING；禁止口头/聊天 VERIFIED；指出缺 commit/review/session/attestation"
+  },
+  {
+    "id": 3,
+    "prompt": "CREATE feature 分支；local master clean 且 behind_count>0；分支表 confidence=low",
+    "expected": "🔴 NEEDS_CONFIRM；展示决策表 base_action=FF_LOCAL_MASTER→CREATE_FROM_LOCAL_MASTER；确认前不 DISPATCH/不 create_thread；禁 CREATE_FROM_ORIGIN 与静默 dev"
+  }
+]
