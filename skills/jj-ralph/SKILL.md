@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/RALPH-*/ + business-map; handoff lives in run.handoff. Same requirement always prefers the same run_id (resume after archive; abandon mid-flight is recoverable). Cross-repo → jj-same; multi-project schedule → jj-dispatch. Mechanical steps: ralph_ops.mjs."
+description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/RALPH-*/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
 ---
 
 # jj-ralph
@@ -17,17 +17,36 @@ Single repo: requirement → acceptance → archive. Durable state is written on
    - User named `RALPH-…` → use that id (uncommon)
    - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED)
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
-   - Multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
-   Naming and map: `jj doctor` / `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` → `naming.json` + project map; missing config is hard-stop — **do not invent** host-local paths.
+   - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
+   - Naming and map: `jj doctor` / `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` → `naming.json` + project map
+   - 🔴 **CHECKPOINT · hard-stop:** missing naming/map config → stop and report how to set `JJ_GLOBAL_CONFIG_DIR` / `DAJI_CONFIG_DIR`; **do not invent** host-local paths
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
 4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. Prefer `gate`.
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
    - After every DELIVER verify: `deliver-attempt`
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
+   - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
 5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, contribution package path, hook status.
 7. User says **「投喂知识库 / 补充全局知识」** or “feed knowledge base / contribute global knowledge” → `knowledge-contribute --hook` (candidate only; config below).
+
+After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. Only stop at 🔴 CHECKPOINTs or the failure table below.
+
+## Failure modes (if X → first fix → still fails)
+
+| Trigger | First fix | Still fails |
+| --- | --- | --- |
+| Missing `naming.json` / project map | 🔴 hard-stop; tell user to set `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` and run `jj doctor` | Do not invent paths; do not init a run |
+| Script resolve fails (`ralph_ops.mjs` not found) | Try: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph <cmd>` | Report resolve chain; stop mechanical steps |
+| Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; record signal | `set-status BLOCKED` + ask user; no third identical attempt |
+| `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
+| Verify FAIL under `max_iterations` | Stay DELIVER; rework; append progress | On ceiling: `intervention_needed.kind=MAX_ITERATIONS`; stop and report |
+| Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
+| User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
+| `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a `close` command |
+
+Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).
 
 ## Handoff
 
@@ -82,13 +101,22 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | Config | `naming.json` → `ralph.knowledge_contribute`: `hook: none\|cli`, `cli` template includes `{package}`; or env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
 | Default | Hook is **fail-open**; **no** auto-promote to active |
 
-## Hard constraints
+## 反例黑名单（不要做什么）
 
-- No unrelated refactors; single-point analyze/plan should stay short
-- Same tool/strategy fails at most twice; on STAGNATION change approach or ask the user
-- Do not commit/push/review/handoff/dispatch unless asked
-- Do not run business ralph in the control project; `DEL-*` ≠ `RALPH-*`
-- Never force a new run just because status is archived / `COMPLETED`
+| # | Do not | Do instead |
+| --- | --- | --- |
+| 1 | Default `init` because status is COMPLETED/ABANDONED/archived | Same requirement → `resume` |
+| 2 | Require the user to memorize/type `run_id` first | Resolve from speech; report id yourself |
+| 3 | Invent host-local config paths when map/naming missing | 🔴 hard-stop + `jj doctor` guidance |
+| 4 | Commit / push / review / handoff / dispatch / merge unless asked | Prep only (`commit-prep`); wait for user |
+| 5 | PASS write-then-read / cross-path MUST on static diff alone | Match `evidence_class`; see [must-evidence.md](references/must-evidence.md) |
+| 6 | Third identical failed tool/strategy attempt | Change approach or 🔴 ask user (STAGNATION) |
+| 7 | Run business ralph inside the control project | Business repo only; `DEL-*` ≠ `RALPH-*` |
+| 8 | Unrelated refactors; long analyze/plan for single-point work | Short MUST + file list; prefer `tiny` |
+| 9 | Auto-promote knowledge hook results to active KB | Candidate package only; fail-open |
+| 10 | `git revert` / force gate on conversational path by default | Suggest revert; no `--force` unless user overrides |
+| 11 | Treat chat/memory as checkpoint advance | Only `run.json` + artifacts + Git evidence |
+| 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
 
 ## Completion report
 
