@@ -1,0 +1,27 @@
+CHANGELOG.md
+  s_f149461838e9de::t_5d0d31148f2572 8-12
+  s_f149461838e9de::t_651135590ea02e 7
+package.json
+  s_f149461838e9de::t_05ba3755641d15 3
+package-lock.json
+  s_f149461838e9de::t_8f2b1339f3580b 3,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "538e197e6c714183845ad1da143e73c189381bf3",
+  "prompts": {},
+  "sessions": {
+    "s_f149461838e9de": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fea55-cb36-7ca3-9fa5-d007183e3332",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
