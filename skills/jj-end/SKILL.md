@@ -14,13 +14,29 @@ fetch → resolve branches → (optional) commit → sync work → push work
   → checkout integration and sync → merge work → push integration → return
 ```
 
-On failure, stop and **try to return to `work_branch`**. Forbidden: force push, delete branches, change git config, commit secrets/unrelated files.
+On failure, stop and **try to return to `work_branch`**.
+
+## Red-light blacklist (never do)
+
+| # | Forbidden | Why |
+|---|-----------|-----|
+| 1 | `git push --force` / `--force-with-lease` | Rewrites published history |
+| 2 | Delete branches (`-d`/`-D` remote or local closeout cleanup) | Closeout is land-only, not branch GC |
+| 3 | Change git config / credentials | Out of scope; security surface |
+| 4 | Commit secrets, temp dumps, unrelated dirty files | Scope creep + leak risk |
+| 5 | `git pull --rebase` unless user explicitly asks | Rewrites published commits |
+| 6 | Skip steps 4–6 for “fear of merge” / “ask first” | Historical half-closeout failure mode |
+| 7 | Leave a half-finished merge after failure | Must `merge --abort` or clearly report still merging |
+| 8 | Treat `merge --abort` rollback as closeout success | Abort ≠ landed |
+| 9 | Create empty integration history when branch missing | No inventing integration |
+| 10 | Write control plane / ralph run / dispatch manifests | Use `$jj-dispatch` / `$jj-ralph` |
 
 ## Core Rule
 
 - Explicit: `$jj-end` / closeout / end task / commit and merge to dev
 - **Proactive closeout**: when implementation is done and the user did not forbid push/merge, **first print one line** of the `work→integration` plan, then **execute through to the end**
-- If the user forbade push/merge, or `dry_run=true`: **must not** merge / push; only report the plan or stop at the dry_run table
+- 🔴 CHECKPOINT · 🛑 STOP — **user forbade push/merge**: must not merge / push; report plan only; do not continue steps 4–6
+- 🔴 CHECKPOINT · 🛑 STOP — **`dry_run=true`**: print the field table → stop; no commit / pull-write / merge / push
 - Commit only, no push/merge: do not use this skill
 - **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except conflict, or user explicitly forbids)
 - This skill does **not** write the control plane and does **not** read/advance dispatch manifests; scheduling closeout uses `$jj-dispatch`
@@ -71,9 +87,9 @@ Record:
 | `integration` | merge target |
 | `branch_purpose` | one line: whether this task **intends** to land on `work_branch` (not an accidental checkout) |
 
-If this turn’s changes clearly belong to another feature/release line (e.g. telemetry attached to a release-train branch), **stop and report first**; suggest switching to the correct work branch before closeout; do not silently merge the wrong line into integration. Decision details: sibling package `jj-same` `references/branch-purpose-preflight.md` (closeout only protects; it does not create migration branches).
+If this turn’s changes clearly belong to another feature/release line (e.g. telemetry attached to a release-train branch), **stop and report first**; suggest switching to the correct work branch before closeout; do not silently merge the wrong line into integration. Decision details: [`skills/jj-same/references/branch-purpose-preflight.md`](../jj-same/references/branch-purpose-preflight.md) (closeout only protects; it does not create migration branches).
 
-Hard-stop (report then stop; do not change the repo):
+🔴 CHECKPOINT · 🛑 STOP — **Hard-stop** (report then stop; do not change the repo):
 
 - not a git repo, or no remote
 - detached HEAD
@@ -95,6 +111,8 @@ Resolve `integration`: see “Integration resolution priority” above (do not g
 | `will_push_integration` | whether integration will be pushed |
 | `return_to` | `work` \| `integration` |
 | `blockers[]` | known blockers (no remote, merge forbidden, path mis-detect, etc.) |
+
+🔴 CHECKPOINT · 🛑 STOP — after dry_run table: end turn; do not run steps 2–7.
 
 ### 2. Commit (this task only; may precede pull)
 
@@ -134,10 +152,10 @@ If `--ff-only` fails due to divergence (not network error):
 git pull --no-rebase <remote> <work_branch>
 ```
 
-- pull **conflict**: `git merge --abort` (if mid-merge) → stay on `work_branch` → report conflict files → **stop** (do not fake success)
+- 🔴 CHECKPOINT · 🛑 STOP — **pull work conflict**: `git merge --abort` (if mid-merge) → stay on `work_branch` → report conflict files → stop (do not fake success)
 - no remote work branch: skip pull; step 4 uses `push -u` to set tracking
 
-**Forbidden** `pull --rebase` unless the user explicitly asks (reduces rewritten published-history risk).  
+**Forbidden** `pull --rebase` unless the user explicitly asks (see blacklist).
 **Forbidden** to skip this step and push directly (push fails when remote is ahead — a common historical failure mode).
 
 ### 4. Push work branch
@@ -184,7 +202,7 @@ If ff-only fails due to divergence:
 git pull --no-rebase <remote> <integration>
 ```
 
-Conflict → abort → `git checkout <work_branch>` → report → stop.
+🔴 CHECKPOINT · 🛑 STOP — **pull integration conflict**: abort → `git checkout <work_branch>` → report → stop.
 
 Merge work branch:
 
@@ -193,7 +211,7 @@ git merge --no-edit <work_branch>
 ```
 
 - Already ancestor (Already up to date) → note “no new merge needed”; still continue to push integration (may already be synced)
-- **Conflict**:
+- 🔴 CHECKPOINT · 🛑 STOP — **merge work→integration conflict**:
 
 ```bash
 git merge --abort
@@ -223,19 +241,18 @@ git log -1 --oneline <integration>   # if resolvable
 
 ## Failure and recovery (must follow)
 
-| Failure point | Action |
-|--------|------|
-| hard-stop before commit | do not change branch, do not merge |
-| monorepo/package workspace mis-detect | no commit/merge; report `show-toplevel` and intended root; stop |
-| pull work conflict | abort merge; stay on work; stop |
-| push work failure | stay on work; stop |
-| pull integration conflict | abort; checkout work; stop |
-| merge work→integration conflict | `merge --abort`; checkout work; stop |
-| push integration failure | checkout work; integration may be merged but unpushed; report need for manual push |
-| user forbids push/merge or dry_run | no push/merge; report plan only |
+🔴 All rows below are **STOP exits** (not “retry until success”). Happy path does **not** pause for user confirmation before push/merge.
 
-**Forbidden** to leave a half-finished merge state after failure (must abort or clearly report “still merging”).  
-**Forbidden** to treat “rolled back after merge --abort” as closeout success.
+| Trigger | First fix | Still fails / must stop |
+|--------|-----------|-------------------------|
+| hard-stop before commit (no git/remote, detached, in-progress merge/rebase, unrelated heavy dirt) | Report condition; do not change branch | Stay stopped; do not merge/push |
+| monorepo/package workspace mis-detect | Report `git rev-parse --show-toplevel` + intended root | No commit/merge until user fixes cwd/root |
+| pull work conflict | `git merge --abort` if mid-merge; stay on work | Report conflict files; STOP (do not fake success) |
+| push work failure | Stay on work; surface remote error | STOP; no checkout to integration |
+| pull integration conflict | Abort pull/merge; `git checkout <work_branch>` | Report; STOP |
+| merge work→integration conflict | `git merge --abort`; `git checkout <work_branch>` | Report files + “re-run `$jj-end` after resolving on work”; STOP |
+| push integration failure | Prefer `git checkout <work_branch>` | Report: local may be merged but unpushed; needs manual push |
+| 🔴 user forbids push/merge or `dry_run=true` | Plan / dry_run table only | No push/merge; STOP (do not run steps 4–6) |
 
 ## Self-check list (while executing)
 
@@ -248,7 +265,8 @@ git log -1 --oneline <integration>   # if resolvable
 - [ ] Already switched per `return_to`
 - [ ] Final report includes branches and hashes (commit subject may be Chinese)
 
-If any item is missing and it is not hard-stop/conflict → **finish it**; do not reply with only a plan.
+If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / conflict → **finish it**; do not reply with only a plan.
+If hard-stop or 🔴 CHECKPOINT hit → **stay stopped**; do not “finish it”.
 
 ## Final Response
 
