@@ -1,21 +1,46 @@
 ---
 name: jj-review
-description: Single-repo read-only review adapter. Prefer the host's built-in review/code-review, map the result to the ralph run's reviews/REV-*.json, and write back run.json. Use for review, code review, reviewing a commit/diff, linking task/review sessions, or recording a review on the current/latest ralph run (including after soft-archive). For cross-project scheduling and the formal VERIFIED gate, use jj-dispatch. Does not replace the host review engine; does not change business code.
+description: Single-repo read-only review adapter. Prefer host built-in review/code-review; map to ralph reviews/REV-*.json and write back run.json. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions, or recording a review on the latest ralph run (incl. after soft-archive). Cross-project VERIFIED → jj-dispatch. Does not replace the host review engine; does not change business code.
 ---
 
 # jj-review
 
-Produce a **read-only review record** for an existing ralph run. Prefer the **current host's built-in** review capability for the review itself; this skill binds scope, maps the result, and persists artifacts.
+Produce a **read-only review record** for an existing ralph run. Prefer the **host built-in** review engine; this skill binds scope, maps results, and persists artifacts.
 
-Do not change business code, init a run, create fix tasks, or enter dispatch.  
-**May** write into a soft-archived / `COMPLETED` run (ralph has no terminal freeze). **Do not** init a new run only to “add a review.”
+**Happy path in one pass** (locate → scope → user/host map → persist → report). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
+
+**May** write into soft-archived / `COMPLETED` runs (no terminal freeze). **Do not** init a run only to “add a review.”
+
+## Red-light blacklist (never do)
+
+| # | Forbidden | Why |
+|---|-----------|-----|
+| 1 | Change business code / open fix tasks / enter dispatch | Read-only adapter |
+| 2 | Init or hand-build a ralph run to hold a review | No run → `BLOCKED` |
+| 3 | Skip host review for parallel self-review when host exists | Host-first; chat ≠ fact source |
+| 4 | Treat `npm test` / `npm run verify` / CI green as `PASS` | Verify ≠ review |
+| 5 | Chain multiple full review engines in one invocation | One host path only |
+| 6 | Drop `source` / `host_review` on persist | Need provenance |
+| 7 | Advance dispatch VERIFIED / write control-plane manifests | Use `$jj-dispatch` |
+| 8 | Bind steps to one host product marketing name | Capability discovery only |
+
+## Inputs → outputs
+
+| In | Out |
+|----|-----|
+| optional `run_id` (else latest) | bound run or 🔴 `BLOCKED` |
+| commit / paths / pasted host result | scope or 🔴 `BLOCKED` |
+| host entry **or** user artifact **or** (after 🔴) fallback | `REV-n.json` + `run.json.review` + `progress.md` line |
+| — | brief: `review_id`, `outcome`, `source`, paths, rework? |
+
+Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md).
 
 ## Immediate actions
 
-1. **Locate the run**  
-   Read `.workflow/ralph/RALPH-*/run.json`. If the user gave `run_id`, use it; otherwise pick the **latest** run (`updated_at` desc, then `run_id` desc on ties; include authoritative runs under archive dirs). **No run → `BLOCKED`; do not init.**
+1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/`. **Out:** `run.json`.  
+   Read `RALPH-*/run.json`. Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc; include archive dirs).
 
-   No-run output template (stop; do not init):
+   🔴 CHECKPOINT · 🛑 STOP — **no run** (do not init):
 
    ```text
    status: BLOCKED
@@ -23,89 +48,74 @@ Do not change business code, init a run, create fix tasks, or enter dispatch.
    next: complete $jj-ralph init in this repo first, or pass run_id; this skill must not init
    ```
 
-2. **Determine review scope**  
-   Read `analyze.md` / `plan.md` / `progress.md` / `acceptance.md`.  
-   Resolve target: `reviewed_commit` / working-tree diff / user-specified paths.  
-   Empty artifacts and no clear commit/diff → `BLOCKED`.
+2. **Determine scope** — **In:** run artifacts + user target. **Out:** commit and/or paths.  
+   Read `analyze.md` / `plan.md` / `progress.md` / `acceptance.md`. Resolve `reviewed_commit` / working-tree diff / user paths.
 
-3. **If the user already provided review results, map first** (`source=user_provided`)  
-   User supplied a review artifact path, pasted findings, or named a completed review session → **map and persist directly**; do not call host review again.  
-   See discovery order step 1 in [host-review.md](references/host-review.md).
+   🔴 CHECKPOINT · 🛑 STOP — **no commit/diff/scope**: `BLOCKED`; list missing evidence; do not invent SHA; do not call host.
 
-4. **Otherwise prefer host built-in review** (see [host-review.md](references/host-review.md))
-   - Discover and invoke a built-in **review / code-review** entry available in this session (do not treat test/CI verify as review).
-   - Do not run a full parallel self-review first and then “compare” to the host.
-   - Collect: verdict (pass / needs changes), findings, summary, artifact paths (if any).
-   - After mapping: `source=host_builtin`.
+3. **User-provided first** (`source=user_provided`) — artifact path / pasted findings / named review session → map → step 5 (no host call).  
+   Discovery step 1: [host-review.md](references/host-review.md).
 
-5. **Map to this schema**
-   - Outcome only: `PASS` / `NEEDS_CHANGES` / `BLOCKED`.
-   - Finding fields: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`.
-   - Severity / verdict mapping tables: host-review.md.
-   - Record `source` and `host_review` on the report (provenance only; does not advance other gates).
+4. **Else host built-in** — [host-review.md](references/host-review.md). **Out:** verdict + findings + paths → `source=host_builtin`.  
+   - Invoke explicit **review / code-review** only (not test/CI verify).  
+   - Do not full self-review first then “compare” to host.  
+   - Collect verdict, findings, summary, artifact paths.
 
-6. **Persist** (copy [review-report.skeleton.json](references/review-report.skeleton.json))
-   - `reviews/REV-n.json` (n = existing max + 1; or 1 if none)
-   - Write back `run.json.review` and `artifact_refs.latest_review_ref`
-   - Append one line to `progress.md` (include `source=`)
-   - For maintenance paths prefer: `jj ralph review-record` or `ralph_ops.mjs review-record` (same schema as direct file write; **do not drop provenance**). Copyable examples:
+   🔴 CHECKPOINT · 🛑 STOP — **must-use-host but no entry**: `BLOCKED`; name missing capability; **no silent fallback** (user may paste findings or allow fallback).
+
+5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.  
+   Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`.  
+   Record `source` + `host_review` (provenance; does not advance other gates).  
+   `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
+
+6. **Persist** — copy [review-report.skeleton.json](references/review-report.skeleton.json):  
+   - `reviews/REV-n.json` (n = max+1 or 1)  
+   - `run.json.review` + `artifact_refs.latest_review_ref`  
+   - one `progress.md` line with `source=`  
+   Prefer CLI (same schema; **keep provenance**):
 
    ```bash
-   # via CLI
    jj ralph review-record --run-id RALPH-login-reminder-20260722 \
      --outcome NEEDS_CHANGES --source host_builtin \
      --reviewed-commit abcdef1 \
      --host-review-json '{"method":"skill","entry":"code-review","artifact_paths":[]}'
-
-   # or via skill script
-   node <resolved>/ralph_ops.mjs review-record --run-id RALPH-login-reminder-20260722 \
-     --outcome PASS --source user_provided --reviewed-commit abcdef1
+   # fallback script (jj-flow tree): node skills/jj-ralph/scripts/ralph_ops.mjs review-record ...
    ```
 
-7. **Completion report** (brief)  
-   `run_id`, `review_id`, `outcome`, `source`, report path, host artifact refs, whether rework is needed.
+   CLI fails → direct-write skeleton. Write fails → 🔴 `BLOCKED` + paths.
 
-Field and outcome validation: [report-layout.md](references/report-layout.md).
+7. **Completion report** — `run_id`, `review_id`, `outcome`, `source`, report path, host refs, rework?
 
-## User-provided results (not fallback)
+## Fallback (host unavailable only)
 
-Whenever the user supplies complete findings / a host review artifact / a review-session conclusion:
+`source=fallback_inline` only when: no discoverable review entry; **or** host failed **and** user explicitly continues.
 
-- `source=user_provided`
-- Map and persist only
-- **Does not** count as `fallback_inline`
+🔴 CHECKPOINT · 🛑 STOP — **before fallback**: no explicit continue → stop; report why host unused; offer (a) paste → `user_provided` or (b) allow fallback. Never auto-fallback.
 
-## Fallback (only when host review is unavailable)
+Still read-only; still persist `REV-*.json`; explain in `summary` / `host_review.note`.  
+`user_provided` ≠ fallback.
 
-Allow **minimal inline review** in this session (`source=fallback_inline`) only when:
+## Failure and recovery
 
-- the current host has no discoverable review / code-review entry; or
-- the host entry failed and the user explicitly asks to continue.
+🔴 STOP or bounded recover. Happy path does **not** pause before host review or persist.
 
-Fallback remains read-only, must still persist `REV-*.json`, and must explain in `summary` / `host_review.note` why host review was not used.
-
-## Hard rules
-
-1. **Read-only**: do not change business code, init a run, or create fix tasks.
-2. **Host first**: when a built-in review exists, do not skip it for a parallel self-review.
-3. **Must persist** `reviews/REV-*.json` (jj-flow fact source; not chat conclusions).
-4. `PASS` / `NEEDS_CHANGES` require `reviewed_commit` (≥7 chars); OPEN finding rules: report-layout.
-5. Insufficient evidence → `BLOCKED` (commit may be null; state what is missing).
-6. Cross-project formal closeout uses `$jj-dispatch` / installed skill / host-equivalent entry (Codex/Qoder/Grok); Claude has **no** dispatch slash (intentional). This skill does not replace the VERIFIED gate.
-7. Procedures and examples are **not bound** to a single host product name; discovery uses generic capability names (see host-review matrix).
-8. **Do not** treat `npm test` / `npm run verify` / pure CI green as review `PASS`.
-
-## Inputs
-
-- `run_id` (optional; default latest ralph run)
-- `reviewed_commit` (required for PASS/NEEDS_CHANGES)
-- `task_thread` / `review_thread` (optional)
-- optional: existing host review artifact path or pasted conclusion (`source=user_provided`)
+| Trigger | First fix | Still fails / must stop |
+|--------|-----------|-------------------------|
+| 🔴 no ralph run | `no_ralph_run` template | STOP; never init |
+| 🔴 no commit/diff/scope | `BLOCKED` + missing list | STOP; no invent SHA |
+| 🔴 must-use-host, no entry | Name capability | STOP; no silent fallback |
+| host call fails | Surface error; ask fallback? | No user OK → `BLOCKED` |
+| 🔴 fallback without user OK | Offer paste or continue | STOP until user chooses |
+| unstructured host output | Map via tables; `unknown`/`1` | Undecidable → `BLOCKED` |
+| `review-record` CLI fails | Direct-write skeleton | Write fails → `BLOCKED` |
+| PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
+| OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS |
 
 ## Examples
 
 ```text
 $jj-review run=RALPH-login-reminder-20260722
-$jj-review review the login-reminder changes on the current commit
+$jj-review 评审当前 commit 的登录提醒改动
 $jj-review record the host review result on the latest ralph run
+$jj-review 把刚才宿主审查结论记到最新 ralph run
 ```

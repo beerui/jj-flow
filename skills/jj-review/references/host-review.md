@@ -45,8 +45,8 @@ Shared rules (all hosts):
 1. **Match only explicit review entries**; `verify` / `npm test` / CI green are **not** a review engine.
 2. Prefer **user-provided** artifacts (discovery step 1 above the matrix).
 3. Subagents must be **read-only**; they must not change business code.
-4. No discoverable entry → `source=fallback_inline` minimal inline review; record the reason in `host_review.note`.
-5. Discovery hard-stop: if the user requires “must use host review” and no entry exists → `BLOCKED`, name the missing entry and optional fallback; do not init ralph.
+4. No discoverable entry → only after SKILL.md 🔴 fallback checkpoint (user OK or paste) → `source=fallback_inline`; record the reason in `host_review.note`.
+5. 🔴 Discovery hard-stop: if the user requires “must use host review” and no entry exists → `BLOCKED`, name the missing entry; do not silent-fallback; do not init ralph.
 
 ## Context to pass when invoking host review
 
