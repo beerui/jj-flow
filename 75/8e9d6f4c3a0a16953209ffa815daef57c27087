@@ -1,0 +1,26 @@
+skills/jj-same/test-prompts.json
+  s_966d212d58f8d2::t_9dfa3877db5a02 1-4,6-9,11-15,21-22
+  s_966d212d58f8d2::t_12b9c26021f5bc 5,10,16-20,23
+skills/jj-same/SKILL.md
+  s_966d212d58f8d2::t_fa63aec433fe95 3,10,12-24,26,28,30-32,34,41-71,74,80-93,97,115,119-120
+  s_966d212d58f8d2::t_ee1870b4a00b74 72-73,75-79,122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "758e9d6f4c3a0a16953209ffa815daef57c27087",
+  "prompts": {},
+  "sessions": {
+    "s_966d212d58f8d2": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fead8-b8af-7f03-b540-58f53690464e",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
