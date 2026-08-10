@@ -6,7 +6,7 @@ Main-path index. Details and long flows live in [workflow-core.md](workflow-core
 
 1. **Ralph-handoff-first**: current session `RALPH-*/run.json` → `artifact_refs.handoff_ref` / `run.handoff`; when `ready=true`, do not redo source analysis.
 2. Resolve target roles and authorization scope (user natural language; with control, read-only manifest).
-3. **Branch purpose + CREATE base freshness preflight** (hard gate): [branch-purpose-preflight.md](branch-purpose-preflight.md) (purpose 1–5 + base freshness 6–10; on CREATE, `behind_count>0` forbids branching from stale local master).
+3. **Branch purpose + CREATE base freshness preflight** (hard gate): [branch-purpose-preflight.md](branch-purpose-preflight.md) (purpose 1–5 + base freshness 6–10; CREATE only from freshened **local** `master` — default `create_from=master`; `base_action` = `FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER`; forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev`).
 4. Confirm **`EXECUTION_READY`**; if not met, `BLOCKED` / caveat — do not change business code.
 5. Narrowest plan + **implement** target business code and focused tests (same turn; not plan-status-only).
 6. Layered verification and evidence (static/focused tests; runtime defaults to user confirmation or `N/A`).

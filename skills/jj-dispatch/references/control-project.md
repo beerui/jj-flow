@@ -201,8 +201,8 @@ TOML defaults cannot substitute for runtime sandbox attestation; refuse bind wit
 
 **If uncertain, ask before DISPATCH (hard procedure)**
 
-- After PREVIEW / approval, before CREATE: for each write target output a decision table (intended_branch, current_branch, dirty, proposed_mode, **base / origin_base / behind_count / base_action**, confidence).
-- When **CREATE** of a feature branch is required: `git fetch` the integration base first; if `behind_count > 0` use `FETCH_FF` or `CREATE_FROM_ORIGIN`; **forbid** silent branch creation from a stale local tip (EP-20260803).
+- After PREVIEW / approval, before CREATE: for each write target output a decision table (intended_branch, current_branch, dirty, proposed_mode, **base / origin_base / behind_count / base_action / create_from**, confidence).
+- When **CREATE** of a feature branch is required: default `base=master`, `create_from=master` (local). `git fetch` first; if `behind_count > 0` and local master clean → `FF_LOCAL_MASTER` (`checkout master` + `merge --ff-only origin/master`), then always `CREATE_FROM_LOCAL_MASTER` (`checkout -b <feat> master`). **Forbidden**: `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silent branch from a stale local tip (EP-20260803 + 2026-08-10). Dirty/divergent local master → `NEEDS_CONFIRM` / `BLOCKED`; no silent `reset --hard` without written user approval. Optionally record plane note `create_from=master`.
 - `confidence=low` or fact conflict → `NEEDS_CONFIRM`: show judgment, ask user; **before confirm, no intent write, no create_thread**.
 - User may change branch or mode; after change, user choice wins.
 - Forbid silent choice of detached exclusive worktree or silent switch to a non-task branch.

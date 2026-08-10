@@ -241,7 +241,7 @@ Natural-language “done” must not advance checkpoints.
 | 6 | no second active write on same project | BLOCKED |
 | 7 | control_root writable for attestation/receipt | BLOCKED |
 | 8 | no unhandled UNKNOWN intent | RECONCILE only |
-| 9 | **CREATE base freshness**: after `git fetch`, check `behind_count`; if >0 must `FETCH_FF` or `CREATE_FROM_ORIGIN`; forbid stale local master tip (EP-20260803) | stop/BLOCKED |
+| 9 | **CREATE base freshness (local-master-only)**: after `git fetch`, check `behind_count`; if >0 and clean → `FF_LOCAL_MASTER` then `CREATE_FROM_LOCAL_MASTER`; if already fresh → `CREATE_FROM_LOCAL_MASTER` only; **forbid** `CREATE_FROM_ORIGIN` / stale local tip / silent CREATE from `dev` (EP-20260803 + 2026-08-10) | stop/BLOCKED |
 
 ---
 
@@ -328,3 +328,4 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 | 2026-07-30 | project-branch default | avoid worktree-transfer negative case |
 | 2026-07-30 | source must be committed | distribution truth-drift negative case |
 | 2026-08-03 | base freshness before CREATE | EP-20260803 stale local master branch create; fetch+ff or from origin |
+| 2026-08-10 | **supersede** CREATE path | CREATE **only** from freshened **local** `master` (`FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER`); `CREATE_FROM_ORIGIN` removed as primary path; no silent CREATE from `dev` |

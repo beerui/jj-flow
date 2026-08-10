@@ -105,11 +105,11 @@ When a predecessor reaches the handoff gate, the family plan MUST record the uni
 
 - The lead project branch is created by the user; `jj-same` only verifies and records — it does not create or rename for the user.
 - On agent auto-advance, only after the predecessor reaches `HANDOFF_READY` and the user triggers, create a develop branch on the target from a **fresh** integration base (default `master`). When the current request already names a target and asks implement, use that target’s `EXECUTION_READY`.
-- **CREATE base freshness (hard gate, EP-20260803)**:
+- **CREATE base freshness (hard gate, local-master-only; EP-20260803 + 2026-08-10)**:
   1. `git fetch <remote> <base>` (default `origin master`).
   2. Compute `behind_count = rev-list --count <base>..<remote>/<base>`; write into the preflight table.
-  3. When `behind_count > 0`: prefer `git checkout -b <feat> <remote>/<base>`, or `merge --ff-only` on a **clean and ff-able** local base before creating the branch.
-  4. **Forbidden**: silent branch from a behind local tip; **forbidden**: `reset --hard` or unconfirmed rewrite of dirty/divergent local `master`.
+  3. When `behind_count > 0` and local base is **clean and ff-able**: **must** `git checkout master` + `git merge --ff-only origin/master` (`FF_LOCAL_MASTER`), **then** `git checkout -b <feat> master` (`CREATE_FROM_LOCAL_MASTER`). When already fresh: `CREATE_FROM_LOCAL_MASTER` only.
+  4. **Forbidden**: `CREATE_FROM_ORIGIN` / primary `checkout -b` from `<remote>/<base>` while leaving local master stale; silent CREATE from `dev`/`develop`; silent branch from a behind local tip; `reset --hard` or rewrite of dirty/divergent local `master` without **written** user approval.
   5. Full checklist and G6 → [branch-purpose-preflight.md](branch-purpose-preflight.md).
 
 ### Naming grammar

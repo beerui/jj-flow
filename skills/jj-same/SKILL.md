@@ -75,8 +75,8 @@ Pick the shortest path from input: fast implement / standard discovery / snapsho
 
 ## Hard constraints / MUST NOT
 
-- MUST: branch-purpose preflight before coding; **before CREATE**, `git fetch` the integration base so the new branch tip is not behind `origin/<base>` (default `origin/master`; allow ff-only or `checkout -b` from origin); change business code only when `EXECUTION_READY`; claim handoff complete only when `HANDOFF_READY`; closeout to the user is a **short summary only**.
-- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); silently create a branch from a stale local base tip when `behind_count > 0`; `reset --hard` or unconfirmed rewrite of dirty/divergent local `master`; change unauthorized repos; private `.workflow/jj-same/`; fake dispatch approval without control; chat summaries as substitutes for Git/source evidence; **show “five gates” checklists/slogan conclusions to the user**.
+- MUST: branch-purpose preflight before coding; **before CREATE**, `git fetch` the integration base, ff-only freshen **local** `master` when behind+clean (`FF_LOCAL_MASTER`), then `checkout -b <feat> master` only (`CREATE_FROM_LOCAL_MASTER`; default `create_from=master` local); change business code only when `EXECUTION_READY`; claim handoff complete only when `HANDOFF_READY`; closeout to the user is a **short summary only**.
+- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silently create a branch from a stale local base tip when `behind_count > 0`; `reset --hard` or rewrite of dirty/divergent local `master` without **written** user approval; change unauthorized repos; private `.workflow/jj-same/`; fake dispatch approval without control; chat summaries as substitutes for Git/source evidence; **show “five gates” checklists/slogan conclusions to the user**.
 - Do not commit/push without explicit request; do not continuously watch the source repo.
 
 ## References

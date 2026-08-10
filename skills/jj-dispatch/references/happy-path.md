@@ -45,13 +45,21 @@ When a `TASK-ID` exists, recover index and manifest first (with CLI: `jj task co
 | dirty | whether there are dirty changes **not belonging to this task** |
 | active_write | whether the same project already has an active write intent |
 | proposed_mode | `project-branch` (default) or `exclusive-worktree` |
-| base / origin_base | integration base ref and tip (default `master` / `origin/master`) |
+| base / origin_base | integration base ref and tip (default **local** `master` / `origin/master`) |
 | behind_count | `git rev-list --count <base>..<remote>/<base>` (must `git fetch` before CREATE) |
-| base_action | `USE_LOCAL` / `FETCH_FF` / `CREATE_FROM_ORIGIN` / `NEEDS_CONFIRM` / `BLOCKED` |
+| base_action | `FF_LOCAL_MASTER` / `CREATE_FROM_LOCAL_MASTER` / `NEEDS_CONFIRM` / `BLOCKED` |
+| create_from | **local** `master` only (never `origin/master` as primary) |
 | confidence | `high` / `low` |
 | action | `READY` or `NEEDS_CONFIRM` |
 
-**CREATE base freshness (EP-20260803 hard gate)**: when intended does not exist and must be created from base, **forbid** silent `checkout -b` from a stale local `master` tip when `behind_count > 0`. `git fetch` first; prefer `CREATE_FROM_ORIGIN` or clean-base `FETCH_FF`. Never `reset --hard` a dirty/diverged local master. Aligns with jj-same [branch-purpose-preflight](../../jj-same/references/branch-purpose-preflight.md) checks 6–10 / G6.
+**CREATE base freshness (local-master-only; EP-20260803 + 2026-08-10)**: when intended does not exist and must be created from base, **CREATE only from freshened local `master`** (`git checkout -b <feat> master`). Default `base=master`, `create_from=master` (local). Sequence:
+
+1. `git fetch origin master`
+2. If `behind_count > 0` and local master is **clean + ff-able** → `FF_LOCAL_MASTER`: `git checkout master` + `git merge --ff-only origin/master`
+3. Then `CREATE_FROM_LOCAL_MASTER`: `git checkout -b <feat> master`
+4. If already `behind_count = 0` and not diverged → `CREATE_FROM_LOCAL_MASTER` only
+
+**Forbidden as primary path**: `CREATE_FROM_ORIGIN` (`checkout -b` from `origin/master` while leaving local master stale); silent CREATE from `dev`/`develop`; silent `checkout -b` from a stale local tip when `behind_count > 0`; `reset --hard` on dirty/diverged local master without **written** user approval. Aligns with jj-same [branch-purpose-preflight](../../jj-same/references/branch-purpose-preflight.md) checks 6–10 / G6.
 
 **When you must stop and ask (`NEEDS_CONFIRM`)**: target branch missing/conflicting; main worktree branch ≠ intended and cannot safely fast-forward; isolation is unclear; user previously asked to “merge onto current branch” or a worktree-transfer correction occurred; **local base is dirty/diverged and cannot safely ff while CREATE is required**; **cannot fetch and cannot prove base is fresh**.
 

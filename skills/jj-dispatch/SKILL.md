@@ -24,7 +24,7 @@ TASK-ID recovery -> PREVIEW (branch/workspace table)
 | 1 | intake incomplete | `INTAKE_REQUIRED` only |
 | 2 | intent=`UNKNOWN` | `RECONCILE` / manual BIND only; never recreate the same key |
 | 3 | no task_keys approval | `PREVIEW_ONLY` read-only |
-| 4 | write branch/workspace uncertain; **base stale on CREATE** | show decision table (incl. `behind_count`/`base_action`); no DISPATCH until confirmed; never silently create a branch from a behind local master |
+| 4 | write branch/workspace uncertain; **base stale on CREATE** | show decision table (incl. `behind_count`/`base_action` = `FF_LOCAL_MASTER` \| `CREATE_FROM_LOCAL_MASTER` \| `NEEDS_CONFIRM` \| `BLOCKED`); no DISPATCH until confirmed; CREATE only from freshened **local** `master` (never `CREATE_FROM_ORIGIN`; never silent CREATE from `dev`) |
 | 5 | missing Codex capabilities | Codex: BLOCKED and plane unchanged; **Grok → degrade to Mode S** |
 | 6 | approved and path ready | write intent → BIND (Grok: real session + attestation file) |
 | 7 | receipt present / already bound | tick/resume; **without CLI, Agent writes plane** (see agent-write-plane) |
@@ -120,7 +120,7 @@ Role fields (intake / plane): `origin_project` · `requirement_owner` · `lead_p
 - Do not require the user to open the control root or create a new control repo per wave
 - **Do not require the user to run CLI** for PREVIEW / approve / closeout
 - Do not implement a long-running daemon / DB / full multi-agent engine
-- **By default do not** auto merge, push, or release; **before CREATE of a feature branch must** fetch and ensure tip is not behind `origin/<base>` (see happy-path decision table / EP-20260803)
+- **By default do not** auto merge, push, or release; **before CREATE of a feature branch must** `git fetch`, ff-only freshen **local** `master` when behind+clean, then `checkout -b <feat> master` only (see happy-path decision table / EP-20260803 + 2026-08-10); forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev`/`develop`
 - Do not advance checkpoints from thread stop or model prose alone
 - Do not hand-write `VERIFIED` without `produced_commit` / real session / **attestation file**
 - Do not synthesize `session-…` placeholder threads to fake BOUND
