@@ -29,7 +29,7 @@ Rollback edges: `rollback.md`.
 
 | Stage | Action |
 | --- | --- |
-| During DELIVER | Change code + progress + re-verify |
+| During DELIVER | If approach/MUST changed: move plan/acceptance Current → Landed/Superseded, write new Current, then change code + progress + re-verify ([artifact-layout.md](artifact-layout.md)) |
 | accept wrongly PASS | `gate accept FAIL` or `rollback-phase --to DELIVER` |
 | Plan/analyze wrong | Roll back on **adjacent edges** only (no skipping) |
 | Already archived | `resume` → same as above → may `finalize` again |
@@ -37,7 +37,8 @@ Rollback edges: `rollback.md`.
 
 ## Add requirements
 
-Same run: add REQ in analyze, TASK in plan, expand `scope.in`; one re-acceptance covers all.  
+Same run: add REQ in analyze, add TASK under plan `## Current`, expand `scope.in`; one re-acceptance covers all (still-true items stay PASS).  
+If a prior Current is no longer the approach, move it to `## Superseded` first — do not replace the whole plan/acceptance file. If an older `plan.md` has `## Tasks` and no `## Current`, rename Tasks→Current first. Shape: [artifact-layout.md](artifact-layout.md).  
 If accept already passed or archived: return to DELIVER first, then edit and re-verify.
 
 ## Abandon

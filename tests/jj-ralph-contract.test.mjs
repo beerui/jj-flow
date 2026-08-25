@@ -162,6 +162,19 @@ test('sample run and business map validate', () => {
   assert.ok(map.capabilities[0].run_refs.includes('RALPH-login-reminder-20260722'));
 });
 
+test('initRun plan stub uses ## Current (legacy ## Tasks still valid in old files)', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-init-shape-'));
+  try {
+    const runId = 'RALPH-init-shape-20260825';
+    initRun({ run_id: runId, title: 'init shape', goal: 'Current heading', capability_ids: ['CAP-init-shape'], attach_knowledge: false }, cwd);
+    const plan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'plan.md'), 'utf8');
+    assert.match(plan, /^## Current$/m);
+    assert.equal((plan.match(/^## Tasks$/m) || []).length, 0);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('map-merge then map-find recovers historical capability and run paths', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-map-'));
   try {

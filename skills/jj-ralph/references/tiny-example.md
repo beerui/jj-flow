@@ -31,7 +31,7 @@ run_id: RALPH-zero-interest-url-20260723
 
 ```markdown
 # PLAN
-## Tasks
+## Current
 - TASK-1 → REQ-001: update order-operation-link.vue agreement URL binding
 
 ## Out of scope
@@ -56,6 +56,24 @@ run_id: RALPH-zero-interest-url-20260723
 ```
 
 `diff-only` / `behavior-local` only — do **not** add field-lifecycle or dual-path checks for tiny presentational work. Full rules: [must-evidence.md](must-evidence.md).
+
+## Resume / policy change (even tiny)
+
+Same `run_id`. Do not overwrite `plan.md` / `acceptance.md` down to only the new bullets.
+
+```markdown
+# PLAN
+## Current
+- TASK-2 → REQ-001: tip 8px → 6px
+
+## Landed
+- TASK-1 → REQ-001: bind zeroInterestBizAgreementUrl  (still true)
+
+## Superseded
+- (none)
+```
+
+Move the previous `## Current` block to Landed or Superseded **before** writing the new Current. If an older live file still says `## Tasks`, that block is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
 
 ## Closeout
 
