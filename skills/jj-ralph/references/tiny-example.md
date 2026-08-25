@@ -73,7 +73,7 @@ Same `run_id`. Do not overwrite `plan.md` / `acceptance.md` down to only the new
 - (none)
 ```
 
-Move the previous `## Current` block to Landed or Superseded **before** writing the new Current. If the live file still says `## Tasks` (init stub / older run), that block is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
+Move the previous `## Current` block to Landed or Superseded **before** writing the new Current. If an older live file still says `## Tasks`, that block is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
 
 ## Closeout
 

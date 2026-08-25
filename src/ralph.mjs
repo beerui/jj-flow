@@ -455,7 +455,7 @@ export function initRun(options, cwd = process.cwd()) {
   });
   const stubs = {
     'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
-    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Tasks' + nl + nl + '## Out of scope' + nl,
+    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Current' + nl + nl + '## Out of scope' + nl,
     'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- max_iterations: ' + run.max_iterations + nl

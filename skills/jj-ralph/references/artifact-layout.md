@@ -59,7 +59,7 @@ On first write of a new run, `## Landed` / `## Superseded` may be omitted until 
 
 ### Legacy / init headings
 
-`ralph_ops init` and older runs still write `plan.md` with `## Tasks`, `analyze.md` with `## MUST`, `acceptance.md` as a table. Gate path checks read backtick paths, not these heading names.
+`ralph_ops init` writes `plan.md` with `## Current`. Older runs may still have `## Tasks`. `analyze.md` keeps `## MUST`; `acceptance.md` stays a table. Gate path checks read backtick paths, not these heading names.
 
 | File | If you see | On task / approach change |
 | --- | --- | --- |

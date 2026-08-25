@@ -40,7 +40,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
-   - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. If `plan.md` still has `## Tasks` and no `## Current`, that Tasks block is Current — rename it first, do not replace in place. Shape: [artifact-layout.md](references/artifact-layout.md)
+   - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. If an older `plan.md` still has `## Tasks` and no `## Current`, that Tasks block is Current — rename it first, do not replace in place. Shape: [artifact-layout.md](references/artifact-layout.md)
 5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, contribution package path, hook status.
 7. User says **「投喂知识库 / 补充全局知识」** or “feed knowledge base / contribute global knowledge” → `knowledge-contribute --hook` (candidate only; config below).
