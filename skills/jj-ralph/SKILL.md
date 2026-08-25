@@ -40,7 +40,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
-   - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. Do not replace the whole file. Shape: [artifact-layout.md](artifact-layout.md)
+   - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. Do not replace the whole file. Shape: [artifact-layout.md](references/artifact-layout.md)
 5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, contribution package path, hook status.
 7. User says **「投喂知识库 / 补充全局知识」** or “feed knowledge base / contribute global knowledge” → `knowledge-contribute --hook` (candidate only; config below).
@@ -84,7 +84,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
 | `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a `close` command |
-| User changes approach / MUST / plan (mid-run or after archive) | Move live `## Current` → Landed or Superseded; write new Current; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not wipe plan/acceptance to only this loop; unarchived Current must remain readable in the live run dir ([artifact-layout.md](artifact-layout.md)) |
+| User changes approach / MUST / plan (mid-run or after archive) | Move live `## Current` → Landed or Superseded; write new Current; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not wipe plan/acceptance to only this loop; unarchived Current must remain readable in the live run dir ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).
 

@@ -31,7 +31,7 @@ run_id: RALPH-zero-interest-url-20260723
 
 ```markdown
 # PLAN
-## Tasks
+## Current
 - TASK-1 → REQ-001: update order-operation-link.vue agreement URL binding
 
 ## Out of scope
