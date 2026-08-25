@@ -57,6 +57,24 @@ run_id: RALPH-zero-interest-url-20260723
 
 `diff-only` / `behavior-local` only — do **not** add field-lifecycle or dual-path checks for tiny presentational work. Full rules: [must-evidence.md](must-evidence.md).
 
+## Resume / policy change (even tiny)
+
+Same `run_id`. Do not overwrite `plan.md` / `acceptance.md` down to only the new bullets.
+
+```markdown
+# PLAN
+## Current
+- TASK-2 → REQ-001: tip 8px → 6px
+
+## Landed
+- TASK-1 → REQ-001: bind zeroInterestBizAgreementUrl  (still true)
+
+## Superseded
+- (none)
+```
+
+Move the previous `## Current` block to Landed or Superseded **before** writing the new Current. File shape: [artifact-layout.md](artifact-layout.md).
+
 ## Closeout
 
 1. After gates.accept=PASS → `finalize` (map-merge + soft archive snapshot; same run may continue)

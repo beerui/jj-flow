@@ -126,7 +126,7 @@ See [rollback.md](rollback.md). Adjacent phases only; ARCHIVE→ACCEPT is legal;
   - Latest review = `NEEDS_CHANGES` or `BLOCKED` → reject PASS
   - Implementation paths in plan/acceptance/`scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS
   - **ARCHIVE** with latest `PASS` review: must have `review_scope=commit` and `fix_commit`/`reviewed_commit`; `working_tree` PASS is temporary evidence only and cannot archive as landed
-  - When policy changes mid-run, rewrite plan/acceptance before accepting; do not only change code
+  - When policy changes mid-run, revise plan/acceptance **Current** before accepting; do not only change code. Move the previous Current block to Landed or Superseded first ([artifact-layout.md](artifact-layout.md) § Current contract vs history). Do not delete prior TASK/MUST/acceptance rows
   - Ops override: `force: true` (library API / finalize force); default conversational path must not use force
 - Host metadata (optional, does not advance checkpoints): `run.host.host_id` / `thread_id` / `model_id` / `export_path`; write via `jj ralph host-record` or init for evaluation and session replay
 - Optional review fields: `--review-scope working_tree|commit`, `--fix-commit <sha>`
