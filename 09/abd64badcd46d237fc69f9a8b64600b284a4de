@@ -1,0 +1,33 @@
+docs/commands/cli.md
+  s_60089c8e856798::t_766cdb0b1c52d8 7
+README.md
+  s_60089c8e856798::t_5915896e6346a3 33,39,45,51,57
+package.json
+  s_60089c8e856798::t_d7a78e8ada9ebb 3
+CHANGELOG.md
+  s_60089c8e856798::t_db9b229999ae54 7-8,10-13
+  s_60089c8e856798::t_ac230d7dc138ef 9
+docs/installation.md
+  s_60089c8e856798::t_810e72bab143da 13,30-33,41
+package-lock.json
+  s_60089c8e856798::t_b781ec77eff6ae 3,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.31",
+  "base_commit_sha": "09abd64badcd46d237fc69f9a8b64600b284a4de",
+  "prompts": {},
+  "sessions": {
+    "s_60089c8e856798": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a036a2-bcda-7290-8874-369335a1da91",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
