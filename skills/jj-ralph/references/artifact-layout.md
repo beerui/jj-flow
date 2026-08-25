@@ -57,6 +57,16 @@ Keep this section order. `tiny` uses the same shape, shortest bullets.
 
 On first write of a new run, `## Landed` / `## Superseded` may be omitted until something lands or is replaced.
 
+### Legacy / init headings
+
+`ralph_ops init` and older runs still write `plan.md` with `## Tasks`, `analyze.md` with `## MUST`, `acceptance.md` as a table. Gate path checks read backtick paths, not these heading names.
+
+| File | If you see | On task / approach change |
+| --- | --- | --- |
+| `plan.md` | `## Tasks` and no `## Current` | That `## Tasks` block **is** Current. Rename it to `## Current` first (do not delete bullets), then move it to Landed/Superseded and write the new Current. Never replace `## Tasks` in place. |
+| `analyze.md` | `## MUST` / `## OUT` | Keep those headings. Do not rename MUST→Current. Keep still-true REQ; mark abandoned MUST `SUPERSEDED`. |
+| `acceptance.md` | markdown table, no Current sections | Keep the table. `result` = `PASS` (既有) / `SUPERSEDED` + reason / empty until evidence. Do not convert the table into Current/Landed/Superseded headings. |
+
 ### When the task / approach / MUST changes
 
 Includes: resume after archive, user correction, mid-DELIVER policy swap. Same `run_id`.

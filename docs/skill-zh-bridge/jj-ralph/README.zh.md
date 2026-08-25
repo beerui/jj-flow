@@ -94,7 +94,7 @@
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
 6. `$jj-end` 只做 Git，与 run status 正交  
 7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；**嵌套时**一句提示即可，直接调用不打 banner  
-8. 任务/方案变更：先把 live `## Current` 挪到 Landed/Superseded，再写新 Current；禁止整文件覆盖抹掉未归档修订 → `artifact-layout.md`  
+8. 任务/方案变更：先把 live `## Current` 挪到 Landed/Superseded，再写新 Current；无 `## Current` 时 `## Tasks` 就是 Current（先改名再挪）；禁止整文件覆盖 → `artifact-layout.md`  
 
 ## 刻意不对照的内容
 

@@ -38,7 +38,7 @@ Rollback edges: `rollback.md`.
 ## Add requirements
 
 Same run: add REQ in analyze, add TASK under plan `## Current`, expand `scope.in`; one re-acceptance covers all (still-true items stay PASS).  
-If a prior Current is no longer the approach, move it to `## Superseded` first — do not replace the whole plan/acceptance file. Shape: [artifact-layout.md](artifact-layout.md).  
+If a prior Current is no longer the approach, move it to `## Superseded` first — do not replace the whole plan/acceptance file. If `plan.md` has `## Tasks` and no `## Current`, rename Tasks→Current first (legacy / init stub). Shape: [artifact-layout.md](artifact-layout.md).  
 If accept already passed or archived: return to DELIVER first, then edit and re-verify.
 
 ## Abandon
