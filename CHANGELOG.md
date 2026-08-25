@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## 0.1.1 — 2026-08-25 14:29
+
+- **正式版**：由 `0.1.1-beta.52` 去掉预发布后缀；npm `latest` 应对准本号。安装示例改为 `npx @brewer/jj-flow@latest`。
+- **jj-ralph 任务变更保留历史**：live `plan.md` / `analyze.md` / `acceptance.md` 以 `## Current` 为当前合约；改方案时先挪到 `## Landed` / `## Superseded`，禁止整文件覆盖。
+- **旧标题兼容**：已有 `## Tasks` 且无 `## Current` 时，先改名为 Current 再挪；`analyze` 仍用 `## MUST`，acceptance 仍用表格。
+- **init 骨架**：`ralph_ops init` 的 `plan.md` 写入 `## Current`（不再写 `## Tasks`）；合约测试覆盖。
+
 ## 0.1.1-beta.52 — 2026-08-10 17:57
 
 - **Skill 可执行性（darwin）**：`jj-same` / `jj-dispatch` / `jj-ralph` / `jj-evaluated` 等补齐 In→Out 或门控路径、Failure recovery 三段式、🔴 CHECKPOINT / 🛑 STOP、用户可见 closeout/PREVIEW 模板；附 `test-prompts.json`（同/dispatch）。

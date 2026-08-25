@@ -30,31 +30,31 @@
 安装 Codex skills 和配套 agents：
 
 ```bash
-npx @brewer/jj-flow@beta install-skill
+npx @brewer/jj-flow@latest install-skill
 ```
 
 安装 Claude Code slash commands：
 
 ```bash
-npx @brewer/jj-flow@beta install-skill --platform claude
+npx @brewer/jj-flow@latest install-skill --platform claude
 ```
 
 安装 Grok skills：
 
 ```bash
-npx @brewer/jj-flow@beta install-skill --platform grok
+npx @brewer/jj-flow@latest install-skill --platform grok
 ```
 
 当前项目同时安装全部平台资产（Codex / Claude / Qoder / Grok）：
 
 ```bash
-npx @brewer/jj-flow@beta install-skill --platform all --project
+npx @brewer/jj-flow@latest install-skill --platform all --project
 ```
 
 卸载前先预览；旧版未登记或本地修改过的资产需要审查后显式加 `--force`：
 
 ```bash
-npx @brewer/jj-flow@beta uninstall-skill --platform all --dry-run --json
+npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 ```
 
 Codex：

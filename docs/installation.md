@@ -10,7 +10,7 @@
 在项目根目录执行：
 
 ```bash
-npx @brewer/jj-flow@beta install-skill --platform all --project
+npx @brewer/jj-flow@latest install-skill --platform all --project
 ```
 
 会装到本项目的 Codex / Claude / Grok / Qoder 配置目录里。
@@ -27,10 +27,10 @@ npm 包内 SSOT 为顶层 `skills/`，Claude 薄命令源为 `claude-commands/`�
 ## 只装某一个工具
 
 ```bash
-npx @brewer/jj-flow@beta install-skill
-npx @brewer/jj-flow@beta install-skill --platform claude
-npx @brewer/jj-flow@beta install-skill --platform grok
-npx @brewer/jj-flow@beta install-skill --platform qoder
+npx @brewer/jj-flow@latest install-skill
+npx @brewer/jj-flow@latest install-skill --platform claude
+npx @brewer/jj-flow@latest install-skill --platform grok
+npx @brewer/jj-flow@latest install-skill --platform qoder
 ```
 
 不要 `--project` 时，会装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`）。
@@ -38,7 +38,7 @@ npx @brewer/jj-flow@beta install-skill --platform qoder
 ## 卸载（先预览）
 
 ```bash
-npx @brewer/jj-flow@beta uninstall-skill --platform all --dry-run --json
+npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 ```
 
 只删本工具登记过的文件。你本地改过的默认不会乱删。
