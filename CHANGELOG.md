@@ -4,9 +4,11 @@
 
 ## Unreleased
 
+## 0.1.2 — 2026-08-28 22:26
+
 - **jj-end 合入目标**：有 `dev` 且未写 `integration=`、文档也未点名集成分支时，只合 `dev`。git log / `Merge #N into staging` 不算约定（EP-20260828）。
 - **jj-end 冲突**：agent 判断 simple/complex（拿不准当 complex）。全部 simple 则解完继续收工；有一条 complex 则整段 abort，不分解子集（G-end-2）。
-- **复盘**：`docs/evaluations/EP-20260828-jj-end-staging-not-dev.md`；踩坑 §9。
+- **复盘**：`docs/evaluations/EP-20260828-jj-end-staging-not-dev.md`；踩坑 §9 / §10。
 
 ## 0.1.1 — 2026-08-25 14:29
 
