@@ -1,0 +1,73 @@
+docs/pitfalls.md
+  s_489256cf01f6ce::t_3be4acb98f2729 123-128,132-133,136-138
+  s_333cd7083479c7::t_69a30ec530e3f8 134
+  s_333cd7083479c7::t_561e9a9514bbd6 129-131
+  s_489256cf01f6ce::t_ef4fd788a247e4 135
+  s_333cd7083479c7::t_bd9db8712a7bef 139-153
+docs/commands/jj-end.md
+  s_333cd7083479c7::t_bc99d2fbdd23fe 32
+  s_333cd7083479c7::t_5965a01ce79379 42-45
+docs/evaluations/EP-20260828-jj-end-staging-not-dev-report.md
+  s_333cd7083479c7::t_a345c24109c76f 1-2,4-164,167-174,177-184
+  s_333cd7083479c7::t_59d8ebd71edb0c 3,165-166,175-176
+docs/evaluations/EP-20260828-jj-end-staging-not-dev.episode.json
+  s_333cd7083479c7::t_acc99380e5c7fa 1-180
+docs/evaluations/2026-08-28-jj-end-staging-not-dev.md
+  s_333cd7083479c7::t_e66c61dcfbf020 3-4
+  s_489256cf01f6ce::t_0d6ef30fd21d65 1-2,5-14,16
+  s_333cd7083479c7::t_cd8155627c394b 15,17
+docs/evaluations/EP-20260828-jj-end-staging-not-dev.md
+  s_489256cf01f6ce::t_dc2226e3c7d444 1-101
+docs/evaluations/EP-20260828-jj-end-staging-not-dev.split.json
+  s_333cd7083479c7::t_e46f7be81a1f82 1-17
+tests/jj-end-contract.test.mjs
+  s_333cd7083479c7::t_ace76d2cb710cd 16-20
+  s_333cd7083479c7::t_ffec8c0b7f61b2 22-29
+  s_489256cf01f6ce::t_4da11663e9bb9e 1-15,21
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_333cd7083479c7::t_9f65802f97ad7e 37-40
+  s_489256cf01f6ce::t_26f5b80de6888e 41
+  s_333cd7083479c7::t_4ad0d62cde8902 23-24
+  s_333cd7083479c7::t_66d948299de05f 42
+skills/jj-end/SKILL.md
+  s_333cd7083479c7::t_be34302b84c5c3 8,34-35,44,77-82
+  s_489256cf01f6ce::t_c0d01ab4459b21 57,60-63,65,67,69,72-76
+  s_333cd7083479c7::t_cc5646ac13139b 33,52,56,58-59,64,66,68,161,324
+  s_333cd7083479c7::t_1997ad9061bb8b 97-140,230,280,289,318,320-321,337,339,350
+  s_333cd7083479c7::t_7282ffbbd83783 312
+  s_333cd7083479c7::t_c523793d415476 181
+  s_333cd7083479c7::t_d51cc17e09d6b7 83
+CHANGELOG.md
+  s_489256cf01f6ce::t_1bf4a1c2f8c689 7,9-10
+  s_333cd7083479c7::t_cf78835e83cc85 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "adb0d178d68d967920d5c9216baecde46f16a0e6",
+  "prompts": {},
+  "sessions": {
+    "s_333cd7083479c7": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a048ad-4122-76f3-87ab-df57611a8b86",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_489256cf01f6ce": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a047e5-7282-7e11-b584-7931ee6663cd",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
