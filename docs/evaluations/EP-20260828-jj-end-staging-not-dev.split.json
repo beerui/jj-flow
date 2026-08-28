@@ -1,0 +1,17 @@
+{
+  "episode_id": "EP-20260828-jj-end-staging-not-dev",
+  "search": [
+    {
+      "id": "EP-20260828-jj-end-staging-not-dev",
+      "notes": "Only sample of this failure class. Used to diagnose C-end-integration-no-gitlog-v1."
+    }
+  ],
+  "holdout": [],
+  "regression": [
+    {
+      "id": "G-end-1",
+      "notes": "Golden Q&A: Merge #N into staging + origin/dev + no integration= → land on dev. Immutable invariant; not the search episode id."
+    }
+  ],
+  "notes": "n=1 dataset. Holdout empty until a second independent staging-vs-dev closeout appears. Do not score candidates on invented holdout."
+}

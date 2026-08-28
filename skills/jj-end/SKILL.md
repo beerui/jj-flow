@@ -5,7 +5,7 @@ description: Task closeout that syncs remote branches, commits with Chinese Conv
 
 # JJ End
 
-**Run the full closeout pipeline in one pass.** Do not stop after “commit only / push only” and wait for the user, unless Hard-stop or conflict.
+**Run the full closeout pipeline in one pass.** Do not stop after “commit only / push only” and wait for the user, unless Hard-stop or **complex** conflict (see Conflict classify).
 
 Fixed order:
 
@@ -30,6 +30,9 @@ On failure, stop and **try to return to `work_branch`**.
 | 8 | Treat `merge --abort` rollback as closeout success | Abort ≠ landed |
 | 9 | Create empty integration history when branch missing | No inventing integration |
 | 10 | Write control plane / ralph run / dispatch manifests | Use `$jj-dispatch` / `$jj-ralph` |
+| 11 | Treat git log / MR titles / `origin/HEAD` / a staging-merge parent / mere `staging` existence / a build-script name containing `staging` as the closeout integration | Historical EP-20260828 land-on-预发; build flavor ≠ land target |
+| 12 | Label a conflict `simple` when unsure, or auto-resolve a subset then abort | Mixed merge + silent business-logic loss |
+| 13 | Leave `<<<<<<<` / `=======` / `>>>>>>>` in a completed closeout | Merge not actually finished |
 
 ## Core Rule
 
@@ -38,7 +41,7 @@ On failure, stop and **try to return to `work_branch`**.
 - 🔴 CHECKPOINT · 🛑 STOP — **user forbade push/merge**: must not merge / push; report plan only; do not continue steps 4–6
 - 🔴 CHECKPOINT · 🛑 STOP — **`dry_run=true`**: print the field table → stop; no commit / pull-write / merge / push
 - Commit only, no push/merge: do not use this skill
-- **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except conflict, or user explicitly forbids)
+- **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except **complex** conflict, or user explicitly forbids)
 - This skill does **not** write the control plane and does **not** read/advance dispatch manifests; scheduling closeout uses `$jj-dispatch`
 
 ## Integration resolution priority
@@ -46,11 +49,37 @@ On failure, stop and **try to return to `work_branch`**.
 Resolve `integration` in order (each step checks whether the name exists **locally or** as `<remote>/<name>`):
 
 1. User-explicit `integration=` (if missing on both remote and local → **hard-stop**)
-2. Family / repo convention (if docs or user config name the integration branch)
+2. Family / repo convention (if **docs / AGENTS.md / naming.json / user config explicitly name the closeout/land/merge-target branch**)
 3. Heuristic: `dev` → `develop` → `main` (only when present)
 4. Otherwise stop and ask for the target branch
 
+Priority-2 “explicitly name” means a sentence that the **closeout / land / merge target** is that branch. A word match for `staging` / `dev` in a script, env, or build flavor is **not** naming.
+
+**Not convention** (EP-20260828): if a candidate target came only from the list below, **discard it** and continue the priority list (usually heuristic `dev`). Do **not** let these override a present `dev`/`origin/dev`:
+
+- git log / `Merge #N into staging` (or other MR titles)
+- `origin/HEAD` pointing at `master`
+- the work branch was created from a staging-merge commit
+- a `staging` / 预发 branch merely existing alongside `dev`
+- AGENTS.md / README / `package.json` scripts that only mention `staging` as a **build flavor, env, or script name** (example: `pnpm build:h5:staging`)
+
+To land on 预发/`staging`, the user must write `integration=staging`, or docs/config must name that **closeout** branch. If `dev` exists and convention is undocumented → **merge `dev` only**.
+
+Print the one-line `work→integration` plan **with source** (`user` / `docs` / `heuristic`) before executing steps 4–6. Never print source=`git-log`.
+
 **Do not** silently pick a monorepo root or parent-repo integration when monorepo / package roots are undeclared. The workspace must be the intended git root (`git rev-parse --show-toplevel`); mis-detecting a package or parent root → **hard-stop**, report discovered path and recommendation.
+
+### Golden Q&A — G-end-1 (must not regress)
+
+**Q:** Recent commits are `Merge #N into staging`. `origin/dev` exists. User says `/jj-end` with no `integration=`. Land where?
+
+**A:** `dev`. Git history of staging MRs is not family convention. Regression: `EP-20260828-jj-end-staging-not-dev`.
+
+### Golden Q&A — G-end-2 (must not regress)
+
+**Q:** `git merge work` into `dev` conflicts in two files: one import-only, one the same Vue method changed differently. Auto-resolve the import?
+
+**A:** No. Print the classify table. The Vue method is `complex` → **abort the whole merge**, return to `work_branch`, hand the table to the user. Do not resolve a subset.
 
 ## Defaults
 
@@ -64,6 +93,50 @@ Resolve `integration` in order (each step checks whether the name exists **local
 | work_sync | `merge`: when work diverged from remote, pull with merge (not force) |
 
 `$jj-end` · `$jj-end integration=release return_to=integration` · `$jj-end dry_run=true`
+
+## Conflict classify (model judgment, fail closed)
+
+Applies to: step 3 pull work, step 5 pull integration, step 5 merge work→integration.
+
+The agent **judges** each conflicted file `simple` or `complex`. Unsure → `complex`. Print the table **before** any resolve. This is **not** a user-confirm pause when every file is `simple`.
+
+### 1. Inventory (do not abort yet)
+
+```bash
+git diff --name-only --diff-filter=U
+```
+
+Read each file’s conflict hunks (`<<<<<<<` / `=======` / `>>>>>>>`).
+
+### 2. Required table (before resolve)
+
+| file | class | reason | resolution |
+|------|-------|--------|------------|
+| path | `simple` \| `complex` | one line | one sentence, or `hand to user` |
+
+### 3. How to judge
+
+Label **`simple`** only when you can state a one-sentence resolution that **does not invent product behavior**. Typical `simple` (not an exhaustive whitelist — the agent still judges): both sides identical after stripping markers; import/require-only union; changelog both prepended entries; comment/whitespace only; lockfile you will **regenerate with the package manager** (never hand-edit).
+
+Label **`complex`** when: the same function / template / logic changed differently; you cannot explain the resolution in one sentence; binary / secrets; too many files to inspect hunk-by-hunk this turn; **or you are unsure**.
+
+### 4. Decision
+
+**Any** `complex` (or unsure):
+
+```bash
+git merge --abort
+# if this conflict happened on integration:
+git checkout <work_branch>
+```
+
+🔴 CHECKPOINT · 🛑 STOP — hand the table to the user. Do **not** resolve a subset. Do **not** continue steps 4–6.
+
+**All** `simple`: apply the stated resolutions → `git add -- <files>` → confirm no conflict markers remain → `git diff --check` (fix or treat as `complex` and abort) → finish the in-progress merge (`git commit --no-edit` if a merge commit is required) → **continue** the closeout pipeline.
+
+### 5. Report
+
+Final response must list every auto-resolved file and the resolution (`ours` / `theirs` / `union` / `regenerated lockfile`). Abort is **not** closeout success.
 
 ## Workflow
 
@@ -85,6 +158,7 @@ Record:
 | `dirty` | whether this task has uncommitted changes |
 | `ahead` / `behind` | relative to `@{u}` or `origin/<work_branch>` |
 | `integration` | merge target |
+| `integration_source` | `user` \| `docs` \| `heuristic` — never inferred from git log / MR titles / `origin/HEAD` / build-script word match |
 | `branch_purpose` | one line: whether this task **intends** to land on `work_branch` (not an accidental checkout) |
 
 If this turn’s changes clearly belong to another feature/release line (e.g. telemetry attached to a release-train branch), **stop and report first**; suggest switching to the correct work branch before closeout; do not silently merge the wrong line into integration. Decision details: [`skills/jj-same/references/branch-purpose-preflight.md`](../jj-same/references/branch-purpose-preflight.md) (closeout only protects; it does not create migration branches).
@@ -104,6 +178,7 @@ Resolve `integration`: see “Integration resolution priority” above (do not g
 |------|------|
 | `work_branch` | work branch at closeout start |
 | `integration` | resolved merge target |
+| `integration_source` | `user` \| `docs` \| `heuristic` |
 | `will_commit` | whether this task’s changes will be committed |
 | `will_pull_work` | whether work will be pulled/synced |
 | `will_merge` | whether work→integration merge will run (false when same branch; explain) |
@@ -152,7 +227,7 @@ If `--ff-only` fails due to divergence (not network error):
 git pull --no-rebase <remote> <work_branch>
 ```
 
-- 🔴 CHECKPOINT · 🛑 STOP — **pull work conflict**: `git merge --abort` (if mid-merge) → stay on `work_branch` → report conflict files → stop (do not fake success)
+- **pull work conflict**: follow **Conflict classify** (all `simple` → finish the pull merge and continue; any `complex` → abort, stay on `work_branch`, STOP)
 - no remote work branch: skip pull; step 4 uses `push -u` to set tracking
 
 **Forbidden** `pull --rebase` unless the user explicitly asks (see blacklist).
@@ -202,7 +277,7 @@ If ff-only fails due to divergence:
 git pull --no-rebase <remote> <integration>
 ```
 
-🔴 CHECKPOINT · 🛑 STOP — **pull integration conflict**: abort → `git checkout <work_branch>` → report → stop.
+**pull integration conflict**: follow **Conflict classify** (any `complex` → abort → `git checkout <work_branch>` → STOP).
 
 Merge work branch:
 
@@ -211,14 +286,7 @@ git merge --no-edit <work_branch>
 ```
 
 - Already ancestor (Already up to date) → note “no new merge needed”; still continue to push integration (may already be synced)
-- 🔴 CHECKPOINT · 🛑 STOP — **merge work→integration conflict**:
-
-```bash
-git merge --abort
-git checkout <work_branch>
-```
-
-Report conflict file list and recommendation (rebase/merge integration on work, then re-run `$jj-end`). **Do not resolve business conflicts on your own.**
+- **merge work→integration conflict**: follow **Conflict classify**. Any `complex` → abort → `git checkout <work_branch>` → STOP (user resolves on work, then re-run `$jj-end`). All `simple` → finish the merge and continue to push integration.
 
 ### 6. Push integration
 
@@ -241,18 +309,19 @@ git log -1 --oneline <integration>   # if resolvable
 
 ## Failure and recovery (must follow)
 
-🔴 All rows below are **STOP exits** (not “retry until success”). Happy path does **not** pause for user confirmation before push/merge.
+🔴 Rows are **STOP or continue-after-classify**. Happy path (including all-`simple` conflicts) does **not** pause for user confirmation before push/merge. Any-`complex` is a STOP.
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|
 | hard-stop before commit (no git/remote, detached, in-progress merge/rebase, unrelated heavy dirt) | Report condition; do not change branch | Stay stopped; do not merge/push |
 | monorepo/package workspace mis-detect | Report `git rev-parse --show-toplevel` + intended root | No commit/merge until user fixes cwd/root |
-| pull work conflict | `git merge --abort` if mid-merge; stay on work | Report conflict files; STOP (do not fake success) |
+| pull work conflict | **Conflict classify**; all `simple` → finish pull and continue | Any `complex`/unsure: abort; stay on work; STOP with table |
 | push work failure | Stay on work; surface remote error | STOP; no checkout to integration |
-| pull integration conflict | Abort pull/merge; `git checkout <work_branch>` | Report; STOP |
-| merge work→integration conflict | `git merge --abort`; `git checkout <work_branch>` | Report files + “re-run `$jj-end` after resolving on work”; STOP |
+| pull integration conflict | **Conflict classify**; all `simple` → finish pull and continue | Any `complex`/unsure: abort; `git checkout <work_branch>`; STOP with table |
+| merge work→integration conflict | **Conflict classify**; all `simple` → finish merge and continue to push | Any `complex`/unsure: abort; `git checkout <work_branch>`; STOP with table; user re-runs `$jj-end` after resolving on work |
 | push integration failure | Prefer `git checkout <work_branch>` | Report: local may be merged but unpushed; needs manual push |
 | 🔴 user forbids push/merge or `dry_run=true` | Plan / dry_run table only | No push/merge; STOP (do not run steps 4–6) |
+| candidate integration is `staging`/`预发` but source would be git-log / existence / build-script (not `user`/`docs`) | Discard candidate; continue priority (heuristic `dev` if present) | Do not merge 预发; STOP only if heuristic also missing |
 
 ## Self-check list (while executing)
 
@@ -265,8 +334,9 @@ git log -1 --oneline <integration>   # if resolvable
 - [ ] Already switched per `return_to`
 - [ ] Final report includes branches and hashes (commit subject may be Chinese)
 
-If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / conflict → **finish it**; do not reply with only a plan.
+If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / **complex** conflict → **finish it**; do not reply with only a plan.
 If hard-stop or 🔴 CHECKPOINT hit → **stay stopped**; do not “finish it”.
+All-`simple` conflicts are **not** a stop; classify → resolve → continue.
 
 ## Final Response
 
@@ -277,6 +347,7 @@ Report facts only:
 - whether work / integration were pulled
 - branches pushed
 - whether merge ran (or Already up to date / same-branch skip)
+- conflict classify table if a merge/pull conflict occurred (auto-resolved files + how, or abort + table)
 - blockers and next steps (on failure)
 
 ## Boundaries

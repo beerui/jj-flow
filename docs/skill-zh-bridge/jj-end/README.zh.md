@@ -20,6 +20,8 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 
 失败即停并尽量回到 `work_branch`。禁止 force push、删分支、改 git config、提交 secrets/无关文件。
 
+冲突：agent 先打分类表（simple/complex）。全部 simple 则自己解完继续收工；有一条 complex 或拿不准 → 整段 abort，不分解子集。见 SSOT `Conflict classify` / G-end-2。
+
 ## 核心规则（摘要）
 
 | 规则 | 说明 |
@@ -32,10 +34,12 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 
 ## Integration 解析优先级
 
-1. 用户显式 `integration=`  
-2. 家族/仓库约定  
-3. 启发式：`dev` → `develop` → `main`  
-4. 否则询问  
+1. 用户显式 `integration=`
+2. 家族/仓库约定（仅文档 / AGENTS / `naming.json` / 用户配置**点名**集成分支）
+3. 启发式：`dev` → `develop` → `main`
+4. 否则询问
+
+git log / `Merge #N into staging` / 同时存在 `staging` 分支 / AGENTS 里 `pnpm build:h5:staging` 这类构建脚本名 **不算**约定，不能压过已有的 `dev`（EP-20260828）。要合预发必须 `integration=staging`。
 
 禁止 monorepo 未声明时猜根。
 

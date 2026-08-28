@@ -120,6 +120,37 @@ team 产物可以**引用进** evidence，不会自动翻 gate。
 
 ---
 
+## 9. 收工时把 staging 当成 dev
+
+**出什么事：** `/jj-end` 没写合入分支。仓库里既有 `dev` 又有 `staging`。Agent 看到历史都是 `Merge #N into staging`，就把功能合进预发。
+
+**怎么做：**
+
+1. 没写 `integration=`、文档/`naming.json` 也没点名**合入/收工**分支时：有 `dev` 就只合 **`dev`**
+2. git log、MR 标题、`origin/HEAD → master`、功能分支从 staging-merge 拉出、仓库里有 `staging` 分支、AGENTS/`package.json` 里的 `pnpm build:h5:staging` 这类构建脚本名 → **都不算**约定
+3. 要合预发必须写 `integration=staging`，或文档明确点名合入分支（不是脚本名里碰巧出现 staging）
+4. 执行前那一行 `work→integration` 要看得出是 user / docs / heuristic，方便当场拦住
+
+→ [end](command-jj-end.html)
+复盘（仓库内，站点不收录）：`docs/evaluations/EP-20260828-jj-end-staging-not-dev.md`
+
+---
+
+## 10. 收工遇到冲突就整段放弃，或只解一半
+
+**出什么事：** `$jj-end` 一有冲突就停；或者只把 import 冲突解了、业务函数冲突还留着，半成品 merge。
+
+**怎么做：**
+
+1. 先打分类表：每个冲突文件 `simple` 或 `complex`（拿不准 = `complex`）
+2. **全部 simple** → 按表解完，继续 push 合入
+3. **有一条 complex** → `merge --abort`，回到工作分支，把表给你；不要只解子集
+4. 解完不能留下 `<<<<<<<`
+
+→ [end](command-jj-end.html)
+
+---
+
 ## 派发前 10 秒自检
 
 - [ ] 源已经 commit  

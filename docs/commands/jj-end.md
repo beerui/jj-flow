@@ -29,6 +29,7 @@
 ```
 
 合入目标默认：有 `dev` 用 `dev`，否则 `develop`，再否则 `main`。
+git log 里的 `Merge #N into staging`、仓库里同时有 `staging` 分支、AGENTS/`package.json` 里的 `pnpm build:h5:staging` 构建脚本，**都不算**改默认。要合预发必须写 `integration=staging`（或文档点名合入分支）。见 [踩坑 §9](pitfalls.html)。复盘：`docs/evaluations/EP-20260828-jj-end-staging-not-dev.md`。
 
 ### 内部机制演示（可交互）
 
@@ -38,9 +39,10 @@ fetch / commit / 同步 work / push / 合进集成分支 / 再推 / 冲突停表
 
 ## 硬规矩
 
-- 不 force push、不删分支、不改 git 配置  
-- 有冲突就停，尽量回到工作分支，说清楚卡在哪  
-- 不能「只推了工作分支」就当收工成功  
+- 不 force push、不删分支、不改 git 配置
+- 冲突先分类：全部简单则自己解完继续收工；有一条复杂或拿不准 → 整段 abort，回到工作分支，把分类表给你
+- 不能「只推了工作分支」就当收工成功
+- 不能只解一部分冲突再停（子集解 + 半成品 merge）
 
 ## 怎么说
 
