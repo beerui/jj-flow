@@ -7,7 +7,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = [
   { src: path.join(root, 'src', 'ralph.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'ralph.mjs') },
   { src: path.join(root, 'src', 'namingConfig.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'namingConfig.mjs') },
-  { src: path.join(root, 'src', 'portfolioKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'portfolioKnowledge.mjs') }
+  { src: path.join(root, 'src', 'portfolioKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'portfolioKnowledge.mjs') },
+  { src: path.join(root, 'src', 'memoryRetrieve.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryRetrieve.mjs') },
+  { src: path.join(root, 'src', 'memoryExtract.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryExtract.mjs') }
 ]
 const checkOnly = process.argv.includes('--check');
 

@@ -4,6 +4,8 @@ import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig } from './namingConfig.mjs';
 import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown, resolvePortfolioKbRoot } from './portfolioKnowledge.mjs';
+import { INJECT_SOFT_CAP } from './memoryRetrieve.mjs';
+import { gateLesson } from './memoryExtract.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -434,7 +436,7 @@ export function initRun(options, cwd = process.cwd()) {
       project: options.project || options.project_key || null,
       q: options.knowledge_query || '',
       cwd,
-      limit: options.knowledge_limit || 12
+      limit: options.knowledge_limit || INJECT_SOFT_CAP
     });
     runOptions.knowledge_refs = pack.knowledge_refs || [];
     runOptions.knowledge_summary = pack.knowledge_summary || [];
@@ -798,6 +800,7 @@ export function buildKnowledgeContribution(run, {
   const cap = elevation.capability;
   const git = readGitSourceFacts(cwd);
   const candidates = [];
+  const extract_audit = [];
   candidates.push({
     type: 'capability',
     title: cap.title,
@@ -812,15 +815,30 @@ export function buildKnowledgeContribution(run, {
       source_kind: 'ralph_archive'
     }
   });
+  const taskTexts = [run.title, run.goal, cap.title, cap.summary].filter(Boolean);
+  const keptBodies = [];
   for (const lesson of elevation.durable_lessons || []) {
+    const gated = gateLesson(lesson, { taskTexts, existing: keptBodies });
+    if (!gated.keep) {
+      extract_audit.push({
+        type: 'lesson',
+        text: lesson,
+        total: gated.score.total,
+        reason: gated.score.reason || 'below Gate B'
+      });
+      continue;
+    }
+    keptBodies.push(gated.body);
     candidates.push({
       type: 'lesson',
-      title: lesson.slice(0, 80),
-      summary: lesson,
+      title: gated.title,
+      summary: gated.body,
       keywords: tokenize(lesson).slice(0, 8),
       body_ref: null,
-      confidence: 0.7,
+      confidence: gated.score.total >= 75 ? 0.8 : 0.7,
       durable: true,
+      extract_score: gated.score.total,
+      extract_breakdown: gated.score.breakdown,
       provenance: {
         run_id: run.run_id,
         files: [],
@@ -854,6 +872,7 @@ export function buildKnowledgeContribution(run, {
       acceptance_paths: cap.acceptance || []
     },
     candidates,
+    extract_audit,
     existing_knowledge_refs: Array.isArray(run.knowledge_refs) ? [...run.knowledge_refs] : [],
     policy: {
       suggest_status: 'candidate',

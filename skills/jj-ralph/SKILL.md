@@ -52,7 +52,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 | --- | --- | --- |
 | 1 Locate | user speech + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
-| 3 map-find | title/goal/keywords | CAP hits (may be empty) |
+| 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
 | 5 finalize | accept PASS | archive snapshot + map merge + `knowledge-contribution.json` |
 | 6 report | run + CAP paths | short completion report |
@@ -80,6 +80,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
 | `finalize` / archive reject | Fix accept gates, paths, or review scope; re-`gate accept` | Report blockers; no conversational `--force` |
 | `map-find` empty | Continue with scope from user speech + repo search | Do not block init/resume solely because map is empty |
+| Portfolio attach empty / unrelated | Leave `knowledge_refs` empty; do not invent or dump same-project history | Do not pad to 5/12; local `map-find` is the same-repo lookup |
 | Verify FAIL under `max_iterations` | Stay DELIVER; rework; append progress | On ceiling: `intervention_needed.kind=MAX_ITERATIONS`; stop and report |
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
@@ -136,6 +137,7 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | Step | Action |
 | --- | --- |
 | After archive | `knowledge-contribution.json` already present (finalize writes it) |
+| Lesson gate | Durable lessons pass Gate B **and** future-reuse: 换一张卡还得遵守才收录. Human-locked keep/drop: `tests/fixtures/extract-future-reuse.golden.json`. Process narration / 仅本次 / task restatement / this-change nits / field-howto memos without 必须/不要/勿/协议 → `extract_audit`. Prefer 0 over dirty. |
 | User speech | 「投喂知识库」「补充全局知识」 / “feed knowledge base” |
 | Mechanical | `ralph_ops knowledge-contribute --run-id …` or add `--hook` to call extract |
 | Config | `naming.json` → `ralph.knowledge_contribute`: `hook: none\|cli`, `cli` template includes `{package}`; or env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
@@ -159,6 +161,7 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
 | 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
 | 14 | Silently replace live `plan.md` / `acceptance.md` / `analyze.md` so prior Current text is gone (incl. replacing `## Tasks` in place) | If no `## Current`, rename `## Tasks`→Current first; then move Current → Landed/Superseded. Unarchived revisions stay in the live files |
+| 15 | Pad init `knowledge_refs` with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
 
 ## Completion report
 

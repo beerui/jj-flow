@@ -58,6 +58,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
 - `src/ralph.mjs` 提供单仓闭环机械步骤：init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep。它不替代 `$jj-ralph` 对话协议。
+- `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
 - `scripts/check-project.mjs` 检查仓库资产不变量；`scripts/build-docs.mjs` 把 `docs/` 下的 Markdown 构建为文档站。

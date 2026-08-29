@@ -4,6 +4,12 @@
 
 ## Unreleased
 
+## 0.1.3 — 2026-08-29 16:37
+
+- **ralph 知识挂载**：init attach 改用 jj-multica 已实测的词法检索（CJK 相邻/跳一字 bigram、单字不计 strong、`MinRelatedScore=5`、软顶 5 条）。同项目灌水与空 query 不再填配额；0 命中就是 empty。
+- **知识抽取 Gate B**：lesson 须可迁移（换一张卡还得遵守）。人审锁定 keep/drop 见 `tests/fixtures/extract-future-reuse.golden.json`：本卡现象、只加感叹号、字段备忘丢掉；`必须/不要/勿/协议` 留下。capability 仍作 L2 档案，不自动 promote。
+- **全量评测**：`eval/ralph-memory/run-eval.mjs` 扫业务仓 Ralph 归档。对照旧 attach：打满配额 23/23→3/23，Jaccard 0.15→0.02，无关领域 3 次误召回→0。合约：`tests/jj-ralph-contract.test.mjs`、`tests/memory-retrieve.test.mjs`、`tests/memory-extract.test.mjs`。
+
 ## 0.1.2 — 2026-08-28 22:26
 
 - **jj-end 合入目标**：有 `dev` 且未写 `integration=`、文档也未点名集成分支时，只合 `dev`。git log / `Merge #N into staging` 不算约定（EP-20260828）。

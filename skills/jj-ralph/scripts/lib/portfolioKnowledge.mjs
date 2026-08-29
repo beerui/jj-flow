@@ -1,6 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveKnowledgeRoot, resolvePortfolioRoot } from './namingConfig.mjs';
+import {
+  INJECT_SOFT_CAP,
+  MIN_RELATED_SCORE,
+  knowledgeItemToRow,
+  rankIndexHits
+} from './memoryRetrieve.mjs';
 
 function readJson(file, fallback = null) {
   try {
@@ -47,26 +53,30 @@ function inferProjectKey(cwd = process.cwd()) {
   return base;
 }
 
-function scoreItem(item, needle, project) {
-  let score = 0;
-  const text = String(item.text || [item.title, item.summary, ...(item.keywords || [])].join(' ')).toLowerCase();
-  if (needle) {
-    for (const token of needle.split(/\s+/).filter(Boolean)) {
-      if (text.includes(token)) score += 3;
-    }
-    if (text.includes(needle)) score += 5;
-  }
-  if (project && item.project_key === project) score += 8;
-  if (item.status === 'active') score += 4;
-  if (item.type === 'capability') score += 3;
-  if (item.type === 'standard') score += 2;
-  if (item.type === 'pattern') score += 1;
-  return score;
+function emptyAttach(extra = {}) {
+  return {
+    status: extra.status || 'empty',
+    portfolio_kb_root: extra.portfolio_kb_root || null,
+    project_key: extra.project_key || null,
+    query: extra.query || '',
+    knowledge_refs: [],
+    knowledge_summary: [],
+    knowledge_items: [],
+    reason: extra.reason || '',
+    match: extra.match || {
+      min_related: MIN_RELATED_SCORE,
+      inject_soft_cap: INJECT_SOFT_CAP,
+      ranked: 0
+    },
+    attach_template: { knowledge_refs: [], knowledge_summary: [] }
+  };
 }
 
 /**
  * Attach portfolio knowledge_refs for a ralph/dispatch task.
- * Reads /portfolio/knowledge indexes; never treats chat as authority.
+ * Ranking is jj-multica retrieve: CJK bigram, strong relatedness floor,
+ * same-project confirmed only. Empty is a valid result — never dump N
+ * same-project rows to fill a quota.
  */
 export function attachKnowledgeRefs({
   q = '',
@@ -74,57 +84,87 @@ export function attachKnowledgeRefs({
   goal = '',
   title = '',
   cwd = process.cwd(),
-  limit = 12,
+  limit = INJECT_SOFT_CAP,
   status = 'active',
   portfolioRoot = null
 } = {}) {
   const root = resolvePortfolioKbRoot(portfolioRoot);
   if (!root) {
-    return {
+    return emptyAttach({
       status: 'unavailable',
-      portfolio_kb_root: null,
-      knowledge_refs: [],
-      knowledge_summary: [],
-      knowledge_items: [],
       reason: 'portfolio knowledge root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT / portfolio_root, or create knowledge under portfolio)'
-    };
+    });
   }
 
+  const rootNorm = root.replaceAll('\\', '/');
   const search = readJson(path.join(root, 'index', 'search.json'), { items: [] });
   const projectKey = project || inferProjectKey(cwd);
-  const needle = String(q || [title, goal].filter(Boolean).join(' ')).toLowerCase().trim();
-  let items = Array.isArray(search.items) ? search.items.slice() : [];
-  if (status) items = items.filter((item) => item.status === status);
-  items = items
-    .map((item) => ({ item, score: scoreItem(item, needle, projectKey) }))
-    .filter((row) => row.score > 0 || !needle)
-    .sort((a, b) => b.score - a.score || String(a.item.id).localeCompare(String(b.item.id)))
-    .slice(0, Math.max(1, Number(limit) || 12))
-    .map((row) => row.item);
+  const needle = String(q || [title, goal].filter(Boolean).join('\n')).trim();
+  const cap = Math.max(1, Number(limit) || INJECT_SOFT_CAP);
+  const matchMeta = { min_related: MIN_RELATED_SCORE, inject_soft_cap: cap, ranked: 0 };
 
-  if (!items.length && projectKey) {
-    items = (search.items || [])
-      .filter((item) => item.status === status && item.project_key === projectKey)
-      .slice(0, Math.max(1, Number(limit) || 12));
+  if (!projectKey) {
+    return emptyAttach({
+      status: 'empty',
+      portfolio_kb_root: rootNorm,
+      query: needle,
+      match: matchMeta,
+      reason: 'project_key missing; refuse to inject a cross-project dump'
+    });
   }
 
-  const knowledge_refs = items.map((item) => item.id);
-  const knowledge_summary = items.map((item) => `${item.id}: ${item.title}`);
+  const wantedStatus = String(status || 'active').trim().toLowerCase();
+  const allowStatus = wantedStatus === 'active' || wantedStatus === 'confirmed'
+    ? new Set(['active', 'confirmed', ''])
+    : new Set([wantedStatus, '']);
+  const rows = [];
+  for (const item of Array.isArray(search.items) ? search.items : []) {
+    if (!item) continue;
+    const itemStatus = String(item.status || '').trim().toLowerCase();
+    if (!allowStatus.has(itemStatus)) continue;
+    const row = knowledgeItemToRow(item);
+    if (row) rows.push(row);
+  }
+
+  const hits = rankIndexHits({ text: needle, projectId: projectKey }, rows);
+  matchMeta.ranked = hits.length;
+  const sliced = hits.slice(0, cap);
+  if (!sliced.length) {
+    return emptyAttach({
+      status: 'empty',
+      portfolio_kb_root: rootNorm,
+      project_key: projectKey,
+      query: needle,
+      match: matchMeta,
+      reason: needle
+        ? 'no confirmed same-project short passed MinRelatedScore'
+        : 'empty query; lexical retrieve injects nothing'
+    });
+  }
+
+  const knowledge_refs = sliced.map((hit) => hit.id);
+  const knowledge_summary = sliced.map((hit) => `${hit.id}: ${hit.row.title}`);
   return {
-    status: knowledge_refs.length ? 'ready' : 'empty',
-    portfolio_kb_root: root.replaceAll('\\', '/'),
+    status: 'ready',
+    portfolio_kb_root: rootNorm,
     project_key: projectKey,
     query: needle,
     knowledge_refs,
     knowledge_summary,
-    knowledge_items: items.map((item) => ({
-      id: item.id,
-      type: item.type,
-      title: item.title,
-      summary: item.summary,
-      project_key: item.project_key,
-      domain: item.domain
-    })),
+    knowledge_items: sliced.map((hit) => {
+      const item = hit.row.item || {};
+      return {
+        id: hit.id,
+        type: item.type,
+        title: hit.row.title,
+        summary: hit.row.body,
+        project_key: hit.row.sourceProjectId,
+        domain: item.domain,
+        related_strong: hit.strong,
+        related_total: hit.rel
+      };
+    }),
+    match: matchMeta,
     attach_template: {
       knowledge_refs,
       knowledge_summary

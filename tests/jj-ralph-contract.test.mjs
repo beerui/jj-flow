@@ -137,6 +137,16 @@ assert.equal(
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/portfolioKnowledge.mjs'), 'utf8')
   );
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryRetrieve.mjs')));
+  assert.equal(
+    fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryRetrieve.mjs'), 'utf8'),
+    fs.readFileSync(path.join(root, 'src/memoryRetrieve.mjs'), 'utf8')
+  );
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs')));
+  assert.equal(
+    fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'), 'utf8'),
+    fs.readFileSync(path.join(root, 'src/memoryExtract.mjs'), 'utf8')
+  );
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
   const command = read('claude-commands/jj-ralph.md');
@@ -454,6 +464,14 @@ test('skill portable lib works without jj-flow in business cwd', () => {
     fs.copyFileSync(
       path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'),
       path.join(scriptsDir, 'lib', 'portfolioKnowledge.mjs')
+    );
+    fs.copyFileSync(
+      path.join(root, 'skills/jj-ralph/scripts/lib/memoryRetrieve.mjs'),
+      path.join(scriptsDir, 'lib', 'memoryRetrieve.mjs')
+    );
+    fs.copyFileSync(
+      path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'),
+      path.join(scriptsDir, 'lib', 'memoryExtract.mjs')
     );
     const ops = path.join(scriptsDir, 'ralph_ops.mjs');
     const runNode = (args) => {

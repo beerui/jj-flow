@@ -52,9 +52,11 @@ map.md / business-map / wiki / specs
 
 ## jj-flow 接线
 
-- `src/portfolioKnowledge.mjs`：解析 KB root、读 search index、打分排序
-- `ralph init`：默认 attach；`--no-knowledge-refs` 关闭
-- skill portable lib 同步 `portfolioKnowledge.mjs`
+- `src/memoryRetrieve.mjs`：jj-multica `retrieve.go` 词法检索（CJK bigram / skip-1 bigram；strong 分过 `MinRelatedScore=5` 才进注入区；`InjectSoftCap=5`）
+- `src/memoryExtract.mjs`：jj-multica Gate B（`hasRealLesson` + 启发式 60 分；宁可 0 条）
+- `src/portfolioKnowledge.mjs`：解析 KB root、读 search index、调用 retrieve 挂 `knowledge_refs`
+- `ralph init`：默认 attach；无强相关命中则 empty（禁止同项目凑 12 条）；`--no-knowledge-refs` 关闭
+- skill portable lib 同步 `portfolioKnowledge.mjs` + `memoryRetrieve.mjs` + `memoryExtract.mjs`
 - knowledge loop 包字段：`knowledge_refs` / `portfolio_knowledge`
 
 ## 审核策略

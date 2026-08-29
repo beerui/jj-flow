@@ -1,0 +1,72 @@
+{
+  "note": "Human-locked 2026-08-29: keep = 换一张卡还得遵守; drop = 本卡改动点 / 现象备忘 / 拍板丢掉的契约备忘。Do not loosen to keep drop items.",
+  "keep": [
+    {
+      "id": "regionStatus-wrap",
+      "text": "validateForm 的 regionStatus 协议是 { level: { status } }，组件侧必须包装再发出，直接发字符串会让 ifOptions/依赖失败分支静默失效"
+    },
+    {
+      "id": "custom-table-prop",
+      "text": "CustomTable 每一列必须有唯一 prop，序号用 index、操作用 operation，插槽列也要设"
+    },
+    {
+      "id": "controlled-input-draft",
+      "text": "受控输入不要把展示值绑定成归一化后的派生值（如数组 join）：回写会在同一 tick 抹掉用户刚敲的换行/空格，必须用本地草稿 ref 承接输入"
+    },
+    {
+      "id": "palette-category-not-schema",
+      "text": "控件区分组只在 widget-registry.category / PALETTE_GROUPS 上做，不要把 category 写入 createField 或 schema"
+    },
+    {
+      "id": "dynamic-enter-reuse-upload",
+      "text": "动态入驻先走独立路由 /merchants-enter/dynamic 测通再接回旧入口；复合控件必须复用 ImgUploadEl/FileUpload 与 commonIndex 的 upload-area/id-card-upload/date-range，不要用管理端占位盒"
+    },
+    {
+      "id": "scan-deadline-empty",
+      "text": "截止时间清空须处理null/空串再调updateStopTime；nowTimehhmm须在focus/init刷新；编辑未改stopTime勿用过期校验整单拦截"
+    },
+    {
+      "id": "shang-tag-not-mix",
+      "text": "主站列表「商」用 g-tag-blue（主题色#0076F6）；「财」仍 g-tag-yellow；勿与识票 ACCEPTOR_TYPE_COLOR_MAP 混改"
+    },
+    {
+      "id": "agents-skills-path",
+      "text": "项目级 skill 权威路径为 .agents/skills/；勿再 ignore **/.agents/"
+    }
+  ],
+  "drop": [
+    {
+      "id": "console-main-scroller",
+      "text": "console-main is the only vertical scroller"
+    },
+    {
+      "id": "sticky-sidebar-flex",
+      "text": "sticky sidebar fails when flex-stretched to content height"
+    },
+    {
+      "id": "risk-exclaim-only",
+      "text": "把提示改成有效！只加结尾「！」"
+    },
+    {
+      "id": "phone-title-restatement",
+      "text": "手机号+区号固定组件（后管占位）",
+      "taskTexts": ["手机号+区号固定组件（后管占位）"]
+    },
+    {
+      "id": "brand-login-fields",
+      "text": "登录后品牌读 getLoginUserInfo 的 witnessManagementStatus/systemName/logoUrl；客户端缓存写后读，Web 登录页预查询另开接口"
+    },
+    {
+      "id": "slash-skills-plain-name",
+      "text": "Slash skills are plain /name tokens; agent merges CollectIssueSlashSkillNames into prepareAgentSkills without binding agent skill_ids"
+    },
+    {
+      "id": "vue-embed-no-build",
+      "text": "Vue 产物直接构建进 internal/web/static（Go embed），只改 webui/src 不跑 npm run build 用户界面不会变"
+    },
+    {
+      "id": "create-dialog-hydrate",
+      "text": "Force create-dialog entry defaults after draft hydrate; pass projectId from route and status from column"
+    }
+  ]
+}

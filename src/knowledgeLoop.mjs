@@ -17,7 +17,7 @@ export function buildKnowledgeLoopPackage({ mode, recipe, intent = '', evidence 
         knowledge_summary: knowledge_refs.map((id) => String(id)),
         knowledge_items: []
       }
-    : attachKnowledgeRefs({ q: intent, project, cwd, limit: 12 });
+    : attachKnowledgeRefs({ q: intent, project, cwd });
 
   return {
     status: completed ? 'ready' : 'pending',

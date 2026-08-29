@@ -8,6 +8,7 @@ coverage/
 dist/
 site/
 .tmp/
+eval/ralph-memory/generated/
 .plans
 # Host install / IDE dirs (not repo SSOT; package sources are skills/ agents/ claude-commands/)`n.grok
 .qoder
