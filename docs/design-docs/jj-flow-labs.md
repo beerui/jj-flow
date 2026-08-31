@@ -1,6 +1,8 @@
 # jj-flow 实验场：Loop gym 与 Family gym
 
-> 状态：Proposed
+> 状态：Implemented
+>
+> 验收证据：`scripts/lab-check.mjs`、`jj-lab-loop/scripts/lab.mjs`、`jj-lab-family/scripts/lab.mjs`
 >
 > 日期：2026-08-31
 >

@@ -49,7 +49,7 @@ $env:JJ_LAB_FAMILY_ROOT = "D:\daji-docs\jj-lab-family"
 $env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
 ```
 
-`lab:check` 在 PR4 才登记。PR2 **不加** exit-0 占位。未设根时不得假装 PASS。
+产品 `npm run lab:check` 委派各 lab `scripts/lab.mjs`。缺根、缺 pin、缺 runner → exit ≠ 0。未设根时不得假装 PASS。不进默认 `verify`（CI 尚未 clone sibling 仓）。
 
 ## 各仓里有什么（PR2）
 
