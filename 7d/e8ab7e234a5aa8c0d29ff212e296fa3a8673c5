@@ -1,0 +1,28 @@
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_77416daa0210df 127
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_77decece464929 54,56,60-61,63,65
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_0969bb9b0071c1 32,181
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_feafbf24546d3e 52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "7de8ab7e234a5aa8c0d29ff212e296fa3a8673c5",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
