@@ -51,17 +51,18 @@ $env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
 
 产品 `npm run lab:check` 委派各 lab `scripts/lab.mjs`。缺根、缺 pin、缺 runner → exit ≠ 0。未设根时不得假装 PASS。不进默认 `verify`（CI 尚未 clone sibling 仓）。
 
-## 各仓里有什么（PR2）
+## 各仓里有什么
 
-每个 lab 仓现在只有：
+每个 lab 仓含：
 
 - `README.md`
 - `.gitignore`（必须含 `_materialized/`）
-- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`）
+- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；pin `0.1.3` / PR2 commit）
+- `seed/`、`scripts/lab.mjs`、`scripts/oracles/`、`scenarios/`
 
-种子、oracle、`scripts/lab.mjs` 属后续 PR。`git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）在 PR2 即应命中 ignore 规则。
+`git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）必须命中 ignore。物化 git 只存在于本地 `_materialized/`，不进 lab 仓历史。
 
-## 调用 cwd（预告；PR3 起强制）
+## 调用 cwd
 
 | 动作 | cwd |
 | --- | --- |
