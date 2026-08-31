@@ -26,5 +26,6 @@
 | [jj-team-coordinate](jj-team-coordinate.html) | Proposed（P0/P1 文档：skill + 透明协议 + Codex 兼容；bridge CLI 未关闭） |
 | [jj-team-lifecycle](jj-team-lifecycle.html) | Proposed（P0：TLV4 vendor + 固定 SDLC + Codex degraded；bridge CLI 未关闭） |
 | [jj-team-swarm](jj-team-swarm.html) | Proposed（P0：TAS vendor + 透明协议 + Workflow 降级说明） |
+| [实验场 Loop gym / Family gym](jj-flow-labs.html) | Proposed（sibling 仓 `jj-lab-loop` / `jj-lab-family`；测工程能力、边界、闭环） |
 
 实施进度：[执行计划](../exec-plans/index.html)
