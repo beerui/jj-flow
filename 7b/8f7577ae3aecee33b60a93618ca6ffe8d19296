@@ -1,0 +1,22 @@
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_3a37b87e8ae817 17-30,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "7b8f7577ae3aecee33b60a93618ca6ffe8d19296",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
