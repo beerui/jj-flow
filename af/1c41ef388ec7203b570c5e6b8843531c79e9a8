@@ -1,0 +1,36 @@
+package.json
+  s_0a1fdf7e8a0a56::t_a603cdf1e93784 41
+docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_52016ff1d9b53b 56-57,61,65,69,73,77,81,89
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_fd75a43641e5c4 16
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_f50fb8fdf3705b 52
+docs/design-docs/index.md
+  s_0a1fdf7e8a0a56::t_f2ec6750ffaaea 29
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_3b9dfb319e0146 7
+scripts/lab-check.mjs
+  s_0a1fdf7e8a0a56::t_af4f15107f93bd 1-289
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_10ab08cb2264c5 3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "af1c41ef388ec7203b570c5e6b8843531c79e9a8",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
