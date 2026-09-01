@@ -1,0 +1,99 @@
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_0a1fdf7e8a0a56::t_d375adf4581381 33-36,205-214,355-356,473-478,480,485,489-493,619,660,1317-1331,1333-1351,1380-1403,1417-1418,1432-1476,1481,1488,1516,1519,1527,1571-1599,1681-1682,1686-1797,1922-1923,1943,1947-1948,1963-1969,2129,2201-2204,2209,2214,2496-2569,2573-2574
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_0fd0e40ed06eb2 52
+package.json
+  s_0a1fdf7e8a0a56::t_b7198a55702d9e 43
+  s_0a1fdf7e8a0a56::t_f6761effc58ead 32,42
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_0b3ffdd6409f56 60,72,127
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_ef3db8a8c7ba81 7-15
+agents/jj-workflow-developer.toml
+  s_0a1fdf7e8a0a56::t_3ccb264e112e5b 9,13
+agents/jj-workflow-reviewer.toml
+  s_0a1fdf7e8a0a56::t_92a97c5f9b08a4 9,12
+claude-commands/jj-ralph.md
+  s_0a1fdf7e8a0a56::t_b158019c560693 28-29
+docs/commands/jj-ralph.md
+  s_0a1fdf7e8a0a56::t_d1b5c47efeeb1a 112
+docs/design-docs/ai-native-sdlc.md
+  s_0a1fdf7e8a0a56::t_9201cdc0da6bcf 1-133
+docs/design-docs/index.md
+  s_0a1fdf7e8a0a56::t_da4c58f4cbb1e7 29
+docs/exec-plans/completed/2026-08-31-ai-native-sdlc.md
+  s_0a1fdf7e8a0a56::t_d36e905e05de6c 1-99
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_517d348a1c4ae1 26
+evals/regression/EP-20260828-jj-end-staging-not-dev.json
+  s_0a1fdf7e8a0a56::t_8dfc67f2b396de 1-13
+examples/host-guardrails/README.md
+  s_0a1fdf7e8a0a56::t_a15bd236e96d64 1-24
+examples/host-guardrails/deny-test-edits-on-fix.example.sh
+  s_0a1fdf7e8a0a56::t_2139f55b0033ca 1-14
+examples/host-guardrails/production-gate.example.sh
+  s_0a1fdf7e8a0a56::t_93e492ab5de6c5 1-11
+harness-manifest.json
+  s_0a1fdf7e8a0a56::t_ad90a3f2595bba 185-189
+schemas/ralph-run.schema.json
+  s_0a1fdf7e8a0a56::t_9412fc46116242 308-313,451-455
+scripts/build-docs.mjs
+  s_0a1fdf7e8a0a56::t_85ae06da4a6e81 106,110
+skills/jj-dispatch/SKILL.md
+  s_0a1fdf7e8a0a56::t_9e45b8a3667da2 143-144
+skills/jj-evaluated/SKILL.md
+  s_0a1fdf7e8a0a56::t_83c80a5e057719 27,42,51,126-131
+skills/jj-evaluated/scripts/evaluated_ops.mjs
+  s_0a1fdf7e8a0a56::t_f0b56edb91fcf7 61,106-195,605-631
+skills/jj-ralph/SKILL.md
+  s_0a1fdf7e8a0a56::t_fc21920b09be85 36,80,105,109,167-169
+skills/jj-ralph/references/artifact-layout.md
+  s_0a1fdf7e8a0a56::t_f5ffdf7482cbb2 7-9,13,30-31
+skills/jj-ralph/references/must-evidence.md
+  s_0a1fdf7e8a0a56::t_a50a4b0fc3e170 97-104
+skills/jj-ralph/references/phases.md
+  s_0a1fdf7e8a0a56::t_b544cd5664e7f7 7,58-59,79-80,129-130
+skills/jj-ralph/references/post-complete-continue.md
+  s_0a1fdf7e8a0a56::t_3030317e6418e0 26,37,66-67
+skills/jj-ralph/references/ralph-run.schema.json
+  s_0a1fdf7e8a0a56::t_5a3972f0269a4a 308-313,451-455
+skills/jj-ralph/references/tiny-example.md
+  s_0a1fdf7e8a0a56::t_0fd50420cbc2e2 10
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_0a1fdf7e8a0a56::t_97bb6f347bebde 72,74,91,225-229,249-260,598-610,615-616,620
+skills/jj-review/SKILL.md
+  s_0a1fdf7e8a0a56::t_f61ce63315c3b5 36,66-69,82,114-115
+skills/jj-review/references/host-review.md
+  s_0a1fdf7e8a0a56::t_758cedf7c33daa 5-6,102-103
+skills/jj-review/references/report-layout.md
+  s_0a1fdf7e8a0a56::t_ed8fbf070193ca 26,59-60,64-65
+skills/jj-review/references/review-policy.md
+  s_0a1fdf7e8a0a56::t_d868d987933b04 1-43
+src/cli.mjs
+  s_0a1fdf7e8a0a56::t_5f778f89207c93 44,604,868-878,969-976,1229-1230
+src/ralph.mjs
+  s_0a1fdf7e8a0a56::t_9d12bf50ce2b74 33-36,205-214,355-356,473-478,480,485,489-493,619,660,1317-1331,1333-1351,1380-1403,1417-1418,1432-1476,1481,1488,1516,1519,1527,1571-1599,1681-1682,1686-1797,1922-1923,1943,1947-1948,1963-1969,2129,2201-2204,2209,2214,2496-2569,2573-2574
+tests/jj-evaluated-contract.test.mjs
+  s_0a1fdf7e8a0a56::t_d5d5d16bf5de87 169-202,219-220
+tests/jj-ralph-contract.test.mjs
+  s_0a1fdf7e8a0a56::t_b30c19877fd5c8 26-27,29-31,77-79,107-111,141-146,1470-1719
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "5e468c317b8a8f7a515c0b1f20ec303587c17c03",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
