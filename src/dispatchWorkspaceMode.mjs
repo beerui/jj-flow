@@ -1,12 +1,13 @@
 /**
- * Grok Mode W selection and PREFLIGHT #5 (pure; no git).
+ * Grok Mode S/W/P selection and PREFLIGHT #5 (pure; no git).
  *
- * Mode S = project-branch at project.path.
- * Mode W = exclusive-worktree on a named branch tip.
- * Mode P is deferred and fail-closed.
+ * Mode S = coordinator session serial + project-branch at project.path.
+ * Mode W = exclusive-worktree on a named branch tip (isolation).
+ * Mode P = opt-in child session 1:1 per write task_key; still project-branch.
  *
  * Isolation is an explicit signal (dirty main / active write / user request).
- * This module does not close Host Wave 2.
+ * Mode P is not default and cannot satisfy isolation (use Mode W).
+ * This module does not raise A3/A4.
  */
 
 export const EXECUTION_MODES = Object.freeze(['S', 'W', 'P']);
@@ -52,6 +53,12 @@ export function executionModeForEnvironment(environment, access = 'write') {
   return 'S';
 }
 
+export function resolveIntentExecutionMode(intent = {}) {
+  const explicit = normalizeRequestedMode(intent.execution_mode);
+  if (explicit) return explicit;
+  return executionModeForEnvironment(intent.environment, intent.access || 'write');
+}
+
 export function environmentForExecutionMode(mode, access = 'write') {
   if (access === 'read') return 'project-read';
   if (mode === 'W') return 'exclusive-worktree';
@@ -82,22 +89,33 @@ export function selectWriteWorkspaceMode(signals = {}) {
   }
 
   const requested = normalizeRequestedMode(signals.requestedMode);
-  if (requested === 'P') {
-    return {
-      ok: false,
-      status: 'BLOCKED',
-      execution_mode: 'P',
-      proposed_mode: 'P',
-      workspace: null,
-      environment: null,
-      worktree_policy: null,
-      reasons: [],
-      reason: 'Mode P is deferred until RECONCILE/attestation land (Phase 2c)'
-    };
-  }
-
   const reasons = collectIsolationReasons(signals);
   const isolation = reasons.length > 0;
+
+  if (requested === 'P') {
+    if (isolation) {
+      return {
+        ok: false,
+        status: 'BLOCKED',
+        execution_mode: 'P',
+        proposed_mode: 'P',
+        workspace: 'project-branch',
+        environment: 'project-branch',
+        worktree_policy: 'project-branch-default',
+        session_policy: 'child-session-1-1',
+        reasons,
+        reason: 'PREFLIGHT #5: Mode P cannot satisfy isolation; use Mode W'
+      };
+    }
+    return readyDecision({
+      execution_mode: 'P',
+      workspace: 'project-branch',
+      environment: 'project-branch',
+      worktree_policy: 'project-branch-default',
+      session_policy: 'child-session-1-1',
+      reasons: []
+    });
+  }
 
   if (requested === 'S' && isolation) {
     return {
@@ -122,6 +140,7 @@ export function selectWriteWorkspaceMode(signals = {}) {
       workspace: 'exclusive-worktree',
       environment: 'exclusive-worktree',
       worktree_policy: 'exclusive-worktree-when-isolation',
+      session_policy: 'coordinator-shared',
       reasons,
       reason: 'PREFLIGHT #5: Mode W requested without isolation reason'
     };
@@ -133,6 +152,7 @@ export function selectWriteWorkspaceMode(signals = {}) {
       workspace: 'exclusive-worktree',
       environment: 'exclusive-worktree',
       worktree_policy: 'exclusive-worktree-when-isolation',
+      session_policy: 'coordinator-shared',
       reasons
     });
   }
@@ -142,6 +162,7 @@ export function selectWriteWorkspaceMode(signals = {}) {
     workspace: 'project-branch',
     environment: 'project-branch',
     worktree_policy: 'project-branch-default',
+    session_policy: 'coordinator-shared',
     reasons: []
   });
 }
@@ -163,14 +184,17 @@ export function validateModeIsolationConsistency({
   if (mode && !EXECUTION_MODES.includes(mode)) {
     errors.push(`unknown execution_mode ${mode}`);
   }
-  if (mode === 'P') {
-    errors.push('Mode P is deferred (Phase 2c)');
-  }
   if (access === 'read' && mode === 'W') {
     errors.push('read tasks cannot use Mode W');
   }
+  if (access === 'read' && mode === 'P') {
+    errors.push('read tasks cannot use Mode P');
+  }
   if (mode === 'S' && isolation) {
     errors.push('PREFLIGHT #5: Mode S is inconsistent with isolation');
+  }
+  if (mode === 'P' && isolation) {
+    errors.push('PREFLIGHT #5: Mode P cannot satisfy isolation; use Mode W');
   }
   if (mode === 'W' && !isolation) {
     errors.push('PREFLIGHT #5: Mode W requires an isolation reason');
@@ -178,8 +202,11 @@ export function validateModeIsolationConsistency({
   if (mode === 'W' && environment && environment !== 'exclusive-worktree') {
     errors.push('Mode W requires environment=exclusive-worktree');
   }
-  if (mode === 'S' && access === 'write' && environment === 'exclusive-worktree') {
-    errors.push('Mode S cannot use exclusive-worktree');
+  if (mode === 'P' && environment && environment !== 'project-branch' && access === 'write') {
+    errors.push('Mode P write requires environment=project-branch');
+  }
+  if ((mode === 'S' || mode === 'P') && access === 'write' && environment === 'exclusive-worktree') {
+    errors.push(`${mode === 'P' ? 'Mode P' : 'Mode S'} cannot use exclusive-worktree`);
   }
   if (access === 'write') {
     const bind = validateExclusiveWorktreeBind({
@@ -220,16 +247,13 @@ export function validateAttestationExecutionMode(payload = {}) {
   if (mode != null && mode !== '' && !EXECUTION_MODES.includes(mode)) {
     errors.push(`attestation execution_mode must be S|W|P, got ${mode}`);
   }
-  if (mode === 'P') {
-    errors.push('attestation execution_mode=P is deferred');
-  }
   const access = payload.access || (payload.agent_name && String(payload.agent_name).includes('reviewer') ? 'read' : 'write');
   const isolation = mode === 'W' || payload.environment === 'exclusive-worktree';
   const consistency = validateModeIsolationConsistency({
     executionMode: mode || executionModeForEnvironment(payload.environment, access),
     environment: payload.environment,
     access,
-    isolation: mode === 'W' ? true : isolation && mode !== 'S',
+    isolation: mode === 'W' ? true : isolation && mode !== 'S' && mode !== 'P',
     worktree: payload.worktree,
     projectPath: payload.project_path
   });
@@ -247,19 +271,26 @@ export function validateAttestationExecutionMode(payload = {}) {
     errors.push(...bind.errors);
     return { ok: errors.length === 0, errors };
   }
-  if (mode === 'S' && access === 'write') {
+  if ((mode === 'S' || mode === 'P') && access === 'write') {
     if (payload.environment === 'exclusive-worktree') {
-      errors.push('Mode S attestation cannot use exclusive-worktree');
+      errors.push(`Mode ${mode} attestation cannot use exclusive-worktree`);
     }
     if (payload.worktree && payload.project_path && !workspacePathsEqual(payload.worktree, payload.project_path)) {
-      errors.push('Mode S write attestation worktree must equal project_path');
+      errors.push(`Mode ${mode} write attestation worktree must equal project_path`);
     }
   }
   errors.push(...consistency.errors.filter((item) => !errors.includes(item)));
   return { ok: errors.length === 0, errors };
 }
 
-function readyDecision({ execution_mode, workspace, environment, worktree_policy, reasons }) {
+function readyDecision({
+  execution_mode,
+  workspace,
+  environment,
+  worktree_policy,
+  session_policy = 'coordinator-shared',
+  reasons
+}) {
   return {
     ok: true,
     status: 'READY',
@@ -268,6 +299,7 @@ function readyDecision({ execution_mode, workspace, environment, worktree_policy
     workspace,
     environment,
     worktree_policy,
+    session_policy,
     reasons,
     reason: null
   };

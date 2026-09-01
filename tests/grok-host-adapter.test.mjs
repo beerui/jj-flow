@@ -133,6 +133,86 @@ test('bindGrokSessionTask Mode W requires named-branch exclusive worktree', () =
   }
 });
 
+test('bindGrokSessionTask Mode P requires distinct child sessions', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-mode-p-bind-'));
+  try {
+    const approved = approveDispatch(createControlPlane(fixture), {
+      deliveryId: 'DEL-001',
+      decisionRef: 'decision:mode-p-adapter'
+    });
+    const dispatched = dispatchTasks(approved, 'DEL-001', {
+      capabilities: appCapabilities,
+      workspaceSignals: { requestedMode: 'P' }
+    });
+    const first = bindGrokSessionTask({
+      plane: dispatched.plane,
+      controlRoot: root,
+      deliveryId: 'DEL-001',
+      taskKey: 'DEL-001/A/development/1',
+      sessionId: '019fmodep-aaaa-7000-8000-aaaaaaaaaaaa',
+      projectId: 'A',
+      projectPath: 'D:/A',
+      worktreePath: 'D:/A',
+      intendedBranch: 'feat/mode-p-a',
+      environment: 'project-branch',
+      access: 'write'
+    });
+    assert.equal(first.ok, true, first.reason);
+    const intentA = first.plane.deliveries[0].dispatch_intents
+      .find((item) => item.task_key === 'DEL-001/A/development/1');
+    assert.equal(intentA.execution_mode, 'P');
+
+    const shared = bindGrokSessionTask({
+      plane: first.plane,
+      controlRoot: root,
+      deliveryId: 'DEL-001',
+      taskKey: 'DEL-001/B/development/1',
+      sessionId: '019fmodep-aaaa-7000-8000-aaaaaaaaaaaa',
+      projectId: 'B',
+      projectPath: 'D:/B',
+      worktreePath: 'D:/B',
+      intendedBranch: 'feat/mode-p-b',
+      environment: 'project-branch',
+      access: 'write'
+    });
+    assert.equal(shared.ok, false);
+    assert.match(shared.reason, /already bound/);
+
+    const placeholder = bindGrokSessionTask({
+      plane: first.plane,
+      controlRoot: root,
+      deliveryId: 'DEL-001',
+      taskKey: 'DEL-001/B/development/1',
+      sessionId: 'session-mode-p-20260901',
+      projectId: 'B',
+      projectPath: 'D:/B',
+      worktreePath: 'D:/B',
+      intendedBranch: 'feat/mode-p-b',
+      environment: 'project-branch',
+      access: 'write'
+    });
+    assert.equal(placeholder.ok, false);
+    assert.match(placeholder.reason, /placeholder/);
+
+    const second = bindGrokSessionTask({
+      plane: first.plane,
+      controlRoot: root,
+      deliveryId: 'DEL-001',
+      taskKey: 'DEL-001/B/development/1',
+      sessionId: '019fmodep-bbbb-7000-8000-bbbbbbbbbbbb',
+      projectId: 'B',
+      projectPath: 'D:/B',
+      worktreePath: 'D:/B',
+      intendedBranch: 'feat/mode-p-b',
+      environment: 'project-branch',
+      access: 'write'
+    });
+    assert.equal(second.ok, true, second.reason);
+  } finally {
+    rmTemp(root);
+  }
+});
+
 test('reconcileGrokSession stays unique-candidate and does not close Wave 2', () => {
   const approved = approveDispatch(createControlPlane(fixture), {
     deliveryId: 'DEL-001',

@@ -18,7 +18,7 @@
 | 项 | 状态 |
 |----|------|
 | 真实 Host Wave 2 / A2 | **completed**（Grok 路径）— [验收页](milestones/real-host-acceptance.html) |
-| Mode W / P | Mode W mechanical completed；Mode P open |
+| Mode W / P | Mode W / Mode P mechanical completed（P 为 opt-in；live 多会话仍可选） |
 | evaluated 完整闭环 | Proposed |
 
 ## 不做

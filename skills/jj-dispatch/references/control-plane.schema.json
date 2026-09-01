@@ -293,6 +293,7 @@
         "effective_sandbox_mode": { "enum": ["read-only", "workspace-write", null] },
         "sandbox_evidence_ref": { "type": ["string", "null"] },
         "environment": { "type": ["string", "null"] },
+        "execution_mode": { "type": ["string", "null"], "enum": ["S", "W", "P", null] },
         "worktree": { "type": ["string", "null"] },
         "bound_at": { "type": ["string", "null"], "format": "date-time" },
         "distribution_prompt": { "$ref": "#/$defs/distribution_prompt" },

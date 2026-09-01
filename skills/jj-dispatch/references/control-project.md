@@ -156,7 +156,7 @@ User does not operate the control root or run `dispatch-tick`. When the Agent ed
 
 1. **Status ceiling**: no `produced_commit` → forbid target/delivery `VERIFIED`; at most `EVIDENCE_READY`.
 2. **git self-fetch sha**: write intent and checkpoint via `git rev-parse` / `log -1`; never ask the user for commit.
-3. **Real session**: Grok uses the current real session id; multi-target same-session share is allowed; forbid `session-<slug>-YYYYMMDD`.
+3. **Real session**: Grok uses the current real session id; Mode S may share one coordinator session; Mode P write `task_key` needs a distinct child session; forbid `session-<slug>-YYYYMMDD`.
 4. **Land on integration**: prefer task-scoped commit cherry-pick; before whole-feature merge, confirm tip does not contain reverts/history that would wipe other features (negative case: acceptor-tag whole-branch merge to dev wiped aliyun tracker).
 5. Optional self-check: `node skills/jj-dispatch/scripts/plane-self-check.mjs --manifest <plane.json>` (for Agent, not a user manual).
 
@@ -197,7 +197,7 @@ TOML defaults cannot substitute for runtime sandbox attestation; refuse bind wit
 
 1. Default `project-branch`: task branch exists and is checked out / checkable at `project.path` → bind main worktree directly.
 2. Only when “same project already has active write”, “main repo has unrelated dirty that must not be polluted”, or “user explicitly requires isolation” → `exclusive-worktree`.
-3. Landing rule: code facts must live on a **named branch tip**; do not leave live patches only on a detached tree. Mechanical helpers: `src/dispatchWorkspaceMode.mjs` (PREVIEW `proposed_mode` / PREFLIGHT #5) and `src/dispatchWorktree.mjs` (create/inspect/cleanup). Mode W does not close Host Wave 2.
+3. Landing rule: code facts must live on a **named branch tip**; do not leave live patches only on a detached tree. Mechanical helpers: `src/dispatchWorkspaceMode.mjs` (PREVIEW `proposed_mode` / PREFLIGHT #5) and `src/dispatchWorktree.mjs` (create/bind/cleanup). Mode W is isolation; Mode P is opt-in parallel sessions (not isolation). Neither raises A3/A4.
 
 **If uncertain, ask before DISPATCH (hard procedure)**
 

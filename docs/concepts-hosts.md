@@ -17,6 +17,8 @@
 
 主仓有无关脏文件、或你明确要求隔离时，改用 **Mode W**：单独 worktree + **有名字的功能分支**，不要 detached HEAD。Mode W 只是工作区拓扑，**不能**当作真宿主验收。
 
+用户明确要求并行、且不需要 isolation 时，可用 **Mode P**：每个写任务绑定一个真实子会话（1:1），工作区仍是 project-branch。不能用 placeholder session 冒充多会话；临时 subagent 不能当持久 session。Mode P + 隔离需求 → 停下来改用 Mode W。
+
 ## 「真环境」和「本机试跑」
 
 | | 本机试跑 | 真宿主验收 |

@@ -15,6 +15,8 @@ import { bindThread, reconcileDispatch } from './dispatchControlPlane.mjs';
 import { assertNamedBranchTip } from './dispatchWorktree.mjs';
 import { executionModeForEnvironment } from './dispatchWorkspaceMode.mjs';
 
+const PLACEHOLDER_SESSION = /^session-[a-z0-9-]+-\d{8}$/i;
+
 export const GROK_HOST_ID = 'grok-build';
 export const GROK_HANDLE_KIND = 'session';
 export const WAVE2_TRIAL_REL = 'docs/milestones/real-host-trial-grok.json';
@@ -97,11 +99,21 @@ export function bindGrokSessionTask({
   agentName = null,
   sandboxMode = null,
   gitHeadAtBind = null,
-  effectiveBoundarySource = 'declared-coordinator'
+  effectiveBoundarySource = 'declared-coordinator',
+  executionMode = null
 } = {}) {
   if (!plane || !controlRoot || !deliveryId || !taskKey || !sessionId || !projectId) {
     return { ok: false, reason: 'bindGrokSessionTask requires plane, controlRoot, deliveryId, taskKey, sessionId, projectId', plane };
   }
+  if (PLACEHOLDER_SESSION.test(sessionId)) {
+    return { ok: false, reason: 'placeholder session-<slug>-YYYYMMDD cannot BIND', plane };
+  }
+  const existingIntent = (plane.deliveries || [])
+    .flatMap((delivery) => delivery.dispatch_intents || [])
+    .find((intent) => intent.task_key === taskKey);
+  const derivedMode = executionModeForEnvironment(environment, access);
+  const resolvedMode = executionMode
+    || (derivedMode === 'W' ? 'W' : (existingIntent?.execution_mode || derivedMode));
   if (access === 'write' && environment === 'exclusive-worktree') {
     if (!worktreePath || !intendedBranch) {
       return { ok: false, reason: 'Mode W bind requires worktreePath and intendedBranch', plane };
@@ -125,7 +137,7 @@ export function bindGrokSessionTask({
       session_id: sessionId,
       host_id: GROK_HOST_ID,
       agent_name: resolvedAgent,
-      execution_mode: executionModeForEnvironment(environment, resolvedAccess),
+      execution_mode: resolvedMode,
       sandbox_mode: resolvedSandbox,
       effective_sandbox_mode: resolvedSandbox,
       environment,

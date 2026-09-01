@@ -80,11 +80,25 @@ test('PREFLIGHT #5 Mode W without isolation is NEEDS_CONFIRM', () => {
   assert.match(decision.reason, /without isolation reason/);
 });
 
-test('Mode P is fail-closed and deferred', () => {
+test('Mode P is opt-in child-session 1:1 on project-branch', () => {
   const decision = selectWriteWorkspaceMode({ requestedMode: 'P' });
+  assert.equal(decision.ok, true);
+  assert.equal(decision.status, 'READY');
+  assert.equal(decision.execution_mode, 'P');
+  assert.equal(decision.proposed_mode, 'P');
+  assert.equal(decision.workspace, 'project-branch');
+  assert.equal(decision.environment, 'project-branch');
+  assert.equal(decision.session_policy, 'child-session-1-1');
+});
+
+test('PREFLIGHT #5 blocks Mode P when isolation is required', () => {
+  const decision = selectWriteWorkspaceMode({
+    requestedMode: 'P',
+    dirtyMainUnrelated: true
+  });
   assert.equal(decision.ok, false);
   assert.equal(decision.status, 'BLOCKED');
-  assert.match(decision.reason, /deferred/);
+  assert.match(decision.reason, /cannot satisfy isolation/);
 });
 
 test('read tasks stay Mode S project-read', () => {
@@ -152,6 +166,24 @@ test('Mode W attestation requires exclusive path; Mode S requires project.path',
     project_path: '/tmp/project-a'
   });
   assert.equal(modeSOnWt.ok, false);
+
+  const modeP = validateAttestationExecutionMode({
+    execution_mode: 'P',
+    environment: 'project-branch',
+    access: 'write',
+    worktree: '/tmp/project-a',
+    project_path: '/tmp/project-a'
+  });
+  assert.equal(modeP.ok, true, JSON.stringify(modeP.errors));
+
+  const modePOnWt = validateAttestationExecutionMode({
+    execution_mode: 'P',
+    environment: 'exclusive-worktree',
+    access: 'write',
+    worktree: '/tmp/wt-a',
+    project_path: '/tmp/project-a'
+  });
+  assert.equal(modePOnWt.ok, false);
 });
 
 test('validateModeIsolationConsistency matches environment to mode', () => {
@@ -226,6 +258,103 @@ test('DISPATCH isolation signal writes exclusive-worktree intent', () => {
     .find((item) => item.task_key === 'DEL-001/C/development/1');
   assert.equal(intentA.environment, 'exclusive-worktree');
   assert.equal(intentC.environment, 'project-branch');
+});
+
+test('PREVIEW and DISPATCH persist Mode P when requested', () => {
+  const plane = createControlPlane(fixture);
+  const preview = previewDispatch(plane, 'DEL-001', { workspaceSignals: { requestedMode: 'P' } });
+  assert.ok(preview.workspace_table.every((row) => row.proposed_mode === 'P'));
+  assert.ok(preview.workspace_table.every((row) => row.session_policy === 'child-session-1-1'));
+
+  const approved = approveDispatch(plane, {
+    deliveryId: 'DEL-001',
+    decisionRef: 'decision:mode-p-dispatch'
+  });
+  const dispatched = dispatchTasks(approved, 'DEL-001', {
+    capabilities: appCapabilities,
+    workspaceSignals: { requestedMode: 'P' }
+  });
+  assert.equal(dispatched.ok, true, dispatched.reason);
+  const writes = dispatched.plane.deliveries[0].dispatch_intents.filter((item) => item.access === 'write');
+  assert.ok(writes.length > 0);
+  assert.ok(writes.every((item) => item.execution_mode === 'P'));
+  assert.ok(writes.every((item) => item.environment === 'project-branch'));
+});
+
+test('DISPATCH Mode P + isolation leaves plane unchanged', () => {
+  const approved = approveDispatch(createControlPlane(fixture), {
+    deliveryId: 'DEL-001',
+    decisionRef: 'decision:mode-p-preflight'
+  });
+  const before = JSON.stringify(approved);
+  const blocked = dispatchTasks(approved, 'DEL-001', {
+    capabilities: appCapabilities,
+    workspaceSignals: { requestedMode: 'P', A: { dirtyMainUnrelated: true } }
+  });
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.status, 'BLOCKED');
+  assert.match(blocked.reason, /cannot satisfy isolation/);
+  assert.equal(JSON.stringify(approved), before);
+});
+
+test('Mode P write bind rejects a shared session', () => {
+  const approved = approveDispatch(createControlPlane(fixture), {
+    deliveryId: 'DEL-001',
+    decisionRef: 'decision:mode-p-bind'
+  });
+  const dispatched = dispatchTasks(approved, 'DEL-001', {
+    capabilities: appCapabilities,
+    workspaceSignals: { requestedMode: 'P' }
+  });
+  const sessionA = '019fmodep-0000-7000-8000-aaaaaaaaaaaa';
+  const boundA = bindThread(dispatched.plane, {
+    taskKey: 'DEL-001/A/development/1',
+    threadId: sessionA,
+    projectId: 'A',
+    hostId: 'grok-build',
+    handleKind: 'session',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: '.workflow/dispatch/DEL-001/attestations/a.json',
+    worktree: 'D:/A'
+  });
+  const intentA = boundA.deliveries[0].dispatch_intents
+    .find((item) => item.task_key === 'DEL-001/A/development/1');
+  assert.equal(intentA.execution_mode, 'P');
+  assert.throws(() => bindThread(boundA, {
+    taskKey: 'DEL-001/C/development/1',
+    threadId: sessionA,
+    projectId: 'C',
+    hostId: 'grok-build',
+    handleKind: 'session',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: '.workflow/dispatch/DEL-001/attestations/c.json',
+    worktree: 'D:/C'
+  }), /already bound/);
+
+  const boundC = bindThread(boundA, {
+    taskKey: 'DEL-001/C/development/1',
+    threadId: '019fmodep-0000-7000-8000-cccccccccccc',
+    projectId: 'C',
+    hostId: 'grok-build',
+    handleKind: 'session',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: '.workflow/dispatch/DEL-001/attestations/c.json',
+    worktree: 'D:/C'
+  });
+  const intentC = boundC.deliveries[0].dispatch_intents
+    .find((item) => item.task_key === 'DEL-001/C/development/1');
+  assert.equal(intentC.status, 'BOUND');
+  assert.equal(intentC.execution_mode, 'P');
+  assert.notEqual(intentC.thread_id, intentA.thread_id);
 });
 
 test('bindThread Mode W rejects project.path and accepts exclusive path', () => {
