@@ -228,10 +228,13 @@ grok
 
 ### Phase 2 — Adapter 实现（宿主边界）
 
-- [ ] 控制项目侧：项目注册表（path + git identity）
-- [ ] create/bind/reconcile 的可脚本化步骤（优先 CLI + 约定 artifact，少依赖私有 API）
-- [ ] worktree 生命周期：创建、绑定、清理策略（失败不删证据）
-- [ ] doctor：检测 `grok` 可执行文件与 skill 安装，**不** 因此报告 A2
+- [x] 控制项目侧：项目注册表（path + git identity）— `inspectProjectRegistry`
+- [x] create/bind/reconcile 的可脚本化步骤（优先 CLI + 约定 artifact，少依赖私有 API）— `bindGrokSessionTask` / `reconcileGrokSession`
+- [x] worktree 生命周期：创建、绑定、清理策略（失败不删证据）— Mode W `src/dispatchWorktree.mjs`（不关 Wave 2）
+- [x] doctor：检测 `grok` 可执行文件与 skill 安装，**不** 因此报告 A2
+- [x] Wave 2 评估器 fail-closed：lab-harness / semi-real / skill-only / placeholder 不得关闭里程碑
+
+整体设计仍为 **Proposed**；Phase 2 脚手架不是 Implemented。
 
 ### Phase 3 — 真实试跑与验收
 

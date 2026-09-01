@@ -1,8 +1,10 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { checkHarnessRepository } from '../scripts/check-harness.mjs';
+import { grokSkillInstalled, inspectGrokWave2Milestone } from './grokHostAdapter.mjs';
 import { describePathConfig } from './namingConfig.mjs';
 
 export const DOCTOR_SCHEMA_VERSION = 'jj-flow/doctor/1.0';
@@ -14,10 +16,12 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
   const packageJson = readJson(path.join(root, 'package.json'));
   const git = inspectGit(root, runCommand);
   const pathConfig = describePathConfig();
-  const hostCapabilities = ['git', 'codex', 'claude'].map((command) => ({
+  const hostCapabilities = ['git', 'codex', 'claude', 'grok'].map((command) => ({
     id: command,
     available: command === 'git' ? git.available : commandAvailable(command, runCommand)
   }));
+  const grokSkill = grokSkillInstalled({ cwd: root, homedir: os.homedir() });
+  const wave2 = inspectGrokWave2Milestone({ cwd: root });
 
   const findings = [...harness.findings];
   if (!git.available) {
@@ -54,11 +58,19 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
       ? manifest.capabilities.map(({ id, command, mode, evidence }) => ({ id, command, mode, evidence }))
       : [],
     host_capabilities: hostCapabilities,
+    grok: {
+      executable: hostCapabilities.find((item) => item.id === 'grok')?.available === true,
+      skill_installed: grokSkill.installed,
+      skill_paths: grokSkill.paths,
+      wave2_closed: false,
+      wave2_status: wave2.status
+    },
     autonomy: {
       declared_default: declaredDefault,
       max_unattended: maxUnattended,
       available_level: availableLevel,
-      external_writes_require_approval: true
+      external_writes_require_approval: true,
+      grok_does_not_raise_level: true
     },
     findings,
     next_actions: nextActions
@@ -79,6 +91,9 @@ export function renderDoctorText(result) {
     lines.push(`knowledge_root: ${result.paths.knowledge_root || '(none)'}`);
     lines.push(`project_map: ${result.paths.project_map || '(none)'}`);
     lines.push(`naming_config: ${result.paths.naming_config_path || '(defaults)'} [${result.paths.naming_config_source}]`);
+  }
+  if (result.grok) {
+    lines.push(`grok: executable=${result.grok.executable} skill=${result.grok.skill_installed} wave2=${result.grok.wave2_status} (does not raise A2)`);
   }
   if (result.findings.length) {
     lines.push('findings:');

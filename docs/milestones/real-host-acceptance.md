@@ -20,7 +20,7 @@
 | 半真实 Host | `npm run host:trial`、`m7-host-trial.json` | 本地 Git worktree + CAS + receipt 闭环 | 宿主 runtime attestation；**不得**升 A2 |
 | 真实 Host（本文） | versioned trial JSON + 宿主签发字段 | create/bind/RECONCILE/返工在真 Host | — |
 
-`max_unattended_level` 当前为 **A1**（见 `harness-manifest.json`）。skill 安装（含 Grok）与 Mode S 日常派发只服务 A1 DX，**不**关闭本里程碑。`lab-harness` 是实验场 gym host，**不得**当作本里程碑证据。
+`max_unattended_level` 当前为 **A1**（见 `harness-manifest.json`）。skill 安装（含 Grok）、Mode S 日常派发、Mode W isolation worktree、Grok adapter Phase 2 脚手架只服务 A1 DX，**不**关闭本里程碑。`lab-harness` 是实验场 gym host，**不得**当作本里程碑证据。`jj doctor` 列出 `grok` 可执行文件 **不会** 提高 `available_level`。
 
 ## 当前已证明（semi-real，非本里程碑）
 

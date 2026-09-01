@@ -14,6 +14,9 @@ test('doctor reports the current repository from versioned Harness truth', () =>
   assert.equal(result.harness.status, 'PASS');
   assert.equal(result.repository.git.available, true);
   assert.equal(result.autonomy.available_level, 'A1');
+  assert.equal(result.autonomy.grok_does_not_raise_level, true);
+  assert.ok(result.host_capabilities.some((item) => item.id === 'grok'));
+  assert.equal(result.grok.wave2_closed, false);
   assert.ok(result.capabilities.some((item) => item.id === 'harness-check'));
   assert.ok(result.paths);
   assert.ok(result.paths.control_root);

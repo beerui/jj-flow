@@ -109,6 +109,7 @@ const DEEP_PAGES = [
   { title: '实验场执行', source: 'docs/exec-plans/completed/2026-08-31-jj-flow-labs.md', output: 'exec-plans/completed/2026-08-31-jj-flow-labs.html', group: '执行计划' },
   { title: 'AI-native SDLC 对齐执行', source: 'docs/exec-plans/completed/2026-08-31-ai-native-sdlc.md', output: 'exec-plans/completed/2026-08-31-ai-native-sdlc.html', group: '执行计划' },
   { title: 'Grok Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html', group: '执行计划' },
+  { title: 'Grok Host Phase 2', source: 'docs/exec-plans/active/2026-09-01-grok-host-adapter-phase2.md', output: 'exec-plans/active/2026-09-01-grok-host-adapter-phase2.html', group: '执行计划' },
   { title: 'Dispatch Ralph 回退', source: 'docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md', output: 'exec-plans/completed/2026-07-31-dispatch-ralph-rollback.html', group: '执行计划' },
   { title: 'Dispatch 升级 backlog', source: 'docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md', output: 'exec-plans/active/2026-07-31-dispatch-upgrade-backlog.html', group: '执行计划' },
   { title: 'Grok Host Phase 1', source: 'docs/exec-plans/completed/2026-07-27-grok-host-adapter.md', output: 'exec-plans/completed/2026-07-27-grok-host-adapter.html', group: '执行计划' },
