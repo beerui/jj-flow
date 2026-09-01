@@ -1,0 +1,52 @@
+package.json
+  s_0a1fdf7e8a0a56::t_7a000a294e2ac6 42
+docs/commands/cli.md
+  s_0a1fdf7e8a0a56::t_9241686c423f20 141
+.github/workflows/npm-publish.yml
+  s_0a1fdf7e8a0a56::t_e9b8a738e771be 46-48
+tests/harness-check.test.mjs
+  s_0a1fdf7e8a0a56::t_b9e5cf4b87a3d0 6,13-15,302-324
+harness-manifest.json
+  s_0a1fdf7e8a0a56::t_292b3c5316da5c 488-493
+scripts/check-harness.mjs
+  s_0a1fdf7e8a0a56::t_c9da6ef9f0258b 293-309,1198-1263
+.github/workflows/ci.yml
+  s_0a1fdf7e8a0a56::t_6e49e41f52635a 18-19
+docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_4f3d245a1a6747 81,89
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_a45e4e44a05b03 52
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_9a6ba3769899f7 66-68
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_c1b4459b8149c6 127
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_de8ba1907f009e 16
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_20358c8d6cb9c1 7-8
+docs/maintenance.md
+  s_0a1fdf7e8a0a56::t_94344aa5aa79bc 31,35-36
+.github/actions/prepare-lab-roots/action.yml
+  s_0a1fdf7e8a0a56::t_3c97f1b4bacc61 1-46
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_b02ff07dfc4967 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "d3c6e0ae585d3dc773b61c937d94cded5f396175",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
