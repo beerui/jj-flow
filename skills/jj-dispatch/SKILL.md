@@ -25,10 +25,10 @@ TASK-ID recovery -> PREVIEW (branch/workspace table)
 | --- | --- | --- | --- |
 | 1 | Business-repo cwd / TASK-ID | Recover index + manifest (`jj task context/status` **or** read `control_root` task dir + plane) | Context loaded |
 | 2 | Intake fields | If incomplete → `INTAKE_REQUIRED` only (no PREVIEW advance) | Intake complete **or** stop |
-| 3 | Complete intake | **PREVIEW** read-only: write-task branch/workspace table (`behind_count`, `base_action`, …); **no** intent write | `PREVIEW_ONLY` + table |
+| 3 | Complete intake | **PREVIEW** read-only: write-task branch/workspace table (`behind_count`, `base_action`, `proposed_mode=S\|W`, …); **no** intent write | `PREVIEW_ONLY` + table |
 | 4 | PREVIEW table | 🔴 **CHECKPOINT · user approves `task_keys`** this round. No approval → 🛑 **STOP** at `PREVIEW_ONLY` | Approved keys |
 | 5 | Branch/mode / CREATE base | 🔴 **CHECKPOINT · `NEEDS_CONFIRM`** when confidence low, dirty/diverged base, or unclear isolation. Show decision table; 🛑 **STOP** DISPATCH until user confirms | `READY` path |
-| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok Mode S: real session + attestation file). Default `project-branch` | Bound / RUNNING |
+| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree | Bound / RUNNING |
 | 7 | Receipt / bound tasks | tick/resume; **without CLI, Agent writes plane** → [agent-write-plane.md](references/agent-write-plane.md) | Advanced status |
 | 8 | Claim done | 🔴 **CHECKPOINT · VERIFIED**: need `produced_commit` + review + real session + **attestation file** + **T-task-result-sync** in same write batch. Missing any → 🛑 **STOP** at `EVIDENCE_READY`/`RUNNING` | VERIFIED or hold |
 
@@ -71,7 +71,7 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 ## PREVIEW
 - delivery / TASK-ID:
 - task_keys (proposed):
-- branch table: project | intended | current | dirty | base_action | confidence | action
+- branch table: project | intended | current | dirty | proposed_mode=S\|W | base_action | confidence | action
 - needs from you: approve task_keys [+ confirm branch/mode if NEEDS_CONFIRM]
 ```
 
@@ -129,14 +129,19 @@ Fields and Review loop → [control-project.md](references/control-project.md).
 
 Without CLI, the **Agent may and must** write plane / task / attestation / receipt per [agent-write-plane.md](references/agent-write-plane.md) (status ceiling, `produced_commit`, session bind C4, self-check C5/C6, **T-task-result-sync**). Optional: `node skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`.
 
-## Grok Mode S (default)
+## Grok Mode S (default) / Mode W (isolation)
 
 | Question | Answer |
 | --- | --- |
 | Protocol multi-task? | Yes (multiple task_key) |
 | Default multi Grok session? | **No** (Mode S); Mode P deferred |
+| Isolation worktree? | **Mode W**: exclusive-worktree on a **named branch tip**; dirty main / user isolation / occupied checkout |
 | Must use Grok Workflow? | **No**; Workflow **must not** advance checkpoints |
 | User runs CLI? | **No**; Agent writes attestation/receipt/plane |
+
+PREFLIGHT #5: Mode S + isolation → 🛑 **STOP** DISPATCH (plane unchanged). Mode W without an isolation reason → `NEEDS_CONFIRM`. Silent detached HEAD is forbidden.
+
+Helpers: `src/dispatchWorkspaceMode.mjs` (pure selection) · `src/dispatchWorktree.mjs` (create/bind/cleanup). Mode W does **not** close Host Wave 2.
 
 Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md).
 

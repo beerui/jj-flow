@@ -2,7 +2,7 @@
 
 > 状态：active
 >
-> 备注：U1–U3（C4–C6）已在 2026-07-31 收尾实现；U5 Mode W/P 仍后置。
+> 备注：U1–U3（C4–C6）已在 2026-07-31 收尾实现；Mode W 机械路径 2026-09-01；Mode P / Host Wave 2 仍后置。
 >
 > 负责人：jj-flow dispatch
 >
@@ -30,7 +30,7 @@
 
 | ID | 项 | 说明 |
 | --- | --- | --- |
-| Mode W | exclusive-worktree 完整 bind/cleanup | 见 grok-dispatch-execution Phase 2b |
+| Mode W | exclusive-worktree 完整 bind/cleanup | **promoted** 2026-09-01（机械；非 Wave 2） |
 | Mode P | 多 session 1:1 | Phase 2c |
 | Host Wave 2 | real-host-trial-grok | Proposed |
 | acceptor-tag 历史 plane | 勿回写变绿；可用 reopen 另线 | 负例保留 |

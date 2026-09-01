@@ -44,6 +44,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `src/dispatchControlPlane.mjs` 是纯控制平面状态机。它负责 manifest 校验、稳定 `task_key`、派发批准、task 绑定与对账、任务和审查结果、返工，以及目标完成状态。
 - `src/dispatchRuntime.mjs` 是单次 tick 的宿主边界。它校验并幂等应用 receipts，计算下一批 host actions，并通过 `persistPlaneCas` 以 revision compare-and-swap 方式持久化 manifest。
 - `src/dispatchHostContract.mjs` 定义 runtime 可输出的 host action 类型、receipt 枚举、已批准 `host_ids` / `handle_kinds` / `host_profiles`，以及 read/write 的 agent、sandbox、environment 和 worktree policy。Grok 与 Codex 共用 `CREATE_THREAD` / `RECONCILE_THREAD` 类型名，靠 `host_id` + `handle_kind` 分流；`validateHostBindAttestation` 对缺 evidence / 伪 semi-real 证据 fail-closed。`skills/jj-dispatch/references/host-action-contract.json` 是 skill 侧结构化契约，Harness 检查两者与 schemas、fixtures 的一致性。
+- `src/dispatchWorkspaceMode.mjs` 是纯 Mode S/W 选择与 PREFLIGHT #5（isolation vs `execution_mode`）；`src/dispatchWorktree.mjs` 负责 exclusive-worktree 创建、命名分支 tip 检查和清理（失败不删 attestation/receipt）。Mode W 不是 Host Wave 2。
 - `src/dispatchTrace.mjs` 为纯状态转换记录 before/after hash、输入、输出与 evidence refs，并在 replay 时重新执行状态转换；记录到的 host actions 只计数，不执行。
 - `src/scenarioRunner.mjs` 登记 4 个确定性场景，覆盖 dispatch happy path、中断恢复、部分目标失败和 `jj-same` handoff 契约。`src/handoffContract.mjs` 对 handoff snapshot 做 fail-closed 校验。
 - `src/hostTrialRunner.mjs` 位于核心状态机之外，在系统临时目录创建控制仓、真实 Git repo 和独占 worktree，验证 CAS、receipt、中断对账及 Reviewer/Developer 返工。它是半真实 Host adapter，不创建或伪造 Codex App task。

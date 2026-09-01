@@ -197,7 +197,7 @@ TOML defaults cannot substitute for runtime sandbox attestation; refuse bind wit
 
 1. Default `project-branch`: task branch exists and is checked out / checkable at `project.path` → bind main worktree directly.
 2. Only when “same project already has active write”, “main repo has unrelated dirty that must not be polluted”, or “user explicitly requires isolation” → `exclusive-worktree`.
-3. Landing rule: code facts must live on a **named branch tip**; do not leave live patches only on a detached tree.
+3. Landing rule: code facts must live on a **named branch tip**; do not leave live patches only on a detached tree. Mechanical helpers: `src/dispatchWorkspaceMode.mjs` (PREVIEW `proposed_mode` / PREFLIGHT #5) and `src/dispatchWorktree.mjs` (create/inspect/cleanup). Mode W does not close Host Wave 2.
 
 **If uncertain, ask before DISPATCH (hard procedure)**
 

@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **Grok Mode W（Phase 2b）**：isolation 时 exclusive-worktree。PREVIEW `workspace_table.proposed_mode=S|W`；DISPATCH PREFLIGHT #5（Mode S + isolation → 平面不变 BLOCKED）；attestation `execution_mode=W` 不得绑 `project.path`；`git worktree` 必须落在命名分支 tip，禁止 silent detached。不关闭 Host Wave 2，不升 A2。
 - **AI-native SDLC 对齐（切片 0–7）**：把 playbook 控制习惯翻译进 same / ralph / dispatch，不开第六阶段或第四条主路径。
   - 可选 `intent.md`（tiny 跳过）；声称路径与审查对照只认 `plan.md` ## Current。
   - 审查政策：bugs / security / compliance；finding 可选 `pass` / `importance`；nit 上限 5；PASS 时 nit WAIVED。

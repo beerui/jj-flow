@@ -215,6 +215,7 @@ test('host actions honor intent exclusive-worktree environment upgrade', () => {
   assert.ok(action, JSON.stringify(result.actions, null, 2));
   assert.equal(action.environment, 'exclusive-worktree');
   assert.equal(action.worktree_policy, 'exclusive-worktree-when-isolation');
+  assert.equal(action.execution_mode, 'W');
 });
 
 test('human ADAPT decision pauses only that target until scheduler approval', () => {

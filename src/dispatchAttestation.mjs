@@ -5,6 +5,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  executionModeForEnvironment,
+  validateAttestationExecutionMode
+} from './dispatchWorkspaceMode.mjs';
 
 /**
  * DEL/a/b/1 → DEL__a__b__1
@@ -46,7 +50,7 @@ export function buildGrokAttestation({
   session_id,
   host_id = 'grok-build',
   agent_name = null,
-  execution_mode = 'S',
+  execution_mode = null,
   sandbox_mode = null,
   effective_sandbox_mode = null,
   environment = null,
@@ -65,24 +69,32 @@ export function buildGrokAttestation({
   const isRead = access === 'read'
     || (agent_name && String(agent_name).includes('reviewer'))
     || sandbox_mode === 'read-only';
-  return {
+  const resolvedAccess = access || (isRead ? 'read' : 'write');
+  const resolvedEnvironment = environment || (isRead ? 'project-read' : 'project-branch');
+  const resolvedMode = execution_mode || executionModeForEnvironment(resolvedEnvironment, resolvedAccess);
+  const payload = {
     host_id,
     handle_kind: 'session',
     session_id,
     task_key,
     agent_name: agent_name || (isRead ? 'jj-workflow-reviewer' : 'jj-workflow-developer'),
-    execution_mode,
+    execution_mode: resolvedMode,
     sandbox_mode: sandbox_mode || (isRead ? 'read-only' : 'workspace-write'),
     effective_sandbox_mode: effective_sandbox_mode || sandbox_mode || (isRead ? 'read-only' : 'workspace-write'),
     effective_boundary_source: 'declared-coordinator',
-    environment: environment || (isRead ? 'project-read' : 'project-branch'),
+    environment: resolvedEnvironment,
     worktree: worktree === undefined ? null : worktree,
     intended_branch: intended_branch || null,
     git_head_at_bind: git_head_at_bind || null,
     project_path: project_path || null,
     bound_at,
-    access: access || (isRead ? 'read' : 'write')
+    access: resolvedAccess
   };
+  const modeCheck = validateAttestationExecutionMode(payload);
+  if (!modeCheck.ok) {
+    throw new Error(`attestation execution_mode invalid: ${modeCheck.errors.join('; ')}`);
+  }
+  return payload;
 }
 
 /**

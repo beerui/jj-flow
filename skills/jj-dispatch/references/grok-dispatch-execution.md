@@ -1,6 +1,6 @@
 # Grok Dispatch execution flow (Mode S default)
 
-> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Host Wave 2 / Mode P still Proposed
+> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Mode W mechanical Implemented (Phase 2b); Host Wave 2 / Mode P still Proposed
 > **Host**: `host_id=grok-build`, `handle_kind=session`
 > **SSOT location**: this file (`skills/jj-dispatch/references/`); `~/.grok/skills` is only an `install-skill` copy
 > **Related**: `host-action-contract.json`, `docs/design-docs/grok-host-adapter.md`, C3 Agent plane-write hard gates,
@@ -70,7 +70,7 @@ Upgrade goals: **prevent 1–2 becoming default; fold 3 into Mode S; write 4 int
 
 1. Three Grok execution modes and selection rules (§3).
 2. Repeatable post-DISPATCH bind / workspace / receipt / advance steps (**user does not run CLI**; Agent persists).
-3. Default Mode S; W/P deferred.
+3. Default Mode S; Mode W when isolation is required; Mode P deferred.
 4. Versionable evidence; do not forge Codex threads.
 5. Share control plane with Codex.
 
@@ -196,6 +196,7 @@ Rules:
 
 - `session_id` must be a real host id (e.g. `019f…-…`); **forbid** `session-<slug>-YYYYMMDD`.
 - Mode S: `worktree == project_path`; multi-task may share the same `session_id`.
+- Mode W: `environment=exclusive-worktree` and `worktree != project_path`; land on a named branch tip; forbid silent detached HEAD.
 - intent.`thread_id` = that `session_id` (do not use `coordinator:…#task` as the sole handle).
 - `sandbox_evidence_ref` points to the path of the above file relative to control_root.
 - **C4: development *and* review/read responsibilities both write attestation files**; forbid string-only `host:grok-build:session:…` as review `sandbox_evidence_ref`.
@@ -274,7 +275,15 @@ Natural-language “done” must not advance checkpoints.
 
 ### Phase 2b — Mode W
 
-worktree create/bind/cleanup; landing on named branch tip.
+| ID | Item | Status |
+| --- | --- | --- |
+| G2B-1 | `selectWriteWorkspaceMode` + PREFLIGHT #5 (Mode S vs isolation) | this wave |
+| G2B-2 | PREVIEW `workspace_table` with `proposed_mode=S\|W` | this wave |
+| G2B-3 | DISPATCH isolation → intent `environment=exclusive-worktree` | this wave |
+| G2B-4 | exclusive-worktree create/inspect/cleanup; named branch tip; forbid detached | this wave |
+| G2B-5 | attestation `execution_mode=W` cannot bind `project.path` | this wave |
+
+Does **not** close Host Wave 2. Live isolated Grok delivery is still optional evidence, not A2.
 
 ### Phase 2c — Mode P
 
@@ -308,6 +317,13 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 - [ ] Next-wave real Grok delivery: PREVIEW→approve→Mode S→receipt→real produced_commit→VERIFIED with plane-self-check OK
 - [ ] uncommitted source blocked in live practice
 
+### 9.1b Phase 2b Mode W (mechanical)
+
+- [x] PREVIEW `proposed_mode=S|W` + PREFLIGHT #5 fail-closed
+- [x] exclusive-worktree create/bind/cleanup on a named branch tip
+- [x] attestation `execution_mode=W` cannot bind `project.path`
+- [ ] Live isolated Grok delivery (optional; does **not** close Host Wave 2)
+
 ### 9.2 Failure conditions
 
 - Chat state replaces control-plane revision
@@ -329,3 +345,4 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 | 2026-07-30 | source must be committed | distribution truth-drift negative case |
 | 2026-08-03 | base freshness before CREATE | EP-20260803 stale local master branch create; fetch+ff or from origin |
 | 2026-08-10 | **supersede** CREATE path | CREATE **only** from freshened **local** `master` (`FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER`); `CREATE_FROM_ORIGIN` removed as primary path; no silent CREATE from `dev` |
+| 2026-09-01 | Mode W mechanical | isolation → exclusive-worktree + named branch; PREFLIGHT #5; not Wave 2 / not A2 |
