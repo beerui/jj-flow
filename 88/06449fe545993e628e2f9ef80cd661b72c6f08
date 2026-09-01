@@ -1,0 +1,67 @@
+skills/jj-dispatch/references/control-plane.schema.json
+  s_0a1fdf7e8a0a56::t_b8c0b3686e2232 296
+tests/jj-dispatch-contract.test.mjs
+  s_0a1fdf7e8a0a56::t_f5af06cdb668c4 748-785
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_42605f450e05e9 16-17
+skills/jj-dispatch/references/grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_f0493a3772696d 3,21,26,73,100-103,112,254,292-300,304,343,359
+  s_0a1fdf7e8a0a56::t_87e13c48ecebc6 135,144,201,243,337-342
+src/dispatchWorkspaceMode.mjs
+  s_0a1fdf7e8a0a56::t_f0b2712efc0686 2,4-6,9-10,56-61,92-94,96-110,112-117,143,155,165,190-192,196-198,205-209,256,274,276,279,286-293,302
+docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md
+  s_0a1fdf7e8a0a56::t_f96b85565fe1c8 5,34,40
+src/dispatchRuntime.mjs
+  s_0a1fdf7e8a0a56::t_e82397ca61ac52 523,533
+tests/grok-host-adapter.test.mjs
+  s_0a1fdf7e8a0a56::t_d9ae4bda2797b0 136-215
+docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_7708e39ef639fd 18,54-55
+skills/jj-dispatch/references/happy-path.md
+  s_0a1fdf7e8a0a56::t_b78469d7778a75 25,47
+src/dispatchControlPlane.mjs
+  s_0a1fdf7e8a0a56::t_42e351b4071f29 17,461,468-470,1053,3594-3595
+  s_0a1fdf7e8a0a56::t_ae9bb9ca95db6c 490-493,823-824,1045-1051,1080-1084,3005-3007,3010,3032,3586-3593
+docs/commands/jj-dispatch.md
+  s_0a1fdf7e8a0a56::t_e53c36b6935197 67
+docs/project-plan.md
+  s_0a1fdf7e8a0a56::t_764db13f539b92 21
+src/grokHostAdapter.mjs
+  s_0a1fdf7e8a0a56::t_a3b15e82cb18b5 111-113
+  s_0a1fdf7e8a0a56::t_ddcefcc1db45bc 114,116
+  s_0a1fdf7e8a0a56::t_0dcba085f134aa 18-19,102-103,108-110,115,140
+skills/jj-dispatch/SKILL.md
+  s_0a1fdf7e8a0a56::t_3e728f56d81237 28,31,74,132,137,142,144
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_0f6576f735d148 34
+  s_0a1fdf7e8a0a56::t_278f5454acfa8e 53
+docs/concepts-hosts.md
+  s_0a1fdf7e8a0a56::t_d07a6cf812c0aa 20-21
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_2d839e30b08f98 47
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_fbbd09b303e8c3 7
+skills/jj-dispatch/references/control-project.md
+  s_0a1fdf7e8a0a56::t_8a4bbcb85989f4 159,200
+tests/dispatch-workspace-mode.test.mjs
+  s_0a1fdf7e8a0a56::t_7a06fe5619e00a 83,85-98,101,169-186,263-359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "8806449fe545993e628e2f9ef80cd661b72c6f08",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
