@@ -13,7 +13,7 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [实验场 Loop gym / Family gym](active/2026-08-31-jj-flow-labs.html) | PR1 文档 **Proposed** 入库；sibling 仓未建 | PR2：创建 `jj-lab-loop` / `jj-lab-family` + 产品 pointer |
+| [实验场 Loop gym / Family gym](active/2026-08-31-jj-flow-labs.html) | PR1 文档 Proposed；PR2 sibling 仓 + 发布隔离 | PR3：Loop gym 种子 + env-print |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a **live 已验收**；Mode W/P / Host Wave 2 仍 open | Mode W 或 Wave 2 证据 |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 **promoted**；Mode W/P / Wave 2 后置 | 未关闭项见文内表 |
 

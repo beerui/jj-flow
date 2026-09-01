@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -33,7 +34,8 @@ const HARNESS_GC_REPORT_VERSION = 'jj-flow/harness-gc-report/1.0';
 
 export function checkHarnessRepository({
   cwd = process.cwd(),
-  manifestPath = path.join(cwd, 'harness-manifest.json')
+  manifestPath = path.join(cwd, 'harness-manifest.json'),
+  runPublishPack = false
 } = {}) {
   const findings = [];
   const stats = {
@@ -235,6 +237,13 @@ export function checkHarnessRepository({
   } catch (error) {
     addFinding('HNS-COMMAND-001', packagePath, `package.json 无法解析：${error.message}`, '修复 package.json。');
   }
+
+  checkPublishLabs({
+    cwd,
+    packageJson,
+    addFinding,
+    runPack: Boolean(runPublishPack)
+  });
 
   const capabilities = arrayOrFinding(manifest.capabilities, 'capabilities', manifestPath, addFinding);
   checkUniqueEntries(capabilities, manifestPath, addFinding);
@@ -1169,6 +1178,98 @@ function resolveRepositoryPath(cwd, value, addFinding, ruleId) {
   return path.join(cwd, value);
 }
 
+export function isForbiddenLabsPublishEntry(entry) {
+  if (typeof entry !== 'string') return false;
+  const normalized = entry.replaceAll('\\', '/').replace(/^\.\//, '').replace(/\/+$/, '');
+  return normalized === 'labs' || normalized.startsWith('labs/');
+}
+
+export function gitignoreForbidsLabsMaterialized(text) {
+  return String(text || '').split(/\r?\n/).some((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return false;
+    const normalized = trimmed.replaceAll('\\', '/').replace(/\/+$/, '');
+    return normalized === 'labs/_materialized' || normalized.endsWith('/labs/_materialized');
+  });
+}
+
+export function gitignoreIgnoresLabRootsJson(text) {
+  return String(text || '').split(/\r?\n/).some((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return false;
+    return trimmed.replaceAll('\\', '/') === 'lab-roots.json';
+  });
+}
+
+export function packStdoutContainsLabs(stdout) {
+  return String(stdout || '').split(/\r?\n/).some((line) => {
+    const normalized = line.replaceAll('\\', '/');
+    return /(?:^|[\s])labs\//.test(normalized) || /(?:^|[\s/])labs\//.test(normalized);
+  });
+}
+
+export function checkPublishLabs({ cwd, packageJson, addFinding, runPack = false }) {
+  const packagePath = path.join(cwd, 'package.json');
+  const files = Array.isArray(packageJson?.files) ? packageJson.files : [];
+  for (const entry of files) {
+    if (isForbiddenLabsPublishEntry(entry)) {
+      addFinding(
+        'HNS-PUBLISH-LABS',
+        packagePath,
+        `package.json files 含实验场路径：${entry}`,
+        '从 files 移除 labs / labs/ 及其前缀；实验场是 sibling 仓，不是 npm 包内容。'
+      );
+    }
+  }
+
+  const gitignorePath = path.join(cwd, '.gitignore');
+  if (fs.existsSync(gitignorePath)) {
+    const text = fs.readFileSync(gitignorePath, 'utf8');
+    if (gitignoreForbidsLabsMaterialized(text)) {
+      addFinding(
+        'HNS-PUBLISH-LABS',
+        gitignorePath,
+        '.gitignore 含 labs/_materialized/。产品树没有 labs/，不要为此 ignore 一个不存在的目录。',
+        '删除 labs/_materialized/；物化 ignore 属于各 lab 仓。'
+      );
+    }
+    if (!gitignoreIgnoresLabRootsJson(text)) {
+      addFinding(
+        'HNS-PUBLISH-LABS',
+        gitignorePath,
+        '.gitignore 未忽略 lab-roots.json。',
+        '加入 lab-roots.json（机器绝对路径，不进 git / npm pack）。'
+      );
+    }
+  }
+
+  if (!runPack) return;
+  const packed = spawnSync('npm', ['pack', '--dry-run', '--ignore-scripts'], {
+    cwd,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
+    timeout: 120000
+  });
+  const output = `${packed.stdout || ''}\n${packed.stderr || ''}`;
+  if (packed.status !== 0) {
+    addFinding(
+      'HNS-PUBLISH-LABS',
+      packagePath,
+      `npm pack --dry-run 失败：${packed.stderr || packed.error?.message || packed.status}`,
+      '修复 pack 后再确认 tarball 不含 labs/。'
+    );
+    return;
+  }
+  if (packStdoutContainsLabs(output)) {
+    addFinding(
+      'HNS-PUBLISH-LABS',
+      packagePath,
+      'npm pack --dry-run 输出含 labs/ 路径。',
+      '从 files 移除 labs；实验场不得进入发布 tarball。'
+    );
+  }
+}
+
 function parseNpmRun(command) {
   const match = /^npm run ([a-z0-9:_-]+)$/.exec(String(command || ''));
   return match?.[1] || null;
@@ -1201,7 +1302,7 @@ const isDirect = process.argv[1]
   && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
 
 if (isDirect) {
-  const result = checkHarnessRepository();
+  const result = checkHarnessRepository({ runPublishPack: true });
   if (process.argv.includes('--json')) process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else process.stdout.write(renderText(result));
   if (!result.ok) process.exitCode = 1;

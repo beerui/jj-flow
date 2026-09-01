@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { checkHarnessRepository, HARNESS_SCHEMA_VERSION } from '../scripts/check-harness.mjs';
+import {
+  checkHarnessRepository,
+  checkPublishLabs,
+  gitignoreForbidsLabsMaterialized,
+  gitignoreIgnoresLabRootsJson,
+  HARNESS_SCHEMA_VERSION,
+  isForbiddenLabsPublishEntry,
+  packStdoutContainsLabs
+} from '../scripts/check-harness.mjs';
 
 test('current repository satisfies the Harness manifest', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'harness-manifest.json'), 'utf8'));
@@ -261,6 +269,39 @@ test('Harness check rejects Gardener permissions outside the explicit allowlist'
     assert.equal(result.ok, false);
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-GARDENER-006'));
   });
+});
+
+test('HNS-PUBLISH-LABS rejects labs/ in package files and gitignore materialized path', () => {
+  assert.equal(isForbiddenLabsPublishEntry('labs'), true);
+  assert.equal(isForbiddenLabsPublishEntry('labs/'), true);
+  assert.equal(isForbiddenLabsPublishEntry('labs/loop-gym'), true);
+  assert.equal(isForbiddenLabsPublishEntry('skills/'), false);
+  assert.equal(isForbiddenLabsPublishEntry('docs/'), false);
+  assert.equal(gitignoreForbidsLabsMaterialized('node_modules/\nlabs/_materialized/\n'), true);
+  assert.equal(gitignoreForbidsLabsMaterialized('node_modules/\nlab-roots.json\n'), false);
+  assert.equal(gitignoreIgnoresLabRootsJson('lab-roots.json\n'), true);
+  assert.equal(gitignoreIgnoresLabRootsJson('# lab-roots.json\n'), false);
+  assert.equal(packStdoutContainsLabs('npm notice docs/design-docs/jj-flow-labs.md\n'), false);
+  assert.equal(packStdoutContainsLabs('npm notice labs/loop-gym/package.json\n'), true);
+
+  const findings = [];
+  checkPublishLabs({
+    cwd: process.cwd(),
+    packageJson: { files: ['skills/', 'labs/', 'docs/'] },
+    addFinding: (ruleId, targetPath, reason, nextAction) => {
+      findings.push({ rule_id: ruleId, path: targetPath, reason, nextAction });
+    },
+    runPack: false
+  });
+  assert.ok(findings.some((item) => item.rule_id === 'HNS-PUBLISH-LABS' && /labs\//.test(item.reason)));
+});
+
+test('current package.json files does not publish labs/', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'));
+  assert.equal(Array.isArray(pkg.files) && pkg.files.some(isForbiddenLabsPublishEntry), false);
+  const gi = fs.readFileSync(path.join(process.cwd(), '.gitignore'), 'utf8');
+  assert.equal(gitignoreForbidsLabsMaterialized(gi), false);
+  assert.equal(gitignoreIgnoresLabRootsJson(gi), true);
 });
 
 function withTemporaryManifest(change, assertion) {

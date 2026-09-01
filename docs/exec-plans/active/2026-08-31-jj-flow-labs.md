@@ -46,10 +46,10 @@
 
 ### PR2 — sibling 仓 + 产品 pointer + 发布隔离
 
-- [ ] 创建 `jj-lab-loop` / `jj-lab-family`（`lab-manifest.json` pin + `_materialized/` gitignore）
-- [ ] `docs/jj-lab-siblings.md` + `lab-roots.json.example`；gitignore `lab-roots.json`
-- [ ] `HNS-PUBLISH-LABS` + `npm pack --dry-run` 不得出现 `labs/`
-- [ ] **不加** exit-0 的 `lab:check`
+- [x] 创建 `jj-lab-loop` / `jj-lab-family`（`lab-manifest.json` pin + `_materialized/` gitignore）
+- [x] `docs/jj-lab-siblings.md` + `lab-roots.json.example`；gitignore `lab-roots.json`
+- [x] `HNS-PUBLISH-LABS` + `npm pack --dry-run` 不得出现 `labs/`
+- [x] **不加** exit-0 的 `lab:check`
 
 ### PR3 — Loop gym 种子 + env-print
 
@@ -86,7 +86,7 @@
 
 ## 下一刀
 
-**PR2**：创建 sibling 仓 + 产品 pointer + 发布隔离。本切片不建仓、不改 `package.json` `files` / `verify`。
+**PR3**：Loop gym 种子 + `env-print`。本切片不加 `lab:check` 占位，不改 `package.json` `files` / `verify`。
 
 ## 完成定义
 

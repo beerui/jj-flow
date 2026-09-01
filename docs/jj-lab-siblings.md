@@ -1,0 +1,77 @@
+# 实验场 sibling 仓
+
+> 产品仓 **没有** `labs/` 树。Loop gym 与 Family gym 是与 `jj-flow` **同级** 的独立 git 仓。  
+> 设计 SSOT：[实验场 Loop gym / Family gym](design-docs/jj-flow-labs.html)。本页只钉死仓名、发现根、env。
+
+## 仓名（钉死）
+
+父目录随机器；**目录名不要改**。
+
+| Lab | 仓目录名 | 示例（Windows） |
+| --- | --- | --- |
+| Lab 1 · Loop gym | `jj-lab-loop` | `D:\daji-docs\jj-lab-loop` |
+| Lab 2 · Family gym | `jj-lab-family` | `D:\daji-docs\jj-lab-family` |
+
+POSIX 同级：`$PARENT/jj-flow`、`$PARENT/jj-lab-loop`、`$PARENT/jj-lab-family`。
+
+**禁止：**
+
+- 在产品仓建 `jj-flow/labs/`
+- 从产品 `git rev-parse --show-toplevel` 拼接 `../jj-lab-loop` 当发现逻辑（runner 不得猜路径）
+- 把 lab 角色命名为 项目A / 项目B / 项目C / `handoff` / `project-a`
+- 把 `lab-roots.json` 或 gym 源码打进 npm 包
+
+## 发现根（fail-closed）
+
+解析顺序：已存在的**绝对目录**才算命中。缺根 → exit ≠ 0。不 mkdir `~/.jj-flow`，不发明 sibling 路径。
+
+1. `JJ_LAB_LOOP_ROOT` / `JJ_LAB_FAMILY_ROOT`（必须已是绝对路径）
+2. `JJ_LAB_ROOTS_FILE` 指向的 JSON
+3. 产品仓内已存在的 `lab-roots.json`（缺失时**不要**创建）
+
+形状见仓库根 `lab-roots.json.example`。复制为 `lab-roots.json` 后改成你机器上的绝对路径；该文件已被 `.gitignore`。
+
+**POSIX：**
+
+```bash
+export JJ_LAB_LOOP_ROOT="/d/daji-docs/jj-lab-loop"
+export JJ_LAB_FAMILY_ROOT="/d/daji-docs/jj-lab-family"
+# 或
+export JJ_LAB_ROOTS_FILE="$PWD/lab-roots.json"
+```
+
+**pwsh：**
+
+```powershell
+$env:JJ_LAB_LOOP_ROOT = "D:\daji-docs\jj-lab-loop"
+$env:JJ_LAB_FAMILY_ROOT = "D:\daji-docs\jj-lab-family"
+# 或
+$env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
+```
+
+`lab:check` 在 PR4 才登记。PR2 **不加** exit-0 占位。未设根时不得假装 PASS。
+
+## 各仓里有什么（PR2）
+
+每个 lab 仓现在只有：
+
+- `README.md`
+- `.gitignore`（必须含 `_materialized/`）
+- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`）
+
+种子、oracle、`scripts/lab.mjs` 属后续 PR。`git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）在 PR2 即应命中 ignore 规则。
+
+## 调用 cwd（预告；PR3 起强制）
+
+| 动作 | cwd |
+| --- | --- |
+| Loop gym ralph | `$JJ_LAB_LOOP_ROOT/_materialized/loop-gym` |
+| Family ralph / handoff | `$JJ_LAB_FAMILY_ROOT/_materialized/family-gym/notes-alpha` |
+| Family same | `…/notes-beta` |
+| 禁止 | 产品仓根、`jj-lab-loop` / `jj-lab-family` **种子**仓根、`family-gym/` 包装目录、`control/` |
+
+业务 git 写走进产品 `jj-flow` 历史 = STOP。详见设计 §1.1。
+
+## 发布隔离
+
+`package.json` `files` 与 `npm pack --dry-run` 不得出现 `labs/`。Harness 规则 `HNS-PUBLISH-LABS`。产品 `.gitignore` **不要**写 `labs/_materialized/`。
