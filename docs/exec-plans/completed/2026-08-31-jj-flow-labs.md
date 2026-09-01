@@ -1,14 +1,16 @@
 # Exec plan — jj-flow 实验场（Loop gym + Family gym）
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
 > 开始日期：2026-08-31
 >
+> 完成日期：2026-09-01
+>
 > 关联设计：[实验场 Loop gym / Family gym](../../design-docs/jj-flow-labs.md)
 >
-> 边界：文档与后续 sibling 仓；不改 same / ralph / dispatch 检查点语义；不把 gym 放进产品 `labs/`；不改 `evaluateAcceptArchiveGate`；CI 不调模型。
+> 边界：文档与后续 sibling 仓；不改 same / ralph / dispatch 检查点语义；不把 gym 放进产品 `labs/`；CI 不调模型。MVP 不改 `evaluateAcceptArchiveGate`；PR10 已落地 `evidence_class` 硬门。
 
 ## 目标
 
@@ -29,8 +31,8 @@
 | --- | --- |
 | Q1 | 旁路 sibling 仓，不是 in-tree `jj-flow/labs/` |
 | Q2 | `lab:check` 先 opt-in；&lt;20s 再进 `verify` |
-| Q3 | MVP attestation `host_id=grok-build` + 真文件；无 `lab-harness` |
-| Q4 | 不改 `evaluateAcceptArchiveGate`；假绿由 lab detector 抓 |
+| Q3 | MVP attestation `host_id=grok-build` + 真文件；无 `lab-harness`。PR10 增 gym-only `lab-harness`（不是 Wave 2） |
+| Q4 | MVP 不改 `evaluateAcceptArchiveGate`；假绿由 lab detector 抓。PR10 已落地硬门 |
 
 ## 执行清单
 
@@ -88,7 +90,7 @@
 
 ## 下一刀
 
-无机械待办。Live Agent 仍为手册 / evaluated。
+无。Live Agent 仍为手册 / evaluated，不阻塞关闭。
 
 ## 完成定义
 
@@ -102,4 +104,4 @@
 | --- | --- |
 | sibling 仓相对协议漂移 | 各 lab `lab-manifest.json` pin；缺 pin oracle FAIL |
 | 误把 gym 加进 npm `files` | PR2 `HNS-PUBLISH-LABS` |
-| 评审以为 ralph_ops 已拦假绿 | L1-S3a：协议可 PASS；detector 是证据 |
+| 评审以为 ralph_ops 已拦假绿 | PR10 已硬门；L1-S3a 仍测 detector + `--force` 旁路 |
