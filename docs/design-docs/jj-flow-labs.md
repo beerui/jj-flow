@@ -8,7 +8,7 @@
 >
 > 关联：`ARCHITECTURE.md`、`docs/design-docs/jj-ralph.md`、`docs/design-docs/ai-native-sdlc.md`、`docs/design-docs/jj-evaluated.md`、`skills/jj-ralph/`、`skills/jj-same/`、`skills/jj-dispatch/`、`skills/jj-review/`、`skills/jj-end/`、`skills/jj-evaluated/`
 >
-> 执行：[2026-08-31 实验场](../exec-plans/active/2026-08-31-jj-flow-labs.md)
+> 执行：[2026-08-31 实验场](../exec-plans/completed/2026-08-31-jj-flow-labs.md)
 >
 > 定位：两个**版本化实验项目**（lab / testbed），让 Agent 与廉价 CI 证明 jj-flow 能完成真实工程、在红灯处 fail-closed、并关上三条主路径的真实闭环。这**不是**第四条交付路径，也不是生产项目族角色。
 >
@@ -180,7 +180,7 @@ jj-lab-family/                     ← git repo（包装/种子仓；不是业�
 | --- | --- | --- |
 | `docs/design-docs/jj-flow-labs.md` | `jj-flow` | 本文（Implemented，机械实验场） |
 | `docs/design-docs/index.md` + `scripts/build-docs.mjs` DEEP_PAGES | `jj-flow` | 索引 |
-| `docs/exec-plans/active/2026-08-31-jj-flow-labs.md` | `jj-flow` | exec-plan |
+| `docs/exec-plans/completed/2026-08-31-jj-flow-labs.md` | `jj-flow` | exec-plan（已关闭） |
 | `docs/jj-lab-siblings.md`（可选 pointer README） | `jj-flow` | 钉死推荐仓名、env、POSIX+pwsh |
 | `lab-roots.json.example` | `jj-flow` | 示例；**不**进 npm `files` |
 | `lab-roots.json` | `jj-flow` 本地可选 | **gitignore**；机器路径；**不**进 npm pack；缺省不创建 |
@@ -808,9 +808,9 @@ Lab 2 闭环：ralph 仅在 `notes-alpha`；same 仅在 `notes-beta`；dispatch 
 **`jj-flow`（产品）：**
 
 ```text
-docs/design-docs/jj-flow-labs.md          # 本文（Proposed）
-docs/design-docs/index.md                 # Proposed 条目
-docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+docs/design-docs/jj-flow-labs.md          # 本文（Implemented）
+docs/design-docs/index.md                 # Implemented 条目
+docs/exec-plans/completed/2026-08-31-jj-flow-labs.md
 docs/jj-lab-siblings.md                   # 可选 pointer：钉死仓名 + env
 lab-roots.json.example                    # 不进 npm files
 lab-roots.json                            # gitignore；不进 pack；不默认创建

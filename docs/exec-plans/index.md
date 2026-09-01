@@ -13,7 +13,6 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [实验场 Loop gym / Family gym](active/2026-08-31-jj-flow-labs.html) | 机械实验场 Implemented；PR9 `verify` + PR10 硬门/`lab-harness`/Windows CI | Live Agent 仍为手册 / evaluated |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a **live 已验收**；Mode W/P / Host Wave 2 仍 open | Mode W 或 Wave 2 证据 |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 **promoted**；Mode W/P / Wave 2 后置 | 未关闭项见文内表 |
 
@@ -23,6 +22,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [实验场 Loop gym / Family gym](completed/2026-08-31-jj-flow-labs.html) | 机械实验场 Implemented；PR1–PR10 合入 `main`；`lab:check` 进 `verify`。Live Agent 仍为手册 / evaluated |
 | [AI-native SDLC 对齐](completed/2026-08-31-ai-native-sdlc.html) | 切片 0–7：可选 intent、Current 解析、审查政策、两次打脸、测试完整性、派生指标、确定性评测、宿主样例、事故回环 |
 | [Dispatch / Ralph 任务回退](completed/2026-07-31-dispatch-ralph-rollback.html) | R1–R4 已交付；Ralph R3-3 于 2026-08-01 由**无终态冻结** supersede（同 run resume / soft archive / ABANDONED） |
 | [Grok Host Adapter Phase 1 — 契约扩展](completed/2026-07-27-grok-host-adapter.html) | 契约与纯状态测试完成；Phase 2/3 真 Host 未启动 |

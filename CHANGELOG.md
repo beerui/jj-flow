@@ -17,7 +17,7 @@
 - **实验场进 verify（PR9）**：`npm run verify` 含 `lab:check`。CI / NPM Publish 在 verify 前 clone `beerui/jj-lab-loop` 与 `beerui/jj-lab-family` 到不落在 `$HOME` 下的绝对路径并 seed，注入 `JJ_LAB_*_ROOT`（默认 `$RUNNER_TEMP`；GitHub-hosted Ubuntu 的 `$RUNNER_TEMP` 在 `$HOME` 下，改用 `/tmp/jj-flow-labs`）。缺根 fail-closed；不猜 `../jj-lab-*`。
 - **实验场机械闭环（PR3–PR8）**：产品 `scripts/lab-check.mjs` + `npm run lab:check`（缺根 fail-closed）。Loop gym 种子/env-print/ralph 机械 oracle；Family gym 种子/copy-CREATE/dispatch attestation。Agent 场景说明书在各 lab `scenarios/`。
 - **实验场 sibling 仓（PR2）**：产品 pointer `docs/jj-lab-siblings.md` + `lab-roots.json.example`；`.gitignore` 忽略 `lab-roots.json`；`HNS-PUBLISH-LABS` 禁止把 `labs/` 打进 npm `files` / pack。gym 本体在旁路仓 `jj-lab-loop` / `jj-lab-family`，不进产品树。
-- **实验场设计（Proposed）**：两个 sibling 仓 `jj-lab-loop` / `jj-lab-family` 专门测工程能力、红灯边界与三条主路径闭环；不进 npm、不改检查点、不把 gym 放进产品 `labs/`。设计：`docs/design-docs/jj-flow-labs.md`。
+- **实验场设计（Implemented）**：两个 sibling 仓 `jj-lab-loop` / `jj-lab-family` 专门测工程能力、红灯边界与三条主路径闭环；不进 npm、不改检查点、不把 gym 放进产品 `labs/`。设计：`docs/design-docs/jj-flow-labs.md`。exec-plan 已关闭。
 
 ## 0.1.3 — 2026-08-29 16:37
 
