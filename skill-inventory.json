@@ -59,7 +59,7 @@
       "claude_command": null,
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok"],
-      "note": "Platforms: codex/qoder/grok (no Claude slash intentional). Docs must not say Codex-only. Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation (Phase 1 contract; Wave2 real-host still PENDING)."
+      "note": "Platforms: codex/qoder/grok (no Claude slash intentional). Docs must not say Codex-only. Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation. Grok Wave 2 completed / max_unattended_level=A2."
     },
     {
       "id": "jj-evaluated",

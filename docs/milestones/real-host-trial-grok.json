@@ -17,7 +17,7 @@
   "gym": false,
   "lab": false,
   "codex_app_threads": false,
-  "milestone_status": "in_progress",
+  "milestone_status": "completed",
   "max_unattended_level": "A1",
   "autonomy_raised": false,
   "status": "PASS",
@@ -229,5 +229,16 @@
   "cleanup": {
     "status": "PASS",
     "temporary_root_removed": true
+  },
+  "human_review": {
+    "decision": "raise-A2",
+    "checklist_1_to_4": "PASS",
+    "reviewed_at": "2026-09-01",
+    "note": "User reviewed real-host-acceptance 1-4 and requested A2. This JSON does not self-close Wave 2."
+  },
+  "policy_after_review": {
+    "max_unattended_level": "A2",
+    "wave2_closed": true,
+    "default_level": "A1"
   }
 }

@@ -1,6 +1,6 @@
 # Grok Dispatch execution flow (Mode S default)
 
-> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Mode W mechanical Implemented (Phase 2b); Host Wave 2 / Mode P still Proposed
+> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Mode W mechanical Implemented (Phase 2b); Host Wave 2 Grok path completed (A2); Mode P still Proposed
 > **Host**: `host_id=grok-build`, `handle_kind=session`
 > **SSOT location**: this file (`skills/jj-dispatch/references/`); `~/.grok/skills` is only an `install-skill` copy
 > **Related**: `host-action-contract.json`, `docs/design-docs/grok-host-adapter.md`, C3 Agent plane-write hard gates,
@@ -79,7 +79,7 @@ Upgrade goals: **prevent 1–2 becoming default; fold 3 into Mode S; write 4 int
 - Do not implement Grok cloud multi-tenant scheduling.
 - Do not auto merge/push/release (`$jj-end` or user-explicit closeout).
 - Do not promote subagent / Workflow run id to delivery-level identity (unless BIND is the unique real session).
-- Do not raise `max_unattended_level` / close Host Wave 2 because of skill install.
+- Do not raise `max_unattended_level` / close Host Wave 2 because of skill install (Grok Wave 2 closed only after versioned trial + human review).
 - **Do not require the user** to run `jj dispatch-tick` or other CLI.
 
 ---
@@ -291,7 +291,7 @@ child session 1:1; RECONCILE; forbid same-project parallel write.
 
 ### Phase 3 — Real Host trial
 
-`docs/milestones/real-host-trial-grok.json` written and evaluable (NEEDS_CHANGES rework included). Wave 2 still Proposed; do not raise A2. Revert-remerge warning cases remain.
+`docs/milestones/real-host-trial-grok.json` PASS and evaluable. Human review 2026-09-01 closed Grok Wave 2 and raised **A2** (`default_level` remains A1). Revert-remerge warning cases remain. Mode P deferred.
 
 ---
 

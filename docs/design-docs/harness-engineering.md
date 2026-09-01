@@ -2,11 +2,11 @@
 
 > 状态：Implemented
 >
-> 范围注记：H0–H5 Repository Harness；不含真实 Host Wave 2 / A4 / 自动修复
+> 范围注记：H0–H5 Repository Harness；Grok Wave 2 已关闭并升 A2；不含 A3 自动返工 / A4 / 自动修复
 >
 > 验收证据：`docs/milestones/h5-acceptance.md`、`docs/milestones/h5-gc-baseline.json`、`docs/milestones/m7-acceptance.md`、`tests/harness-gc.test.mjs`、`tests/scenario-runner.test.mjs`、`npm run verify`
 >
-> 实施边界：Repository Harness 已实现；**真实** Codex App / Grok Host attestation、自动修复 Gardener 和 A4 集成 **不包含** 在本状态内（见 [真实 Host 验收](../milestones/real-host-acceptance.html)）
+> 实施边界：Repository Harness 已实现；Grok 真宿主验收见 [真实 Host 验收](../milestones/real-host-acceptance.html)（completed / A2）。自动修复 Gardener、A3 自动返工和 A4 集成 **不包含** 在本状态内。
 >
 > 适用范围：`jj-flow` 仓库自身的开发、验证、审查和长期维护
 >
@@ -52,10 +52,10 @@
 | 不变量执行 | 3 | schema、合约测试、CAS、host allowlist、protocol parity、docs 索引/站点门禁进 `npm run verify` |
 | 可重放反馈 | 3 | 4 个确定性 scenario + pure trace replay；无真实 host 副作用 |
 | 可观测性 | 2 | `jj doctor --json`、trace、scenario report、plane-self-check；跨 host 完整 telemetry 仍延期 |
-| 自主闭环 | 2 | 半真实 A2/A3 返工已有 M7 证据；**真实 Host 验收仍 pending**；`max_unattended_level=A1` |
+| 自主闭环 | 3 | Grok Wave 2 真试跑 + 人工审查升 A2；M7 半真实仍作回归；A3 自动返工 / A4 仍关闭 |
 | 熵控制 | 2 | `harness:gc` 只读评分进 CI；自动修复 Gardener 关闭；语义正文漂移靠人工/后续规则 |
 
-结论：Repository Truth Plane 与机械门禁已闭合。下一跳是 **真实 Host attestation（Wave 2）**，不是再堆文档散文。
+结论：Repository Truth Plane 与 Grok 真宿主 A2 已闭合。下一跳是 **A3 自动返工 / Codex App 并列路径 / A4**，不是再堆文档散文。
 
 ## 4. 目标架构（与产品面对齐）
 
@@ -173,8 +173,8 @@ trace envelope：`run_id` / `delivery_id` / `task_key`、revision 前后、recei
 | Level | 能力 | 默认策略 |
 | --- | --- | --- |
 | A0 Inspect | 读取仓库、doctor、解释状态 | 自动允许 |
-| A1 Propose | 分析、计划、PREVIEW、候选 actions | **当前 max_unattended**；不产生未批准外部写入 |
-| A2 Isolated Execute | 获批写工作区修改并验证 | 需批准快照 + **真实** sandbox attestation + rollback |
+| A1 Propose | 分析、计划、PREVIEW、候选 actions | **default_level**；不产生未批准外部写入 |
+| A2 Isolated Execute | 获批写工作区修改并验证 | **当前 max_unattended**；需批准快照 + **真实** sandbox attestation + rollback |
 | A3 Review Loop | Reviewer/Developer 自动返工 | 需稳定 scenario、attempt 上限、escalation |
 | A4 Integrate | merge、push、release | 默认关闭 |
 

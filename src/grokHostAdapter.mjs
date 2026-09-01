@@ -231,6 +231,7 @@ export function evaluateGrokWave2Evidence(input = {}) {
 }
 
 export function inspectGrokWave2Milestone({ cwd = process.cwd() } = {}) {
+  const maxUnattended = readMaxUnattendedLevel(cwd);
   const trialPath = path.join(cwd, WAVE2_TRIAL_REL);
   if (!fs.existsSync(trialPath)) {
     return {
@@ -238,7 +239,7 @@ export function inspectGrokWave2Milestone({ cwd = process.cwd() } = {}) {
       status: 'pending',
       path: WAVE2_TRIAL_REL,
       reason: 'no real-host-trial-grok.json; Mode W / Mode S / lab-harness / host:trial are not substitutes',
-      max_unattended_level: 'A1'
+      max_unattended_level: maxUnattended
     };
   }
   let json;
@@ -250,20 +251,25 @@ export function inspectGrokWave2Milestone({ cwd = process.cwd() } = {}) {
       status: 'blocked',
       path: WAVE2_TRIAL_REL,
       reason: `trial JSON unreadable: ${error.message}`,
-      max_unattended_level: 'A1'
+      max_unattended_level: maxUnattended
     };
   }
   const evaluation = evaluateGrokWave2Evidence(json);
+  const evaluable = evaluation.ok && json.status === 'PASS';
+  const humanClosed = isRealHostAcceptanceCompleted(cwd) && autonomyRank(maxUnattended) >= 2;
+  const closed = evaluable && humanClosed;
   return {
-    closed: false,
-    evaluable: evaluation.ok && json.status === 'PASS',
-    status: evaluation.ok && json.status === 'PASS' ? 'evaluable' : 'pending',
+    closed,
+    evaluable,
+    status: closed ? 'completed' : (evaluable ? 'evaluable' : 'pending'),
     path: WAVE2_TRIAL_REL,
-    reason: evaluation.ok
-      ? 'trial JSON is evaluable; Host Wave 2 still requires milestone review and does not auto-close'
-      : (evaluation.errors.join('; ') || 'trial JSON is not PASS'),
+    reason: closed
+      ? 'Grok trial JSON PASS; real-host-acceptance completed and max_unattended_level >= A2'
+      : (evaluable
+        ? 'trial JSON is evaluable; Host Wave 2 still requires milestone completed + A2 policy (JSON cannot self-close)'
+        : (evaluation.errors.join('; ') || 'trial JSON is not PASS')),
     errors: evaluation.errors,
-    max_unattended_level: 'A1'
+    max_unattended_level: maxUnattended
   };
 }
 
@@ -291,4 +297,29 @@ function git(cwd, args, runCommand) {
 
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function readMaxUnattendedLevel(cwd) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(cwd, 'harness-manifest.json'), 'utf8'));
+    const level = manifest?.autonomy?.max_unattended_level;
+    return isNonEmptyString(level) ? level : 'A1';
+  } catch {
+    return 'A1';
+  }
+}
+
+function isRealHostAcceptanceCompleted(cwd) {
+  const file = path.join(cwd, 'docs/milestones/real-host-acceptance.md');
+  if (!fs.existsSync(file)) return false;
+  try {
+    return /^>\s*状态：\*\*completed\*\*/m.test(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return false;
+  }
+}
+
+function autonomyRank(level) {
+  const match = String(level || '').match(/^A([0-4])$/);
+  return match ? Number(match[1]) : 0;
 }

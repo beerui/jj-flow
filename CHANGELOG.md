@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **Autonomy A2**：人工审查认定 `real-host-acceptance` 清单 1–4 PASS。`max_unattended_level=A2`（`default_level` 仍 A1）。Grok Wave 2 关闭条件是里程碑 `completed` + manifest A2 + 试跑 JSON evaluable；JSON 不得自关。未升 A3/A4。
 - **Grok Host Wave 2 真试跑**：`jj grok-trial run` 绑定真实 `GROK_SESSION_ID`（拒绝 placeholder / host:trial），协议含中断 RECONCILE、exclusive-worktree、Review 返工。已写入 `docs/milestones/real-host-trial-grok.json`（evaluable）。`real-host-acceptance` 为 `in_progress`。不进 `verify`，不关 Wave 2，不升 A2。
 - **Grok Host Adapter Phase 2**：项目注册表（path + git identity）、`bindGrokSessionTask` / `reconcileGrokSession`、`jj doctor` 检测 `grok` 与 skill 安装。Wave 2 评估器拒绝 lab-harness / `host:trial` / skill-only / placeholder session。不写 `real-host-trial-grok.json` PASS，不升 A2。
 - **Grok Mode W（Phase 2b）**：isolation 时 exclusive-worktree。PREVIEW `workspace_table.proposed_mode=S|W`；DISPATCH PREFLIGHT #5（Mode S + isolation → 平面不变 BLOCKED）；attestation `execution_mode=W` 不得绑 `project.path`；`git worktree` 必须落在命名分支 tip，禁止 silent detached。不关闭 Host Wave 2，不升 A2。

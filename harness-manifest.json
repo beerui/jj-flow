@@ -361,7 +361,7 @@
           { "label": "不变量执行", "score": 3 },
           { "label": "可重放反馈", "score": 3 },
           { "label": "可观测性", "score": 2 },
-          { "label": "自主闭环", "score": 2 },
+          { "label": "自主闭环", "score": 3 },
           { "label": "熵控制", "score": 2 }
         ]
       }
@@ -593,7 +593,7 @@
   ],
   "autonomy": {
     "default_level": "A1",
-    "max_unattended_level": "A1",
+    "max_unattended_level": "A2",
     "levels": [
       {
         "id": "A0",

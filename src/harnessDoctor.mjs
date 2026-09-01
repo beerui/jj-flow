@@ -62,7 +62,7 @@ export function inspectHarnessRepository({ cwd = process.cwd(), runCommand = spa
       executable: hostCapabilities.find((item) => item.id === 'grok')?.available === true,
       skill_installed: grokSkill.installed,
       skill_paths: grokSkill.paths,
-      wave2_closed: false,
+      wave2_closed: wave2.closed === true,
       wave2_status: wave2.status
     },
     autonomy: {
@@ -93,7 +93,7 @@ export function renderDoctorText(result) {
     lines.push(`naming_config: ${result.paths.naming_config_path || '(defaults)'} [${result.paths.naming_config_source}]`);
   }
   if (result.grok) {
-    lines.push(`grok: executable=${result.grok.executable} skill=${result.grok.skill_installed} wave2=${result.grok.wave2_status} (does not raise A2)`);
+    lines.push(`grok: executable=${result.grok.executable} skill=${result.grok.skill_installed} wave2=${result.grok.wave2_status} closed=${result.grok.wave2_closed} (skill/executable do not raise autonomy)`);
   }
   if (result.findings.length) {
     lines.push('findings:');
