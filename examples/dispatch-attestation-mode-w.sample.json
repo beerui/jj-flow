@@ -1,0 +1,19 @@
+{
+  "host_id": "grok-build",
+  "handle_kind": "session",
+  "session_id": "019fmodew-2222-7000-8000-cccccccccccc",
+  "task_key": "DEL-example/project-a/development/1",
+  "agent_name": "jj-workflow-developer",
+  "execution_mode": "W",
+  "sandbox_mode": "workspace-write",
+  "effective_sandbox_mode": "workspace-write",
+  "effective_boundary_source": "declared-coordinator",
+  "environment": "exclusive-worktree",
+  "worktree": "/portfolio/project-a/.jj-worktrees/feat-example",
+  "intended_branch": "feat/example-mode-w",
+  "git_head_at_bind": "bbbbbbbb2222222",
+  "project_path": "/portfolio/project-a",
+  "bound_at": "2026-09-01T12:00:00.000Z",
+  "access": "write",
+  "_comment": "Mode W: exclusive worktree path must differ from project_path; named branch tip required. Does not close Host Wave 2."
+}

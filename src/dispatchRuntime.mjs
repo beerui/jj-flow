@@ -20,6 +20,7 @@ import {
   RECEIPT_KINDS,
   RECEIPT_STATUSES
 } from './dispatchHostContract.mjs';
+import { executionModeForEnvironment } from './dispatchWorkspaceMode.mjs';
 
 export { HOST_ACTION_TYPES, RECEIPT_KINDS, RECEIPT_STATUSES };
 export const DIFFERENCE_DECISIONS = TARGET_DIFFERENCE_DECISIONS;
@@ -518,6 +519,7 @@ function threadAction(type, intent) {
       ? 'exclusive-worktree-when-isolation'
       : 'project-branch-default';
   }
+  const environment = intent.environment || base.environment;
   return {
     ...base,
     type,
@@ -526,7 +528,8 @@ function threadAction(type, intent) {
     project_id: intent.project_id,
     responsibility: intent.responsibility,
     access: intent.access,
-    environment: intent.environment || base.environment,
+    environment,
+    execution_mode: executionModeForEnvironment(environment, intent.access),
     worktree: intent.worktree || null,
     distribution_prompt: intent.distribution_prompt || null,
     initial_prompt: renderInitialPrompt(intent)

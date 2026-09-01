@@ -15,7 +15,7 @@
 > **2026-07-31 进度：** Phase 2a **live 验收已通过**
 > `DEL-readme-pnpm-install-20260731`（plane-self-check OK，四 intent 共享真 session）。
 > 评估：`docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`。
-> 仍 open：Mode W/P、Host Wave 2、业务仓 remote push/land（可选）。
+> 仍 open：Mode P、Host Wave 2、业务仓 remote push/land（可选）。Mode W 机械路径见 Phase 2b。
 
 ## 目标
 
@@ -45,7 +45,9 @@ Make Grok `/jj-dispatch` **repeatable** without forcing multi-session or user CL
 
 ### Phase 2b Mode W
 
-- [ ] Isolation worktree bind/cleanup
+- [x] Isolation worktree bind/cleanup（`src/dispatchWorkspaceMode.mjs` + `src/dispatchWorktree.mjs`；PREVIEW `proposed_mode`；PREFLIGHT #5；attestation `execution_mode=W`）
+- [x] Named branch tip landing; forbid silent detached HEAD
+- [ ] Live Grok isolated delivery (optional; **not** Wave 2 / A2)
 
 ### Phase 2c Mode P
 

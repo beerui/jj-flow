@@ -13,6 +13,10 @@ import {
   resolveHandleKind,
   validateHostBindAttestation
 } from './dispatchHostContract.mjs';
+import {
+  selectWriteWorkspaceMode,
+  validateExclusiveWorktreeBind
+} from './dispatchWorkspaceMode.mjs';
 
 export {
   HANDLE_KINDS,
@@ -571,7 +575,7 @@ export function buildTaskKey({ deliveryId, projectId, responsibility, attempt = 
   return `${deliveryId}/${projectId}/${responsibility}/${attempt}`;
 }
 
-export function previewDispatch(plane, deliveryId) {
+export function previewDispatch(plane, deliveryId, { workspaceSignals = {} } = {}) {
   const delivery = requireDelivery(plane, deliveryId);
   if (delivery.intake?.status === 'REQUIRED') {
     return {
@@ -580,6 +584,7 @@ export function previewDispatch(plane, deliveryId) {
       delivery_id: deliveryId,
       decision_required: ['requirement_owner', 'origin_project', 'lead_project', 'targets', 'task_mode'],
       tasks: [],
+      workspace_table: [],
       reason: '控制项目必须先确认需求归属项目、来源项目、领头项目、目标集合和 quick/standard 模式。'
     };
   }
@@ -597,6 +602,7 @@ export function previewDispatch(plane, deliveryId) {
     }),
     reference_implementation: delivery.reference_implementation,
     tasks: buildTaskPlans(delivery),
+    workspace_table: buildWorkspaceTable(plane, delivery, workspaceSignals),
     reason: '预览不会创建任务，也不会调用 Codex App。用户明确批准后才进入 DISPATCH。'
   };
 }
@@ -660,7 +666,8 @@ export function dispatchTasks(plane, deliveryId, {
   now = new Date().toISOString(),
   hostId = null,
   eligibleProjects = null,
-  allowedTaskKeys = null
+  allowedTaskKeys = null,
+  workspaceSignals = {}
 } = {}) {
   if (!isDateTime(now)) throw new Error('dispatch now must be a date-time');
   if (hostId !== null && (typeof hostId !== 'string' || !hostId)) {
@@ -716,6 +723,21 @@ export function dispatchTasks(plane, deliveryId, {
     };
   }
 
+  const plans = buildTaskPlans(delivery);
+  const preflight = preflightWorkspaceModes(plane, plans, workspaceSignals);
+  if (!preflight.ok) {
+    return {
+      ok: false,
+      status: preflight.status,
+      action: 'DISPATCH',
+      delivery_id: deliveryId,
+      tasks: plans,
+      workspace_table: buildWorkspaceTable(plane, delivery, workspaceSignals),
+      reason: preflight.reason,
+      plane: clone(plane)
+    };
+  }
+
   const next = clone(plane);
   const nextDelivery = requireDelivery(next, deliveryId);
   const existing = new Map((nextDelivery.dispatch_intents || []).map((intent) => [intent.task_key, intent]));
@@ -723,7 +745,6 @@ export function dispatchTasks(plane, deliveryId, {
   const reused = [];
   const deferred = [];
   const skipped = [];
-  const plans = buildTaskPlans(nextDelivery);
   const isSatisfied = (dependency) => isDependencySatisfied(nextDelivery, dependency, existing);
   // A project may declare several write responsibilities (for example frontend
   // and backend), but only one writer may be active at a time.  The set also
@@ -779,6 +800,7 @@ export function dispatchTasks(plane, deliveryId, {
       });
       continue;
     }
+    const workspace = preflight.byTaskKey.get(task.task_key);
     const intent = {
       ...task,
       delivery_id: deliveryId,
@@ -790,7 +812,7 @@ export function dispatchTasks(plane, deliveryId, {
       worktree: null,
       agent_name: agentNameForTask(task),
       sandbox_mode: sandboxModeForAccess(task.access),
-      environment: environmentForAccess(task.access),
+      environment: workspace?.environment || environmentForAccess(task.access),
       effective_sandbox_mode: null,
       sandbox_evidence_ref: null,
       bound_at: null
@@ -965,6 +987,17 @@ export function bindThread(plane, {
     throw new Error(
       `write task ${taskKey} requires workspace path (project-branch root or exclusive worktree)`
     );
+  }
+  const project = (Array.isArray(next.projects) ? next.projects : [])
+    .find((item) => item?.id === found.intent.project_id);
+  const exclusiveBind = validateExclusiveWorktreeBind({
+    environment,
+    worktree,
+    projectPath: project?.path || null,
+    access: found.intent.access
+  });
+  if (!exclusiveBind.ok) {
+    throw new Error(`task ${taskKey} ${exclusiveBind.errors.join('; ')}`);
   }
 
   let resolvedHandleKind;
@@ -2943,6 +2976,61 @@ function sandboxModeForAccess(access) {
 /** Default write environment: same-style named branch at project path. */
 function environmentForAccess(access) {
   return access === 'read' ? 'project-read' : 'project-branch';
+}
+
+function resolveWorkspaceSignals(task, workspaceSignals = {}) {
+  if (!workspaceSignals || typeof workspaceSignals !== 'object') {
+    return { access: task.access };
+  }
+  return {
+    access: task.access,
+    ...(workspaceSignals[task.project_id] || {}),
+    ...(workspaceSignals[task.task_key] || {})
+  };
+}
+
+function buildWorkspaceTable(plane, delivery, workspaceSignals = {}) {
+  return buildTaskPlans(delivery)
+    .filter((task) => task.access === 'write')
+    .map((task) => {
+      const project = (Array.isArray(plane.projects) ? plane.projects : [])
+        .find((item) => item?.id === task.project_id);
+      const signals = resolveWorkspaceSignals(task, workspaceSignals);
+      const decision = selectWriteWorkspaceMode(signals);
+      return {
+        project_id: task.project_id,
+        task_key: task.task_key,
+        path: project?.path || null,
+        proposed_mode: decision.proposed_mode || decision.execution_mode,
+        execution_mode: decision.execution_mode,
+        workspace: decision.workspace,
+        environment: decision.environment,
+        active_write: hasActiveWriter(plane, task.project_id, task.task_key),
+        dirty: Boolean(signals.dirtyMainUnrelated),
+        isolation_reasons: decision.reasons || [],
+        action: decision.status === 'READY' ? 'READY' : decision.status,
+        reason: decision.reason || null
+      };
+    });
+}
+
+function preflightWorkspaceModes(plane, plans, workspaceSignals = {}) {
+  const byTaskKey = new Map();
+  for (const task of plans) {
+    const signals = resolveWorkspaceSignals(task, workspaceSignals);
+    const decision = selectWriteWorkspaceMode(signals);
+    byTaskKey.set(task.task_key, decision);
+    if (task.access !== 'write') continue;
+    if (!decision.ok) {
+      return {
+        ok: false,
+        status: decision.status === 'NEEDS_CONFIRM' ? 'BLOCKED' : decision.status,
+        reason: decision.reason,
+        byTaskKey
+      };
+    }
+  }
+  return { ok: true, status: 'READY', reason: null, byTaskKey };
 }
 
 /** Write may upgrade to exclusive-worktree when isolation is required. */
