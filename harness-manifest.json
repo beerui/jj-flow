@@ -183,6 +183,11 @@
         "authority_for": ["grok-host-adapter-target-state", "multi-host-wave2"]
       },
       {
+        "id": "ai-native-sdlc-design",
+        "path": "docs/design-docs/ai-native-sdlc.md",
+        "authority_for": ["ai-native-sdlc-target-state", "playbook-alignment"]
+      },
+      {
         "id": "jj-flow-labs-design",
         "path": "docs/design-docs/jj-flow-labs.md",
         "authority_for": ["lab-loop-gym", "lab-family-gym"]

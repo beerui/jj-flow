@@ -4,6 +4,15 @@
 
 ## Unreleased
 
+- **AI-native SDLC 对齐（切片 0–7）**：把 playbook 控制习惯翻译进 same / ralph / dispatch，不开第六阶段或第四条主路径。
+  - 可选 `intent.md`（tiny 跳过）；声称路径与审查对照只认 `plan.md` ## Current。
+  - 审查政策：bugs / security / compliance；finding 可选 `pass` / `importance`；nit 上限 5；PASS 时 nit WAIVED。
+  - 两次打脸写 `instruction-correction.md`（Reviewer 不写 `AGENTS.md`）；修缺陷不得删/掏空测试。
+  - 派生 `jj ralph metrics`；缺时钟为 null，不挡 ACCEPT。
+  - 确定性 `evals/regression/` + `npm run evaluated:check` 进入 `verify`；事故加考题，禁止自动 promote。
+  - 宿主护栏样例 `examples/host-guardrails/`（不是协议）；并行 2–3 路，审查跟不上就停。
+  - 同需求 resume；新需求才新 intent。设计 Implemented：`docs/design-docs/ai-native-sdlc.md`。
+- **测试入口**：`npm test` 改为 `node --test tests`（Windows 下 npm 会把 `tests/*.test.mjs` 当字面路径）。
 - **实验场协议后续（PR10）**：`evaluateAcceptArchiveGate` 把 `evidence_class` 过弱的 ACCEPT PASS 挡掉；dispatch 新增 gym-only `lab-harness` host（session，不关 Wave 2）；CI 增加 `windows-latest` `lab:check` job。
 - **实验场进 verify（PR9）**：`npm run verify` 含 `lab:check`。CI / NPM Publish 在 verify 前 clone `beerui/jj-lab-loop` 与 `beerui/jj-lab-family` 到不落在 `$HOME` 下的绝对路径并 seed，注入 `JJ_LAB_*_ROOT`（默认 `$RUNNER_TEMP`；GitHub-hosted Ubuntu 的 `$RUNNER_TEMP` 在 `$HOME` 下，改用 `/tmp/jj-flow-labs`）。缺根 fail-closed；不猜 `../jj-lab-*`。
 - **实验场机械闭环（PR3–PR8）**：产品 `scripts/lab-check.mjs` + `npm run lab:check`（缺根 fail-closed）。Loop gym 种子/env-print/ralph 机械 oracle；Family gym 种子/copy-CREATE/dispatch attestation。Agent 场景说明书在各 lab `scenarios/`。

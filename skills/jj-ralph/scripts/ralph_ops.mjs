@@ -69,8 +69,9 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--cwd DIR]
+  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--intent|--no-intent] [--cwd DIR]
   status [--run-id RALPH-x] [--cwd DIR]
+  metrics --run-id RALPH-x [--persist] [--cwd DIR]
   archive --run-id RALPH-x [--slug name] [--cwd DIR]
   finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
   map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--cwd DIR]
@@ -87,7 +88,7 @@ Commands:
   handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
   dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
   commit-prep --run-id RALPH-x [--cwd DIR]
-  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--task-thread id] [--review-thread id] [--summary text] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
+  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
 `);
 }
 
@@ -221,6 +222,11 @@ async function main() {
       if (args['max-iterations'] != null && args['max-iterations'] !== true) {
         initOpts.max_iterations = Number(args['max-iterations']);
       }
+      if (args['no-intent']) initOpts.write_intent = false;
+      if (args.intent && args.intent !== true && args['no-intent']) {
+        die('init: use --intent or --no-intent, not both');
+      }
+      if (args.intent === true) initOpts.write_intent = true;
       const run = initRun(initOpts, cwd);
       printJson({
         ok: true,
@@ -237,6 +243,18 @@ async function main() {
     if (cmd === 'status') {
       const payload = getStatus({ runId: args['run-id'], cwd });
       printJson({ ok: true, action: 'status', ...payload, resolved });
+      return;
+    }
+
+    if (cmd === 'metrics') {
+      const runId = args['run-id'];
+      if (!runId) die('metrics needs --run-id');
+      const persist = Boolean(args.persist);
+      const persistFn = mod.persistRunMetrics;
+      const result = persist && typeof persistFn === 'function'
+        ? persistFn(runId, cwd)
+        : getStatus({ runId, cwd });
+      printJson({ ok: true, action: 'metrics', run_id: runId, metrics: result.metrics, resolved });
       return;
     }
 
@@ -577,13 +595,29 @@ async function main() {
           die('--host-review-json must be a JSON object');
         }
       }
+      let findings = [];
+      if (args['finding-json']) {
+        try {
+          findings.push(JSON.parse(args['finding-json']));
+        } catch {
+          die('--finding-json must be valid JSON object');
+        }
+      }
+      if (args['findings-file']) {
+        const payload = JSON.parse(fs.readFileSync(args['findings-file'], 'utf8'));
+        if (!Array.isArray(payload)) die('--findings-file must contain a JSON array');
+        findings.push(...payload);
+      }
       const result = recordReview(runId, {
         cwd,
         outcome,
         reviewed_commit: args['reviewed-commit'] || null,
+        fix_commit: args['fix-commit'] || null,
+        review_scope: args['review-scope'] || null,
         task_thread_id: args['task-thread'] || null,
         review_thread_id: args['review-thread'] || null,
         summary: args.summary || '',
+        findings,
         source: args.source || null,
         host_review: hostReview,
       });

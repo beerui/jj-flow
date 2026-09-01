@@ -7,6 +7,7 @@ Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”
 
 - Change exactly 1 business file (plus at most 1 reference implementation file, read-only)
 - No long background; no whole-repo search
+- **No `intent.md`** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
 - After every DELIVER verification, record `deliver-attempt --improved true|false` (prevents empty loops)
 
 ## analyze.md (example)

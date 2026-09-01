@@ -140,6 +140,8 @@ Without CLI, the **Agent may and must** write plane / task / attestation / recei
 
 Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md).
 
+**Parallel capacity (guidance only):** one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only. This line does **not** change CAS / receipt / `task_key` / VERIFIED.
+
 ## CLI matrix (Agent-optional)
 
 | Purpose | Command |

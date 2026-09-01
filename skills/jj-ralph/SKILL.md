@@ -33,6 +33,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - Naming and map: `jj doctor` / `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` → `naming.json` + project map
    - 🔴 **CHECKPOINT · hard-stop:** missing naming/map config → stop and report how to set `JJ_GLOBAL_CONFIG_DIR` / `DAJI_CONFIG_DIR`; **do not invent** host-local paths
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
+   - Optional `intent.md` (initiator words). `tiny` skips it unless `--intent`. ANALYZE must answer intent open questions under `## Flagged concerns`.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
 4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate).
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
@@ -76,7 +77,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | --- | --- | --- |
 | Missing `naming.json` / project map | 🔴 hard-stop; tell user to set `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` and run `jj doctor` | Do not invent paths; do not init a run |
 | Script resolve fails (`ralph_ops.mjs` not found) | Try: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph <cmd>` | Report resolve chain; stop mechanical steps |
-| Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; record signal | `set-status BLOCKED` + ask user; no third identical attempt |
+| Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; ralph writes `instruction-correction.md` | `set-status BLOCKED` + ask user; no third identical attempt; Reviewer does **not** write `AGENTS.md` |
 | `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
 | `finalize` / archive reject | Fix accept gates, paths, or review scope; re-`gate accept` | Report blockers; no conversational `--force` |
 | `map-find` empty | Continue with scope from user speech + repo search | Do not block init/resume solely because map is empty |
@@ -101,10 +102,11 @@ Source of truth: `run.handoff` (not a second workflow).
 ## Scripts
 
 ```bash
-node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict]
+node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--intent|--no-intent]
 node <resolved>/ralph_ops.mjs deliver-attempt --run-id RALPH-x --improved true|false
 node <resolved>/ralph_ops.mjs accept-layer --run-id RALPH-x --layer judgment --status PASS --mode review
 node <resolved>/ralph_ops.mjs gate --run-id RALPH-x --gate accept --status PASS
+node <resolved>/ralph_ops.mjs metrics --run-id RALPH-x [--persist]
 node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id RALPH-x [--hook]
 node <resolved>/ralph_ops.mjs resume --run-id RALPH-x --reason "…"
@@ -162,6 +164,9 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
 | 14 | Silently replace live `plan.md` / `acceptance.md` / `analyze.md` so prior Current text is gone (incl. replacing `## Tasks` in place) | If no `## Current`, rename `## Tasks`→Current first; then move Current → Landed/Superseded. Unarchived revisions stay in the live files |
 | 15 | Pad init `knowledge_refs` with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
+| 16 | Delete or empty tests while fixing a failed MUST / `NEEDS_CHANGES` | Add or strengthen tests; `tiny` presentational without those signals is exempt |
+| 17 | Invent metrics clocks or block ACCEPT because timestamps are missing | `jj ralph metrics` is derived; null stays null |
+| 18 | Open a 4th parallel stream when review cannot keep up | One person, 2–3 independent streams; `$jj-review` reports only |
 
 ## Completion report
 

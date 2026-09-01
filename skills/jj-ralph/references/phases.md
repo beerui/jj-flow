@@ -4,7 +4,7 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 
 | Stage (gloss) | phase | Required artifacts | gates.* PASS conditions |
 | --- | --- | --- | --- |
-| Requirements analysis | `ANALYZE` | `analyze.md`, REQ ledger | MUST/acceptance traceable; every MUST has **evidence_class** (see [must-evidence.md](must-evidence.md)); add field lifecycle for `write-then-read`/`cross-path`; no blocking UNRESOLVED, or already `BLOCKED` |
+| Requirements analysis | `ANALYZE` | `analyze.md`, REQ ledger; optional `intent.md` | MUST/acceptance traceable; every MUST has **evidence_class** (see [must-evidence.md](must-evidence.md)); add field lifecycle for `write-then-read`/`cross-path`; **## Flagged concerns** must answer or carry forward every intent open question; no blocking UNRESOLVED, or already `BLOCKED` |
 | Implementation plan | `PLAN` | `plan.md`, task table | Every TASK → REQ; in-scope and out-of-scope explicit |
 | Implement & verify | `DELIVER` | Code, `progress.md` iterations, focused verification | Tasks done and verification not FAIL; rework loops allowed; `deliver-attempt` signal matches evidence_class |
 | Acceptance | `ACCEPT` | `acceptance.md` | Checklist items `PASS` or `N/A`+reason; **evidence level must not be lower than the MUST’s evidence_class** (ban write-then-read PASS via diff only); missing evidence → no PASS; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; path sets consistent |
@@ -55,7 +55,8 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 
 - **Layer 1 mechanical**: existing product-consistency (deliver PASS, paths, review not NEEDS_CHANGES…)
 - **Layer 2 judgment**: required for strict; error-level `gate_issues` always block accept (unless waived/`--force`)
-- Consecutive `improved=false` reaching `stagnation.patience` (default 2) → `BLOCKED` + `intervention_needed.kind=STAGNATION`
+- Consecutive `improved=false` reaching `stagnation.patience` (default 2) and/or `budget.max_same_strategy_failures` → `BLOCKED` + `intervention_needed.kind=STAGNATION`, and write run-local `instruction-correction.md`. Reviewer stays read-only; Developer may later land a durable rule under business-repo `AGENTS.md` ## Agent corrections
+- `jj ralph metrics` / `ralph_ops metrics` derives clocks from progress timestamps; missing clocks stay `null` and **never** block ACCEPT
 - Hit `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
 - `review-record` outcome=PASS/NEEDS_CHANGES → auto-write `accept_layers.judgment` (strict may gate accept directly)
 - `map-merge` / finalize auto-write STAGNATION, strict, etc. into capability `lessons` (weak pheromone for map-find)
@@ -75,7 +76,8 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 
 - Single-point / single-file: ANALYZE/PLAN only write shortest MUST, file list, acceptance; follow [tiny-example.md](tiny-example.md); prefer `intensity=tiny`.
 - Once files are located, go DELIVER; do not re-search the whole tree for completeness theater.
-- Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify.
+- Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify; second unchanged attempt writes `instruction-correction.md`.
+- Parallel capacity: one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only.
 - All steps are done by the current session reading/writing the agreed paths (host-agnostic).
 - When commit/push not requested: give commit-prep suggestions or a completion report; if still dirty after finalize, say so in the report.
 - `$jj-end` is **Git only**, orthogonal to run status, and may run multiple times.
@@ -124,7 +126,8 @@ See [rollback.md](rollback.md). Adjacent phases only; ARCHIVE→ACCEPT is legal;
   - `gates.deliver` must already be `PASS` or `N/A` (forbid code landed while ledger still on PLAN)
   - progress/diff shows DELIVER evidence but `deliver` not PASS → reject (deliver-outside-ledger)
   - Latest review = `NEEDS_CHANGES` or `BLOCKED` → reject PASS
-  - Implementation paths in plan/acceptance/`scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS
+  - Implementation paths in plan **## Current** (legacy `## Tasks` if no Current), active acceptance rows, and `scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS. Landed / Superseded paths are not current claims
+  - Bugfix / `failed_must` / latest `NEEDS_CHANGES` runs must not delete or empty tests; `tiny` presentational without those signals is exempt
   - **ARCHIVE** with latest `PASS` review: must have `review_scope=commit` and `fix_commit`/`reviewed_commit`; `working_tree` PASS is temporary evidence only and cannot archive as landed
   - When policy changes mid-run, revise plan/acceptance **Current** before accepting; do not only change code. Move the previous Current block to Landed or Superseded first ([artifact-layout.md](artifact-layout.md) § Current contract vs history). Do not delete prior TASK/MUST/acceptance rows
   - Ops override: `force: true` (library API / finalize force); default conversational path must not use force

@@ -30,6 +30,10 @@ export const REVIEW_SCOPES = ['working_tree', 'commit'];
 export const REVIEW_SOURCES = ['host_builtin', 'user_provided', 'fallback_inline'];
 export const HOST_REVIEW_METHODS = ['skill', 'command', 'subagent', 'user_provided', 'fallback_inline'];
 export const HOST_IDS = ['codex', 'grok-build', 'claude', 'qoder', 'other'];
+export const FINDING_PASSES = Object.freeze(['bugs', 'security', 'compliance']);
+export const FINDING_IMPORTANCE = Object.freeze(['important', 'nit']);
+export const REVIEW_NIT_CAP = 5;
+export const INSTRUCTION_CORRECTION_REL = 'instruction-correction.md';
 
 /** Run intensity tiers: speed/quality tradeoff without multi-agent runtime. */
 export const RALPH_INTENSITIES = Object.freeze(['tiny', 'standard', 'strict']);
@@ -198,7 +202,16 @@ export function createRunSkeleton({
     capability_ids: [...capability_ids],
     knowledge_refs: unique(knowledge_refs),
     knowledge_summary: [...(knowledge_summary || [])],
-    artifact_refs: { analyze: 'analyze.md', plan: 'plan.md', acceptance: 'acceptance.md', progress: 'progress.md', handoff_ref: null, dispatch_snapshot_ref: null, latest_review_ref: null },
+    artifact_refs: {
+      analyze: 'analyze.md',
+      plan: 'plan.md',
+      acceptance: 'acceptance.md',
+      progress: 'progress.md',
+      intent: null,
+      handoff_ref: null,
+      dispatch_snapshot_ref: null,
+      latest_review_ref: null
+    },
     review: null,
     family: null,
     handoff: null,
@@ -339,6 +352,8 @@ export function validateReviewReport(report) {
     for (const [i, finding] of report.findings.entries()) {
       if (!finding?.id) errors.push('findings[' + i + '].id required');
       if (!FINDING_SEVERITIES.includes(finding?.severity)) errors.push('findings[' + i + '].severity invalid');
+      if (finding?.pass != null && !FINDING_PASSES.includes(finding.pass)) errors.push('findings[' + i + '].pass invalid');
+      if (finding?.importance != null && !FINDING_IMPORTANCE.includes(finding.importance)) errors.push('findings[' + i + '].importance invalid');
       if (!finding?.file) errors.push('findings[' + i + '].file required');
       if (!Number.isInteger(finding?.line) || finding.line < 1) errors.push('findings[' + i + '].line must be positive integer');
       if (!finding?.description) errors.push('findings[' + i + '].description required');
@@ -455,15 +470,27 @@ export function initRun(options, cwd = process.cwd()) {
     knowledge_refs: run.knowledge_refs || [],
     knowledge_summary: run.knowledge_summary || []
   });
+  const writeIntent = options.write_intent === true
+    || (options.write_intent !== false && run.intensity !== 'tiny');
+  if (writeIntent) {
+    run.artifact_refs.intent = 'intent.md';
+    saveRun(run, cwd);
+  }
   const stubs = {
-    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## UNRESOLVED' + nl,
+    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## Flagged concerns' + nl + nl + '## UNRESOLVED' + nl,
     'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Current' + nl + nl + '## Out of scope' + nl,
     'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- max_iterations: ' + run.max_iterations + nl
+      + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
       + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
     'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | must_id | evidence_class | result | evidence |' + nl + '| --- | --- | --- | --- | --- |' + nl
   };
+  if (writeIntent) {
+    stubs['intent.md'] = '# Intent' + nl + nl + 'run_id: ' + run.run_id + nl + 'Status: draft.' + nl + nl
+      + '## Problem' + nl + nl + '## Proposed outcome' + nl + nl
+      + '## Affected users and systems' + nl + nl + '## Constraints' + nl + nl + '## Open questions' + nl;
+  }
   for (const [name, bodyText] of Object.entries(stubs)) {
     const filePath = path.join(dir, name);
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
@@ -589,6 +616,7 @@ export function finalizeRun(runId, {
   }
   const elevOpts = { modules, lessons, keywords, acceptance, status, force, include_process_lessons_in_map };
   const merged = mapMergeFromRun(runId, elevOpts, cwd);
+  persistRunMetrics(runId, cwd);
   const archived = archiveRun(runId, { cwd, slug, force, diff_paths });
   let contribution = null;
   let contribution_path = null;
@@ -629,6 +657,7 @@ export function finalizeRun(runId, {
     contribution,
     contribution_path,
     contribute_hook,
+    metrics: archived.run.metrics || null,
     elevation: {
       durable_lessons: merged.elevation?.durable_lessons || [],
       process_lessons: merged.elevation?.process_lessons || []
@@ -1285,16 +1314,41 @@ function nextReviewId(run) {
   return 'REV-' + (max + 1);
 }
 
+function normalizeFindingClass(description) {
+  return String(description || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, ' ').trim().slice(0, 80);
+}
+
+function applyNitCap(findings) {
+  let openNits = 0;
+  return findings.map((finding) => {
+    const isNit = finding.importance === 'nit' || finding.severity === 'info';
+    if (finding.status !== 'OPEN' || !isNit) return finding;
+    openNits += 1;
+    if (openNits <= REVIEW_NIT_CAP) return finding;
+    return { ...finding, status: 'WAIVED', acceptance: finding.acceptance + ' (nit cap)' };
+  });
+}
+
 function normalizeFindings(findings = []) {
-  return findings.map((finding, index) => ({
-    id: finding.id || ('F-' + (index + 1)),
-    severity: finding.severity || 'medium',
-    file: finding.file || 'unknown',
-    line: Number.isInteger(finding.line) ? finding.line : 1,
-    description: finding.description || '',
-    status: finding.status || 'OPEN',
-    acceptance: finding.acceptance || '待确认'
-  }));
+  const mapped = [];
+  for (const [index, finding] of findings.entries()) {
+    const file = finding.file || 'unknown';
+    if (isReviewSkipPath(file)) continue;
+    const item = {
+      id: finding.id || ('F-' + (index + 1)),
+      severity: finding.severity || 'medium',
+      file,
+      line: Number.isInteger(finding.line) ? finding.line : 1,
+      description: finding.description || '',
+      status: finding.status || 'OPEN',
+      acceptance: finding.acceptance || '待确认'
+    };
+    if (finding.pass && FINDING_PASSES.includes(finding.pass)) item.pass = finding.pass;
+    if (finding.importance && FINDING_IMPORTANCE.includes(finding.importance)) item.importance = finding.importance;
+    else if (item.severity === 'info') item.importance = 'nit';
+    mapped.push(item);
+  }
+  return applyNitCap(mapped);
 }
 
 export function normalizeHostReview(host_review = null) {
@@ -1323,6 +1377,30 @@ export function normalizeHostReview(host_review = null) {
   };
 }
 
+export function writeInstructionCorrection(runId, cwd, payload = {}) {
+  const nl = String.fromCharCode(10);
+  const dir = runDir(runId, cwd);
+  fs.mkdirSync(dir, { recursive: true });
+  const abs = path.join(dir, INSTRUCTION_CORRECTION_REL);
+  const previous = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') + nl + '---' + nl : '';
+  const count = payload.count != null ? payload.count : 2;
+  const signal = payload.repeated_signal != null ? String(payload.repeated_signal) : '(none)';
+  const rule = payload.proposed_rule
+    || 'After two identical failures, change approach; do not retry the same strategy.';
+  const body = previous
+    + '# Instruction correction candidate' + nl
+    + 'run_id: ' + runId + nl
+    + 'count: ' + count + nl
+    + 'repeated_signal: ' + signal + nl
+    + 'recorded_at: ' + nowIso() + nl + nl
+    + '## Proposed rule' + nl + nl
+    + rule + nl + nl
+    + 'Landing this into business-repo AGENTS.md ## Agent corrections is a Developer edit, not a reviewer write.' + nl;
+  fs.writeFileSync(abs, body, 'utf8');
+  appendProgressLine(runId, cwd, '- ' + nowIso() + ' instruction-correction count=' + count + ' signal=' + signal);
+  return { path: path.join(RALPHS_DIR_REL, runId, INSTRUCTION_CORRECTION_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47)), count, repeated_signal: signal };
+}
+
 export function recordReview(runId, {
   cwd = process.cwd(),
   outcome,
@@ -1336,7 +1414,8 @@ export function recordReview(runId, {
   evidence_refs = [],
   review_id,
   source = null,
-  host_review = null
+  host_review = null,
+  include_compliance = true
 } = {}) {
   if (!REVIEW_OUTCOMES.includes(outcome)) throw new Error('outcome must be one of ' + REVIEW_OUTCOMES.join(', '));
   if (source != null && source !== '' && !REVIEW_SOURCES.includes(source)) {
@@ -1350,18 +1429,63 @@ export function recordReview(runId, {
   const resolvedScope = resolveReviewScope({ review_scope, fix_commit: resolvedFix, reviewed_commit: resolvedReviewed });
   const resolvedSource = source != null && source !== '' ? source : null;
   const resolvedHostReview = normalizeHostReview(host_review);
+  let mergedFindings = [...(findings || [])];
+  if (include_compliance !== false) {
+    mergedFindings = mergedFindings.concat(buildPlanComplianceFindings(run, cwd));
+  }
+  let resolvedOutcome = outcome;
+  let normalizedPreview = normalizeFindings(mergedFindings);
+  if (resolvedOutcome === 'PASS' && normalizedPreview.some((item) => item.status === 'OPEN' && item.importance === 'important')) {
+    resolvedOutcome = 'NEEDS_CHANGES';
+  }
+  if (resolvedOutcome === 'PASS') {
+    normalizedPreview = normalizedPreview.map((item) => {
+      if (item.status === 'OPEN' && (item.importance === 'nit' || item.severity === 'info')) {
+        return { ...item, status: 'WAIVED', acceptance: item.acceptance + ' (nit)' };
+      }
+      return item;
+    });
+  }
+  const previousOpen = [];
+  const existingReviews = Array.isArray(run.review?.reviews) ? run.review.reviews : [];
+  for (const prev of existingReviews) {
+    if (!prev?.path) continue;
+    const absPrev = path.join(runDir(runId, cwd), prev.path);
+    if (!fs.existsSync(absPrev)) continue;
+    try {
+      const old = readJson(absPrev);
+      for (const finding of old.findings || []) {
+        if (finding.status === 'OPEN') previousOpen.push(finding);
+      }
+    } catch {
+      // ignore unreadable prior review
+    }
+  }
+  for (const finding of normalizedPreview) {
+    if (finding.status !== 'OPEN') continue;
+    const cls = (finding.pass || '') + '|' + normalizeFindingClass(finding.description);
+    const repeat = previousOpen.some((old) => ((old.pass || '') + '|' + normalizeFindingClass(old.description)) === cls);
+    if (repeat) {
+      writeInstructionCorrection(runId, cwd, {
+        count: 2,
+        repeated_signal: cls,
+        proposed_rule: finding.description
+      });
+      break;
+    }
+  }
   const report = {
     schema_version: RALPH_REVIEW_SCHEMA_VERSION,
     review_id: id,
     run_id: run.run_id,
-    outcome,
+    outcome: resolvedOutcome,
     reviewed_commit: resolvedReviewed,
     fix_commit: resolvedFix || (resolvedScope === 'commit' ? resolvedReviewed : null),
     review_scope: resolvedScope,
     task_thread_id: task_thread_id || run.review?.task_thread_id || null,
     review_thread_id: review_thread_id || null,
     summary: summary || '',
-    findings: normalizeFindings(findings),
+    findings: normalizedPreview,
     evidence_refs: unique(evidence_refs),
     recorded_at: nowIso()
   };
@@ -1389,10 +1513,10 @@ export function recordReview(runId, {
   run.artifact_refs = { ...run.artifact_refs, latest_review_ref: relPath };
   // Dual-layer accept: review outcome drives judgment layer (strict needs this before gate accept).
   run.accept_layers = run.accept_layers || createEmptyAcceptLayers(run.intensity || 'standard');
-  if (outcome === 'PASS') {
+  if (report.outcome === 'PASS') {
     run.accept_layers.judgment = 'PASS';
     run.accept_layers.judgment_mode = 'review';
-  } else if (outcome === 'NEEDS_CHANGES' || outcome === 'BLOCKED') {
+  } else if (report.outcome === 'NEEDS_CHANGES' || report.outcome === 'BLOCKED') {
     run.accept_layers.judgment = 'FAIL';
     run.accept_layers.judgment_mode = 'review';
   }
@@ -1400,7 +1524,7 @@ export function recordReview(runId, {
   saveRun(run, cwd);
   const progressPath = path.join(runDir(runId, cwd), 'progress.md');
   const nl = String.fromCharCode(10);
-  let line = '- ' + report.recorded_at + ' review ' + id + ' ' + outcome;
+  let line = '- ' + report.recorded_at + ' review ' + id + ' ' + report.outcome;
   if (report.reviewed_commit) line += ' commit=' + report.reviewed_commit;
   if (report.fix_commit) line += ' fix_commit=' + report.fix_commit;
   if (report.review_scope) line += ' scope=' + report.review_scope;
@@ -1442,6 +1566,35 @@ function normalizeLedgerPathRef(value) {
   if (!base || LEDGER_PATH_EXCLUDE.has(base)) return null;
   if (!LEDGER_CODE_EXT_RE.test(base)) return null;
   return token;
+}
+
+/** Return the body of `## heading` until the next `##`, or empty string. */
+export function extractMarkdownSection(text, heading) {
+  if (!text || typeof text !== 'string' || !heading) return '';
+  const escaped = String(heading).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const start = new RegExp('^##\\s+' + escaped + '\\s*$', 'im');
+  const match = start.exec(text);
+  if (!match) return '';
+  const from = match.index + match[0].length;
+  const rest = text.slice(from);
+  const next = /^##\s+/im.exec(rest);
+  return (next ? rest.slice(0, next.index) : rest).trim();
+}
+
+/**
+ * Current contract of plan.md: `## Current`, else legacy `## Tasks`, else the whole file.
+ * Landed / Superseded are excluded when Current exists.
+ */
+export function extractPlanCurrentSection(text) {
+  if (!text || typeof text !== 'string') return '';
+  if (/^##\s+Current\s*$/im.test(text)) return extractMarkdownSection(text, 'Current');
+  if (/^##\s+Tasks\s*$/im.test(text)) return extractMarkdownSection(text, 'Tasks');
+  return text;
+}
+
+function extractAcceptanceActiveText(text) {
+  if (!text || typeof text !== 'string') return '';
+  return text.split(/\r?\n/).filter((line) => !/\bSUPERSEDED\b/i.test(line)).join('\n');
 }
 
 /** Extract implementation path refs from plan/acceptance markdown. */
@@ -1525,9 +1678,121 @@ export function collectClaimedImplementationPaths(run, cwd = process.cwd()) {
       if (normalized) claimed.push(normalized);
     }
   }
-  claimed.push(...extractLedgerPathRefs(readRunArtifactText(run, 'plan', cwd)));
-  claimed.push(...extractLedgerPathRefs(readRunArtifactText(run, 'acceptance', cwd)));
+  claimed.push(...extractLedgerPathRefs(extractPlanCurrentSection(readRunArtifactText(run, 'plan', cwd))));
+  claimed.push(...extractLedgerPathRefs(extractAcceptanceActiveText(readRunArtifactText(run, 'acceptance', cwd))));
   return unique(claimed);
+}
+
+const REVIEW_SKIP_BASENAMES = new Set([
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'package.json',
+  'run.json'
+]);
+
+export function isReviewSkipPath(file) {
+  const normalized = String(file || '').replace(/\\/g, '/').toLowerCase();
+  if (!normalized || normalized === 'unknown') return false;
+  if (normalized.includes('/src/gen/') || normalized.startsWith('src/gen/')) return true;
+  const base = normalized.split('/').pop();
+  return REVIEW_SKIP_BASENAMES.has(base) || /\.(?:lock|generated)\./.test(base);
+}
+
+export function isTestPath(file) {
+  const normalized = String(file || '').replace(/\\/g, '/');
+  if (!normalized) return false;
+  return /(?:^|\/)(?:tests?|__tests__)(?:\/|$)/i.test(normalized)
+    || /\.(?:test|spec)\.(?:js|mjs|cjs|ts|tsx)$/i.test(normalized);
+}
+
+export function collectGitDeletedPaths(cwd = process.cwd()) {
+  try {
+    const output = execSync('git status --porcelain -uall', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const paths = [];
+    for (const line of String(output || '').split(/\r?\n/)) {
+      if (line.length < 4) continue;
+      const code = line.slice(0, 2);
+      if (!code.includes('D')) continue;
+      const body = line.slice(3).trim();
+      const chosen = body.includes(' -> ') ? body.split(' -> ')[0] : body;
+      const normalized = String(chosen || '').replace(/\\/g, '/').replace(/^"|"$/g, '');
+      if (normalized && !isWorkflowNoisePath(normalized)) paths.push(normalized);
+    }
+    return unique(paths);
+  } catch {
+    return [];
+  }
+}
+
+function looksLikeFixRun(run, cwd) {
+  const progress = readRunArtifactText(run, 'progress', cwd);
+  if (/\bfailed_must\b/i.test(progress) || /\buser_correction\b/i.test(progress) || /\bover_claimed\b/i.test(progress)) {
+    return true;
+  }
+  const latest = getLatestReviewRecord(run, cwd);
+  return Boolean(latest && latest.outcome === 'NEEDS_CHANGES');
+}
+
+function testFileLooksEmptied(cwd, relPath) {
+  const abs = path.join(cwd, relPath);
+  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return true;
+  const text = fs.readFileSync(abs, 'utf8');
+  if (!text.trim()) return true;
+  return !/\b(?:test|it|describe)\s*\(/.test(text);
+}
+
+/**
+ * Bugfix runs may add/strengthen tests, not delete or empty them.
+ * tiny presentational runs without failed_must do not trip this.
+ */
+export function detectTestIntegrityViolation(run, cwd = process.cwd(), { diff_paths = null, deleted_paths = null } = {}) {
+  const result = { violated: false, paths: [], reason: null };
+  if (!run) return result;
+  if ((run.intensity || 'standard') === 'tiny' && !looksLikeFixRun(run, cwd)) return result;
+  if (!looksLikeFixRun(run, cwd)) return result;
+  const actual = Array.isArray(diff_paths)
+    ? unique(diff_paths.map((item) => String(item || '').replace(/\\/g, '/')))
+    : (collectGitDiffPaths(cwd) || []);
+  const deleted = Array.isArray(deleted_paths)
+    ? unique(deleted_paths.map((item) => String(item || '').replace(/\\/g, '/')))
+    : collectGitDeletedPaths(cwd);
+  const bad = [];
+  for (const item of deleted) {
+    if (isTestPath(item)) bad.push(item);
+  }
+  for (const item of actual) {
+    if (!isTestPath(item)) continue;
+    if (deleted.includes(item)) continue;
+    if (testFileLooksEmptied(cwd, item)) bad.push(item);
+  }
+  if (!bad.length) return result;
+  return {
+    violated: true,
+    paths: unique(bad),
+    reason: 'bugfix must not delete or empty tests: ' + unique(bad).join(', ')
+  };
+}
+
+export function buildPlanComplianceFindings(run, cwd = process.cwd(), { diff_paths = null } = {}) {
+  const claimed = collectClaimedImplementationPaths(run, cwd);
+  const actual = Array.isArray(diff_paths)
+    ? unique(diff_paths.map((item) => String(item || '').replace(/\\/g, '/')))
+    : collectGitDiffPaths(cwd);
+  if (!claimed.length || !Array.isArray(actual) || !actual.length) return [];
+  const mismatch = findImplementationPathMismatch(claimed, actual);
+  if (!mismatch) return [];
+  return [{
+    id: 'F-COMPLIANCE-PLAN',
+    severity: 'high',
+    pass: 'compliance',
+    importance: 'important',
+    file: 'plan.md',
+    line: 1,
+    description: mismatch,
+    status: 'OPEN',
+    acceptance: 'Align diff with plan.md ## Current (or move Current → Landed/Superseded first)'
+  }];
 }
 
 export function getLatestReviewRecord(run, cwd = process.cwd()) {
@@ -1654,6 +1919,8 @@ export function recordDeliverAttempt(runId, {
   run.stagnation = stag;
 
   const maxLoops = run.budget?.max_deliver_loops || run.max_iterations;
+  const maxSame = run.budget?.max_same_strategy_failures || stag.patience || 2;
+  const sameCap = Math.min(maxSame, stag.patience || maxSame);
   let blocked = false;
   let intervention = null;
 
@@ -1673,11 +1940,12 @@ export function recordDeliverAttempt(runId, {
       unblock: 'Raise budget.max_deliver_loops or change approach',
       at: nowIso()
     };
-  } else if (!resolvedImproved && stag.unchanged_count >= (stag.patience || 2)) {
+  } else if (!resolvedImproved && stag.unchanged_count >= sameCap) {
     blocked = true;
     intervention = {
       kind: 'STAGNATION',
-      reason: 'no improvement for ' + stag.unchanged_count + ' deliver attempts (patience=' + (stag.patience || 2) + ')'
+      reason: 'no improvement for ' + stag.unchanged_count + ' deliver attempts (patience=' + (stag.patience || 2)
+        + ', max_same_strategy_failures=' + maxSame + ')'
         + (stag.last_signal ? ('; signal=' + stag.last_signal) : '')
         + ' fp=' + fp.fingerprint,
       unblock: 'Change strategy, rollback-phase to PLAN, or set-status IN_PROGRESS after root-cause fix',
@@ -1692,6 +1960,13 @@ export function recordDeliverAttempt(runId, {
 
   run.updated_at = nowIso();
   saveRun(run, cwd);
+  if (blocked && intervention && intervention.kind === 'STAGNATION') {
+    writeInstructionCorrection(runId, cwd, {
+      count: stag.unchanged_count,
+      repeated_signal: stag.last_signal || fp.fingerprint,
+      proposed_rule: 'Do not retry the same deliver strategy after ' + sameCap + ' unchanged attempts; change approach and record the rule in AGENTS.md ## Agent corrections if it recurs.'
+    });
+  }
   appendProgressLine(
     runId,
     cwd,
@@ -1851,7 +2126,7 @@ export function inspectAcceptanceEvidence(run, cwd = process.cwd()) {
  * ARCHIVE would treat a working_tree review PASS as landed commit evidence,
  * or when acceptance.md over-claims a strong evidence_class with static proof.
  */
-export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, check_paths = true, gate = 'accept' } = {}) {
+export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, deleted_paths = null, check_paths = true, gate = 'accept' } = {}) {
   const details = {
     review_outcome: null,
     review_id: null,
@@ -1923,16 +2198,20 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
     reasons.push('acceptance evidence_class over-claim: write-then-read/cross-path/runtime-env PASS requires class-minimum evidence (not diff/rg/static only)');
   }
 
+  const integrity = detectTestIntegrityViolation(run, cwd, { diff_paths, deleted_paths });
+  details.test_integrity = integrity;
+  if (integrity.violated) reasons.push(integrity.reason);
+
   return { ok: reasons.length === 0, forced: false, reasons, details };
 }
 
 /** Update one gate; on PASS optionally advance phase (default true). */
-export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null } = {}) {
+export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null, deleted_paths = null } = {}) {
   if (!GATE_KEYS.includes(gate)) throw new Error('invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|') + ')');
   if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
   const run = hydrateIntensityFields(loadRun(runId, cwd));
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
-    const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate });
+    const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, deleted_paths, gate });
     if (!consistency.ok) throw new Error('product-consistency gate blocked ' + gate + ' PASS: ' + consistency.reasons.join('; '));
     if (gate === 'accept') {
       const judgment = evaluateAcceptJudgment(run, { force });
@@ -2214,10 +2493,85 @@ export function renderRalphStatusText(payload) {
   return lines.join(nl);
 }
 
+function hoursBetween(fromIso, toIso) {
+  if (!fromIso || !toIso) return null;
+  const from = Date.parse(fromIso);
+  const to = Date.parse(toIso);
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) return null;
+  return Number(((to - from) / 3600000).toFixed(4));
+}
+
+function parseProgressEvents(progress) {
+  const events = [];
+  for (const line of String(progress || '').split(/\r?\n/)) {
+    const gate = line.match(/(\d{4}-\d{2}-\d{2}T[^\s]+)\s+gate\s+(analyze|plan|deliver|accept|archive)=(PASS|FAIL|PENDING|N\/A|BLOCKED)/i);
+    if (gate) {
+      events.push({ kind: 'gate', at: gate[1], gate: gate[2].toLowerCase(), status: gate[3].toUpperCase() });
+      continue;
+    }
+    const deliver = line.match(/(\d{4}-\d{2}-\d{2}T[^\s]+)\s+deliver-attempt\s+improved=(true|false)/i);
+    if (deliver) {
+      events.push({ kind: 'deliver-attempt', at: deliver[1], improved: deliver[2] === 'true' });
+      continue;
+    }
+    const review = line.match(/(\d{4}-\d{2}-\d{2}T[^\s]+)\s+review\s+(REV-\d+)\s+(PASS|NEEDS_CHANGES|BLOCKED)/i);
+    if (review) {
+      events.push({ kind: 'review', at: review[1], review_id: review[2], outcome: review[3] });
+    }
+  }
+  return events;
+}
+
+export function computeRunMetrics(run, cwd = process.cwd()) {
+  const progress = readRunArtifactText(run, 'progress', cwd);
+  const events = parseProgressEvents(progress);
+  const first = (kind, extra) => events.find((item) => item.kind === kind && (!extra || extra(item)));
+  const analyzePass = first('gate', (item) => item.gate === 'analyze' && item.status === 'PASS');
+  const planPass = first('gate', (item) => item.gate === 'plan' && item.status === 'PASS');
+  const deliverPass = first('gate', (item) => item.gate === 'deliver' && item.status === 'PASS');
+  const firstDeliver = first('deliver-attempt');
+  const deliverAttempts = events.filter((item) => item.kind === 'deliver-attempt');
+  const falseDelivers = deliverAttempts.filter((item) => item.improved === false);
+  const analyzeRework = /SUPERSEDED|\bfailed_must\b|\bover_claimed\b/i.test(progress)
+    && Boolean(planPass);
+  const latestReview = getLatestReviewRecord(run, cwd);
+  const findings = Array.isArray(latestReview?.findings) ? latestReview.findings : [];
+  const claimed = collectClaimedImplementationPaths(run, cwd);
+  const actual = collectGitDiffPaths(cwd);
+  let planDrift = null;
+  if (claimed.length && Array.isArray(actual) && actual.length) {
+    planDrift = Boolean(findImplementationPathMismatch(claimed, actual));
+  }
+  const hasClock = Boolean(run?.created_at && (analyzePass || planPass || run.updated_at));
+  return {
+    intent_to_analyze_hours: run?.artifact_refs?.intent && analyzePass
+      ? hoursBetween(run.created_at, analyzePass.at)
+      : null,
+    analyze_to_plan_hours: hoursBetween(analyzePass?.at, planPass?.at),
+    plan_to_first_deliver_hours: hoursBetween(planPass?.at, firstDeliver?.at || deliverPass?.at),
+    first_pass_deliver: deliverAttempts.length ? falseDelivers.length === 0 && Boolean(deliverPass || firstDeliver?.improved) : null,
+    deliver_rework_cycles: falseDelivers.length,
+    analyze_rework_after_plan: Boolean(analyzeRework && planPass),
+    plan_drift: planDrift,
+    review_nit_count: findings.filter((item) => item.importance === 'nit' || item.severity === 'info').length,
+    review_important_open: findings.filter((item) => item.status === 'OPEN' && item.importance === 'important').length,
+    clock_quality: hasClock ? 'derived' : 'unknown'
+  };
+}
+
+export function persistRunMetrics(runId, cwd = process.cwd()) {
+  const run = loadRun(runId, cwd);
+  run.metrics = computeRunMetrics(run, cwd);
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  return { run, metrics: run.metrics };
+}
+
 export function getStatus({ runId, cwd = process.cwd() } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
-    return { run, path: path.relative(cwd, runDir(runId, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
+    const metrics = computeRunMetrics(run, cwd);
+    return { run, metrics, path: path.relative(cwd, runDir(runId, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
   }
   const runs = listRuns(cwd);
   const mapExists = fs.existsSync(mapPath(cwd));

@@ -41,6 +41,7 @@ import {
   recordHostMeta,
   recordDeliverAttempt,
   setAcceptLayer,
+  persistRunMetrics,
   writeDispatchSnapshot,
   writeHandoffPackage
 } from './ralph.mjs';
@@ -600,7 +601,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
 
@@ -864,6 +865,17 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     return 0;
   }
 
+  if (command === 'metrics') {
+    const persist = args.includes('--persist');
+    const options = parseRalphRunArgs(args.filter((arg) => arg !== '--persist'), { requireRunId: true });
+    const result = persist
+      ? persistRunMetrics(options.runId, cwd)
+      : getStatus({ runId: options.runId, cwd });
+    if (json) stdout.write(`${JSON.stringify({ run_id: options.runId, metrics: result.metrics }, null, 2)}\n`);
+    else stdout.write(`${JSON.stringify(result.metrics, null, 2)}\n`);
+    return 0;
+  }
+
   if (command === 'commit-prep') {
     const options = parseRalphRunArgs(args, { requireRunId: true });
     const result = commitPrep(options.runId, cwd);
@@ -952,6 +964,14 @@ function parseRalphInitArgs(args) {
     }
     if (arg === '--max-iterations') {
       options.max_iterations = Number(args[++i]);
+      continue;
+    }
+    if (arg === '--no-intent') {
+      options.write_intent = false;
+      continue;
+    }
+    if (arg === '--intent') {
+      options.write_intent = true;
       continue;
     }
     throw new Error(`Unknown ralph init option: ${arg}`);
@@ -1206,7 +1226,8 @@ function parseRalphFindArgs(args) {
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id RALPH-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph deliver-attempt --run-id RALPH-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id RALPH-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id RALPH-…] [--json]\n  jj ralph archive --run-id RALPH-… [--slug name] [--json]\n  jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id RALPH-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]\n  jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph deliver-attempt --run-id RALPH-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id RALPH-… [--json]\n  jj ralph metrics --run-id RALPH-… [--persist] [--json]
+  jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
   jj ralph host-record --run-id RALPH-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  handoff 写到 .workflow/handoffs/（不在 ralph 目录实现迁移）。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }

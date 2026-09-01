@@ -305,6 +305,12 @@
         "progress": {
           "type": "string"
         },
+        "intent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "handoff_ref": {
           "type": [
             "string",
@@ -441,6 +447,11 @@
           }
         }
       ]
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Derived operational snapshot. Null clocks stay null; never blocks ACCEPT."
     },
     "created_at": {
       "type": "string",

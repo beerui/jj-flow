@@ -58,6 +58,7 @@ Subcommands:
   validate      Validate an episode JSON/JSONL file
   init-report   Write a report skeleton markdown under an output directory
   check-split   Validate optimization/search + holdout + regression split manifest
+  regression    Run deterministic config-regression cases (no LLM)
 
 Usage:
   node evaluated_ops.mjs <subcommand> [options]
@@ -100,6 +101,96 @@ Default product root for reports (business repos):
 
 If --out is omitted, writes under cwd/.workflow/evaluated/<id>/report.md
 `);
+}
+
+function printRegressionHelp() {
+  process.stdout.write(`evaluated_ops.mjs regression — deterministic skill/config invariants
+
+Usage:
+  node evaluated_ops.mjs regression --dir <dir> [--json] [--repo-root <dir>]
+  node evaluated_ops.mjs regression --help
+
+Each *.json case:
+  { "id", "source_episode", "skill_or_path", "invariants": [
+      { "type": "contains"|"not_contains"|"file_exists"|"episode_validate", "text"|"path" }
+    ] }
+
+Exit 0 when all cases pass; 1 on invariant failures; 2 on usage/IO.
+Does not call a model and does not promote skills.
+`);
+}
+
+/**
+ * @param {string} dir
+ * @param {{ repoRoot?: string }} [options]
+ */
+export function checkRegressionDir(dir, options = {}) {
+  const repoRoot = path.resolve(options.repoRoot || process.cwd());
+  const absDir = path.resolve(dir);
+  const errors = [];
+  const cases = [];
+  if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) {
+    return {
+      ok: false,
+      errors: [{ code: 'DIR_NOT_FOUND', path: absDir, message: 'regression dir missing' }],
+      cases: []
+    };
+  }
+  const files = fs.readdirSync(absDir).filter((name) => name.endsWith('.json')).sort();
+  if (!files.length) {
+    return {
+      ok: false,
+      errors: [{ code: 'EMPTY_DIR', path: absDir, message: 'no regression cases' }],
+      cases: []
+    };
+  }
+  for (const name of files) {
+    const filePath = path.join(absDir, name);
+    let body;
+    try {
+      body = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (err) {
+      errors.push({ code: 'JSON_PARSE', path: filePath, message: String(err && err.message ? err.message : err) });
+      continue;
+    }
+    const id = body.id || name;
+    const targetRel = body.skill_or_path;
+    const targetAbs = targetRel ? path.join(repoRoot, targetRel) : null;
+    const invariants = Array.isArray(body.invariants) ? body.invariants : [];
+    const caseErrors = [];
+    if (!targetRel) caseErrors.push({ code: 'NO_TARGET', path: filePath, message: 'skill_or_path required' });
+    else if (!fs.existsSync(targetAbs)) {
+      caseErrors.push({ code: 'TARGET_MISSING', path: targetRel, message: 'skill_or_path not found' });
+    }
+    let text = '';
+    if (targetAbs && fs.existsSync(targetAbs) && fs.statSync(targetAbs).isFile()) {
+      text = fs.readFileSync(targetAbs, 'utf8');
+    }
+    for (const [i, inv] of invariants.entries()) {
+      const kind = inv && inv.type;
+      if (kind === 'contains') {
+        if (!String(inv.text || '') || !text.includes(String(inv.text))) {
+          caseErrors.push({ code: 'CONTAINS', path: `${id}.invariants[${i}]`, message: 'missing: ' + String(inv.text || '') });
+        }
+      } else if (kind === 'not_contains') {
+        if (text.includes(String(inv.text || ''))) {
+          caseErrors.push({ code: 'NOT_CONTAINS', path: `${id}.invariants[${i}]`, message: 'forbidden text present' });
+        }
+      } else if (kind === 'file_exists') {
+        const rel = String(inv.path || '');
+        if (!rel || !fs.existsSync(path.join(repoRoot, rel))) {
+          caseErrors.push({ code: 'FILE_EXISTS', path: rel || `${id}.invariants[${i}]`, message: 'file missing' });
+        }
+      } else if (kind === 'episode_validate') {
+        caseErrors.push({ code: 'EPISODE_VALIDATE_UNSUPPORTED_HERE', path: `${id}.invariants[${i}]`, message: 'use validate subcommand' });
+      } else {
+        caseErrors.push({ code: 'UNKNOWN_INVARIANT', path: `${id}.invariants[${i}]`, message: 'type ' + String(kind) });
+      }
+    }
+    cases.push({ id, file: name, ok: caseErrors.length === 0, errors: caseErrors });
+    errors.push(...caseErrors);
+  }
+  return { ok: errors.length === 0, errors, cases };
 }
 
 function printCheckSplitHelp() {
@@ -509,6 +600,33 @@ async function main() {
   }
   if (sub === 'init-report' && !flags.out && parsed._[0]) {
     flags.out = parsed._[0];
+  }
+
+  if (sub === 'regression') {
+    if (flags.help || flags.h) {
+      printRegressionHelp();
+      process.exit(0);
+    }
+    const dir = flags.dir || flags.d || parsed._[0];
+    if (!dir || dir === true) {
+      printRegressionHelp();
+      process.exit(2);
+    }
+    const repoRoot = flags['repo-root'] && flags['repo-root'] !== true
+      ? String(flags['repo-root'])
+      : process.cwd();
+    const result = checkRegressionDir(String(dir), { repoRoot });
+    if (flags.json) {
+      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    } else if (result.ok) {
+      process.stdout.write(`OK cases=${result.cases.length}\n`);
+    } else {
+      process.stderr.write(`FAIL errors=${result.errors.length}\n`);
+      for (const e of result.errors) {
+        process.stderr.write(`  error ${e.path}: ${e.message}\n`);
+      }
+    }
+    process.exit(result.ok ? 0 : 1);
   }
 
   if (sub === 'validate') return cmdValidate(flags);

@@ -166,6 +166,40 @@ test('init-report creates report.md', () => {
   }
 });
 
+test('deterministic regression cases in evals/regression pass', () => {
+  const result = runNode(opsScript, ['regression', '--dir', 'evals/regression', '--json']);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const payload = JSON.parse(result.stdout);
+  assert.equal(payload.ok, true);
+  assert.ok(payload.cases.some((item) => item.id === 'EP-20260828-jj-end-staging-not-dev'));
+});
+
+test('regression contains invariant fails when golden text is missing', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-eval-reg-'));
+  try {
+    const target = path.join(cwd, 'skill.md');
+    fs.writeFileSync(target, '# not the golden\n', 'utf8');
+    const dir = path.join(cwd, 'cases');
+    fs.mkdirSync(dir);
+    fs.writeFileSync(
+      path.join(dir, 'miss.json'),
+      JSON.stringify({
+        id: 'CASE-miss',
+        skill_or_path: 'skill.md',
+        invariants: [{ type: 'contains', text: 'Golden Q&A — G-end-1' }]
+      }),
+      'utf8'
+    );
+    const result = runNode(opsScript, ['regression', '--dir', dir, '--repo-root', cwd, '--json']);
+    assert.equal(result.status, 1, result.stderr || result.stdout);
+    const payload = JSON.parse(result.stdout);
+    assert.equal(payload.ok, false);
+    assert.equal(payload.errors.some((item) => item.code === 'CONTAINS'), true);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('skill description does not claim Claude /jj-evaluated slash', () => {
   const text = fs.readFileSync(skillMd, 'utf8');
   // Frontmatter description must not advertise /jj-evaluated as the entry
@@ -182,6 +216,8 @@ test('skill description does not claim Claude /jj-evaluated slash', () => {
   );
   assert.match(text, /experimental/i);
   assert.match(text, /no Claude/i);
+  assert.match(text, /regression/i);
+  assert.match(text, /auto-promote/i);
   assert.ok(
     !text.includes('through /jj-evaluated'),
     'body must not claim through /jj-evaluated'

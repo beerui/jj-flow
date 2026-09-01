@@ -24,7 +24,7 @@ Keep roles distinct: `项目A`, `项目B`, `项目C` (do not translate/rename; d
 | 1 | Fabricate trace, duration, score, sample, or episode | Offline learning needs real evidence |
 | 2 | Advance ralph/dispatch checkpoints via chat, thread, memory, or unverified artifact | Control plane ≠ evaluation report |
 | 3 | Auto-edit production business repos or jj-flow control-plane manifests as eval side-effect | Promote only approved versioned skill/spec/recipe |
-| 4 | Promote without human review / approval | Reward hacking & leakage risk |
+| 4 | Promote without human review / approval (incl. auto-promote from regression scores) | Reward hacking & leakage risk |
 | 5 | Expose holdout outcomes to the proposer before freeze | Dataset leakage |
 | 6 | Treat file mtime or lone `run.json` duration as authoritative time | False precision |
 | 7 | Send raw project conversations to an external service without explicit user auth | Privacy / leak |
@@ -39,7 +39,7 @@ Pure Node ESM under `scripts/`. No external deps.
 | Script | Role |
 | --- | --- |
 | `scripts/episode-validate.mjs` | Validate episode JSON/JSONL vs contract minimums |
-| `scripts/evaluated_ops.mjs` | `validate`, `init-report`, `check-split` |
+| `scripts/evaluated_ops.mjs` | `validate`, `init-report`, `check-split`, `regression` |
 
 **Resolution:** (1) `skills/jj-evaluated/scripts/…` (2) installed skill `scripts/` (3) explicit `node skills/jj-evaluated/scripts/evaluated_ops.mjs …`
 
@@ -48,6 +48,7 @@ node skills/jj-evaluated/scripts/episode-validate.mjs path/to/episode.json --jso
 node skills/jj-evaluated/scripts/evaluated_ops.mjs validate --episode path/to/episode.json
 node skills/jj-evaluated/scripts/evaluated_ops.mjs init-report --out .workflow/evaluated/EP-demo --episode-id EP-demo
 node skills/jj-evaluated/scripts/evaluated_ops.mjs check-split --manifest path/to/split.json
+node skills/jj-evaluated/scripts/evaluated_ops.mjs regression --dir evals/regression --json
 ```
 
 Exit codes (`episode-validate` / `validate`): `0` ok (warnings allowed), `1` validation errors, `2` usage/IO/parse.
@@ -121,6 +122,12 @@ Contracts: [episode-contract.md](references/episode-contract.md) · [optimizatio
    🛑 Never auto-edit production business projects or control-plane manifests as an eval side-effect.
 
 9. **Archive and maintain** — retire saturated search cases; keep history for regression when useful; record unresolved data-quality issues (do not smooth away). State next data-collection action.
+
+## Deterministic regression (CI)
+
+Repo `evals/regression/*.json` are **cheap, no-LLM** skill/config invariants. `npm run evaluated:check` (wired into `npm run verify`) runs `evaluated_ops regression`.
+
+After an incident, user correction, or two-strikes miss that is a **skill/config invariant**: add a case (see `evals/regression/EP-20260828-jj-end-staging-not-dev.json`). Same requirement still resumes the ralph run; a new requirement gets a new intent. **Do not** call a model in CI. **Do not** auto-promote skill text from a green or red score.
 
 ## Time and quality rules
 
