@@ -486,6 +486,12 @@
       "evidence": "exit-code"
     },
     {
+      "id": "lab-check",
+      "command": "npm run lab:check",
+      "mode": "temporary-write",
+      "evidence": "structured-findings"
+    },
+    {
       "id": "full-verification",
       "command": "npm run verify",
       "mode": "temporary-write",

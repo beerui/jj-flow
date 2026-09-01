@@ -290,6 +290,23 @@ export function checkHarnessRepository({
       '把 npm run harness:gc 接入 verify 主验证链。'
     );
   }
+  if (!packageJson?.scripts?.['lab:check']) {
+    addFinding(
+      'HNS-COMMAND-008',
+      packagePath,
+      '缺少 npm script：lab:check',
+      '保留 scripts/lab-check.mjs 委派并登记 npm run lab:check。'
+    );
+  } else if (packageJson?.scripts?.verify && !packageJson.scripts.verify.includes('npm run lab:check')) {
+    addFinding(
+      'HNS-COMMAND-008',
+      packagePath,
+      'npm run verify 未包含机械实验场检查。',
+      '把 npm run lab:check 接入 verify。CI 必须显式注入 JJ_LAB_*_ROOT，不得靠缺根假绿。'
+    );
+  }
+
+  checkCiLabRoots({ cwd, addFinding });
 
   const invariants = arrayOrFinding(manifest.invariants, 'invariants', manifestPath, addFinding);
   checkUniqueEntries(invariants, manifestPath, addFinding);
@@ -1176,6 +1193,72 @@ function resolveRepositoryPath(cwd, value, addFinding, ruleId) {
     return null;
   }
   return path.join(cwd, value);
+}
+
+export const PREPARE_LAB_ROOTS_ACTION = '.github/actions/prepare-lab-roots/action.yml';
+export const VERIFY_WORKFLOWS_NEEDING_LAB_ROOTS = Object.freeze([
+  '.github/workflows/ci.yml',
+  '.github/workflows/npm-publish.yml'
+]);
+
+export function prepareLabRootsActionCoversSiblings(text) {
+  const src = String(text || '');
+  return (
+    src.includes('github.com/beerui/jj-lab-loop')
+    && src.includes('github.com/beerui/jj-lab-family')
+    && src.includes('JJ_LAB_LOOP_ROOT')
+    && src.includes('JJ_LAB_FAMILY_ROOT')
+    && src.includes('JJ_FLOW_ROOT')
+    && src.includes('RUNNER_TEMP')
+  );
+}
+
+export function workflowCallsPrepareLabRoots(text) {
+  return /prepare-lab-roots/.test(String(text || ''));
+}
+
+export function checkCiLabRoots({ cwd, addFinding }) {
+  const actionPath = path.join(cwd, PREPARE_LAB_ROOTS_ACTION);
+  if (!fs.existsSync(actionPath)) {
+    addFinding(
+      'HNS-CI-LAB-ROOTS',
+      PREPARE_LAB_ROOTS_ACTION,
+      '缺少 prepare-lab-roots composite action。',
+      'CI 必须 clone beerui/jj-lab-loop 与 beerui/jj-lab-family 到绝对 RUNNER_TEMP 路径并注入 JJ_LAB_*_ROOT。不要猜 ../jj-lab-*。'
+    );
+  } else {
+    const actionText = fs.readFileSync(actionPath, 'utf8');
+    if (!prepareLabRootsActionCoversSiblings(actionText)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        PREPARE_LAB_ROOTS_ACTION,
+        'prepare-lab-roots 未同时 clone 两个 sibling 仓并导出绝对 JJ_LAB_*_ROOT / JJ_FLOW_ROOT。',
+        '用 github.com/beerui/jj-lab-loop 与 jj-lab-family 的 URL clone 到 RUNNER_TEMP；不要拼接产品仓 ../jj-lab-*。'
+      );
+    }
+  }
+
+  for (const relative of VERIFY_WORKFLOWS_NEEDING_LAB_ROOTS) {
+    const workflowPath = path.join(cwd, relative);
+    if (!fs.existsSync(workflowPath)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        relative,
+        `缺少会跑 npm run verify 的 workflow：${relative}`,
+        '恢复该 workflow，并在 verify 前调用 prepare-lab-roots。'
+      );
+      continue;
+    }
+    const text = fs.readFileSync(workflowPath, 'utf8');
+    if (!workflowCallsPrepareLabRoots(text)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        relative,
+        `${relative} 在 npm run verify 前未调用 prepare-lab-roots。`,
+        '显式 uses: ./.github/actions/prepare-lab-roots，注入绝对 lab 根。缺根必须红，不得跳过 lab:check。'
+      );
+    }
+  }
 }
 
 export function isForbiddenLabsPublishEntry(entry) {

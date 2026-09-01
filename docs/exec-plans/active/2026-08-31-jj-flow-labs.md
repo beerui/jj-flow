@@ -78,7 +78,7 @@
 
 ### PR9 — 可选：`lab:check` 进 verify
 
-- [ ] **暂缓**：GitHub 尚无 sibling remote，CI ubuntu 无法注入 lab 根而不发明路径。Live Agent 不阻塞 Implemented（机械）
+- [x] `package.json` `verify` 含 `npm run lab:check`；CI / NPM Publish 在 verify 前 `prepare-lab-roots`（clone sibling 到 `$RUNNER_TEMP` 绝对路径并 seed）。缺根 fail-closed。Windows CI job 不是本 PR。Live Agent 不阻塞 Implemented（机械）
 
 ### PR10 — 非 MVP
 
@@ -86,7 +86,7 @@
 
 ## 下一刀
 
-**PR9 可选**：仅当 sibling 仓有 CI 可 clone 的 remote、套件 &lt;20s、ubuntu 显式注入 `JJ_LAB_*_ROOT`。在此之前不要把 `lab:check` 加进 `verify`。
+无机械待办。PR10 / Live Agent 另开需求。
 
 ## 完成定义
 

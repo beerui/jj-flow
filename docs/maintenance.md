@@ -28,8 +28,11 @@
 npm run docs:check
 npm run docs:build
 npm run verify
+npm run lab:check
 npm run harness:gc
 ```
+
+`npm run verify` 含 `lab:check`。本地须设绝对 `JJ_LAB_LOOP_ROOT` / `JJ_LAB_FAMILY_ROOT`（或已存在的 `lab-roots.json`）；CI 由 `prepare-lab-roots` 注入。缺根 fail-closed。
 
 改 dispatch 协议额外：`node --test tests/jj-dispatch-contract.test.mjs`。
 

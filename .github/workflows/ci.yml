@@ -15,4 +15,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Prepare lab roots
+        uses: ./.github/actions/prepare-lab-roots
       - run: npm run verify

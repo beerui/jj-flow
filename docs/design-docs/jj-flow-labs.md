@@ -29,7 +29,7 @@ jj-flow 已有协议合约（`tests/jj-ralph-contract.test.mjs`、`tests/jj-disp
 
 **Lab 2 包装目录 `$JJ_LAB_FAMILY_ROOT/_materialized/family-gym/` 本身不是 git 仓。** 任何 git 写、`$jj-end`、`commit-prep`、ralph cwd 必须落在 `notes-alpha` 或 `notes-beta` 的 toplevel。包装目录、`control/`、产品仓 `jj-flow` 根、以及 `jj-lab-family` 仓根（种子仓）**禁止**作为 git 写 cwd。
 
-**产品仓 `jj-flow` 仍持有（且仅持有）：** 本文（Implemented，机械实验场）、index、exec-plan、可选 pointer README、`HNS-PUBLISH-LABS`（若有人把 `labs/` 加进 npm `files` 仍 FAIL）、opt-in `lab:check`（经显式 env / 仓外 `lab-roots.json` 发现 lab 根）。**永不**假定产品树内存在 `labs/`。
+**产品仓 `jj-flow` 仍持有（且仅持有）：** 本文（Implemented，机械实验场）、index、exec-plan、可选 pointer README、`HNS-PUBLISH-LABS`（若有人把 `labs/` 加进 npm `files` 仍 FAIL）、`lab:check`（已进 `verify`；经显式 env / 仓外 `lab-roots.json` 发现 lab 根；CI 用 `$RUNNER_TEMP` clone sibling）。**永不**假定产品树内存在 `labs/`。
 
 ## Background & Motivation
 

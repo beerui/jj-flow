@@ -13,7 +13,7 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [实验场 Loop gym / Family gym](active/2026-08-31-jj-flow-labs.html) | 机械实验场 Implemented；`lab:check` opt-in | PR9 可选：CI 有 sibling remote 再进 verify |
+| [实验场 Loop gym / Family gym](active/2026-08-31-jj-flow-labs.html) | 机械实验场 Implemented；`lab:check` 已进 `verify` | 无机械待办。PR10 / Live Agent 另开需求 |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a **live 已验收**；Mode W/P / Host Wave 2 仍 open | Mode W 或 Wave 2 证据 |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 **promoted**；Mode W/P / Wave 2 后置 | 未关闭项见文内表 |
 

@@ -3,13 +3,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  checkCiLabRoots,
   checkHarnessRepository,
   checkPublishLabs,
   gitignoreForbidsLabsMaterialized,
   gitignoreIgnoresLabRootsJson,
   HARNESS_SCHEMA_VERSION,
   isForbiddenLabsPublishEntry,
-  packStdoutContainsLabs
+  packStdoutContainsLabs,
+  prepareLabRootsActionCoversSiblings,
+  workflowCallsPrepareLabRoots
 } from '../scripts/check-harness.mjs';
 
 test('current repository satisfies the Harness manifest', () => {
@@ -294,6 +297,29 @@ test('HNS-PUBLISH-LABS rejects labs/ in package files and gitignore materialized
     runPack: false
   });
   assert.ok(findings.some((item) => item.rule_id === 'HNS-PUBLISH-LABS' && /labs\//.test(item.reason)));
+});
+
+test('HNS-CI-LAB-ROOTS requires sibling clone action and verify workflows', () => {
+  assert.equal(prepareLabRootsActionCoversSiblings('github.com/beerui/jj-lab-loop\n'), false);
+  assert.equal(prepareLabRootsActionCoversSiblings([
+    'github.com/beerui/jj-lab-loop',
+    'github.com/beerui/jj-lab-family',
+    'JJ_LAB_LOOP_ROOT',
+    'JJ_LAB_FAMILY_ROOT',
+    'JJ_FLOW_ROOT',
+    'RUNNER_TEMP'
+  ].join('\n')), true);
+  assert.equal(workflowCallsPrepareLabRoots('uses: ./.github/actions/prepare-lab-roots\n'), true);
+  assert.equal(workflowCallsPrepareLabRoots('run: npm run verify\n'), false);
+
+  const findings = [];
+  checkCiLabRoots({
+    cwd: process.cwd(),
+    addFinding: (ruleId, targetPath, reason, nextAction) => {
+      findings.push({ rule_id: ruleId, path: targetPath, reason, nextAction });
+    }
+  });
+  assert.equal(findings.length, 0, JSON.stringify(findings, null, 2));
 });
 
 test('current package.json files does not publish labs/', () => {

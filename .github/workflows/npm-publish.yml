@@ -43,6 +43,9 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
       - run: npm ci
+      - name: Prepare lab roots
+        if: ${{ inputs.run_verify && !inputs.retag_only }}
+        uses: ./.github/actions/prepare-lab-roots
       - if: ${{ inputs.run_verify && !inputs.retag_only }}
         run: npm run verify
       - name: Publish package
