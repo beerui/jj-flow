@@ -64,7 +64,7 @@ $jj-dispatch PREVIEW delivery=DEL-password 目标=项目A,项目B,项目C
 | Grok | 默认 **一个会话做完多个任务**（Mode S） |
 | Codex | 可用多个会话 / 线程（按宿主能力） |
 
-写代码默认在 **功能分支 + 主仓库路径** 上改（Grok **Mode S**）；只有要隔离时才用独占 worktree（**Mode W**，必须挂命名分支，禁止 silent detached）。Mode W **不能**关闭真宿主验收。
+写代码默认在 **功能分支 + 主仓库路径** 上改（Grok **Mode S**）；只有要隔离时才用独占 worktree（**Mode W**，必须挂命名分支，禁止 silent detached）。用户明确要求并行时可用 **Mode P**（每个写任务一个真实子会话，不能共享、不能伪造 placeholder）。Mode W / Mode P **不能**升 A3/A4。
 
 ## 相关
 

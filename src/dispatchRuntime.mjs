@@ -520,6 +520,7 @@ function threadAction(type, intent) {
       : 'project-branch-default';
   }
   const environment = intent.environment || base.environment;
+  const derivedMode = executionModeForEnvironment(environment, intent.access);
   return {
     ...base,
     type,
@@ -529,7 +530,7 @@ function threadAction(type, intent) {
     responsibility: intent.responsibility,
     access: intent.access,
     environment,
-    execution_mode: executionModeForEnvironment(environment, intent.access),
+    execution_mode: derivedMode === 'W' ? 'W' : (intent.execution_mode || derivedMode),
     worktree: intent.worktree || null,
     distribution_prompt: intent.distribution_prompt || null,
     initial_prompt: renderInitialPrompt(intent)

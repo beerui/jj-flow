@@ -31,7 +31,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 | `src/ralph.mjs` | 单仓机械步骤 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
-| `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（不关 Wave 2） |
+| `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（Wave 2 / A2 已关；JSON 不得自关） |
 | `src/harnessGc.mjs` / `check-harness.mjs` | 仓库 Harness 门禁与熵扫描 |
 | `docs/` | 用户文档 SSOT → `npm run docs:build` |
 
@@ -50,7 +50,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 
 | 已关闭 | 仍 open |
 |--------|---------|
-| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、Grok Wave 2 / A2、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.html)、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | Mode P、A3/A4、Codex App 并列试跑、evaluated 完整 LLM 回放闭环、实验场 Live Agent |
+| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、Mode P 机械 opt-in 子会话、Grok Wave 2 / A2、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.html)、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | A3/A4、Codex App 并列试跑、evaluated 完整 LLM 回放闭环、实验场 Live Agent、Mode P live 多会话 |
 
 ## ADR
 

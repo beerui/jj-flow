@@ -15,7 +15,7 @@
 > **2026-07-31 进度：** Phase 2a **live 验收已通过**
 > `DEL-readme-pnpm-install-20260731`（plane-self-check OK，四 intent 共享真 session）。
 > 评估：`docs/evaluations/2026-07-31-readme-pnpm-dispatch.md`。
-> 仍 open：Mode P、业务仓 remote push/land（可选）。Mode W 机械路径见 Phase 2b。Host Wave 2（Grok / A2）已于 2026-09-01 关闭。
+> 仍 open：业务仓 remote push/land（可选）、Revert-remerge 警告演练。Mode W / Mode P 机械路径已落地。Host Wave 2（Grok / A2）已于 2026-09-01 关闭。
 
 ## 目标
 
@@ -51,7 +51,8 @@ Make Grok `/jj-dispatch` **repeatable** without forcing multi-session or user CL
 
 ### Phase 2c Mode P
 
-- [ ] Child session 1:1 + RECONCILE
+- [x] Child session 1:1 + RECONCILE（opt-in `requestedMode=P`；写责任 session 不得共享；placeholder 拒 BIND）
+- [ ] Live multi-session Grok delivery（可选；不升 A3/A4）
 
 ### Phase 3
 

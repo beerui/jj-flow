@@ -14,6 +14,7 @@ import {
   validateHostBindAttestation
 } from './dispatchHostContract.mjs';
 import {
+  resolveIntentExecutionMode,
   selectWriteWorkspaceMode,
   validateExclusiveWorktreeBind
 } from './dispatchWorkspaceMode.mjs';
@@ -457,14 +458,16 @@ export function validateControlPlane(plane) {
       if (isNonEmptyString(intent.thread_id)) {
         const previousThread = boundThreadTaskById.get(intent.thread_id);
         if (previousThread && previousThread.task_key !== intent.task_key) {
-          if (!allowsModeSSharedSession(previousThread, intent)) {
+          if (!allowsSharedSession(previousThread, intent)) {
             errors.push(`thread ${intent.thread_id} is already bound to ${previousThread.task_key}`);
           }
         } else if (!previousThread) {
           boundThreadTaskById.set(intent.thread_id, {
             task_key: intent.task_key,
             host_id: intent.host_id || null,
-            handle_kind: intent.handle_kind || null
+            handle_kind: intent.handle_kind || null,
+            execution_mode: resolveIntentExecutionMode(intent),
+            access: intent.access || null
           });
         }
       }
@@ -483,6 +486,10 @@ export function validateControlPlane(plane) {
       }
       if (intent.environment !== undefined && typeof intent.environment !== 'string') {
         errors.push(`task ${intent.task_key} environment must be a string`);
+      }
+      if (intent.execution_mode != null && intent.execution_mode !== ''
+        && !['S', 'W', 'P'].includes(intent.execution_mode)) {
+        errors.push(`task ${intent.task_key} execution_mode must be S|W|P`);
       }
       if (['read', 'write'].includes(intent.access)) {
         const expectedAgent = agentNameForTask(intent);
@@ -813,6 +820,8 @@ export function dispatchTasks(plane, deliveryId, {
       agent_name: agentNameForTask(task),
       sandbox_mode: sandboxModeForAccess(task.access),
       environment: workspace?.environment || environmentForAccess(task.access),
+      execution_mode: workspace?.execution_mode
+        || (task.access === 'read' ? 'S' : (workspace?.environment === 'exclusive-worktree' ? 'W' : 'S')),
       effective_sandbox_mode: null,
       sandbox_evidence_ref: null,
       bound_at: null
@@ -1033,9 +1042,15 @@ export function bindThread(plane, {
       if (intent.task_key !== taskKey && intent.thread_id === threadId) {
         const incoming = {
           host_id: hostId,
-          handle_kind: resolvedHandleKind
+          handle_kind: resolvedHandleKind,
+          execution_mode: resolveIntentExecutionMode({
+            ...found.intent,
+            environment,
+            access: found.intent.access
+          }),
+          access: found.intent.access
         };
-        if (!allowsModeSSharedSession(intent, incoming)) {
+        if (!allowsSharedSession(intent, incoming)) {
           throw new Error(`thread ${threadId} is already bound to ${intent.task_key}`);
         }
       }
@@ -1062,6 +1077,11 @@ export function bindThread(plane, {
   found.intent.agent_name = agentName;
   found.intent.sandbox_mode = sandboxMode;
   found.intent.environment = environment;
+  found.intent.execution_mode = resolveIntentExecutionMode({
+    ...found.intent,
+    environment,
+    access: found.intent.access
+  });
   found.intent.effective_sandbox_mode = effectiveSandboxMode;
   found.intent.sandbox_evidence_ref = sandboxEvidenceRef;
   if (found.intent.access === 'write') found.intent.worktree = worktree || found.intent.worktree;
@@ -2982,8 +3002,12 @@ function resolveWorkspaceSignals(task, workspaceSignals = {}) {
   if (!workspaceSignals || typeof workspaceSignals !== 'object') {
     return { access: task.access };
   }
+  const globalRequested = typeof workspaceSignals.requestedMode === 'string'
+    ? { requestedMode: workspaceSignals.requestedMode }
+    : {};
   return {
     access: task.access,
+    ...globalRequested,
     ...(workspaceSignals[task.project_id] || {}),
     ...(workspaceSignals[task.task_key] || {})
   };
@@ -3005,6 +3029,7 @@ function buildWorkspaceTable(plane, delivery, workspaceSignals = {}) {
         execution_mode: decision.execution_mode,
         workspace: decision.workspace,
         environment: decision.environment,
+        session_policy: decision.session_policy || null,
         active_write: hasActiveWriter(plane, task.project_id, task.task_key),
         dirty: Boolean(signals.dirtyMainUnrelated),
         isolation_reasons: decision.reasons || [],
@@ -3556,6 +3581,16 @@ function allowsModeSSharedSession(existing, incoming) {
   if (!isApprovedSessionHost(existingHost) || existingHost !== incomingHost) return false;
   if (existingKind !== 'session' || incomingKind !== 'session') return false;
   return true;
+}
+
+function allowsSharedSession(existing, incoming) {
+  const existingMode = resolveIntentExecutionMode(existing);
+  const incomingMode = resolveIntentExecutionMode(incoming);
+  if ((existingMode === 'P' && existing?.access === 'write')
+    || (incomingMode === 'P' && incoming?.access === 'write')) {
+    return false;
+  }
+  return allowsModeSSharedSession(existing, incoming);
 }
 
 /**

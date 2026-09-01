@@ -1,6 +1,6 @@
 # Grok Dispatch execution flow (Mode S default)
 
-> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Mode W mechanical Implemented (Phase 2b); Host Wave 2 Grok path completed (A2); Mode P still Proposed
+> **Status**: Accepted for skill MVP (Mode S + agent artifacts); Mode W mechanical Implemented (Phase 2b); Host Wave 2 Grok path completed (A2); Mode P mechanical Implemented (Phase 2c, opt-in, not default)
 > **Host**: `host_id=grok-build`, `handle_kind=session`
 > **SSOT location**: this file (`skills/jj-dispatch/references/`); `~/.grok/skills` is only an `install-skill` copy
 > **Related**: `host-action-contract.json`, `docs/design-docs/grok-host-adapter.md`, C3 Agent plane-write hard gates,
@@ -18,12 +18,12 @@ The control-plane state machine is unchanged; it only specifies the **Grok host 
 | Is the protocol “multi-task”? | **Yes**: multiple `task_key` / responsibility |
 | Is Grok **default execution** multi-session? | **No**. Default **Mode S**: one coordinator session completes serially |
 | Must use Grok **Workflow (Rhai)**? | **No**. Workflow may explore / parallel read-only; **must not** advance control-plane checkpoints or replace receipts |
-| When multi-session / Mode P? | When throughput is insufficient and RECONCILE/attestation are already landed (Phase 2c); **not default now** |
+| When multi-session / Mode P? | Opt-in when Mode S throughput is insufficient; child session 1:1 per write `task_key`; **not default** |
 
 ```text
 User-visible: business-repo natural language → PREVIEW → approve → implement → commit/closeout
 Grok default execution: Mode S (single-session serial + project-branch)
-Optional acceleration: Mode W (isolation worktree) | Mode P (multi-session, deferred) | Workflow (not truth source)
+Optional acceleration: Mode W (isolation worktree) | Mode P (opt-in child session 1:1) | Workflow (not truth source)
 Truth source: control_root control-plane.json + attestations + receipts + git commit
 ```
 
@@ -70,7 +70,7 @@ Upgrade goals: **prevent 1–2 becoming default; fold 3 into Mode S; write 4 int
 
 1. Three Grok execution modes and selection rules (§3).
 2. Repeatable post-DISPATCH bind / workspace / receipt / advance steps (**user does not run CLI**; Agent persists).
-3. Default Mode S; Mode W when isolation is required; Mode P deferred.
+3. Default Mode S; Mode W when isolation is required; Mode P opt-in (not default).
 4. Versionable evidence; do not forge Codex threads.
 5. Share control plane with Codex.
 
@@ -97,9 +97,10 @@ Mode W — Worktree Isolated
   exclusive-worktree, named branch tip, forbid silent detached.
   Only when: main repo has unrelated dirty, same-project active write, or user requires isolation.
 
-Mode P — Parallel Sessions (deferred)
-  One child session (or recoverable subagent) per write task_key.
-  Only when Mode S is insufficient and attestation/RECONCILE already landed.
+Mode P — Parallel Sessions (opt-in, not default)
+  One real child session per write task_key (1:1). Workspace stays project-branch.
+  Isolation still requires Mode W; Mode P + isolation → BLOCKED.
+  Do not promote a temporary subagent / Workflow run id to the bound session.
 ```
 
 ### 3.1 Selection
@@ -108,7 +109,7 @@ Mode P — Parallel Sessions (deferred)
 | --- | --- |
 | Default / targets ≤3 / small ADAPT | **S** |
 | isolation | **W** |
-| Large migration and S times out (Phase 2c+) | **P** |
+| User requests parallel / S throughput insufficient (opt-in) | **P** |
 | Same project multi-write | forbid parallel; `depends_on` serial |
 
 ### 3.2 vs Codex / Workflow
@@ -131,7 +132,7 @@ Contract `REQUIRED_APP_CAPABILITIES` as written for Codex is often incomplete on
 
 - Cannot multi-session create/list → **enter Mode S**; do not fake whole-wave BLOCKED and stall.
 - Do not use placeholder sessions to fake BOUND.
-- Real session id + attestation file → may BIND (multiple intents may share the same session id).
+- Real session id + attestation file → may BIND. Mode S may share one coordinator session; Mode P write `task_key` must use a distinct child session.
 - Still C3: no `produced_commit` → no VERIFIED.
 
 ---
@@ -140,7 +141,7 @@ Contract `REQUIRED_APP_CAPABILITIES` as written for Codex is often incomplete on
 
 ```text
 INTAKE (CONFIRMED)
-  → PREVIEW (+ branch/workspace table; Grok marks proposed Mode S|W)
+  → PREVIEW (+ branch/workspace table; Grok marks proposed Mode S|W|P)
   → USER APPROVE
   → PREFLIGHT (§5; on failure do not write intent)
   → DISPATCH
@@ -197,6 +198,7 @@ Rules:
 - `session_id` must be a real host id (e.g. `019f…-…`); **forbid** `session-<slug>-YYYYMMDD`.
 - Mode S: `worktree == project_path`; multi-task may share the same `session_id`.
 - Mode W: `environment=exclusive-worktree` and `worktree != project_path`; land on a named branch tip; forbid silent detached HEAD.
+- Mode P: `execution_mode=P`, workspace still `project-branch`; each **write** `task_key` binds a distinct real session; sharing a write session is rejected.
 - intent.`thread_id` = that `session_id` (do not use `coordinator:…#task` as the sole handle).
 - `sandbox_evidence_ref` points to the path of the above file relative to control_root.
 - **C4: development *and* review/read responsibilities both write attestation files**; forbid string-only `host:grok-build:session:…` as review `sandbox_evidence_ref`.
@@ -238,7 +240,7 @@ Natural-language “done” must not advance checkpoints.
 | 2 | project active; path/git resolvable | BLOCKED |
 | 3 | **source migratable truth already committed** (`source_head` includes the fix) | BLOCKED (PREVIEW allowed) |
 | 4 | write: `intended_branch` clear or NEEDS_CONFIRM | stop and ask |
-| 5 | mode S/W consistent with isolation | stop/BLOCKED |
+| 5 | mode S/W/P consistent with isolation (P cannot satisfy isolation) | stop/BLOCKED |
 | 6 | no second active write on same project | BLOCKED |
 | 7 | control_root writable for attestation/receipt | BLOCKED |
 | 8 | no unhandled UNKNOWN intent | RECONCILE only |
@@ -249,7 +251,7 @@ Natural-language “done” must not advance checkpoints.
 ## 6. Skill behavior (effective immediately on Grok)
 
 1. **Default Mode S**; do not unapproved parallel multi-repo writes (serial OK).
-2. PREVIEW includes branch table + `proposed_mode=S|W`.
+2. PREVIEW includes branch table + `proposed_mode=S|W|P`.
 3. Source MUST changes uncommitted → **do not write DISPATCH for targets**.
 4. intent: `host_id=grok-build`, `handle_kind=session`, `thread_id`=real session; **every BOUND intent (including review) writes attestation file (C4)**.
 5. After implementation write receipt; git for `produced_commit`; follow C3 before VERIFIED.
@@ -287,11 +289,19 @@ Does **not** close Host Wave 2. Live isolated Grok delivery is still optional ev
 
 ### Phase 2c — Mode P
 
-child session 1:1; RECONCILE; forbid same-project parallel write.
+| ID | Item | Status |
+| --- | --- | --- |
+| G2C-1 | opt-in `requestedMode=P`; not default; PREVIEW `proposed_mode=P` | this wave |
+| G2C-2 | write `task_key` ↔ real child session 1:1; shared session BIND fails | this wave |
+| G2C-3 | same-project parallel write still deferred (`active-writer`) | already present |
+| G2C-4 | Mode P + isolation → PREFLIGHT #5 BLOCKED (use Mode W) | this wave |
+| G2C-5 | placeholder `session-*-YYYYMMDD` cannot BIND | this wave |
+
+Live multi-session Grok delivery is optional evidence. Does not raise A3/A4.
 
 ### Phase 3 — Real Host trial
 
-`docs/milestones/real-host-trial-grok.json` PASS and evaluable. Human review 2026-09-01 closed Grok Wave 2 and raised **A2** (`default_level` remains A1). Revert-remerge warning cases remain. Mode P deferred.
+`docs/milestones/real-host-trial-grok.json` PASS and evaluable. Human review 2026-09-01 closed Grok Wave 2 and raised **A2** (`default_level` remains A1). Revert-remerge warning cases remain. Mode P mechanical landed 2026-09-01 (opt-in).
 
 ---
 
@@ -324,6 +334,13 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 - [x] attestation `execution_mode=W` cannot bind `project.path`
 - [ ] Live isolated Grok delivery (optional; does **not** close Host Wave 2)
 
+### 9.1c Phase 2c Mode P (mechanical)
+
+- [x] opt-in `requestedMode=P`; default remains S
+- [x] write session 1:1; shared Grok session BIND fails
+- [x] Mode P + isolation → PREFLIGHT #5 BLOCKED
+- [ ] Live multi-session Grok delivery (optional; does not raise A3/A4)
+
 ### 9.2 Failure conditions
 
 - Chat state replaces control-plane revision
@@ -339,6 +356,7 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 | --- | --- | --- |
 | 2026-07-30 | Grok defaults Mode S | no mature multi-session API; small live edits already work; aligns with same |
 | 2026-07-30 | multi-session/Mode P deferred | fake BIND risk > throughput gain |
+| 2026-09-01 | Mode P mechanical opt-in | RECONCILE/attestation landed; write session 1:1; not default; isolation still Mode W |
 | 2026-07-30 | Workflow not checkpoint authority | Rhai runtime ≠ control-plane CAS |
 | 2026-07-30 | user does not run CLI | Agent disk write + optional self-check |
 | 2026-07-30 | project-branch default | avoid worktree-transfer negative case |

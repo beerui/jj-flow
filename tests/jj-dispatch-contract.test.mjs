@@ -745,6 +745,44 @@ test('Mode S shared session allows multiple COMPLETED intents and bindThread', (
   }), /already bound/);
 });
 
+test('Mode P write intents cannot share a Grok session', () => {
+  const sessionId = '019fb5b3-b1f4-78b3-b79d-ffd601f91e55';
+  let plane = approveDispatch(makePlane(), { deliveryId: 'DEL-001', decisionRef: 'decision:mode-p-share' });
+  plane = dispatchTasks(plane, 'DEL-001', {
+    capabilities: appCapabilities,
+    workspaceSignals: { requestedMode: 'P' }
+  }).plane;
+  const devA = plane.deliveries[0].dispatch_intents.find((item) => item.task_key === 'DEL-001/A/development/1');
+  const devC = plane.deliveries[0].dispatch_intents.find((item) => item.task_key === 'DEL-001/C/development/1');
+  assert.equal(devA.execution_mode, 'P');
+  plane = bindThread(plane, {
+    taskKey: devA.task_key,
+    threadId: sessionId,
+    projectId: 'A',
+    hostId: 'grok-build',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: `host:grok-build:session:${sessionId}`,
+    worktree: 'D:/A',
+    handleKind: 'session'
+  });
+  assert.throws(() => bindThread(plane, {
+    taskKey: devC.task_key,
+    threadId: sessionId,
+    projectId: 'C',
+    hostId: 'grok-build',
+    agentName: 'jj-workflow-developer',
+    sandboxMode: 'workspace-write',
+    environment: 'project-branch',
+    effectiveSandboxMode: 'workspace-write',
+    sandboxEvidenceRef: `host:grok-build:session:${sessionId}`,
+    worktree: 'D:/C',
+    handleKind: 'session'
+  }), /already bound/);
+});
+
 test('lead outside targets may omit lead_responsibilities when reference_implementation is durable', () => {
   // Mirrors Codex telemetry-image VERIFIED shape: lead=source not in targets, empty lead_resp.
   const source = structuredClone(fixture);
