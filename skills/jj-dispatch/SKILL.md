@@ -7,7 +7,7 @@ description: "Multi-project dispatch control plane: PREVIEW → approve task_key
 
 Cross-project dispatch entry. Platforms: **Codex / Qoder / Grok**. **No Claude slash is intentional** (do not add `/jj-dispatch`).
 
-> **real-host acceptance: PENDING** — [docs/milestones/real-host-acceptance.md](../../../docs/milestones/real-host-acceptance.md)
+> **real-host acceptance: COMPLETED (Grok / A2)** — [docs/milestones/real-host-acceptance.md](../../../docs/milestones/real-host-acceptance.md)
 >
 > **VERIFIED must bind attestation file evidence** (`sandbox_evidence_ref` → `attestations/*.json`, including review). Verbal/chat VERIFIED is forbidden.
 

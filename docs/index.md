@@ -63,5 +63,5 @@
 | 执行计划 | [执行计划](exec-plans/index.html) |
 | ADR | [ADR](adr/index.html) |
 | M7 / H5 | [M7](milestones/m7-acceptance.html) · [H5](milestones/h5-acceptance.html) |
-| 真实 Host（未完成） | [验收页](milestones/real-host-acceptance.html) |
+| 真实 Host（Grok 路径 completed / A2） | [验收页](milestones/real-host-acceptance.html) |
 | 改本仓库文档 | [维护说明](maintenance.html) |

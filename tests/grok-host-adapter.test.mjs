@@ -218,20 +218,26 @@ test('lab-harness, host:trial, skill install, and Mode W cannot close Wave 2', (
   });
   assert.equal(placeholder.ok, false);
 
-  const milestone = inspectGrokWave2Milestone({ cwd: process.cwd() });
-  assert.equal(milestone.closed, false);
-  assert.equal(milestone.status, 'pending');
-  assert.equal(milestone.max_unattended_level, 'A1');
+  const isolated = inspectGrokWave2Milestone({ cwd: os.tmpdir() });
+  assert.equal(isolated.closed, false);
+  assert.ok(['pending', 'evaluable', 'blocked'].includes(isolated.status));
 });
 
-test('doctor lists grok without raising available_level above A1', () => {
+test('doctor lists grok without raising available_level above manifest max', () => {
   const result = inspectHarnessRepository();
   assert.ok(result.host_capabilities.some((item) => item.id === 'grok'));
-  assert.equal(result.autonomy.available_level, 'A1');
+  assert.equal(result.autonomy.max_unattended, 'A2');
+  assert.equal(result.autonomy.available_level, 'A2');
+  assert.equal(result.autonomy.declared_default, 'A1');
   assert.equal(result.autonomy.grok_does_not_raise_level, true);
-  assert.equal(result.grok.wave2_closed, false);
+  assert.equal(result.grok.wave2_closed, true);
+  assert.equal(result.grok.wave2_status, 'completed');
   const skill = grokSkillInstalled({ cwd: process.cwd() });
   assert.equal(typeof skill.installed, 'boolean');
+  const milestone = inspectGrokWave2Milestone({ cwd: process.cwd() });
+  assert.equal(milestone.closed, true);
+  assert.equal(milestone.status, 'completed');
+  assert.equal(milestone.max_unattended_level, 'A2');
 });
 
 function makeRepo() {

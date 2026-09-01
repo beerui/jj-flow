@@ -31,6 +31,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 | `src/ralph.mjs` | 单仓机械步骤 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
+| `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（不关 Wave 2） |
 | `src/harnessGc.mjs` / `check-harness.mjs` | 仓库 Harness 门禁与熵扫描 |
 | `docs/` | 用户文档 SSOT → `npm run docs:build` |
 
@@ -43,13 +44,13 @@ swarm:      对抗搜索   → TAS-* best-solution
 3. `task_key` 可恢复；临时 subagent 不是身份  
 4. Reviewer 只读；Developer 仅在获批写工作区  
 5. 外部副作用归宿主；runtime 无 daemon、不自动 merge  
-6. 真 Host 未验收前 `max_unattended_level = A1`
+6. Grok 真 Host 已验收：`max_unattended_level = A2`（`default_level` 仍 A1；A3/A4 关闭）
 
 ## 成熟度边界
 
 | 已关闭 | 仍 open |
 |--------|---------|
-| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.html)、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | 真 Host Wave 2、Mode P、A2+、evaluated 完整 LLM 回放闭环、实验场 Live Agent |
+| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、Grok Wave 2 / A2、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.html)、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | Mode P、A3/A4、Codex App 并列试跑、evaluated 完整 LLM 回放闭环、实验场 Live Agent |
 
 ## ADR
 

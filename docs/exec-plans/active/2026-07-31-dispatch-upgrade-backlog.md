@@ -2,7 +2,7 @@
 
 > 状态：active
 >
-> 备注：U1–U3（C4–C6）已在 2026-07-31 收尾实现；Mode W 机械路径 2026-09-01；Mode P / Host Wave 2 仍后置。
+> 备注：U1–U3（C4–C6）已在 2026-07-31 收尾实现；Mode W 机械路径 2026-09-01；Host Wave 2 / A2 2026-09-01；Mode P 仍后置。
 >
 > 负责人：jj-flow dispatch
 >
@@ -32,12 +32,12 @@
 | --- | --- | --- |
 | Mode W | exclusive-worktree 完整 bind/cleanup | **promoted** 2026-09-01（机械；非 Wave 2） |
 | Mode P | 多 session 1:1 | Phase 2c |
-| Host Wave 2 | real-host-trial-grok | Proposed（Phase 2 脚手架 2026-09-01；仍缺真试跑） |
+| Host Wave 2 | real-host-trial-grok | **promoted** 2026-09-01（Grok 路径 completed / A2） |
 | acceptor-tag 历史 plane | 勿回写变绿；可用 reopen 另线 | 负例保留 |
 
 ## 3. 完成定义
 
-U1–U3（C4–C6）**已完成**。本文件可在 Mode W/P 仍 open 时保持 active 作指针，或待 Host Wave 2 时再归档 completed。
+U1–U3（C4–C6）**已完成**。Mode W 与 Host Wave 2 / A2 已 promoted。本文件可在 Mode P 仍 open 时保持 active 作指针。
 
 ## 4. 决策日志
 

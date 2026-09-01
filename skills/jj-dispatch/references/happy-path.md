@@ -30,9 +30,9 @@ When a `TASK-ID` exists, recover index and manifest first (with CLI: `jj task co
 
 ## real-host acceptance
 
-**Status: PENDING** — see repo [docs/milestones/real-host-acceptance.md](../../../../docs/milestones/real-host-acceptance.md).
+**Status: COMPLETED (Grok path / A2)** — see repo [docs/milestones/real-host-acceptance.md](../../../../docs/milestones/real-host-acceptance.md).
 
-- Semi-real host trial / skill install **cannot** raise A2, and **cannot** verbally claim VERIFIED in place of this milestone.
+- Semi-real host trial / skill install **cannot** raise autonomy, and **cannot** verbally claim VERIFIED in place of attestation files.
 - **VERIFIED must bind attestation file evidence** (`sandbox_evidence_ref` → `attestations/<task_key_safe>.json`, including review/read); forbid string-only `host:…:session:…` or chat closeout.
 
 ## Branch and workspace decision table (write responsibilities, before DISPATCH)

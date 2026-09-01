@@ -1,22 +1,24 @@
 # Grok Host Adapter（Wave 2 等价宿主路径）
 
-> 状态：Proposed
+> 状态：Implemented
 >
-> 范围注记：Wave 2 真 Host；**不是** Mode S 日常路径的完成态
+> 验收证据：`docs/milestones/real-host-trial-grok.json`、`docs/milestones/real-host-acceptance.md`、`tests/grok-host-adapter.test.mjs`、`tests/grok-host-trial.test.mjs`
+>
+> 范围注记：Wave 2 真 Host 已由 Grok 路径关闭并升 A2；**不是** Mode S 日常路径的完成态；A3/A4 仍关闭
 >
 > 范围：真 Host attestation / Wave 2。日常 Grok 分发 Mode S skill MVP 见
 > [`skills/jj-dispatch/references/grok-dispatch-execution.md`](../../skills/jj-dispatch/references/grok-dispatch-execution.md)
-> 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)，**不**等同关闭本文验收。
+> 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)。
 >
-> 与 [真实 Host 验收](../milestones/real-host-acceptance.html) 并列：任一已批准宿主路径达标即可评估 A2。
+> 与 [真实 Host 验收](../milestones/real-host-acceptance.html) 并列：Grok 路径已达标并升 A2。Codex App 路径仍可选。
 >
 > 关联：
-> - [真实 Host 验收（PENDING）](../milestones/real-host-acceptance.md)
+> - [真实 Host 验收（completed）](../milestones/real-host-acceptance.md)
 > - [Agent Harness 设计](harness-engineering.html)
 > - [Harness 收口计划（completed）](../exec-plans/completed/2026-07-18-harness-hardening.html)
 > - ADR 0001 薄宿主边界；dispatch host-action-contract
 >
-> 实施边界：本文只定目标状态与验收门槛；**不** 因 skill 安装或 Mode S 日常可用而提升 `max_unattended_level`
+> 实施边界：**不** 因 skill 安装或 Mode S 日常可用而提升 `max_unattended_level`；A2 仅在里程碑 completed 后由人工审查写入 manifest
 >
 > **默认 workspace 裁决（与 skill 对齐）**：Grok 写责任默认 **project-branch**（命名 feature + 主仓 path）；**exclusive-worktree 仅 isolation**。早期「必须独占 worktree」表述以本裁决与 skill 为准。
 
@@ -30,8 +32,8 @@ jj-flow 的 Wave 2 要求：**真实宿主** 完成 create/bind、中断恢复�
 
 | 路径 | 宿主 | 任务身份载体 | 关闭 Wave 2 的资格 |
 | --- | --- | --- | --- |
-| A（现状） | Codex App | `thread_id` | 满足 `real-host-acceptance` |
-| B（本文） | Grok Build | `session_id` + 可选 subagent id | 满足本文 + 同一里程碑的通用门槛 |
+| A | Codex App | `thread_id` | 仍可选；不挡 Grok 关闭 |
+| B（本文） | Grok Build | `session_id` | **已关闭**（2026-09-01 试跑 + 人工审查升 A2） |
 
 任一路径 **单独** 达到门槛即可评估 A2；**不得** 用半真实 `host:trial` 或「skill 已安装」关闭里程碑。
 
@@ -81,7 +83,7 @@ Grok 无 Codex App 的 project/thread 面。若强行「假装有 thread」，�
 - 不自动 merge / push / release（A4 仍关闭）。
 - 不把 subagent 提升为持久 control task 或 thread identity。
 - 不删除或削弱 Codex 路径。
-- 不在未过验收时改 `autonomy.max_unattended_level`。
+- 不在未过验收时改 `autonomy.max_unattended_level`（Grok 路径已验收；升 A3/A4 仍须另开审查）。
 
 ## 4. 架构
 
@@ -234,14 +236,14 @@ grok
 - [x] doctor：检测 `grok` 可执行文件与 skill 安装，**不** 因此报告 A2
 - [x] Wave 2 评估器 fail-closed：lab-harness / semi-real / skill-only / placeholder 不得关闭里程碑
 
-整体设计仍为 **Proposed**；Phase 2 脚手架不是 Implemented。
+整体设计为 **Implemented**（Grok 路径 Wave 2 + A2）。A3/A4 与 Codex App 并列路径仍后置。
 
 ### Phase 3 — 真实试跑与验收
 
-- [ ] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）
-- [ ] 写入 `docs/milestones/real-host-trial-grok.json`（或统一 schema 多 host）
-- [ ] 更新 `real-host-acceptance` 状态；**单独** 评估是否升 A2
-- [ ] 半真实 `host:trial` 保持 `codex`/local-git 语义，**不得** 改 `mode=semi-real` 冒充 Grok 真实验收
+- [x] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）
+- [x] 写入 `docs/milestones/real-host-trial-grok.json`（evaluable；JSON 不得自关）
+- [x] 更新 `real-host-acceptance` 状态为 **completed**；人工审查升 A2（`default_level` 仍 A1）
+- [x] 半真实 `host:trial` 保持 `codex`/local-git 语义，**不得** 改 `mode=semi-real` 冒充 Grok 真实验收
 
 ## 9. 验收标准
 
@@ -260,7 +262,7 @@ grok
   - 含 worktree + attestation refs
   - `codex_app_threads` 不得伪称 true
 - Review 返工与 RECONCILE 各至少一次成功路径。
-- `max_unattended_level` 仍为 A1，除非另开变更单明确升级。
+- `max_unattended_level` 为 **A2**（2026-09-01 人工审查）；A3/A4 须另开变更单。
 
 ### 9.3 明确失败条件
 
@@ -279,7 +281,7 @@ grok
 | 过早升 A2 | 里程碑与 manifest 双锁；doctor 不因 Grok 安装提高 available_level |
 | 安装目录污染 git | `.grok/skills` 作本地安装目标，不进权威源；gitignore |
 
-## 11. 决策（Proposed 待接受）
+## 11. 决策（Accepted / Implemented）
 
 1. **Grok 是第二宿主，不是 Codex 模拟器。**
 2. **控制面 schema 保持单一**；handle 用 `host_id` + kind 区分。
