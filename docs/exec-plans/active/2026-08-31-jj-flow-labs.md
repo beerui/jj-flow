@@ -80,13 +80,15 @@
 
 - [x] `package.json` `verify` 含 `npm run lab:check`；CI / NPM Publish 在 verify 前 `prepare-lab-roots`（clone sibling 到 `$RUNNER_TEMP` 绝对路径并 seed）。缺根 fail-closed。Windows CI job 不是本 PR。Live Agent 不阻塞 Implemented（机械）
 
-### PR10 — 非 MVP
+### PR10 — 协议后续
 
-- [ ] evidence_class 硬门 / `lab-harness` / Windows CI — 需单独需求
+- [x] `evaluateAcceptArchiveGate` 解析 `evidence_class`：强类 PASS 仅静态证据则挡（`--force` 仍可覆盖）
+- [x] dispatch `lab-harness` host_id（Mode S session；**不是** Wave 2 / real-host）
+- [x] CI `windows-latest` 独立 job：`prepare-lab-roots` + `npm run lab:check`
 
 ## 下一刀
 
-无机械待办。PR10 / Live Agent 另开需求。
+无机械待办。Live Agent 仍为手册 / evaluated。
 
 ## 完成定义
 

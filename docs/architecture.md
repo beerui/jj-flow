@@ -49,7 +49,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 
 | 已关闭 | 仍 open |
 |--------|---------|
-| M6 / M7 半真实 / H5 GC / Mode S 日常、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`） | 真 Host Wave 2、A2+、evaluated 完整闭环、实验场 Live Agent / PR10 |
+| M6 / M7 半真实 / H5 GC / Mode S 日常、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | 真 Host Wave 2、A2+、evaluated 完整闭环、实验场 Live Agent |
 
 ## ADR
 

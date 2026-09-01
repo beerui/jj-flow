@@ -17,6 +17,10 @@ import { fileURLToPath } from 'node:url';
 
 const SYNTHETIC_SESSION = /^session-[a-z0-9][a-z0-9._-]*-\d{8}$/i;
 
+function isSessionHost(host) {
+  return host === 'grok-build' || host === 'lab-harness';
+}
+
 function parseArgs(argv) {
   const out = { manifest: null, json: false, help: false };
   for (let i = 2; i < argv.length; i += 1) {
@@ -58,23 +62,23 @@ export function checkPlaneTerminalIntegrity(plane, options = {}) {
             path: key,
             message: `BOUND/COMPLETED intent has synthetic thread_id "${tid}" (use real host session/thread id; same-session may share one real id)`
           });
-        } else if (host === 'grok-build' && typeof tid === 'string' && tid.startsWith('session-')) {
+        } else if (isSessionHost(host) && typeof tid === 'string' && tid.startsWith('session-')) {
           findings.push({
             code: 'SYNTHETIC_THREAD_ID',
             path: key,
-            message: `grok-build thread_id looks invented: "${tid}"`
+            message: `${host} thread_id looks invented: "${tid}"`
           });
         }
       }
 
-      // C4: active BOUND grok intents should use attestation *files* (including review/read).
-      if (host === 'grok-build' && intent?.status === 'BOUND') {
+      // C4: active BOUND session-host intents should use attestation *files* (including review/read).
+      if (isSessionHost(host) && intent?.status === 'BOUND') {
         const ref = intent.sandbox_evidence_ref;
         if (!ref || typeof ref !== 'string' || !ref.trim()) {
           findings.push({
             code: 'MISSING_ATTESTATION_REF',
             path: key,
-            message: 'BOUND grok-build intent requires sandbox_evidence_ref (prefer attestations/{task_key_safe}.json)'
+            message: `BOUND ${host} intent requires sandbox_evidence_ref (prefer attestations/{task_key_safe}.json)`
           });
         } else if (isHostSessionStringRef(ref)) {
           findings.push({

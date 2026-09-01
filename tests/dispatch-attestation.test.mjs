@@ -8,7 +8,8 @@ import {
   buildGrokAttestation,
   isAttestationFileRef,
   taskKeyToSafeName,
-  writeGrokAttestation
+  writeGrokAttestation,
+  writeLabAttestation
 } from '../src/dispatchAttestation.mjs';
 import {
   checkPlaneTerminalIntegrity,
@@ -75,6 +76,24 @@ test('C4 writeGrokAttestation writes review file and plane-self-check accepts fi
     const check = checkPlaneTerminalIntegrity(plane, { controlRoot: root });
     assert.equal(check.ok, true, JSON.stringify(check.findings));
     assert.equal(gradePlaneTerminalIntegrity(plane, { controlRoot: root }).grade, 'ok');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('writeLabAttestation persists gym host_id=lab-harness', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-lab-att-'));
+  try {
+    const { rel, payload } = writeLabAttestation(root, {
+      deliveryId: 'DEL-lab',
+      task_key: 'DEL-lab/notes-beta/development/1',
+      session_id: '019f00aa-1111-7000-8000-labfamily0001',
+      project_path: '/tmp/notes-beta'
+    });
+    assert.equal(payload.host_id, 'lab-harness');
+    assert.equal(payload.handle_kind, 'session');
+    const written = JSON.parse(fs.readFileSync(path.join(root, rel), 'utf8'));
+    assert.equal(written.host_id, 'lab-harness');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

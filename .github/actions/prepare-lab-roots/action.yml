@@ -5,11 +5,11 @@ inputs:
   loop_ref:
     description: Pin SHA for beerui/jj-lab-loop
     required: false
-    default: '279bb5284ad24bbfe0582072603c2b2555a855c4'
+    default: '1dc1493daf7189afa2438d3c3f8f8e4af9940a2b'
   family_ref:
     description: Pin SHA for beerui/jj-lab-family
     required: false
-    default: '07fac0baeb8e0b21ea61bb77ceb5eda62b3f0529'
+    default: '9c2eb5b0b191382ef8980a92b6761f87dd511117'
 
 runs:
   using: composite

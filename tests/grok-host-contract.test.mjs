@@ -16,6 +16,7 @@ import {
   HOST_ACTION_TYPES,
   HOST_IDS,
   HOST_PROFILES,
+  isApprovedSessionHost,
   resolveHandleKind,
   validateHostBindAttestation
 } from '../src/dispatchHostContract.mjs';
@@ -29,19 +30,24 @@ const controlPlaneSchema = JSON.parse(
 );
 const appCapabilities = [...REQUIRED_APP_CAPABILITIES];
 
-test('host contract enumerates codex-app and grok-build with handle kinds', () => {
-  assert.deepEqual(HOST_IDS, ['codex-app', 'grok-build']);
+test('host contract enumerates codex-app, grok-build, and lab-harness with handle kinds', () => {
+  assert.deepEqual(HOST_IDS, ['codex-app', 'grok-build', 'lab-harness']);
   assert.deepEqual(HANDLE_KINDS, ['thread', 'session']);
   assert.deepEqual(hostContract.host_ids, [...HOST_IDS]);
   assert.deepEqual(hostContract.handle_kinds, [...HANDLE_KINDS]);
   assert.equal(HOST_PROFILES['codex-app'].handle_kind, 'thread');
   assert.equal(HOST_PROFILES['grok-build'].handle_kind, 'session');
+  assert.equal(HOST_PROFILES['lab-harness'].handle_kind, 'session');
   assert.equal(HOST_PROFILES['grok-build'].create_action, 'CREATE_THREAD');
   assert.equal(HOST_PROFILES['grok-build'].reconcile_action, 'RECONCILE_THREAD');
+  assert.equal(isApprovedSessionHost('grok-build'), true);
+  assert.equal(isApprovedSessionHost('lab-harness'), true);
+  assert.equal(isApprovedSessionHost('codex-app'), false);
   assert.deepEqual(HOST_ACTION_TYPES, ['CREATE_THREAD', 'RECONCILE_THREAD']);
   for (const capability of REQUIRED_APP_CAPABILITIES) {
     assert.ok(HOST_PROFILES['grok-build'].capability_equivalents[capability]);
     assert.ok(HOST_PROFILES['codex-app'].capability_equivalents[capability]);
+    assert.ok(HOST_PROFILES['lab-harness'].capability_equivalents[capability]);
   }
 });
 
@@ -51,10 +57,12 @@ test('control-plane schema exposes handle_kind on intents', () => {
 
 test('resolveHandleKind forces session for grok-build and thread for codex-app', () => {
   assert.equal(resolveHandleKind('grok-build'), 'session');
+  assert.equal(resolveHandleKind('lab-harness'), 'session');
   assert.equal(resolveHandleKind('codex-app'), 'thread');
   assert.equal(resolveHandleKind('host-trial-local'), 'thread');
   assert.equal(resolveHandleKind('host-trial-local', 'session'), 'session');
   assert.throws(() => resolveHandleKind('grok-build', 'thread'), /handle_kind=session/);
+  assert.throws(() => resolveHandleKind('lab-harness', 'thread'), /handle_kind=session/);
   assert.throws(() => resolveHandleKind('codex-app', 'session'), /handle_kind=thread/);
 });
 
@@ -88,6 +96,38 @@ test('validateHostBindAttestation fails closed without evidence', () => {
   });
   assert.equal(proseOnly.ok, false);
   assert.ok(proseOnly.errors.some((error) => error.includes('effective_sandbox_mode')));
+});
+
+test('lab-harness is session host and cannot claim real-host Wave 2', () => {
+  const wave2 = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: '019f00aa-1111-7000-8000-labfamily0001',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: '.workflow/dispatch/DEL-001/attestations/dev.json',
+    worktree: '/tmp/wt-a',
+    access: 'write',
+    real_host: true
+  });
+  assert.equal(wave2.ok, false);
+  assert.ok(wave2.errors.some((error) => /Wave 2|real-host/.test(error)));
+
+  const ok = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: '019f00aa-1111-7000-8000-labfamily0001',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: '.workflow/dispatch/DEL-001/attestations/dev.json',
+    worktree: '/tmp/wt-a',
+    access: 'write'
+  });
+  assert.equal(ok.ok, true, ok.errors?.join('; '));
 });
 
 test('validateHostBindAttestation rejects semi-real evidence for grok-build', () => {

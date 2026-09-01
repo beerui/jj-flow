@@ -427,6 +427,13 @@
                 }
               },
               {
+                "if": { "properties": { "host_id": { "const": "lab-harness" } }, "required": ["host_id"] },
+                "then": {
+                  "required": ["handle_kind"],
+                  "properties": { "handle_kind": { "const": "session" } }
+                }
+              },
+              {
                 "if": { "properties": { "host_id": { "const": "codex-app" } }, "required": ["host_id"] },
                 "then": {
                   "properties": { "handle_kind": { "enum": ["thread", null] } }

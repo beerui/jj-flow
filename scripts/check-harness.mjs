@@ -1046,6 +1046,49 @@ function checkHostAttestationInvariants(addFinding, contractPath) {
       '修复 validateHostBindAttestation 正向路径。'
     );
   }
+
+  const labWave2 = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:LAB:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write',
+    real_host: true
+  });
+  if (labWave2.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-005',
+      contractPath,
+      'lab-harness 声称 real_host 被错误通过。',
+      'lab-harness 不得关闭真实 Host / Wave 2。'
+    );
+  }
+
+  const validLab = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:LAB:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write'
+  });
+  if (!validLab.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-006',
+      contractPath,
+      `合法 lab-harness attestation 被拒绝：${validLab.errors.join('; ')}`,
+      '修复 lab-harness 正向路径；它仍是 gym host，不是 Wave 2。'
+    );
+  }
 }
 
 function checkHostActionFixture(fixture, fixturePath, addFinding) {
@@ -1256,6 +1299,19 @@ export function checkCiLabRoots({ cwd, addFinding }) {
         relative,
         `${relative} 在 npm run verify 前未调用 prepare-lab-roots。`,
         '显式 uses: ./.github/actions/prepare-lab-roots，注入绝对 lab 根。缺根必须红，不得跳过 lab:check。'
+      );
+    }
+  }
+
+  const ciPath = path.join(cwd, '.github/workflows/ci.yml');
+  if (fs.existsSync(ciPath)) {
+    const ciText = fs.readFileSync(ciPath, 'utf8');
+    if (!/windows-latest/.test(ciText) || !/npm run lab:check/.test(ciText)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        '.github/workflows/ci.yml',
+        'CI 缺少 windows-latest 上的 lab:check job。',
+        '增加独立 windows-latest job：prepare-lab-roots 后 npm run lab:check。不要在 Windows 上跑全量 verify。'
       );
     }
   }
