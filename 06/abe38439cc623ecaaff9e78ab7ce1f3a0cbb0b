@@ -1,0 +1,68 @@
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_0a1fdf7e8a0a56::t_cd3200db7713d8 465,1792-1845,1850-1852,1863-1864,1920-1925
+docs/milestones/real-host-acceptance.md
+  s_0a1fdf7e8a0a56::t_e2de0b9a663df6 23
+skills/jj-dispatch/scripts/plane-self-check.mjs
+  s_0a1fdf7e8a0a56::t_6a748b4ceb6ffc 20-23,65,69,74-75,81
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_cf915f61d4df46 16
+.github/actions/prepare-lab-roots/action.yml
+  s_0a1fdf7e8a0a56::t_6d97f6892998a5 8,12
+tests/jj-ralph-contract.test.mjs
+  s_0a1fdf7e8a0a56::t_af28fbfe6d5d1c 28,850-899
+tests/grok-host-contract.test.mjs
+  s_0a1fdf7e8a0a56::t_b8e3a078510307 19,33-34,40,43-45,50,60,65
+  s_0a1fdf7e8a0a56::t_6cd101fb3728a8 101-132
+docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_37ae63751633c4 83,85-87,91
+src/dispatchControlPlane.mjs
+  s_0a1fdf7e8a0a56::t_cbd5f02b92269b 12,3460-3461,3468,3641
+tests/dispatch-attestation.test.mjs
+  s_0a1fdf7e8a0a56::t_6d121de990f7eb 11-12,84-101
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_6306355484eff5 52
+src/dispatchHostContract.mjs
+  s_0a1fdf7e8a0a56::t_133b7489a8b552 12-19,97-131,264-265,279-280,283,286,290,293,296-298
+skills/jj-dispatch/references/control-plane.schema.json
+  s_0a1fdf7e8a0a56::t_eb005aec2ebdeb 429-435
+skills/jj-dispatch/references/host-action-contract.schema.json
+  s_0a1fdf7e8a0a56::t_076dc7bb552659 39,50,53-54
+src/dispatchAttestation.mjs
+  s_0a1fdf7e8a0a56::t_113f8170b181fd 47,62-64,69,106-110
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_74a8bf4d006923 68
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_9ced9db6e5c866 59,691,944
+  s_0a1fdf7e8a0a56::t_18eed7f13ffe1f 609,711,729
+.github/workflows/ci.yml
+  s_0a1fdf7e8a0a56::t_99905b9b61584c 21-33
+skills/jj-dispatch/references/host-action-contract.json
+  s_0a1fdf7e8a0a56::t_7587b722f1e343 14,85-119
+skills/jj-ralph/references/must-evidence.md
+  s_0a1fdf7e8a0a56::t_23982043144fe8 3
+src/ralph.mjs
+  s_0a1fdf7e8a0a56::t_5fae326056bf91 465,1792-1845,1850-1852,1863-1864,1920-1925
+scripts/check-harness.mjs
+  s_0a1fdf7e8a0a56::t_a57a33644e9858 1049-1091,1305-1317
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_73726825396698 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "06abe38439cc623ecaaff9e78ab7ce1f3a0cbb0b",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
