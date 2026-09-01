@@ -65,7 +65,7 @@ $env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
 
 产品 `npm run lab:check` 委派各 lab `scripts/lab.mjs`，并已接入 `npm run verify`。缺根、缺 pin、缺 runner → exit ≠ 0。未设根时不得假装 PASS。
 
-CI（ubuntu `verify` 与 windows-latest `lab:check`）在跑套件前用 `.github/actions/prepare-lab-roots` clone `beerui/jj-lab-loop` / `beerui/jj-lab-family` 到 `$RUNNER_TEMP` 绝对路径，seed，再注入 `JJ_LAB_*_ROOT` + `JJ_FLOW_ROOT`。本地跑 `verify` 同样必须先设绝对根（或已存在的 `lab-roots.json`）。不要从产品 toplevel 猜 `../jj-lab-*`。
+CI（ubuntu `verify` 与 windows-latest `lab:check`）在跑套件前用 `.github/actions/prepare-lab-roots` clone `beerui/jj-lab-loop` / `beerui/jj-lab-family` 到不落在 `$HOME` 下的绝对路径，seed，再注入 `JJ_LAB_*_ROOT` + `JJ_FLOW_ROOT`。默认 `$RUNNER_TEMP`；GitHub-hosted Ubuntu 上 `$RUNNER_TEMP` 位于 `/home/runner/work/_temp`，gym `env-print` 会判 `control_root under homedir`，因此改用 `/tmp/jj-flow-labs`。本地跑 `verify` 同样必须先设绝对根（或已存在的 `lab-roots.json`）。不要从产品 toplevel 猜 `../jj-lab-*`。
 
 ## 各仓里有什么
 

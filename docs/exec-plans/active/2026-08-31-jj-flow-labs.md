@@ -78,7 +78,7 @@
 
 ### PR9 — 可选：`lab:check` 进 verify
 
-- [x] `package.json` `verify` 含 `npm run lab:check`；CI / NPM Publish 在 verify 前 `prepare-lab-roots`（clone sibling 到 `$RUNNER_TEMP` 绝对路径并 seed）。缺根 fail-closed。Windows CI job 不是本 PR。Live Agent 不阻塞 Implemented（机械）
+- [x] `package.json` `verify` 含 `npm run lab:check`；CI / NPM Publish 在 verify 前 `prepare-lab-roots`（clone sibling 到 `$HOME` 外绝对路径并 seed；Ubuntu 不用 `$HOME` 下的 `$RUNNER_TEMP`）。缺根 fail-closed。Windows CI job 不是本 PR。Live Agent 不阻塞 Implemented（机械）
 
 ### PR10 — 协议后续
 

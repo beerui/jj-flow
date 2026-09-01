@@ -1,5 +1,5 @@
 name: Prepare lab roots
-description: Clone sibling gyms to absolute RUNNER_TEMP paths, seed, export JJ_LAB_*_ROOT. Never invent ../jj-lab-* or mkdir ~/.jj-flow.
+description: Clone sibling gyms to an absolute path outside $HOME, seed, export JJ_LAB_*_ROOT. Prefer RUNNER_TEMP; if that path is under $HOME (GitHub-hosted Ubuntu), use /tmp/jj-flow-labs. Never invent ../jj-lab-* or mkdir ~/.jj-flow.
 
 inputs:
   loop_ref:
@@ -21,8 +21,19 @@ runs:
         JJ_LAB_FAMILY_REF: ${{ inputs.family_ref }}
       run: |
         set -euo pipefail
-        LOOP="${RUNNER_TEMP}/jj-lab-loop"
-        FAM="${RUNNER_TEMP}/jj-lab-family"
+        # Gym env-print STOP if control_root is under os.homedir(). GitHub-hosted
+        # Ubuntu sets RUNNER_TEMP to $HOME/work/_temp, so fall back to /tmp.
+        LAB_BASE="${RUNNER_TEMP}"
+        if [ -n "${HOME:-}" ]; then
+          case "$LAB_BASE" in
+            "$HOME"|"$HOME"/*)
+              LAB_BASE="/tmp/jj-flow-labs"
+              mkdir -p "$LAB_BASE"
+              ;;
+          esac
+        fi
+        LOOP="${LAB_BASE}/jj-lab-loop"
+        FAM="${LAB_BASE}/jj-lab-family"
         clone_pin() {
           local dest="$1" url="$2" sha="$3"
           rm -rf "$dest"
