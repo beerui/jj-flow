@@ -1,0 +1,32 @@
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_a259a7dd871b7b 25
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_50ce504e07a11e 20
+docs/exec-plans/completed/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_91dc71fbc1e071 3-107
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_9644c935853298 11
+  s_0a1fdf7e8a0a56::t_43e20d6e7c29ce 183
+  s_0a1fdf7e8a0a56::t_6bad5bb9b887d6 811-813
+scripts/build-docs.mjs
+  s_0a1fdf7e8a0a56::t_cffdc54edac94f 109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "02cd614895a76a78787b8974918856ac709540fd",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
