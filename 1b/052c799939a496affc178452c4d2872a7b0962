@@ -1,0 +1,74 @@
+docs/index.md
+  s_0a1fdf7e8a0a56::t_181101e11a75d3 66
+docs/concepts-hosts.md
+  s_0a1fdf7e8a0a56::t_1b9dfb5f76e0eb 25
+tests/harness-doctor.test.mjs
+  s_0a1fdf7e8a0a56::t_cd582b2e2506c8 16-17,20
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_b1c74252ef3ea6 47,53
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_7a5ff5b25ead93 7
+src/harnessDoctor.mjs
+  s_0a1fdf7e8a0a56::t_f4206ffe6e0fb7 65,96
+skills/jj-dispatch/references/grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_c2cd3434f27718 3,82,294
+tests/grok-host-adapter.test.mjs
+  s_0a1fdf7e8a0a56::t_d2279a03186a94 221-223,226,229-231,233-234,237-240
+docs/design-docs/index.md
+  s_0a1fdf7e8a0a56::t_01245d10559314 18,25
+scripts/build-docs.mjs
+  s_0a1fdf7e8a0a56::t_1b9f4ad8d33db2 112
+harness-manifest.json
+  s_0a1fdf7e8a0a56::t_d0bf593b36a457 364,596
+src/grokHostAdapter.mjs
+  s_0a1fdf7e8a0a56::t_c67aece289728b 234,242,254,258-260,262-264,266-270,272,301-325
+docs/project-plan.md
+  s_0a1fdf7e8a0a56::t_3ad25055b9a50b 20-21
+docs/milestones/real-host-trial-grok.json
+  s_0a1fdf7e8a0a56::t_b44bd477f6e892 20,232-242
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_241df51a817fd5 51
+docs/design-docs/grok-host-adapter.md
+  s_0a1fdf7e8a0a56::t_9c984fa9b82c2e 3,5-7,11,13,16,21,86,239,244-245,265,284
+  s_0a1fdf7e8a0a56::t_810524abb77395 35-36
+skill-inventory.json
+  s_0a1fdf7e8a0a56::t_e4a9a37e983a81 62
+docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md
+  s_0a1fdf7e8a0a56::t_af2e555b2c5165 35
+  s_0a1fdf7e8a0a56::t_908e039a346079 5,40
+skills/jj-dispatch/references/happy-path.md
+  s_0a1fdf7e8a0a56::t_f06bb2b47c9926 33,35
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_3d026272f75a93 30
+  s_0a1fdf7e8a0a56::t_37ec537951318a 16-17,25
+docs/exec-plans/completed/2026-09-01-grok-host-adapter-phase2.md
+  s_0a1fdf7e8a0a56::t_133d2010d83d03 1,3,9,11,13,17,21-26,31,35,39
+docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_d50a331307744c 58
+  s_0a1fdf7e8a0a56::t_ccd8ed60db1129 13,18
+skills/jj-dispatch/SKILL.md
+  s_0a1fdf7e8a0a56::t_6b72ee505b136c 10
+docs/design-docs/harness-engineering.md
+  s_0a1fdf7e8a0a56::t_f47e13560e9f38 5,9,55,58,176-177
+docs/milestones/real-host-acceptance.md
+  s_0a1fdf7e8a0a56::t_5351811fabb936 1,3,7,9,18-19,21,23-37,54-55,61-65,67,69-74,79-82,84-85,93-94,99-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "1b052c799939a496affc178452c4d2872a7b0962",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
