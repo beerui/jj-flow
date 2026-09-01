@@ -53,32 +53,32 @@
 
 ### PR3 — Loop gym 种子 + env-print
 
-- [ ] `jj-lab-loop` seed / env-print / reset；`loop-gym-control/` 非 git
-- [ ] 缺 `JJ_LAB_LOOP_ROOT` fail-closed；不写 `~/.jj-flow`
+- [x] `jj-lab-loop` seed / env-print / reset；`loop-gym-control/` 非 git
+- [x] 缺 `JJ_LAB_LOOP_ROOT` fail-closed；不写 `~/.jj-flow`
 
 ### PR4 — Loop gym 机械 oracle
 
-- [ ] L1-S4 / S5 / S6 / S7a；真实 `lab:check` 委派；不进产品 `tests/`
+- [x] L1-S4 / S5 / S6 / S7a；真实 `lab:check` 委派；不进产品 `tests/`
 
 ### PR5 — Family gym 种子 + copy/CREATE oracle
 
-- [ ] 可与 PR3 并行。形状只在本地 `dev`；fetch 不 merge local `master`
+- [x] 可与 PR3 并行。形状只在本地 `dev`；fetch 不 merge local `master`
 
 ### PR6 — dispatch 机械闭环
 
-- [ ] L2-S5 / S6 / S3b；Mode S `grok-build` + session 文件 + T-task-result-sync
+- [x] L2-S5 / S6 / S3b；Mode S `grok-build` + session 文件 + T-task-result-sync
 
 ### PR7 — handoff ready=false + 假绿 detector
 
-- [ ] L2-S3a / L1-S3a；`writeHandoffPackage(..., {port_mode:'FULL'})`
+- [x] L2-S3a / L1-S3a；`writeHandoffPackage(..., {port_mode:'FULL'})`
 
 ### PR8 — Agent 场景说明书
 
-- [ ] 各 lab `scenarios/*.md`；episode 省略 `role`
+- [x] 各 lab `scenarios/*.md`；episode 省略 `role`
 
 ### PR9 — 可选：`lab:check` 进 verify
 
-- [ ] 仅当 &lt;20s、ubuntu、CI 已配 lab 根。Live Agent 不阻塞 Implemented（机械）
+- [ ] **暂缓**：GitHub 尚无 sibling remote，CI ubuntu 无法注入 lab 根而不发明路径。Live Agent 不阻塞 Implemented（机械）
 
 ### PR10 — 非 MVP
 
@@ -86,7 +86,7 @@
 
 ## 下一刀
 
-**PR3**：Loop gym 种子 + `env-print`。本切片不加 `lab:check` 占位，不改 `package.json` `files` / `verify`。
+**PR9 可选**：仅当 sibling 仓有 CI 可 clone 的 remote、套件 &lt;20s、ubuntu 显式注入 `JJ_LAB_*_ROOT`。在此之前不要把 `lab:check` 加进 `verify`。
 
 ## 完成定义
 

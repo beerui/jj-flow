@@ -14,6 +14,20 @@
 
 POSIX 同级：`$PARENT/jj-flow`、`$PARENT/jj-lab-loop`、`$PARENT/jj-lab-family`。
 
+GitHub remotes（公开，与 `jj-flow` 同账号）：
+
+| Lab | clone |
+| --- | --- |
+| Loop gym | https://github.com/beerui/jj-lab-loop |
+| Family gym | https://github.com/beerui/jj-lab-family |
+
+```bash
+git clone https://github.com/beerui/jj-lab-loop.git
+git clone https://github.com/beerui/jj-lab-family.git
+```
+
+clone 后目录名保持 `jj-lab-loop` / `jj-lab-family`。`_materialized/` 不进 git，本地要跑机械套件需再 `node scripts/lab.mjs seed`。
+
 **禁止：**
 
 - 在产品仓建 `jj-flow/labs/`
@@ -49,19 +63,20 @@ $env:JJ_LAB_FAMILY_ROOT = "D:\daji-docs\jj-lab-family"
 $env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
 ```
 
-`lab:check` 在 PR4 才登记。PR2 **不加** exit-0 占位。未设根时不得假装 PASS。
+产品 `npm run lab:check` 委派各 lab `scripts/lab.mjs`。缺根、缺 pin、缺 runner → exit ≠ 0。未设根时不得假装 PASS。不进默认 `verify`（PR9：CI 须显式 checkout 上述 sibling 仓并注入绝对根，才可考虑）。
 
-## 各仓里有什么（PR2）
+## 各仓里有什么
 
-每个 lab 仓现在只有：
+每个 lab 仓含：
 
 - `README.md`
 - `.gitignore`（必须含 `_materialized/`）
-- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`）
+- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；pin `0.1.3` / PR2 commit）
+- `seed/`、`scripts/lab.mjs`、`scripts/oracles/`、`scenarios/`
 
-种子、oracle、`scripts/lab.mjs` 属后续 PR。`git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）在 PR2 即应命中 ignore 规则。
+`git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）必须命中 ignore。物化 git 只存在于本地 `_materialized/`，不进 lab 仓历史。
 
-## 调用 cwd（预告；PR3 起强制）
+## 调用 cwd
 
 | 动作 | cwd |
 | --- | --- |

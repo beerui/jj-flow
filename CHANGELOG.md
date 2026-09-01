@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **实验场机械闭环（PR3–PR8）**：产品 `scripts/lab-check.mjs` + opt-in `npm run lab:check`（缺根 fail-closed，不进 `verify`）。Loop gym 种子/env-print/ralph 机械 oracle；Family gym 种子/copy-CREATE/dispatch attestation。Agent 场景说明书在各 lab `scenarios/`。
 - **实验场 sibling 仓（PR2）**：产品 pointer `docs/jj-lab-siblings.md` + `lab-roots.json.example`；`.gitignore` 忽略 `lab-roots.json`；`HNS-PUBLISH-LABS` 禁止把 `labs/` 打进 npm `files` / pack。gym 本体在旁路仓 `jj-lab-loop` / `jj-lab-family`，不进产品树。
 - **实验场设计（Proposed）**：两个 sibling 仓 `jj-lab-loop` / `jj-lab-family` 专门测工程能力、红灯边界与三条主路径闭环；不进 npm、不改检查点、不把 gym 放进产品 `labs/`。设计：`docs/design-docs/jj-flow-labs.md`。
 
