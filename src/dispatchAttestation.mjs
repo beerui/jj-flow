@@ -44,6 +44,7 @@ export function attestationAbsolutePath(controlRoot, deliveryId, taskKey) {
 export function buildGrokAttestation({
   task_key,
   session_id,
+  host_id = 'grok-build',
   agent_name = null,
   execution_mode = 'S',
   sandbox_mode = null,
@@ -58,11 +59,14 @@ export function buildGrokAttestation({
 } = {}) {
   if (!task_key) throw new Error('task_key is required');
   if (!session_id || typeof session_id !== 'string') throw new Error('session_id is required');
+  if (host_id !== 'grok-build' && host_id !== 'lab-harness') {
+    throw new Error('host_id must be grok-build or lab-harness');
+  }
   const isRead = access === 'read'
     || (agent_name && String(agent_name).includes('reviewer'))
     || sandbox_mode === 'read-only';
   return {
-    host_id: 'grok-build',
+    host_id,
     handle_kind: 'session',
     session_id,
     task_key,
@@ -97,6 +101,11 @@ export function writeGrokAttestation(controlRoot, {
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   fs.writeFileSync(abs, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
   return { abs, rel, payload };
+}
+
+/** Gym-only Mode S attestation. Does not close real-host Wave 2. */
+export function writeLabAttestation(controlRoot, options = {}) {
+  return writeGrokAttestation(controlRoot, { ...options, host_id: 'lab-harness' });
 }
 
 /** True if ref looks like an attestation file path (not host:session string). */

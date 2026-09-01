@@ -9,6 +9,7 @@
 
 import {
   HANDLE_KINDS,
+  isApprovedSessionHost,
   resolveHandleKind,
   validateHostBindAttestation
 } from './dispatchHostContract.mjs';
@@ -3456,15 +3457,15 @@ function appendEvent(plane, type, payload) {
 }
 
 /**
- * Mode S (grok-build + session): multiple task_keys may share one real session id.
- * Codex threads remain globally unique.
+ * Mode S (approved session hosts): multiple task_keys may share one real session id.
+ * Codex threads remain globally unique. lab-harness is gym-only, not Wave 2.
  */
 function allowsModeSSharedSession(existing, incoming) {
   const existingHost = existing?.host_id || null;
   const incomingHost = incoming?.host_id || null;
   const existingKind = existing?.handle_kind || null;
   const incomingKind = incoming?.handle_kind || null;
-  if (existingHost !== 'grok-build' || incomingHost !== 'grok-build') return false;
+  if (!isApprovedSessionHost(existingHost) || existingHost !== incomingHost) return false;
   if (existingKind !== 'session' || incomingKind !== 'session') return false;
   return true;
 }
@@ -3637,7 +3638,7 @@ function prepareModeSSoftTerminalsInPlace(plane, { deliveryId, recordedAt = new 
         || null;
       if (responsibility.access === 'write' && (!produced || String(produced).length < 7)) continue;
       const donor = delivery.dispatch_intents.find((intent) => (
-        intent?.host_id === 'grok-build'
+        isApprovedSessionHost(intent?.host_id)
         && intent?.handle_kind === 'session'
         && isNonEmptyString(intent.thread_id)
       ));

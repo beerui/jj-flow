@@ -290,6 +290,23 @@ export function checkHarnessRepository({
       '把 npm run harness:gc 接入 verify 主验证链。'
     );
   }
+  if (!packageJson?.scripts?.['lab:check']) {
+    addFinding(
+      'HNS-COMMAND-008',
+      packagePath,
+      '缺少 npm script：lab:check',
+      '保留 scripts/lab-check.mjs 委派并登记 npm run lab:check。'
+    );
+  } else if (packageJson?.scripts?.verify && !packageJson.scripts.verify.includes('npm run lab:check')) {
+    addFinding(
+      'HNS-COMMAND-008',
+      packagePath,
+      'npm run verify 未包含机械实验场检查。',
+      '把 npm run lab:check 接入 verify。CI 必须显式注入 JJ_LAB_*_ROOT，不得靠缺根假绿。'
+    );
+  }
+
+  checkCiLabRoots({ cwd, addFinding });
 
   const invariants = arrayOrFinding(manifest.invariants, 'invariants', manifestPath, addFinding);
   checkUniqueEntries(invariants, manifestPath, addFinding);
@@ -1029,6 +1046,49 @@ function checkHostAttestationInvariants(addFinding, contractPath) {
       '修复 validateHostBindAttestation 正向路径。'
     );
   }
+
+  const labWave2 = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:LAB:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write',
+    real_host: true
+  });
+  if (labWave2.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-005',
+      contractPath,
+      'lab-harness 声称 real_host 被错误通过。',
+      'lab-harness 不得关闭真实 Host / Wave 2。'
+    );
+  }
+
+  const validLab = validateHostBindAttestation({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    thread_id: 'session-demo',
+    task_key: 'DEL-001/A/development/1',
+    agent_name: 'jj-workflow-developer',
+    sandbox_mode: 'workspace-write',
+    effective_sandbox_mode: 'workspace-write',
+    sandbox_evidence_ref: 'SANDBOX:LAB:session-demo',
+    worktree: '/tmp/wt',
+    access: 'write'
+  });
+  if (!validLab.ok) {
+    addFinding(
+      'HNS-HOST-ATTESTATION-006',
+      contractPath,
+      `合法 lab-harness attestation 被拒绝：${validLab.errors.join('; ')}`,
+      '修复 lab-harness 正向路径；它仍是 gym host，不是 Wave 2。'
+    );
+  }
 }
 
 function checkHostActionFixture(fixture, fixturePath, addFinding) {
@@ -1176,6 +1236,85 @@ function resolveRepositoryPath(cwd, value, addFinding, ruleId) {
     return null;
   }
   return path.join(cwd, value);
+}
+
+export const PREPARE_LAB_ROOTS_ACTION = '.github/actions/prepare-lab-roots/action.yml';
+export const VERIFY_WORKFLOWS_NEEDING_LAB_ROOTS = Object.freeze([
+  '.github/workflows/ci.yml',
+  '.github/workflows/npm-publish.yml'
+]);
+
+export function prepareLabRootsActionCoversSiblings(text) {
+  const src = String(text || '');
+  return (
+    src.includes('github.com/beerui/jj-lab-loop')
+    && src.includes('github.com/beerui/jj-lab-family')
+    && src.includes('JJ_LAB_LOOP_ROOT')
+    && src.includes('JJ_LAB_FAMILY_ROOT')
+    && src.includes('JJ_FLOW_ROOT')
+    && src.includes('RUNNER_TEMP')
+  );
+}
+
+export function workflowCallsPrepareLabRoots(text) {
+  return /prepare-lab-roots/.test(String(text || ''));
+}
+
+export function checkCiLabRoots({ cwd, addFinding }) {
+  const actionPath = path.join(cwd, PREPARE_LAB_ROOTS_ACTION);
+  if (!fs.existsSync(actionPath)) {
+    addFinding(
+      'HNS-CI-LAB-ROOTS',
+      PREPARE_LAB_ROOTS_ACTION,
+      '缺少 prepare-lab-roots composite action。',
+      'CI 必须 clone beerui/jj-lab-loop 与 beerui/jj-lab-family 到绝对 RUNNER_TEMP 路径并注入 JJ_LAB_*_ROOT。不要猜 ../jj-lab-*。'
+    );
+  } else {
+    const actionText = fs.readFileSync(actionPath, 'utf8');
+    if (!prepareLabRootsActionCoversSiblings(actionText)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        PREPARE_LAB_ROOTS_ACTION,
+        'prepare-lab-roots 未同时 clone 两个 sibling 仓并导出绝对 JJ_LAB_*_ROOT / JJ_FLOW_ROOT。',
+        '用 github.com/beerui/jj-lab-loop 与 jj-lab-family 的 URL clone 到 RUNNER_TEMP；不要拼接产品仓 ../jj-lab-*。'
+      );
+    }
+  }
+
+  for (const relative of VERIFY_WORKFLOWS_NEEDING_LAB_ROOTS) {
+    const workflowPath = path.join(cwd, relative);
+    if (!fs.existsSync(workflowPath)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        relative,
+        `缺少会跑 npm run verify 的 workflow：${relative}`,
+        '恢复该 workflow，并在 verify 前调用 prepare-lab-roots。'
+      );
+      continue;
+    }
+    const text = fs.readFileSync(workflowPath, 'utf8');
+    if (!workflowCallsPrepareLabRoots(text)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        relative,
+        `${relative} 在 npm run verify 前未调用 prepare-lab-roots。`,
+        '显式 uses: ./.github/actions/prepare-lab-roots，注入绝对 lab 根。缺根必须红，不得跳过 lab:check。'
+      );
+    }
+  }
+
+  const ciPath = path.join(cwd, '.github/workflows/ci.yml');
+  if (fs.existsSync(ciPath)) {
+    const ciText = fs.readFileSync(ciPath, 'utf8');
+    if (!/windows-latest/.test(ciText) || !/npm run lab:check/.test(ciText)) {
+      addFinding(
+        'HNS-CI-LAB-ROOTS',
+        '.github/workflows/ci.yml',
+        'CI 缺少 windows-latest 上的 lab:check job。',
+        '增加独立 windows-latest job：prepare-lab-roots 后 npm run lab:check。不要在 Windows 上跑全量 verify。'
+      );
+    }
+  }
 }
 
 export function isForbiddenLabsPublishEntry(entry) {

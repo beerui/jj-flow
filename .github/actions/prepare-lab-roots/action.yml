@@ -1,0 +1,57 @@
+name: Prepare lab roots
+description: Clone sibling gyms to an absolute path outside $HOME, seed, export JJ_LAB_*_ROOT. Prefer RUNNER_TEMP; if that path is under $HOME (GitHub-hosted Ubuntu), use /tmp/jj-flow-labs. Never invent ../jj-lab-* or mkdir ~/.jj-flow.
+
+inputs:
+  loop_ref:
+    description: Pin SHA for beerui/jj-lab-loop
+    required: false
+    default: '1dc1493daf7189afa2438d3c3f8f8e4af9940a2b'
+  family_ref:
+    description: Pin SHA for beerui/jj-lab-family
+    required: false
+    default: '9c2eb5b0b191382ef8980a92b6761f87dd511117'
+
+runs:
+  using: composite
+  steps:
+    - name: Clone and seed Loop / Family gyms
+      shell: bash
+      env:
+        JJ_LAB_LOOP_REF: ${{ inputs.loop_ref }}
+        JJ_LAB_FAMILY_REF: ${{ inputs.family_ref }}
+      run: |
+        set -euo pipefail
+        # Gym env-print STOP if control_root is under os.homedir(). GitHub-hosted
+        # Ubuntu sets RUNNER_TEMP to $HOME/work/_temp, so fall back to /tmp.
+        LAB_BASE="${RUNNER_TEMP}"
+        if [ -n "${HOME:-}" ]; then
+          case "$LAB_BASE" in
+            "$HOME"|"$HOME"/*)
+              LAB_BASE="/tmp/jj-flow-labs"
+              mkdir -p "$LAB_BASE"
+              ;;
+          esac
+        fi
+        LOOP="${LAB_BASE}/jj-lab-loop"
+        FAM="${LAB_BASE}/jj-lab-family"
+        clone_pin() {
+          local dest="$1" url="$2" sha="$3"
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          git init "$dest"
+          git -C "$dest" remote add origin "$url"
+          git -C "$dest" fetch --depth 1 origin "$sha"
+          git -C "$dest" checkout --detach FETCH_HEAD
+        }
+        clone_pin "$LOOP" "https://github.com/beerui/jj-lab-loop.git" "$JJ_LAB_LOOP_REF"
+        clone_pin "$FAM" "https://github.com/beerui/jj-lab-family.git" "$JJ_LAB_FAMILY_REF"
+        export JJ_LAB_LOOP_ROOT="$LOOP"
+        export JJ_LAB_FAMILY_ROOT="$FAM"
+        export JJ_FLOW_ROOT="$GITHUB_WORKSPACE"
+        node "$LOOP/scripts/lab.mjs" seed
+        node "$FAM/scripts/lab.mjs" seed
+        {
+          echo "JJ_LAB_LOOP_ROOT=$LOOP"
+          echo "JJ_LAB_FAMILY_ROOT=$FAM"
+          echo "JJ_FLOW_ROOT=$GITHUB_WORKSPACE"
+        } >> "$GITHUB_ENV"

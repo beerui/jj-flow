@@ -1,6 +1,6 @@
 # MUST evidence class (acceptance contract)
 
-> **Status:** protocol guidance for agents (not a mechanical `ralph_ops` hard gate unless product-consistency already fails).  
+> **Status:** mechanical `ralph_ops` hard gate in `evaluateAcceptArchiveGate` (PR10). `write-then-read` / `cross-path` / `runtime-env` PASS with only `diff`/`rg`/`static` evidence is blocked unless `--force`. Legacy 3-column stubs without `evidence_class` are skipped.  
 > **Scope:** generic across business domains. Do **not** encode product APIs, field names, or project-specific dual-write recipes here.  
 > **Language:** English is SSOT for this contract.
 

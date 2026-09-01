@@ -9,7 +9,14 @@ export const RECEIPT_KINDS = Object.freeze(['TASK_RESULT', 'REVIEW_RESULT']);
 export const RECEIPT_STATUSES = Object.freeze(['COMPLETED', 'BLOCKED']);
 
 /** Approved host adapters. Trial/local hosts may use other host_id strings. */
-export const HOST_IDS = Object.freeze(['codex-app', 'grok-build']);
+export const HOST_IDS = Object.freeze(['codex-app', 'grok-build', 'lab-harness']);
+
+/** Session hosts that may share one real session id across task_keys (Mode S). */
+export const SESSION_HOST_IDS = Object.freeze(['grok-build', 'lab-harness']);
+
+export function isApprovedSessionHost(hostId) {
+  return SESSION_HOST_IDS.includes(hostId);
+}
 
 /** External execution handle kinds carried in intent.thread_id. */
 export const HANDLE_KINDS = Object.freeze(['thread', 'session']);
@@ -87,6 +94,41 @@ export const HOST_PROFILES = Object.freeze({
       'sandbox_evidence_ref'
     ]),
     evidence_must_declare: Object.freeze(['handle_kind=session'])
+  }),
+  'lab-harness': Object.freeze({
+    host_id: 'lab-harness',
+    handle_kind: 'session',
+    create_action: 'CREATE_THREAD',
+    reconcile_action: 'RECONCILE_THREAD',
+    required_capabilities: Object.freeze([
+      'list_projects',
+      'list_threads',
+      'create_thread',
+      'read_thread',
+      'send_message_to_thread',
+      'worktree',
+      'sandbox'
+    ]),
+    capability_equivalents: Object.freeze({
+      list_projects: 'lab gym control_root project registry (not a real host)',
+      list_threads: 'lab gym session files under control_root',
+      create_thread: 'CREATE_SESSION_TASK against lab-harness gym session',
+      read_thread: 'structured receipt or attestation JSON in the gym control_root',
+      send_message_to_thread: 'inject distribution_prompt into the bound gym session with audit ref',
+      worktree: 'write workspace path inside the lab _materialized tree',
+      sandbox: 'gym attestation JSON file; never counts as real-host Wave 2'
+    }),
+    attestation_required_fields: Object.freeze([
+      'host_id',
+      'handle_kind',
+      'thread_id',
+      'task_key',
+      'agent_name',
+      'sandbox_mode',
+      'effective_sandbox_mode',
+      'sandbox_evidence_ref'
+    ]),
+    evidence_must_declare: Object.freeze(['handle_kind=session', 'gym-not-real-host'])
   })
 });
 
@@ -219,8 +261,8 @@ export function validateHostBindAttestation(input = {}) {
       const value = field === 'thread_id' ? threadId : input[field];
       if (!isNonEmptyString(value)) errors.push(`attestation requires ${field}`);
     }
-    if (hostId === 'grok-build' && handleKind !== 'session') {
-      errors.push('grok-build requires handle_kind=session');
+    if (isApprovedSessionHost(hostId) && handleKind !== 'session') {
+      errors.push(`${hostId} requires handle_kind=session`);
     }
     if (hostId === 'codex-app' && handleKind !== 'thread') {
       errors.push('codex-app requires handle_kind=thread');
@@ -234,22 +276,25 @@ export function validateHostBindAttestation(input = {}) {
     errors.push('write access requires worktree at bind');
   }
 
-  // Reject obvious fake Grok evidence that pretends to be a real host trial.
-  if (hostId === 'grok-build') {
+  // Reject obvious fake Grok / gym evidence that pretends to be a real host trial.
+  if (isApprovedSessionHost(hostId)) {
     if (typeof sandboxEvidenceRef === 'string') {
       if (/semi-real/i.test(sandboxEvidenceRef)) {
-        errors.push('grok-build attestation must not reuse semi-real host trial evidence');
+        errors.push(`${hostId} attestation must not reuse semi-real host trial evidence`);
       }
       if (/codex_app_threads\s*[:=]\s*true/i.test(sandboxEvidenceRef)) {
-        errors.push('grok-build attestation must not claim codex_app_threads=true');
+        errors.push(`${hostId} attestation must not claim codex_app_threads=true`);
       }
     }
     if (input.codex_app_threads === true) {
-      errors.push('grok-build attestation must not claim codex_app_threads=true');
+      errors.push(`${hostId} attestation must not claim codex_app_threads=true`);
     }
     if (input.mode === 'semi-real') {
-      errors.push('grok-build attestation must not use mode=semi-real');
+      errors.push(`${hostId} attestation must not use mode=semi-real`);
     }
+  }
+  if (hostId === 'lab-harness' && (input.real_host === true || input.wave2 === true)) {
+    errors.push('lab-harness must not claim real-host / Wave 2 acceptance');
   }
 
   return {

@@ -36,7 +36,7 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "items": { "enum": ["codex-app", "grok-build"] }
+      "items": { "enum": ["codex-app", "grok-build", "lab-harness"] }
     },
     "handle_kinds": {
       "type": "array",
@@ -47,10 +47,11 @@
     "host_profiles": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["codex-app", "grok-build"],
+      "required": ["codex-app", "grok-build", "lab-harness"],
       "properties": {
         "codex-app": { "$ref": "#/$defs/host_profile" },
-        "grok-build": { "$ref": "#/$defs/host_profile" }
+        "grok-build": { "$ref": "#/$defs/host_profile" },
+        "lab-harness": { "$ref": "#/$defs/host_profile" }
       }
     },
     "access_profiles": {

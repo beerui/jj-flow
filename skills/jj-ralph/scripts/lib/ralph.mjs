@@ -462,7 +462,7 @@ export function initRun(options, cwd = process.cwd()) {
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- max_iterations: ' + run.max_iterations + nl
       + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
-    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | result | evidence |' + nl + '| --- | --- | --- |' + nl
+    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | must_id | evidence_class | result | evidence |' + nl + '| --- | --- | --- | --- | --- |' + nl
   };
   for (const [name, bodyText] of Object.entries(stubs)) {
     const filePath = path.join(dir, name);
@@ -1789,12 +1789,67 @@ export function addGateIssue(runId, {
   return { run, issue };
 }
 
+const STRONG_EVIDENCE_CLASSES = Object.freeze(['write-then-read', 'cross-path', 'runtime-env']);
+const STRONG_EVIDENCE_ALLOW = Object.freeze({
+  'write-then-read': /write_then_read:(mock_ok|runtime_ok)/,
+  'cross-path': /cross_path:|write_then_read:(mock_ok|runtime_ok)/,
+  'runtime-env': /runtime_env:|user_test:|uat:/i
+});
+
+function splitMarkdownTableCells(line) {
+  return String(line || '').split('|').map((cell) => cell.trim()).filter((cell, index, all) => index > 0 && index < all.length);
+}
+
+/**
+ * Parse acceptance.md evidence_class rows. Legacy 3-column stubs (no evidence_class
+ * header) are skipped so older runs keep working. Over-claim is mechanical FAIL.
+ */
+export function inspectAcceptanceEvidence(run, cwd = process.cwd()) {
+  const details = {
+    path: null,
+    header_has_class: false,
+    weak_evidence_pass: false,
+    rows: []
+  };
+  const runId = run?.run_id;
+  if (!runId) return details;
+  const file = path.join(runDir(runId, cwd), 'acceptance.md');
+  details.path = file;
+  if (!fs.existsSync(file)) return details;
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  const headerLine = lines.find((line) => line.includes('|') && /item/i.test(line) && !/^\|\s*---/.test(line));
+  if (!headerLine) return details;
+  const headers = splitMarkdownTableCells(headerLine).map((cell) => cell.toLowerCase());
+  const classIdx = headers.indexOf('evidence_class');
+  const resultIdx = headers.indexOf('result');
+  const evidenceIdx = headers.indexOf('evidence');
+  details.header_has_class = classIdx >= 0;
+  if (classIdx < 0 || resultIdx < 0 || evidenceIdx < 0) return details;
+  for (const line of lines) {
+    if (!/^\|/.test(line) || /^\|\s*---/.test(line)) continue;
+    const cells = splitMarkdownTableCells(line);
+    if (!cells.length || /^item$/i.test(cells[0] || '')) continue;
+    const evidenceClass = cells[classIdx] || '';
+    const result = String(cells[resultIdx] || '').toUpperCase();
+    const evidence = cells[evidenceIdx] || '';
+    details.rows.push({ evidence_class: evidenceClass, result, evidence });
+    if (result !== 'PASS' || !STRONG_EVIDENCE_CLASSES.includes(evidenceClass)) continue;
+    const allow = STRONG_EVIDENCE_ALLOW[evidenceClass];
+    const tokenOk = allow.test(evidence);
+    const staticOnly = /^(diff|rg|static)$/i.test(evidence.trim())
+      || (/\b(diff|rg|static)\b/i.test(evidence) && !tokenOk);
+    if (!tokenOk || staticOnly) details.weak_evidence_pass = true;
+  }
+  return details;
+}
+
 /**
  * Product-consistency gate for ACCEPT/ARCHIVE PASS.
  * Blocks false completes when latest review is NEEDS_CHANGES/BLOCKED, when
  * plan/acceptance implementation paths diverge from the current diff set,
- * when deliver work is observed while gates.deliver is still pending, or when
- * ARCHIVE would treat a working_tree review PASS as landed commit evidence.
+ * when deliver work is observed while gates.deliver is still pending, when
+ * ARCHIVE would treat a working_tree review PASS as landed commit evidence,
+ * or when acceptance.md over-claims a strong evidence_class with static proof.
  */
 export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = false, diff_paths = null, check_paths = true, gate = 'accept' } = {}) {
   const details = {
@@ -1805,7 +1860,8 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
     claimed_paths: [],
     actual_paths: [],
     path_check: 'skipped',
-    deliver_outside_ledger: null
+    deliver_outside_ledger: null,
+    evidence_class: null
   };
   if (force) return { ok: true, forced: true, reasons: [], details: { ...details, path_check: 'forced' } };
 
@@ -1859,6 +1915,12 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
     } else {
       details.path_check = 'skipped_clean_tree';
     }
+  }
+
+  const evidence = inspectAcceptanceEvidence(run, cwd);
+  details.evidence_class = evidence;
+  if (evidence.weak_evidence_pass) {
+    reasons.push('acceptance evidence_class over-claim: write-then-read/cross-path/runtime-env PASS requires class-minimum evidence (not diff/rg/static only)');
   }
 
   return { ok: reasons.length === 0, forced: false, reasons, details };

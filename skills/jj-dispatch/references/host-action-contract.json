@@ -11,7 +11,7 @@
     "sandbox"
   ],
   "action_types": ["CREATE_THREAD", "RECONCILE_THREAD"],
-  "host_ids": ["codex-app", "grok-build"],
+  "host_ids": ["codex-app", "grok-build", "lab-harness"],
   "handle_kinds": ["thread", "session"],
   "host_profiles": {
     "codex-app": {
@@ -82,6 +82,41 @@
         "sandbox_evidence_ref"
       ],
       "evidence_must_declare": ["handle_kind=session"]
+    },
+    "lab-harness": {
+      "host_id": "lab-harness",
+      "handle_kind": "session",
+      "create_action": "CREATE_THREAD",
+      "reconcile_action": "RECONCILE_THREAD",
+      "required_capabilities": [
+        "list_projects",
+        "list_threads",
+        "create_thread",
+        "read_thread",
+        "send_message_to_thread",
+        "worktree",
+        "sandbox"
+      ],
+      "capability_equivalents": {
+        "list_projects": "lab gym control_root project registry (not a real host)",
+        "list_threads": "lab gym session files under control_root",
+        "create_thread": "CREATE_SESSION_TASK against lab-harness gym session",
+        "read_thread": "structured receipt or attestation JSON in the gym control_root",
+        "send_message_to_thread": "inject distribution_prompt into the bound gym session with audit ref",
+        "worktree": "write workspace path inside the lab _materialized tree",
+        "sandbox": "gym attestation JSON file; never counts as real-host Wave 2"
+      },
+      "attestation_required_fields": [
+        "host_id",
+        "handle_kind",
+        "thread_id",
+        "task_key",
+        "agent_name",
+        "sandbox_mode",
+        "effective_sandbox_mode",
+        "sandbox_evidence_ref"
+      ],
+      "evidence_must_declare": ["handle_kind=session", "gym-not-real-host"]
     }
   },
   "access_profiles": {

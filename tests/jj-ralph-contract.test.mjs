@@ -25,6 +25,7 @@ import {
   extractLedgerPathRefs,
   findImplementationPathMismatch,
   evaluateAcceptArchiveGate,
+  inspectAcceptanceEvidence,
   evaluateAcceptJudgment,
   detectDeliverOutsideLedger,
   recordHostMeta,
@@ -845,6 +846,56 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
   }
 });
 
+
+test('accept PASS blocked when write-then-read evidence_class is only static', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-evclass-'));
+  try {
+    const runId = 'RALPH-evidence-class-20260901';
+    initRun({
+      run_id: runId,
+      title: 'evidence class',
+      goal: 'block false green',
+      attach_knowledge: false
+    }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    const acceptancePath = path.join(cwd, '.workflow', 'ralph', runId, 'acceptance.md');
+    fs.writeFileSync(acceptancePath, [
+      '# Acceptance',
+      '',
+      '| item | must_id | evidence_class | result | evidence |',
+      '| --- | --- | --- | --- | --- |',
+      '| title persist | REQ-001 | write-then-read | PASS | static |',
+      ''
+    ].join('\n'), 'utf8');
+    const inspected = inspectAcceptanceEvidence(loadRun(runId, cwd), cwd);
+    assert.equal(inspected.header_has_class, true);
+    assert.equal(inspected.weak_evidence_pass, true);
+    assert.throws(
+      () => setGate(runId, { gate: 'accept', status: 'PASS', cwd }),
+      /evidence_class over-claim/
+    );
+    const forced = setGate(runId, { gate: 'accept', status: 'PASS', cwd, force: true });
+    assert.equal(forced.run.gates.accept, 'PASS');
+
+    fs.writeFileSync(acceptancePath, [
+      '# Acceptance',
+      '',
+      '| item | must_id | evidence_class | result | evidence |',
+      '| --- | --- | --- | --- | --- |',
+      '| title persist | REQ-001 | write-then-read | PASS | write_then_read:mock_ok |',
+      ''
+    ].join('\n'), 'utf8');
+    const run = loadRun(runId, cwd);
+    run.gates.accept = 'PENDING';
+    saveRun(run, cwd);
+    const ok = setGate(runId, { gate: 'accept', status: 'PASS', cwd });
+    assert.equal(ok.run.gates.accept, 'PASS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
 
 test('archive blocks working_tree PASS review without fix commit (v2)', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-v2-'));

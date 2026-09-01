@@ -39,7 +39,7 @@
     "docs:build": "node scripts/build-docs.mjs",
     "docs:check": "node scripts/build-docs.mjs --check",
     "lab:check": "node scripts/lab-check.mjs --suite mechanical --json",
-    "verify": "npm run ralph:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check",
+    "verify": "npm run ralph:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check && npm run lab:check",
     "ralph:sync": "node scripts/sync-ralph-skill-lib.mjs",
     "ralph:check": "node scripts/sync-ralph-skill-lib.mjs --check"
   },

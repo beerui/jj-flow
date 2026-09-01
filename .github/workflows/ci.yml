@@ -15,4 +15,19 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Prepare lab roots
+        uses: ./.github/actions/prepare-lab-roots
       - run: npm run verify
+
+  lab-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Prepare lab roots
+        uses: ./.github/actions/prepare-lab-roots
+      - run: npm run lab:check
