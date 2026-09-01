@@ -103,6 +103,8 @@ const DEEP_PAGES = [
   { title: 'jj-team-coordinate 设计', source: 'docs/design-docs/jj-team-coordinate.md', output: 'design-docs/jj-team-coordinate.html', group: '设计文档' },
   { title: 'jj-team-lifecycle 设计', source: 'docs/design-docs/jj-team-lifecycle.md', output: 'design-docs/jj-team-lifecycle.html', group: '设计文档' },
   { title: 'jj-team-swarm 设计', source: 'docs/design-docs/jj-team-swarm.md', output: 'design-docs/jj-team-swarm.html', group: '设计文档' },
+  { title: '实验场 Loop gym / Family gym', source: 'docs/design-docs/jj-flow-labs.md', output: 'design-docs/jj-flow-labs.html', group: '设计文档' },
+  { title: '实验场执行', source: 'docs/exec-plans/active/2026-08-31-jj-flow-labs.md', output: 'exec-plans/active/2026-08-31-jj-flow-labs.html', group: '执行计划' },
   { title: 'Grok Mode S 执行', source: 'docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md', output: 'exec-plans/active/2026-07-30-grok-dispatch-execution.html', group: '执行计划' },
   { title: 'Dispatch Ralph 回退', source: 'docs/exec-plans/completed/2026-07-31-dispatch-ralph-rollback.md', output: 'exec-plans/completed/2026-07-31-dispatch-ralph-rollback.html', group: '执行计划' },
   { title: 'Dispatch 升级 backlog', source: 'docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md', output: 'exec-plans/active/2026-07-31-dispatch-upgrade-backlog.html', group: '执行计划' },

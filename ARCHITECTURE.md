@@ -124,5 +124,6 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | 修改证据结构或 guard 判断 | `src/evidence.mjs`、`src/guards.mjs` |
 | 修改用户文档 | `docs/` |
 | 修改文档生成逻辑 | `scripts/build-docs.mjs` |
+| 实验场 loop-gym / family-gym（sibling 仓） | `docs/design-docs/jj-flow-labs.md` |
 
 本文件只描述职责位于哪里，以及重构后仍必须成立的边界，不解释单个函数如何实现。职责发生移动时再更新本文，不追随每一次代码变化。

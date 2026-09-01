@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **实验场设计（Proposed）**：两个 sibling 仓 `jj-lab-loop` / `jj-lab-family` 专门测工程能力、红灯边界与三条主路径闭环；不进 npm、不改检查点、不把 gym 放进产品 `labs/`。设计：`docs/design-docs/jj-flow-labs.md`。
+
 ## 0.1.3 — 2026-08-29 16:37
 
 - **ralph 知识挂载**：init attach 改用 jj-multica 已实测的词法检索（CJK 相邻/跳一字 bigram、单字不计 strong、`MinRelatedScore=5`、软顶 5 条）。同项目灌水与空 query 不再填配额；0 命中就是 empty。
