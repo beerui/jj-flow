@@ -23,7 +23,7 @@ Rollback edges: `rollback.md`.
    - `ABANDONED` → `resume`
    - Archived / `COMPLETED` / `phase=ARCHIVE` → `resume` or `rollback-phase` (e.g. →DELIVER)
    - Active → edit directly; if accept already PASS: first `gate accept FAIL` or rollback
-3. Truly new requirement (user clearly says “do another thing”, “new run”, or semantic is brand new) → `init`; optional progress notes `parent_run_id` / `supersedes_run_id` (**do not** invent these into run.json)
+3. Truly new requirement (user clearly says “do another thing”, “new run”, or semantic is brand new) → `init` (new optional `intent.md`); optional progress notes `parent_run_id` / `supersedes_run_id` (**do not** invent these into run.json). Same-requirement resume keeps the existing intent.
 
 ## Fix mistakes
 
@@ -34,6 +34,7 @@ Rollback edges: `rollback.md`.
 | Plan/analyze wrong | Roll back on **adjacent edges** only (no skipping) |
 | Already archived | `resume` → same as above → may `finalize` again |
 | User correction / path still failing | `resume`; progress records `failed_must`, `failed_evidence_class`, `over_claimed` (if weak evidence once claimed a strong MUST); next loop prioritizes closing the evidence gap — see [must-evidence.md](must-evidence.md) |
+| Incident / two-strikes / production miss | Same requirement → `resume`. New requirement → new `init` + new intent. Add a deterministic case under repo `evals/regression/` when the miss is a skill/config invariant (`$jj-evaluated` / `npm run evaluated:check`). Do **not** auto-promote skill text |
 
 ## Add requirements
 
@@ -62,6 +63,8 @@ ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 | Write lineage fields into run.json | Write parent/supersedes in progress.md for a truly new run |
 | finalize while ABANDONED | resume first |
 | Treat `$jj-end` as task completion | end is Git only |
+| New `intent.md` on same-requirement resume | Keep the existing intent; new intent only on a truly new run |
+| Auto-edit skill text after an incident | Add `evals/regression/` case; promote only with human approval |
 
 ## Commands
 

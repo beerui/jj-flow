@@ -23,7 +23,12 @@ import {
   setGate,
   finalizeRun,
   extractLedgerPathRefs,
+  extractPlanCurrentSection,
+  collectClaimedImplementationPaths,
   findImplementationPathMismatch,
+  computeRunMetrics,
+  detectTestIntegrityViolation,
+  INSTRUCTION_CORRECTION_REL,
   evaluateAcceptArchiveGate,
   inspectAcceptanceEvidence,
   evaluateAcceptJudgment,
@@ -69,6 +74,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'skills/jj-ralph/references/integrations.md',
     'skills/jj-ralph/references/ralph-run.schema.json',
     'skills/jj-ralph/references/business-map.schema.json',
+    'skills/jj-review/references/review-policy.md',
+    'examples/host-guardrails/README.md',
+    'evals/regression/EP-20260828-jj-end-staging-not-dev.json',
     'claude-commands/jj-ralph.md',
     'docs/commands/jj-ralph.md',
     'docs/design-docs/jj-ralph.md'
@@ -96,7 +104,11 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'deliver-attempt',
     'accept-layer',
     'tiny',
-    'strict'
+    'strict',
+    'intent.md',
+    'instruction-correction',
+    'metrics',
+    '2–3'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -126,6 +138,12 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   const schema = read('schemas/ralph-run.schema.json');
   assert.match(schema, /"intensity"/);
   assert.match(schema, /STAGNATION/);
+  assert.match(schema, /"intent"/);
+  assert.match(schema, /"metrics"/);
+  assert.equal(
+    read('skills/jj-ralph/references/ralph-run.schema.json'),
+    schema
+  );
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs')));
 assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs')));
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/namingConfig.mjs')));
@@ -1445,6 +1463,256 @@ test('cli deliver-attempt and accept-layer wire through', () => {
       0
     );
     assert.equal(loadRun(runId, cwd).accept_layers.judgment, 'PASS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('init writes intent.md except tiny; analyze has Flagged concerns', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intent-'));
+  try {
+    const standardId = 'RALPH-intent-std-20260831';
+    initRun({ run_id: standardId, title: 'intent std', goal: 'write intent', attach_knowledge: false }, cwd);
+    const stdDir = path.join(cwd, '.workflow', 'ralph', standardId);
+    assert.equal(loadRun(standardId, cwd).artifact_refs.intent, 'intent.md');
+    assert.ok(fs.existsSync(path.join(stdDir, 'intent.md')));
+    assert.match(fs.readFileSync(path.join(stdDir, 'analyze.md'), 'utf8'), /## Flagged concerns/);
+
+    const tinyId = 'RALPH-intent-tiny-20260831';
+    initRun({ run_id: tinyId, title: 'intent tiny', goal: 'skip intent', intensity: 'tiny', attach_knowledge: false }, cwd);
+    assert.equal(loadRun(tinyId, cwd).artifact_refs.intent, null);
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', tinyId, 'intent.md')), false);
+
+    const forcedId = 'RALPH-intent-force-20260831';
+    initRun({ run_id: forcedId, title: 'intent force', goal: 'tiny with intent', intensity: 'tiny', write_intent: true, attach_knowledge: false }, cwd);
+    assert.equal(loadRun(forcedId, cwd).artifact_refs.intent, 'intent.md');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('extractPlanCurrentSection ignores Landed and claimed paths use Current only', () => {
+  const bt = String.fromCharCode(96);
+  const withCurrent = [
+    '# Plan',
+    '## Current',
+    `- TASK-2 ${bt}tip.vue${bt}`,
+    '## Landed',
+    `- TASK-1 ${bt}old-panel.vue${bt}`,
+    '## Superseded',
+    `- TASK-0 ${bt}legacy.vue${bt}`
+  ].join('\n');
+  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(withCurrent)), ['tip.vue']);
+  assert.ok(extractLedgerPathRefs(withCurrent).includes('old-panel.vue'));
+
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-current-'));
+  try {
+    const runId = 'RALPH-current-paths-20260831';
+    initRun({ run_id: runId, title: 'current paths', goal: 'current only', attach_knowledge: false }, cwd);
+    const dir = path.join(cwd, '.workflow', 'ralph', runId);
+    fs.writeFileSync(path.join(dir, 'plan.md'), withCurrent, 'utf8');
+    const claimed = collectClaimedImplementationPaths(loadRun(runId, cwd), cwd);
+    assert.deepEqual(claimed, ['tip.vue']);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    const ok = setGate(runId, {
+      gate: 'accept',
+      status: 'PASS',
+      cwd,
+      diff_paths: ['src/views/tip.vue']
+    });
+    assert.equal(ok.run.gates.accept, 'PASS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('second unchanged deliver-attempt writes instruction-correction', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-twostrike-'));
+  try {
+    const runId = 'RALPH-twostrike-20260831';
+    initRun({ run_id: runId, title: 'two strike', goal: 'stagnation correction', attach_knowledge: false }, cwd);
+    recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
+    const second = recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
+    assert.equal(second.blocked, true);
+    const correction = path.join(cwd, '.workflow', 'ralph', runId, INSTRUCTION_CORRECTION_REL);
+    assert.ok(fs.existsSync(correction));
+    assert.match(fs.readFileSync(correction, 'utf8'), /Proposed rule/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('bugfix cannot delete tests; tiny presentational does not trip', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-testint-'));
+  try {
+    const runId = 'RALPH-testint-20260831';
+    initRun({ run_id: runId, title: 'test integrity', goal: 'protect tests', attach_knowledge: false }, cwd);
+    fs.appendFileSync(
+      path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'),
+      '- 2026-08-31T00:00:00.000Z failed_must REQ-1\n',
+      'utf8'
+    );
+    const hit = detectTestIntegrityViolation(loadRun(runId, cwd), cwd, {
+      diff_paths: ['src/app.js'],
+      deleted_paths: ['tests/app.test.js']
+    });
+    assert.equal(hit.violated, true);
+
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
+    assert.throws(
+      () => setGate(runId, {
+        gate: 'accept',
+        status: 'PASS',
+        cwd,
+        diff_paths: ['src/app.js'],
+        deleted_paths: ['tests/app.test.js']
+      }),
+      /must not delete or empty tests/
+    );
+
+    const tinyId = 'RALPH-testint-tiny-20260831';
+    initRun({ run_id: tinyId, title: 'tiny css', goal: 'color', intensity: 'tiny', attach_knowledge: false }, cwd);
+    const skip = detectTestIntegrityViolation(loadRun(tinyId, cwd), cwd, {
+      diff_paths: ['src/a.css'],
+      deleted_paths: ['tests/a.test.js']
+    });
+    assert.equal(skip.violated, false);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('review findings support pass/importance, nit cap, and skip generated paths', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-policy-'));
+  try {
+    const runId = 'RALPH-review-policy-20260831';
+    initRun({ run_id: runId, title: 'review policy', goal: 'nits', attach_knowledge: false }, cwd);
+    const nits = [];
+    for (let i = 1; i <= 7; i += 1) {
+      nits.push({
+        id: 'F-N' + i,
+        severity: 'info',
+        importance: 'nit',
+        file: 'src/a.js',
+        line: i,
+        description: 'style ' + i,
+        status: 'OPEN',
+        acceptance: 'optional'
+      });
+    }
+    nits.push({
+      id: 'F-GEN',
+      severity: 'low',
+      file: 'src/gen/types.js',
+      line: 1,
+      description: 'generated',
+      status: 'OPEN',
+      acceptance: 'skip'
+    });
+    const result = recordReview(runId, {
+      cwd,
+      outcome: 'PASS',
+      summary: 'nits only',
+      findings: nits,
+      include_compliance: false
+    });
+    const waived = result.report.findings.filter((item) => item.status === 'WAIVED');
+    const open = result.report.findings.filter((item) => item.status === 'OPEN');
+    assert.equal(open.length, 0);
+    assert.equal(waived.length, 7);
+    assert.equal(result.report.findings.some((item) => item.file === 'src/gen/types.js'), false);
+    assert.equal(result.report.outcome, 'PASS');
+
+    const capId = 'RALPH-review-nitcap-20260831';
+    initRun({ run_id: capId, title: 'nit cap', goal: 'cap', attach_knowledge: false }, cwd);
+    const cap = recordReview(capId, {
+      cwd,
+      outcome: 'NEEDS_CHANGES',
+      summary: 'nits plus important',
+      include_compliance: false,
+      findings: [
+        ...nits,
+        {
+          id: 'F-IMP',
+          severity: 'high',
+          pass: 'bugs',
+          importance: 'important',
+          file: 'src/a.js',
+          line: 9,
+          description: 'broken',
+          status: 'OPEN',
+          acceptance: 'fix'
+        }
+      ]
+    });
+    assert.equal(cap.report.findings.filter((item) => item.importance === 'nit' && item.status === 'OPEN').length, 5);
+    assert.equal(cap.report.findings.filter((item) => item.importance === 'nit' && item.status === 'WAIVED').length, 2);
+
+    const flipId = 'RALPH-review-important-pass-20260831';
+    initRun({ run_id: flipId, title: 'important pass', goal: 'flip', attach_knowledge: false }, cwd);
+    const flip = recordReview(flipId, {
+      cwd,
+      outcome: 'PASS',
+      summary: 'important still open',
+      include_compliance: false,
+      findings: [{
+        id: 'F-IMP-PASS',
+        severity: 'high',
+        pass: 'bugs',
+        importance: 'important',
+        file: 'src/a.js',
+        line: 1,
+        description: 'broken',
+        status: 'OPEN',
+        acceptance: 'fix'
+      }]
+    });
+    assert.equal(flip.report.outcome, 'NEEDS_CHANGES');
+
+    const planId = 'RALPH-review-plan-file-20260831';
+    initRun({ run_id: planId, title: 'plan finding', goal: 'keep plan.md', attach_knowledge: false }, cwd);
+    const planFinding = recordReview(planId, {
+      cwd,
+      outcome: 'NEEDS_CHANGES',
+      summary: 'compliance vs Current',
+      include_compliance: false,
+      findings: [{
+        id: 'F-COMPLIANCE-PLAN',
+        severity: 'high',
+        pass: 'compliance',
+        importance: 'important',
+        file: 'plan.md',
+        line: 1,
+        description: 'diff misses Current',
+        status: 'OPEN',
+        acceptance: 'align Current'
+      }]
+    });
+    assert.equal(planFinding.report.findings.some((item) => item.file === 'plan.md' && item.status === 'OPEN'), true);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('computeRunMetrics derives clocks as null when timestamps missing quality', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-metrics-'));
+  try {
+    const runId = 'RALPH-metrics-20260831';
+    initRun({ run_id: runId, title: 'metrics', goal: 'derived', attach_knowledge: false }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    const metrics = computeRunMetrics(loadRun(runId, cwd), cwd);
+    assert.equal(metrics.clock_quality, 'derived');
+    assert.equal(metrics.deliver_rework_cycles, 0);
+    assert.equal(typeof metrics.analyze_to_plan_hours === 'number' || metrics.analyze_to_plan_hours === null, true);
+    const chunks = [];
+    assert.equal(runCli(['ralph', 'metrics', '--run-id', runId, '--json'], { cwd, stdout: { write: (t) => chunks.push(t) } }), 0);
+    const payload = JSON.parse(chunks[chunks.length - 1]);
+    assert.equal(payload.metrics.clock_quality, 'derived');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

@@ -57,7 +57,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
 - `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
-- `src/ralph.mjs` 提供单仓闭环机械步骤：init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep。它不替代 `$jj-ralph` 对话协议。
+- `src/ralph.mjs` 提供单仓闭环机械步骤：init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics。它不替代 `$jj-ralph` 对话协议。
 - `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
@@ -69,7 +69,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `docs/` 是用户和维护者文档的源目录。`docs/architecture.md` 解释产品架构，`docs/adr/index.md` 索引架构决策及后果；生成的网站不是文档编辑源。
 - `docs/design-docs/` 保存跨模块目标设计及其状态。新 design 和 ADR 必须进入索引与站点构建清单；Implemented design 必须引用测试或版本化验收产物。设计描述未来边界，当前实现事实仍由本文件、代码、schema 和测试共同证明。
-- `tests/` 与 JavaScript 模块和协议面对应。`tests/fixtures/` 保存契约样例，`examples/` 保存面向用户的证据和控制项目示例。
+- `tests/` 与 JavaScript 模块和协议面对应。`tests/fixtures/` 保存契约样例，`examples/` 保存面向用户的证据和控制项目示例（含 `examples/host-guardrails/`，声明不是协议）。`evals/regression/` 是确定性配置考题，由 `npm run evaluated:check` 进入 `verify`。
 - `workflows/` 保存随 npm 包分发的可复用工作流资产。
 
 ## 架构不变量
@@ -124,6 +124,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | 修改证据结构或 guard 判断 | `src/evidence.mjs`、`src/guards.mjs` |
 | 修改用户文档 | `docs/` |
 | 修改文档生成逻辑 | `scripts/build-docs.mjs` |
+| 对齐 AI-native SDLC（intent / 审查政策 / 配置评测） | `docs/design-docs/ai-native-sdlc.md` |
 | 实验场 loop-gym / family-gym（sibling 仓） | `docs/design-docs/jj-flow-labs.md`、`docs/jj-lab-siblings.md`、`scripts/lab-check.mjs`、`.github/actions/prepare-lab-roots/` |
 
 本文件只描述职责位于哪里，以及重构后仍必须成立的边界，不解释单个函数如何实现。职责发生移动时再更新本文，不追随每一次代码变化。

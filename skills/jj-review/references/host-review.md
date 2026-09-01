@@ -2,6 +2,8 @@
 
 `jj-review` is an **adapter**: prefer the review engine already available on the current host; this skill writes results into ralph `REV-*.json`.
 
+Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `plan.md` ## Current).
+
 Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose. Choose the entry via **capability discovery**.
 
 ## Discovery order (first match wins)
@@ -97,6 +99,8 @@ Default `medium` when unclear. Default `status` is `OPEN`; host-closed/ignored i
 | `description` | problem statement (may include host excerpt) |
 | `status` | `OPEN` / `RESOLVED` / `WAIVED` |
 | `acceptance` | close condition; if none, write “fix per description and re-review” |
+| `pass` | optional: `bugs` / `security` / `compliance` ([review-policy.md](review-policy.md)) |
+| `importance` | optional: `important` / `nit`; untagged `severity=info` maps to nit |
 
 ## Report provenance fields (recommended on REV JSON)
 

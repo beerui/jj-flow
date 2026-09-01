@@ -26,6 +26,7 @@
 | [jj-team-coordinate](jj-team-coordinate.html) | Proposed（P0/P1 文档：skill + 透明协议 + Codex 兼容；bridge CLI 未关闭） |
 | [jj-team-lifecycle](jj-team-lifecycle.html) | Proposed（P0：TLV4 vendor + 固定 SDLC + Codex degraded；bridge CLI 未关闭） |
 | [jj-team-swarm](jj-team-swarm.html) | Proposed（P0：TAS vendor + 透明协议 + Workflow 降级说明） |
+| [AI-native SDLC 对齐](ai-native-sdlc.html) | Implemented（切片 0–7；三条主路径内翻译） |
 | [实验场 Loop gym / Family gym](jj-flow-labs.html) | Implemented（机械实验场；Live Agent 仍为手册 / evaluated） |
 
 实施进度：[执行计划](../exec-plans/index.html)

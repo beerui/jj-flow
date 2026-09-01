@@ -94,6 +94,14 @@ When recording `deliver-attempt`, prefer signals that match class, for example:
 - `write-then-read` → `signal=write_then_read:mock_ok` or `signal=write_then_read:runtime_ok`
 - Do not use `signal=static_only` to justify ACCEPT on a stronger class.
 
+## Test integrity (bugfix)
+
+Bugfix / `failed_must` / `user_correction` / latest `NEEDS_CHANGES` runs may **add or strengthen** tests. They must **not** delete or empty `tests/**`, `*.test.*`, or `*.spec.*`. Mechanical gate: `detectTestIntegrityViolation` on accept/archive. Semantic loosening (assertions weakened but the file remains) is a reviewer judgment, not this gate.
+
+`tiny` presentational runs without those fix signals do **not** trip the gate.
+
+Host samples that refuse all test writes in fix mode are stricter than this contract — see `examples/host-guardrails/` (not protocol).
+
 ## Resume / user correction
 
 On `resume` after user correction or path failure, progress should record:

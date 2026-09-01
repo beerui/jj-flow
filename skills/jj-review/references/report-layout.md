@@ -23,7 +23,7 @@
 2. Host built-in review → map → persist (`source=host_builtin`)
 3. Only when 1/2 unavailable: minimal inline review (`source=fallback_inline`)
 
-Details: [host-review.md](host-review.md). **Do not** run a second parallel self-review that overwrites a host verdict already given (unless the user explicitly requests re-review).
+Details: [host-review.md](host-review.md). Passes / nit cap / Current: [review-policy.md](review-policy.md). **Do not** run a second parallel self-review that overwrites a host verdict already given (unless the user explicitly requests re-review).
 
 Maintenance path and conversation path share the same schema: `jj ralph review-record --source … [--host-review-json …]` writes provenance fields; do not assume the CLI drops provenance.
 
@@ -56,11 +56,13 @@ Maintenance path and conversation path share the same schema: `jj ralph review-r
 | description | problem statement |
 | status | `OPEN` / `RESOLVED` / `WAIVED` |
 | acceptance | close condition |
+| pass | optional: `bugs` / `security` / `compliance` |
+| importance | optional: `important` / `nit` |
 
 ### outcome validation
 
-- `PASS`: no OPEN finding, and `reviewed_commit` present
-- `NEEDS_CHANGES`: ≥1 OPEN finding, and `reviewed_commit` present
+- `PASS`: no OPEN finding, and `reviewed_commit` present (OPEN nits are WAIVED on PASS; OPEN important flips to `NEEDS_CHANGES`)
+- `NEEDS_CHANGES`: ≥1 OPEN finding, and `reviewed_commit` present (nit cap 5; extras WAIVED)
 - `BLOCKED`: insufficient evidence; state missing run / diff / context
 
 ## Write back run.json

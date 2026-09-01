@@ -33,7 +33,7 @@ Produce a **read-only review record** for an existing ralph run. Prefer the **ho
 | host entry **or** user artifact **or** (after 🔴) fallback | `REV-n.json` + `run.json.review` + `progress.md` line |
 | — | brief: `review_id`, `outcome`, `source`, paths, rework? |
 
-Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md).
+Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md). Passes / nit cap / Current compliance: [review-policy.md](references/review-policy.md).
 
 ## Immediate actions
 
@@ -63,9 +63,10 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
    🔴 CHECKPOINT · 🛑 STOP — **must-use-host but no entry**: `BLOCKED`; name missing capability; **no silent fallback** (user may paste findings or allow fallback).
 
-5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.  
-   Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`.  
-   Record `source` + `host_review` (provenance; does not advance other gates).  
+5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.
+   Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`; optional `pass` (`bugs`|`security`|`compliance`) and `importance` (`important`|`nit`).
+   Compare the diff to `plan.md` **## Current** (legacy `## Tasks` if no Current). Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
+   Record `source` + `host_review` (provenance; does not advance other gates).
    `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
 
 6. **Persist** — copy [review-report.skeleton.json](references/review-report.skeleton.json):  
@@ -78,6 +79,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    jj ralph review-record --run-id RALPH-login-reminder-20260722 \
      --outcome NEEDS_CHANGES --source host_builtin \
      --reviewed-commit abcdef1 \
+     --finding-json '{"id":"F-1","severity":"high","pass":"bugs","importance":"important","file":"src/a.js","line":1,"description":"broken","status":"OPEN","acceptance":"fix"}' \
      --host-review-json '{"method":"skill","entry":"code-review","artifact_paths":[]}'
    # fallback script (jj-flow tree): node skills/jj-ralph/scripts/ralph_ops.mjs review-record ...
    ```
@@ -109,7 +111,8 @@ Still read-only; still persist `REV-*.json`; explain in `summary` / `host_review
 | unstructured host output | Map via tables; `unknown`/`1` | Undecidable → `BLOCKED` |
 | `review-record` CLI fails | Direct-write skeleton | Write fails → `BLOCKED` |
 | PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
-| OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS |
+| OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
+| Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |
 
 ## Examples
 

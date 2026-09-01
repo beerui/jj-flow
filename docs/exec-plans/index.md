@@ -23,6 +23,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [AI-native SDLC 对齐](completed/2026-08-31-ai-native-sdlc.html) | 切片 0–7：可选 intent、Current 解析、审查政策、两次打脸、测试完整性、派生指标、确定性评测、宿主样例、事故回环 |
 | [Dispatch / Ralph 任务回退](completed/2026-07-31-dispatch-ralph-rollback.html) | R1–R4 已交付；Ralph R3-3 于 2026-08-01 由**无终态冻结** supersede（同 run resume / soft archive / ABANDONED） |
 | [Grok Host Adapter Phase 1 — 契约扩展](completed/2026-07-27-grok-host-adapter.html) | 契约与纯状态测试完成；Phase 2/3 真 Host 未启动 |
 | [Harness Engineering 收口与真实 Host 路径](completed/2026-07-18-harness-hardening.html) | 仓库侧收口完成；真实 Host 见 [PENDING](../milestones/real-host-acceptance.html) |

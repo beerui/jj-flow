@@ -4,11 +4,13 @@
 
 ```text
 .workflow/ralph/RALPH-{kebab-slug}-{YYYYMMDD}/
-  run.json                 # phase/gates + intensity/budget/stagnation/accept_layers + handoff
-  analyze.md               # MUST + evidence_class; field lifecycle for write-then-read (see must-evidence.md)
+  run.json                 # phase/gates + intensity/budget/stagnation/accept_layers + handoff + optional metrics
+  intent.md                # optional initiator words; tiny skips; not a sixth phase
+  analyze.md               # MUST + evidence_class + ## Flagged concerns; field lifecycle for write-then-read (see must-evidence.md)
   plan.md
   progress.md              # deliver-attempt / resume|abandon audit; optional supersedes|parent chain on truly new runs
   acceptance.md            # item + evidence_class + evidence (ban weak-evidence false green)
+  instruction-correction.md  # two-strike candidate; Reviewer never lands this into AGENTS.md
   reviews/REV-*.json       # optional; often required for strict judgment layer
   handoff/handoff.json     # optional mirror for same to read
 
@@ -25,6 +27,8 @@
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
 5. `RALPH-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. The active directory is always the authoritative run; under archive are historical snapshots. Continue after archive → **same** `RALPH-*` directory resume; do not open a new run by default
+7. `intent.md` is optional. `init` writes it except `tiny` or `--no-intent`. Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
+8. Claimed implementation paths and review compliance read `plan.md` **## Current** (legacy `## Tasks` if no Current). Landed / Superseded do not count as the current ledger
 
 ## Current contract vs history
 
