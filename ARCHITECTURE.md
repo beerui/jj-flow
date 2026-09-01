@@ -48,7 +48,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `src/dispatchTrace.mjs` 为纯状态转换记录 before/after hash、输入、输出与 evidence refs，并在 replay 时重新执行状态转换；记录到的 host actions 只计数，不执行。
 - `src/scenarioRunner.mjs` 登记 4 个确定性场景，覆盖 dispatch happy path、中断恢复、部分目标失败和 `jj-same` handoff 契约。`src/handoffContract.mjs` 对 handoff snapshot 做 fail-closed 校验。
 - `src/hostTrialRunner.mjs` 位于核心状态机之外，在系统临时目录创建控制仓、真实 Git repo 和独占 worktree，验证 CAS、receipt、中断对账及 Reviewer/Developer 返工。它是半真实 Host adapter，不创建或伪造 Codex App task。
-- `src/grokHostAdapter.mjs` 是 Grok 路径 Phase 2 宿主边界：项目注册表、可脚本化 session bind/reconcile、Wave 2 证据 fail-closed 评估。**不**直连 Grok 私有 API，**不**因 skill 安装或 doctor 检测到 `grok` 关闭 Wave 2 / 升 A2。
+- `src/grokHostAdapter.mjs` 是 Grok 路径 Phase 2 宿主边界：项目注册表、可脚本化 session bind/reconcile、Wave 2 证据 fail-closed 评估。`src/grokHostTrialRunner.mjs` 绑定真实 `GROK_SESSION_ID` 跑同一协议；证据可评估，**不**直连私有 API，**不**自动关 Wave 2 / 升 A2。
 - `skills/jj-dispatch/references/control-plane.schema.json` 和 `task-receipt.schema.json` 是 JavaScript 模块外部消费的序列化契约。修改协议时，必须同步 schemas、skill 说明、fixtures 和运行时校验。
 - `tests/jj-dispatch-contract.test.mjs` 检查跨文件的 dispatch 契约；`tests/dispatch-runtime.test.mjs` 覆盖 tick、receipt、恢复和 CAS 行为；`tests/scenario-runner.test.mjs` 覆盖确定性、篡改检测、无副作用与 CLI replay。
 

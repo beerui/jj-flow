@@ -35,6 +35,7 @@
     "harness:check": "node scripts/check-harness.mjs",
     "scenario:check": "node bin/jj.mjs scenario check --json",
     "host:trial": "node bin/jj.mjs host-trial run --json",
+    "grok:trial": "node bin/jj.mjs grok-trial run --json",
     "harness:gc": "node bin/jj.mjs harness-gc --json",
     "docs:build": "node scripts/build-docs.mjs",
     "docs:check": "node scripts/build-docs.mjs --check",

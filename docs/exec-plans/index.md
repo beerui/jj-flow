@@ -13,8 +13,8 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Phase 2b Mode W **机械已落地**；Mode P / Host Wave 2 仍 open | Wave 2 真宿主证据（不得用 labs / Mode S / Mode W 充数） |
-| [Grok Host Adapter Phase 2](active/2026-09-01-grok-host-adapter-phase2.html) | 注册表 + 可脚本化 bind/reconcile + doctor grok；**不**关 Wave 2 | Phase 3 真 Grok 试跑 JSON |
+| [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Phase 2b Mode W **机械已落地**；Mode P / Host Wave 2 仍 open | Wave 2 人工审查（JSON 已 evaluable，不得用 labs / Mode S / Mode W 充数） |
+| [Grok Host Adapter Phase 2](active/2026-09-01-grok-host-adapter-phase2.html) | 注册表 + bind/reconcile + 真试跑 JSON evaluable；**不**关 Wave 2 | 人工审查是否 completed / 是否升 A2 |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 + Mode W **promoted**；Mode P / Wave 2 后置 | 未关闭项见文内表 |
 
 说明：active 中可含「主路径已完成、仍作指针」的条目；新工作优先开新 plan 或更新「仍后置」表，避免重复实现已 promoted 项。

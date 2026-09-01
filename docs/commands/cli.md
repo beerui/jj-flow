@@ -20,6 +20,7 @@
 | `scenario` | 确定性场景 list / check / run |
 | `trace` | explain / pure replay |
 | `host-trial run` | 半真实 Host 试跑（非真 Host） |
+| `grok-trial run` | 真 Grok 会话试跑（不关 Wave 2） |
 | `harness-gc` | 只读熵扫描 |
 
 ---
@@ -122,6 +123,7 @@ jj task assign --delivery DELIVERY_ID --task TASK-ID [--manifest path | --contro
 jj scenario list|check|run <scenario|all> [--json]
 jj trace explain|replay <trace.json> [--json]
 jj host-trial run [--json]
+jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]
 jj harness-gc [--json]
 ```
 
@@ -130,6 +132,7 @@ jj harness-gc [--json]
 | scenario | 固定 fixture、纯状态、不创建真 task、不执行 host action |
 | trace replay | 只重放纯状态转换 |
 | host-trial | 系统临时目录半真实 Git/worktree；**不能**关闭真 Host 里程碑 |
+| grok-trial | 绑定真实 `GROK_SESSION_ID`；`--write-report` 才写 `real-host-trial-grok.json`；**不**升 A2、**不**进 `verify` |
 | harness-gc | 只读 findings，不自动修 |
 
 ---

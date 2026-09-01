@@ -59,7 +59,8 @@ export function buildGrokAttestation({
   git_head_at_bind = null,
   project_path = null,
   bound_at = new Date().toISOString(),
-  access = null
+  access = null,
+  effective_boundary_source = 'declared-coordinator'
 } = {}) {
   if (!task_key) throw new Error('task_key is required');
   if (!session_id || typeof session_id !== 'string') throw new Error('session_id is required');
@@ -81,7 +82,7 @@ export function buildGrokAttestation({
     execution_mode: resolvedMode,
     sandbox_mode: sandbox_mode || (isRead ? 'read-only' : 'workspace-write'),
     effective_sandbox_mode: effective_sandbox_mode || sandbox_mode || (isRead ? 'read-only' : 'workspace-write'),
-    effective_boundary_source: 'declared-coordinator',
+    effective_boundary_source,
     environment: resolvedEnvironment,
     worktree: worktree === undefined ? null : worktree,
     intended_branch: intended_branch || null,

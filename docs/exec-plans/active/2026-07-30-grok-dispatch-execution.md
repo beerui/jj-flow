@@ -55,7 +55,7 @@ Make Grok `/jj-dispatch` **repeatable** without forcing multi-session or user CL
 
 ### Phase 3
 
-- [ ] `docs/milestones/real-host-trial-grok.json`（adapter Phase 2 评估器已就位，仍缺真会话证据）
+- [x] `docs/milestones/real-host-trial-grok.json`（evaluable；Wave 2 仍 open，不升 A2）
 - [ ] Revert-remerge land warning exercised
 
 ## Non-goals this plan

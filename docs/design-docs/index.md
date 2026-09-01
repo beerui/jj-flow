@@ -22,7 +22,7 @@
 | [Ralph → 知识库贡献](ralph-knowledge-contribute.html) | Proposed（归档投喂全局 KB） |
 | [Ralph 归档提升](ralph-archive-elevation.html) | Accepted |
 | [jj-evaluated](jj-evaluated.html) | Implemented（MVP runner） |
-| [Grok Host Adapter](grok-host-adapter.html) | Proposed（Wave 2；Phase 2 脚手架已落地，缺真试跑） |
+| [Grok Host Adapter](grok-host-adapter.html) | Proposed（Wave 2；真试跑 JSON evaluable，待人工审查，未升 A2） |
 | [jj-team-coordinate](jj-team-coordinate.html) | Proposed（P0/P1 文档：skill + 透明协议 + Codex 兼容；bridge CLI 未关闭） |
 | [jj-team-lifecycle](jj-team-lifecycle.html) | Proposed（P0：TLV4 vendor + 固定 SDLC + Codex degraded；bridge CLI 未关闭） |
 | [jj-team-swarm](jj-team-swarm.html) | Proposed（P0：TAS vendor + 透明协议 + Workflow 降级说明） |

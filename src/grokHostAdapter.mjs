@@ -95,7 +95,9 @@ export function bindGrokSessionTask({
   environment = 'project-branch',
   access = 'write',
   agentName = null,
-  sandboxMode = null
+  sandboxMode = null,
+  gitHeadAtBind = null,
+  effectiveBoundarySource = 'declared-coordinator'
 } = {}) {
   if (!plane || !controlRoot || !deliveryId || !taskKey || !sessionId || !projectId) {
     return { ok: false, reason: 'bindGrokSessionTask requires plane, controlRoot, deliveryId, taskKey, sessionId, projectId', plane };
@@ -130,6 +132,8 @@ export function bindGrokSessionTask({
       worktree: workspace,
       intended_branch: intendedBranch,
       project_path: projectPath,
+      git_head_at_bind: gitHeadAtBind,
+      effective_boundary_source: effectiveBoundarySource,
       access: resolvedAccess
     });
   } catch (error) {

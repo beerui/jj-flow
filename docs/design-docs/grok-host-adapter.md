@@ -238,10 +238,10 @@ grok
 
 ### Phase 3 — 真实试跑与验收
 
-- [ ] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）
-- [ ] 写入 `docs/milestones/real-host-trial-grok.json`（或统一 schema 多 host）
-- [ ] 更新 `real-host-acceptance` 状态；**单独** 评估是否升 A2
-- [ ] 半真实 `host:trial` 保持 `codex`/local-git 语义，**不得** 改 `mode=semi-real` 冒充 Grok 真实验收
+- [x] 在真实 Grok 会话中跑通一条 delivery（含至少一轮 NEEDS_CHANGES）
+- [x] 写入 `docs/milestones/real-host-trial-grok.json`（evaluable；`wave2_closed=false`）
+- [ ] 更新 `real-host-acceptance` 状态为 **completed**；**单独** 评估是否升 A2（当前仅为 `in_progress`）
+- [x] 半真实 `host:trial` 保持 `codex`/local-git 语义，**不得** 改 `mode=semi-real` 冒充 Grok 真实验收
 
 ## 9. 验收标准
 

@@ -291,7 +291,7 @@ child session 1:1; RECONCILE; forbid same-project parallel write.
 
 ### Phase 3 — Real Host trial
 
-`docs/milestones/real-host-trial-grok.json`; NEEDS_CHANGES; Revert-remerge warning cases.
+`docs/milestones/real-host-trial-grok.json` written and evaluable (NEEDS_CHANGES rework included). Wave 2 still Proposed; do not raise A2. Revert-remerge warning cases remain.
 
 ---
 

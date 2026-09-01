@@ -32,7 +32,7 @@
 | --- | --- | --- |
 | Mode W | exclusive-worktree 完整 bind/cleanup | **promoted** 2026-09-01（机械；非 Wave 2） |
 | Mode P | 多 session 1:1 | Phase 2c |
-| Host Wave 2 | real-host-trial-grok | Proposed（Phase 2 脚手架 2026-09-01；仍缺真试跑） |
+| Host Wave 2 | real-host-trial-grok | Proposed（JSON evaluable 2026-09-01；待人工审查，不升 A2） |
 | acceptor-tag 历史 plane | 勿回写变绿；可用 reopen 另线 | 负例保留 |
 
 ## 3. 完成定义

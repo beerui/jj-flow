@@ -29,7 +29,7 @@
 - [x] `bindGrokSessionTask` / `reconcileGrokSession`（复用 `CREATE_THREAD` / `RECONCILE_THREAD` 类型名）
 - [x] doctor：检测 `grok` 可执行文件与 skill 安装；**不**因此报告 A2 / 不关闭 Wave 2
 - [x] `evaluateGrokWave2Evidence` fail-closed：lab-harness / semi-real / skill-only / placeholder session 不得 PASS
-- [ ] Phase 3：真实 Grok 会话试跑 + versioned trial JSON + 评估是否升 A2
+- [x] Phase 3：真实 Grok 会话试跑 + versioned trial JSON（evaluable；**不**关 Wave 2 / **不**升 A2）
 
 ## 验收
 
@@ -42,4 +42,4 @@ npm run doctor
 
 ## 残留
 
-真宿主 create/bind/RECONCILE/返工证据仍缺。adapter 可脚本化 ≠ Wave 2 关闭。
+`docs/milestones/real-host-trial-grok.json` 已 evaluable，`real-host-acceptance` 为 `in_progress`。Wave 2 **未**关闭；`max_unattended_level` 仍为 A1。升 A2 需要单独人工审查。

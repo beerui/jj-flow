@@ -31,6 +31,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 | `src/ralph.mjs` | 单仓机械步骤 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
+| `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（不关 Wave 2） |
 | `src/harnessGc.mjs` / `check-harness.mjs` | 仓库 Harness 门禁与熵扫描 |
 | `docs/` | 用户文档 SSOT → `npm run docs:build` |
 

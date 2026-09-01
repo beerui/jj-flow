@@ -220,7 +220,7 @@ test('lab-harness, host:trial, skill install, and Mode W cannot close Wave 2', (
 
   const milestone = inspectGrokWave2Milestone({ cwd: process.cwd() });
   assert.equal(milestone.closed, false);
-  assert.equal(milestone.status, 'pending');
+  assert.ok(['pending', 'evaluable', 'blocked'].includes(milestone.status));
   assert.equal(milestone.max_unattended_level, 'A1');
 });
 

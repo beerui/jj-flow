@@ -1,6 +1,6 @@
-# 真实 Host 验收（PENDING）
+# 真实 Host 验收（IN PROGRESS）
 
-> 状态：**pending**
+> 状态：**in_progress**
 >
 > 范围：在 **已批准宿主** 上完成 create/bind、sandbox attestation、中断恢复与 Review 返工，并落盘 **versioned** 证据
 >
@@ -92,10 +92,19 @@ npm run host:trial   # 仅 semi-real 回归
 
 | 状态 | 含义 |
 | --- | --- |
-| `pending`（**当前**） | 无真实宿主证据；无人值守上限保持 `A1` |
-| `in_progress` | 联调进行中；证据草稿可进 PR，但不得升级 autonomy |
+| `pending` | 无真实宿主证据；无人值守上限保持 `A1` |
+| `in_progress`（**当前**） | Grok 试跑 JSON 已入库且 evaluable；**不得**升级 autonomy，**不得**视为 Wave 2 关闭 |
 | `completed` | 宿主证据入库、审查通过；才可评估 A2/A3 |
 | `blocked` | 宿主能力或权限不可用；记录阻塞原因 |
+
+## 当前 Grok 试跑（evaluable，未关闭）
+
+- 证据：[`docs/milestones/real-host-trial-grok.json`](real-host-trial-grok.json)
+- `mode=real-grok`，`adapter=grok-build`，`handle_kind=session`
+- 绑定本机 Grok 会话 `GROK_SESSION_ID`；`effective_boundary_source=grok-session-env`
+- 含中断 `RECONCILE_THREAD`（`duplicate_create_count=0`）与 Review `NEEDS_CHANGES` → 返工 → `PASS`
+- `wave2_evaluation.ok=true` 且 `closed=false`；`max_unattended_level` 仍为 **A1**
+- Codex App 路径仍缺 `docs/milestones/real-host-trial.json`
 
 ## 残留风险
 

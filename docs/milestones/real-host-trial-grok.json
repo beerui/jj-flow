@@ -1,0 +1,233 @@
+{
+  "schema_version": "jj-flow/grok-host-trial-report/1.0",
+  "trial_id": "HST-real-grok-001",
+  "executed_at": "2026-09-01T06:44:23.048Z",
+  "mode": "real-grok",
+  "adapter": "grok-build",
+  "host_id": "grok-build",
+  "handle_kind": "session",
+  "session_id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+  "sandbox_evidence_ref": ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__1.json",
+  "reconcile": true,
+  "duplicate_create_count": 0,
+  "review_rework": true,
+  "wave2": false,
+  "wave2_closed": false,
+  "skill_only": false,
+  "gym": false,
+  "lab": false,
+  "codex_app_threads": false,
+  "milestone_status": "in_progress",
+  "max_unattended_level": "A1",
+  "autonomy_raised": false,
+  "status": "PASS",
+  "isolated": true,
+  "side_effects": "temporary-git-only",
+  "runner_sha256": "sha256:860f4bf0ca43e84713ca373cb935283480e2c2dd9892e33b1812a7f2075774dc",
+  "summary": "真实 Grok 会话完成 create/bind、中断 RECONCILE、host-issued attestation、Review NEEDS_CHANGES→返工→PASS 与 CAS VERIFIED。证据可评估，不自动关闭 Host Wave 2，不升 A2。",
+  "host": {
+    "adapter": "grok-build",
+    "host_id": "grok-build",
+    "handle_kind": "session",
+    "session_id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+    "grok_agent": "1",
+    "grok_projects_root": "D:/a",
+    "effective_boundary_source": "grok-session-env",
+    "real_git": true,
+    "real_worktree": true,
+    "real_session": true,
+    "private_api": false,
+    "codex_app_threads": false,
+    "external_network": false
+  },
+  "project_registry": [
+    {
+      "id": "wave2-target",
+      "name": "Wave 2 target",
+      "status": "active",
+      "path": "C:\\Users\\motou\\AppData\\Local\\Temp\\jj-flow-grok-trial-zWDOVl\\wave2-target",
+      "git": {
+        "ok": true,
+        "exists": true,
+        "path": "C:\\Users\\motou\\AppData\\Local\\Temp\\jj-flow-grok-trial-zWDOVl\\wave2-target",
+        "git_root": "C:/Users/motou/AppData/Local/Temp/jj-flow-grok-trial-zWDOVl/wave2-target",
+        "head": "cc2d7911fefe273e6008a6571a31bb5a17fb1fb0",
+        "branch": "main",
+        "detached": false,
+        "remotes": []
+      }
+    }
+  ],
+  "control_plane": {
+    "final_revision": 26,
+    "delivery_id": "DEL-GROK-WAVE2-001",
+    "delivery_status": "VERIFIED",
+    "target_status": "VERIFIED",
+    "cas_writes": 22,
+    "transition_count": 22
+  },
+  "git": {
+    "branch": "feat/grok-wave2-trial",
+    "base_head": "cc2d7911fefe273e6008a6571a31bb5a17fb1fb0",
+    "attempt_1_commit": "445ae7940f5c542f9387842750f45ee82cc1b33a",
+    "attempt_2_commit": "c028f0d090fdbac43c2eefcf429f230325a4263c"
+  },
+  "recovery": {
+    "uncertain_create": true,
+    "resume_action": "RECONCILE_THREAD",
+    "candidates": 1,
+    "duplicate_create_count": 0
+  },
+  "review_loop": {
+    "outcomes": [
+      "NEEDS_CHANGES",
+      "PASS"
+    ],
+    "finding_id": "F-GROK-WAVE2-001",
+    "development_attempts": 2,
+    "review_attempts": 2
+  },
+  "attention": {
+    "approval_points": 2,
+    "simulated_approvals": 2,
+    "unexpected_escalations": 0,
+    "unresolved_decisions": 0
+  },
+  "attestations": [
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__analysis__1.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__1.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__test__1.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__review__1.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__2.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__test__2.json",
+    ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__review__2.json"
+  ],
+  "assertions": [
+    {
+      "id": "HST-REAL-SESSION",
+      "status": "PASS",
+      "evidence": {
+        "session_id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "grok_agent": "1"
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-NOT-SEMI-REAL",
+      "status": "PASS",
+      "evidence": {
+        "mode": "real-grok",
+        "adapter": "grok-build"
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-A2-WORKTREE",
+      "status": "PASS",
+      "evidence": {
+        "commits": 2,
+        "exclusive_worktree": true,
+        "branch": "feat/grok-wave2-trial"
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-SANDBOX-ATTESTATION",
+      "status": "PASS",
+      "evidence": {
+        "bound_intents": 7,
+        "attestation_refs": [
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__analysis__1.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__1.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__test__1.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__review__1.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__2.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__test__2.json",
+          ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__review__2.json"
+        ]
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-HOST-ISSUED-BOUNDARY",
+      "status": "PASS",
+      "evidence": {
+        "effective_boundary_source": "grok-session-env",
+        "write_attestation": ".workflow/dispatch/DEL-GROK-WAVE2-001/attestations/DEL-GROK-WAVE2-001__wave2-target__development__1.json"
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-INTERRUPTED-RESUME",
+      "status": "PASS",
+      "evidence": {
+        "action": "RECONCILE_THREAD",
+        "duplicate_create_count": 0,
+        "create_count": 7
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-A3-REWORK",
+      "status": "PASS",
+      "evidence": {
+        "outcomes": [
+          "NEEDS_CHANGES",
+          "PASS"
+        ]
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-CAS-PERSISTED",
+      "status": "PASS",
+      "evidence": {
+        "revision": 26,
+        "cas_writes": 22
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-TARGET-VERIFIED",
+      "status": "PASS",
+      "evidence": {
+        "target_status": "VERIFIED",
+        "delivery_status": "VERIFIED"
+      },
+      "reason": null,
+      "next_action": null
+    },
+    {
+      "id": "HST-WAVE2-NOT-AUTO-CLOSED",
+      "status": "PASS",
+      "evidence": {
+        "wave2_closed": false,
+        "max_unattended_level": "A1"
+      },
+      "reason": null,
+      "next_action": null
+    }
+  ],
+  "earliest_violation": null,
+  "fixture": {
+    "initial_task_count": 4,
+    "rework_task_count": 4
+  },
+  "wave2_evaluation": {
+    "ok": true,
+    "closed": false,
+    "errors": []
+  },
+  "cleanup": {
+    "status": "PASS",
+    "temporary_root_removed": true
+  }
+}

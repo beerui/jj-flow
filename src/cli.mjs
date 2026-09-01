@@ -18,6 +18,12 @@ import { inspectHarnessRepository, renderDoctorText } from './harnessDoctor.mjs'
 import { replayTrace, renderTraceExplanation } from './dispatchTrace.mjs';
 import { renderScenarioText, runAllScenarios, runScenario, SCENARIO_IDS } from './scenarioRunner.mjs';
 import { renderHostTrialText, runHostTrial } from './hostTrialRunner.mjs';
+import {
+  renderGrokTrialText,
+  runGrokHostTrial,
+  WAVE2_TRIAL_REL,
+  writeGrokTrialReport
+} from './grokHostTrialRunner.mjs';
 import { renderHarnessGcText, runHarnessGc } from './harnessGc.mjs';
 import { writeTaskArtifacts } from './taskArtifacts.mjs';
 import { buildTaskAssignment, readTaskTitle, renderDispatchSummary, renderTaskAssignment } from './taskPresentation.mjs';
@@ -80,6 +86,10 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
 
   if (args[0] === 'host-trial') {
     return runHostTrialCommand(args.slice(1), { stdout });
+  }
+
+  if (args[0] === 'grok-trial') {
+    return runGrokTrialCommand(args.slice(1), { cwd, stdout });
   }
 
   if (args[0] === 'harness-gc') {
@@ -177,6 +187,42 @@ function runHostTrialCommand(rawArgs, { stdout } = {}) {
   const result = runHostTrial();
   if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else stdout.write(renderHostTrialText(result));
+  return result.status === 'PASS' ? 0 : 1;
+}
+
+function runGrokTrialCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    printGrokTrialHelp(stdout);
+    return 0;
+  }
+  const json = rawArgs.includes('--json');
+  const writeReport = rawArgs.includes('--write-report');
+  const args = rawArgs.filter((arg) => arg !== '--json' && arg !== '--write-report');
+  const command = args.shift();
+  if (command !== 'run') throw new Error('grok-trial requires run');
+  let sessionId = null;
+  let reportPath = WAVE2_TRIAL_REL;
+  while (args.length) {
+    const arg = args.shift();
+    if (arg === '--session-id') {
+      sessionId = args.shift();
+      if (!sessionId) throw new Error('grok-trial --session-id requires a value');
+      continue;
+    }
+    if (arg === '--report-path') {
+      reportPath = args.shift();
+      if (!reportPath) throw new Error('grok-trial --report-path requires a value');
+      continue;
+    }
+    throw new Error(`Unknown grok-trial option: ${arg}`);
+  }
+  const result = runGrokHostTrial({ sessionId, env: process.env });
+  if (writeReport && result.session_id) {
+    const written = writeGrokTrialReport(result, { cwd, reportPath });
+    result.report_path = written;
+  }
+  if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  else stdout.write(renderGrokTrialText(result));
   return result.status === 'PASS' ? 0 : 1;
 }
 
@@ -601,7 +647,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
 
@@ -1246,6 +1292,10 @@ function printTraceHelp(stdout) {
 
 function printHostTrialHelp(stdout) {
   stdout.write(`jj host-trial\n\n用法：\n  jj host-trial run [--json]\n\n说明：\n  在系统临时目录创建独立控制仓、真实 Git repo 和 worktree，验证中断恢复、sandbox attestation、receipt、CAS 和 Reviewer/Developer 返工。不会联网，也不会创建真实 Codex App task。\n`);
+}
+
+function printGrokTrialHelp(stdout) {
+  stdout.write(`jj grok-trial\n\n用法：\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n\n说明：\n  在真实 Grok 会话中跑 create/bind、中断 RECONCILE、host-issued attestation 与 Review 返工。缺 GROK_SESSION_ID / --session-id 或占位 session-<slug>-YYYYMMDD 时 fail-closed。\n  默认不写 docs/milestones/real-host-trial-grok.json；--write-report 才落盘。不关闭 Host Wave 2，不升 A2，不进 npm run verify。\n`);
 }
 
 function printHarnessGcHelp(stdout) {

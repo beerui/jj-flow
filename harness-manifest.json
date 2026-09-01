@@ -183,6 +183,26 @@
         "authority_for": ["grok-host-adapter-target-state", "multi-host-wave2"]
       },
       {
+        "id": "grok-host-adapter-runtime",
+        "path": "src/grokHostAdapter.mjs",
+        "authority_for": ["grok-host-adapter-runtime", "wave2-fail-closed-evaluator"]
+      },
+      {
+        "id": "grok-trial-runtime",
+        "path": "src/grokHostTrialRunner.mjs",
+        "authority_for": ["real-grok-host-trial-runtime"]
+      },
+      {
+        "id": "grok-trial-evidence",
+        "path": "docs/milestones/real-host-trial-grok.json",
+        "authority_for": ["real-grok-host-trial-evidence"]
+      },
+      {
+        "id": "grok-trial-tests",
+        "path": "tests/grok-host-trial.test.mjs",
+        "authority_for": ["real-grok-host-trial-regression"]
+      },
+      {
         "id": "ai-native-sdlc-design",
         "path": "docs/design-docs/ai-native-sdlc.md",
         "authority_for": ["ai-native-sdlc-target-state", "playbook-alignment"]
