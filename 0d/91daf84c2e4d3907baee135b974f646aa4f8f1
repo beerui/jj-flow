@@ -1,0 +1,67 @@
+docs/commands/jj-dispatch.md
+  s_0a1fdf7e8a0a56::t_46f26bc3ab20a2 67
+skills/jj-dispatch/references/control-project.md
+  s_0a1fdf7e8a0a56::t_5b8a14fbe443e4 200
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_58a17a9e1ea9d3 47
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_365dabf9b0f408 7
+docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md
+  s_0a1fdf7e8a0a56::t_7bb5027a4d746e 5,33
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_e2ade8e4cbd6d3 16-17
+src/dispatchRuntime.mjs
+  s_0a1fdf7e8a0a56::t_fc5f24ad32d1cf 23,522,531-532
+src/dispatchWorkspaceMode.mjs
+  s_0a1fdf7e8a0a56::t_5222834869eff4 1-287
+src/dispatchWorktree.mjs
+  s_0a1fdf7e8a0a56::t_192bd90266fcb2 1-186
+skills/jj-dispatch/references/grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_d471e653ac9a2d 3,73,278-286
+  s_0a1fdf7e8a0a56::t_1d08214cf8b7d7 199,320-326,348
+tests/dispatch-worktree.test.mjs
+  s_0a1fdf7e8a0a56::t_c9d0a15bcbf907 1-126
+examples/dispatch-attestation-mode-w.sample.json
+  s_0a1fdf7e8a0a56::t_12806831128eee 1-19
+src/dispatchAttestation.mjs
+  s_0a1fdf7e8a0a56::t_76e888f79dc0dd 8-11,72-75,81,85,91,93-97
+  s_0a1fdf7e8a0a56::t_55e497bc17270e 53
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_b87e4cdc0f0dc9 52
+docs/concepts-hosts.md
+  s_0a1fdf7e8a0a56::t_165657fa9cf4b4 18
+  s_0a1fdf7e8a0a56::t_20f232b4a60b3a 19
+skills/jj-dispatch/references/happy-path.md
+  s_0a1fdf7e8a0a56::t_bc07ac04cf30d5 25,47
+skills/jj-dispatch/SKILL.md
+  s_0a1fdf7e8a0a56::t_ce94dbd5f0eca3 28,31,74,132,138,142-145
+tests/dispatch-workspace-mode.test.mjs
+  s_0a1fdf7e8a0a56::t_9e1e1623132540 1,3-14,36-174,293
+  s_0a1fdf7e8a0a56::t_522e78e35795f0 2,15-35,175-292
+src/dispatchControlPlane.mjs
+  s_0a1fdf7e8a0a56::t_0172ead01b6a24 16-19,578,587,605,669-670,726-740,803,815,991-1001
+  s_0a1fdf7e8a0a56::t_02124d0b1fb4c7 2981-3035
+tests/dispatch-runtime.test.mjs
+  s_0a1fdf7e8a0a56::t_4d80b15f5fc2ed 218
+docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_543db03a22b3f5 18,48-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "0d91daf84c2e4d3907baee135b974f646aa4f8f1",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
