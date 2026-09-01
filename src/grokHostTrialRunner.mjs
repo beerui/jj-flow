@@ -292,7 +292,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
   }), 'approval:1');
 
   const analysisTick = tick({ label: 'tick:analysis' });
-  const analysisAction = requireAction(analysisTick, 'analysis', 1);
+  const analysisAction = requireGrokTrialAction(analysisTick, 'analysis', 1);
   createCount += 1;
   const analysisAttestation = writeGrokAttestation(controlDir, {
     deliveryId: DELIVERY_ID,
@@ -308,7 +308,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
   });
   persist(markDispatchUnknown(plane, { taskKey: analysisAction.task_key }), 'host:create-uncertain');
   const resumeTick = tick({ label: 'tick:resume' });
-  const reconcileAction = requireAction(resumeTick, 'analysis', 1, 'RECONCILE_THREAD');
+  const reconcileAction = requireGrokTrialAction(resumeTick, 'analysis', 1, 'RECONCILE_THREAD');
   const reconciled = reconcileGrokSession(plane, {
     taskKey: reconcileAction.task_key,
     candidates: [{
@@ -340,7 +340,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     recordedAt: NOW
   });
   const developmentTick1 = tick({ receipts: [analysisReceipt], label: 'receipt:analysis' });
-  const development1 = requireAction(developmentTick1, 'development', 1);
+  const development1 = requireGrokTrialAction(developmentTick1, 'development', 1);
   bindAction(development1);
   const commit1 = commitWorktree(worktree, 'status=implemented\n', 'feat: grok wave2 trial attempt 1', '2026-09-01T00:01:00.000Z');
 
@@ -349,7 +349,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     producedCommit: commit1
   });
   const testTick1 = tick({ receipts: [developmentReceipt1], label: 'receipt:development:1' });
-  const test1 = requireAction(testTick1, 'test', 1);
+  const test1 = requireGrokTrialAction(testTick1, 'test', 1);
   bindAction(test1);
   assertCommitContains(targetRepo, commit1, 'status=implemented');
 
@@ -358,7 +358,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     consumedCommit: commit1
   });
   const reviewTick1 = tick({ receipts: [testReceipt1], label: 'receipt:test:1' });
-  const review1 = requireAction(reviewTick1, 'review', 1);
+  const review1 = requireGrokTrialAction(reviewTick1, 'review', 1);
   bindAction(review1);
   const firstReviewContent = readCommitFile(targetRepo, commit1);
   const finding = {
@@ -387,7 +387,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
   }), 'approval:2');
 
   const developmentTick2 = tick({ label: 'tick:development:2' });
-  const development2 = requireAction(developmentTick2, 'development', 2);
+  const development2 = requireGrokTrialAction(developmentTick2, 'development', 2);
   bindAction(development2);
   const commit2 = commitWorktree(worktree, 'status=implemented\nverified=true\n', 'fix: resolve grok wave2 review finding', '2026-09-01T00:02:00.000Z');
 
@@ -396,7 +396,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     producedCommit: commit2
   });
   const testTick2 = tick({ receipts: [developmentReceipt2], label: 'receipt:development:2' });
-  const test2 = requireAction(testTick2, 'test', 2);
+  const test2 = requireGrokTrialAction(testTick2, 'test', 2);
   bindAction(test2);
   assertCommitContains(targetRepo, commit2, 'verified=true');
 
@@ -405,7 +405,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     consumedCommit: commit2
   });
   const reviewTick2 = tick({ receipts: [testReceipt2], label: 'receipt:test:2' });
-  const review2 = requireAction(reviewTick2, 'review', 2);
+  const review2 = requireGrokTrialAction(reviewTick2, 'review', 2);
   bindAction(review2);
   const secondReviewContent = readCommitFile(targetRepo, commit2);
   if (!secondReviewContent.includes('verified=true')) throw new Error('attempt 2 did not resolve review finding');
@@ -443,41 +443,41 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
   const namedBranch = worktreeCreated && git(worktree, ['rev-parse', '--abbrev-ref', 'HEAD']) === WRITE_BRANCH;
 
   const assertions = [
-    assertion('HST-REAL-SESSION', UUID_SESSION.test(sessionId) && !PLACEHOLDER_SESSION.test(sessionId), {
+    grokTrialAssertion('HST-REAL-SESSION', UUID_SESSION.test(sessionId) && !PLACEHOLDER_SESSION.test(sessionId), {
       session_id: sessionId,
       grok_agent: env?.GROK_AGENT || null
     }),
-    assertion('HST-NOT-SEMI-REAL', true, { mode: 'real-grok', adapter: GROK_HOST_ID }),
-    assertion('HST-A2-WORKTREE', worktreeCreated && commit1 !== commit2 && namedBranch, {
+    grokTrialAssertion('HST-NOT-SEMI-REAL', true, { mode: 'real-grok', adapter: GROK_HOST_ID }),
+    grokTrialAssertion('HST-A2-WORKTREE', worktreeCreated && commit1 !== commit2 && namedBranch, {
       commits: 2,
       exclusive_worktree: true,
       branch: WRITE_BRANCH
     }),
-    assertion('HST-SANDBOX-ATTESTATION', attestationFilesOk && hostIssued, {
+    grokTrialAssertion('HST-SANDBOX-ATTESTATION', attestationFilesOk && hostIssued, {
       bound_intents: attestedIntents.length,
       attestation_refs: attestationRefs
     }),
-    assertion('HST-HOST-ISSUED-BOUNDARY', Boolean(boundarySource) && writeIntent?.sandbox_evidence_ref, {
+    grokTrialAssertion('HST-HOST-ISSUED-BOUNDARY', Boolean(boundarySource) && writeIntent?.sandbox_evidence_ref, {
       effective_boundary_source: boundarySource,
       write_attestation: writeIntent?.sandbox_evidence_ref || null
     }),
-    assertion('HST-INTERRUPTED-RESUME', reconcileAction.type === 'RECONCILE_THREAD' && createCount === 7, {
+    grokTrialAssertion('HST-INTERRUPTED-RESUME', reconcileAction.type === 'RECONCILE_THREAD' && createCount === 7, {
       action: reconcileAction.type,
       duplicate_create_count: 0,
       create_count: createCount
     }),
-    assertion('HST-A3-REWORK', delivery.reviews.map((item) => item.outcome).join(',') === 'NEEDS_CHANGES,PASS', {
+    grokTrialAssertion('HST-A3-REWORK', delivery.reviews.map((item) => item.outcome).join(',') === 'NEEDS_CHANGES,PASS', {
       outcomes: delivery.reviews.map((item) => item.outcome)
     }),
-    assertion('HST-CAS-PERSISTED', persisted.revision === plane.revision && casWrites > 0, {
+    grokTrialAssertion('HST-CAS-PERSISTED', persisted.revision === plane.revision && casWrites > 0, {
       revision: plane.revision,
       cas_writes: casWrites
     }),
-    assertion('HST-TARGET-VERIFIED', finalValidation.ok && target.status === 'VERIFIED' && delivery.status === 'VERIFIED', {
+    grokTrialAssertion('HST-TARGET-VERIFIED', finalValidation.ok && target.status === 'VERIFIED' && delivery.status === 'VERIFIED', {
       target_status: target.status,
       delivery_status: delivery.status
     }),
-    assertion('HST-WAVE2-NOT-AUTO-CLOSED', true, {
+    grokTrialAssertion('HST-WAVE2-NOT-AUTO-CLOSED', true, {
       wave2_closed: false,
       max_unattended_level: 'A1'
     })
@@ -509,7 +509,7 @@ function executeTrial(tempRoot, { sessionId, env, boundarySource }) {
     status: failed ? 'FAIL' : 'PASS',
     isolated: true,
     side_effects: 'temporary-git-only',
-    runner_sha256: runnerHash(),
+    runner_sha256: grokTrialRunnerHash(),
     summary: '真实 Grok 会话完成 create/bind、中断 RECONCILE、host-issued attestation、Review NEEDS_CHANGES→返工→PASS 与 CAS VERIFIED。证据可评估，不自动关闭 Host Wave 2，不升 A2。',
     host: {
       adapter: GROK_HOST_ID,
@@ -694,7 +694,7 @@ function reviewReceipt(action, receiptId, commit, outcome, findings) {
   });
 }
 
-function requireAction(result, responsibility, attempt, type = 'CREATE_THREAD') {
+function requireGrokTrialAction(result, responsibility, attempt, type = 'CREATE_THREAD') {
   const action = result.actions?.find((item) => item.type === type
     && item.responsibility === responsibility
     && Number(item.task_key.split('/').at(-1)) === attempt);
@@ -729,7 +729,7 @@ function writeJson(file, value) {
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
-function assertion(id, passed, evidence) {
+function grokTrialAssertion(id, passed, evidence) {
   return {
     id,
     status: passed ? 'PASS' : 'FAIL',
@@ -739,7 +739,7 @@ function assertion(id, passed, evidence) {
   };
 }
 
-function runnerHash() {
+function grokTrialRunnerHash() {
   return hashNormalizedTextFile(fileURLToPath(import.meta.url));
 }
 
@@ -763,7 +763,7 @@ function failedReport(error, extra = {}) {
     status: 'FAIL',
     isolated: true,
     side_effects: 'none',
-    runner_sha256: runnerHash(),
+    runner_sha256: grokTrialRunnerHash(),
     summary: '真实 Grok Host trial 未完成。',
     host: {
       adapter: GROK_HOST_ID,
