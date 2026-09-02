@@ -1,0 +1,101 @@
+tests/jj-ralph-contract.test.mjs
+  s_a78f71b1a6fd98::t_149c7bc827c167 200
+  s_a78f71b1a6fd98::t_0f01c7d3d7e1c5 66,68,75,77,88-89,94-106,170,199,283,1776
+  s_a78f71b1a6fd98::t_745e22f989e5ce 12-14,29,31,382,390,394-409,411-416,418,420,1019-1020,1040-1041,1051,1114,1116,1118-1120,1136-1138,1140
+  s_a78f71b1a6fd98::t_8e042f8c102ad4 1574,1598-1601,1604-1607,1610-1611,1613,1620,1641,1643-1645,1649-1651,1711,1717-1721,1727-1729,1733,1753-1775,1782,1946,1957,1964
+  s_a78f71b1a6fd98::t_e6328f84c3ff73 1989-2022
+claude-commands/jj-ralph.md
+  s_a78f71b1a6fd98::t_95a4ee87c000ee 29
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 222-223,239-241,243-254,259,263-270,272-273,277-283,288-296,367-374,495,499,798-804,808-809,815,1101
+schemas/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_32600d057cdca2 3,26-45,320-321,324-325,328-329,332-338
+  s_a78f71b1a6fd98::t_21ba0c18c91864 305-308,341-343
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 8-29,226-227,229-233,252-254,337-353,605-607
+src/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_2f1c72c78d5d1d 175-176,178-189
+  s_a78f71b1a6fd98::t_10467becbb1845 134
+tests/memory-hot-layer.test.mjs
+  s_a78f71b1a6fd98::t_1ea0bf376633a8 283,285
+skills/jj-ralph/SKILL.md
+  s_a78f71b1a6fd98::t_307e149c892ed9 35,43-46,57,89,144,180
+CHANGELOG.md
+  s_a78f71b1a6fd98::t_c9e9c6a511bfd4 8-9
+src/ralph.mjs
+  s_a78f71b1a6fd98::t_9ff27c9e000cbc 25-28,30-35,40,96
+  s_a78f71b1a6fd98::t_3f49ff363d020d 29,36-39,41-42,131
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 30-31,38-50,88-92,99,113,115-117,207,209-262,264-268,274,400-402,409-417,557-559
+tests/portfolio-knowledge.test.mjs
+  s_a78f71b1a6fd98::t_9d715dd27c1186 35,38
+agents/jj-workflow-reviewer.toml
+  s_a78f71b1a6fd98::t_fc8d8d62618637 9
+src/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_da7879f75a1de9 239,243-254,263-264,266,268,273,277-283,288-295,798-801
+  s_a78f71b1a6fd98::t_7c30406f195f75 222-223,240-241,259,265,267,269-270,272,296,367-374,495,499,802-804,808-809,815,1101
+src/ralph/map.mjs
+  s_a78f71b1a6fd98::t_e12d4c521b0e81 10,68-69,176
+skills/jj-ralph/references/artifact-layout.md
+  s_a78f71b1a6fd98::t_a1177f1dcebc89 7-8,10,28-29,33,37,39,42,44,46,49-58,60-66,69,73,75-80,86-90,92-93
+skills/jj-ralph/scripts/lib/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 134,175-176,178-189
+skills/jj-ralph/references/post-complete-continue.md
+  s_a78f71b1a6fd98::t_6bd64fb3edd4d4 26,32,66,85
+  s_a78f71b1a6fd98::t_4a95d4460ffd13 41-42
+skills/jj-review/references/review-policy.md
+  s_a78f71b1a6fd98::t_d4422d1eb519fa 13,30,35
+skills/jj-ralph/references/capability.skeleton.json
+  s_a78f71b1a6fd98::t_4bd6bb334c9963 8
+skills/jj-review/references/host-review.md
+  s_a78f71b1a6fd98::t_7f4e8365e60511 5,59
+skills/jj-ralph/references/tiny-example.md
+  s_a78f71b1a6fd98::t_dcf93b0c332628 10,13,16,18-21,24,26-27,29-30,32-33,35-40,56,59-60,62,64,67
+skills/jj-ralph/references/business-map.md
+  s_a78f71b1a6fd98::t_497fce036cc50a 24,34
+src/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_477c2bd573a55c 557-559
+  s_a78f71b1a6fd98::t_8aeb9a5a9d3787 113,115-117
+  s_a78f71b1a6fd98::t_fbe8f8f2ff4f15 88-92,99
+  s_a78f71b1a6fd98::t_2673b6b0d40f29 30,38-50,207,209-262,264-268,274
+  s_a78f71b1a6fd98::t_544dfd7d063d0a 31,400-402,409-417
+docs/exec-plans/active/2026-09-02-ralph-plans-workspace-p1.md
+  s_a78f71b1a6fd98::t_ab3c7041b3905a 60-68,80
+skills/jj-ralph/references/must-evidence.md
+  s_a78f71b1a6fd98::t_a6ab61b2a584a9 50,66,79
+skills/jj-ralph/scripts/lib/ralph/map.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 10,68-69,176
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_a78f71b1a6fd98::t_774b444d0fcda1 25-42,96,131
+skills/jj-ralph/references/phases.md
+  s_a78f71b1a6fd98::t_a2819095e936d3 7-8,10,130,133
+skills/jj-ralph/references/run.skeleton.json
+  s_a78f71b1a6fd98::t_4d261b8daf3220 2,48-49,51-53,55-56
+tests/memory-extract.test.mjs
+  s_a78f71b1a6fd98::t_8920a6f0cd7c7b 15,103-110
+src/ralph/state.mjs
+  s_a78f71b1a6fd98::t_bedbe1ba68ccce 8-29,226-227,229-233,252-254,337-353,605-607
+skills/jj-review/SKILL.md
+  s_a78f71b1a6fd98::t_aed6dc9f0be5f4 52,68
+skills/jj-ralph/references/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_1620a946b137b2 3,26-45,305-308,320-321,324-325,328-329,332-338,341-343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "ed1c615cdbf980d991059f055b99ac4fdea79e2a",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
