@@ -1,0 +1,36 @@
+docs/design-docs/index.md
+  s_a78f71b1a6fd98::t_5c1382c171216e 23
+docs/exec-plans/index.md
+  s_a78f71b1a6fd98::t_0760335d58fab8 16
+scripts/build-docs.mjs
+  s_a78f71b1a6fd98::t_281c0cb12d84d1 112
+docs/design-docs/ralph-plans-workspace.md
+  s_a78f71b1a6fd98::t_aa3e00197fd8de 9
+docs/exec-plans/active/2026-09-02-ralph-plans-workspace-p2.md
+  s_a78f71b1a6fd98::t_26222881ec0025 56
+  s_a78f71b1a6fd98::t_c4762b09e810ea 53-55
+  s_a78f71b1a6fd98::t_bce6cb57e59983 1-52,57-122
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md
+  s_a78f71b1a6fd98::t_95ad3f62da445d 82
+CHANGELOG.md
+  s_a78f71b1a6fd98::t_8e760a021d1686 8-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "59549d0f163a0280086f4bdced57cbf22bb010be",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
