@@ -14,6 +14,8 @@ export {
   JUDGMENT_MODES,
   RALPHS_DIR_REL,
   RALPH_ARCHIVE_DIR_REL,
+  RALPH_TASKS_DIR_REL,
+  STATE_REL,
   RALPH_HANDOFF_SCHEMA_VERSION,
   RALPH_INTENSITIES,
   RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA,
@@ -23,7 +25,15 @@ export {
   RALPH_ROOT_REL,
   RALPH_RUN_SCHEMA_VERSION,
   RALPH_RUN_SCHEMA_VERSIONS,
+  RALPH_RUN_SCHEMA_VERSION_1_1,
   RALPH_RUN_SCHEMA_VERSION_LEGACY,
+  isLegacyRalphRunId,
+  isTaskRunId,
+  listRuns,
+  locateRalphRuns,
+  migrateHint,
+  runStateDir,
+  stripRunIdPrefix,
   TASK_PLAN_REL,
   FINDINGS_REL,
   PROGRESS_REL,
@@ -52,7 +62,6 @@ export {
   createEmptyMap,
   createEmptyStagnation,
   createRunSkeleton,
-  listRuns,
   loadMap,
   loadRun,
   mapPath,
@@ -147,3 +156,4 @@ export {
 } from './ralph/archive.mjs';
 
 export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';
+export { adoptRun, migrateOneRun, migrateRuns, proposeTaskIdFromLegacy } from './ralph/migrate.mjs';

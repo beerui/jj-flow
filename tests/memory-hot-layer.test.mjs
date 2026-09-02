@@ -207,7 +207,7 @@ test('archive promotes ## 可复用结论; missing findings is silent skip', asy
   await withHome(async () => {
     const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-hot-arch-'));
     try {
-      const runId = 'RALPH-hot-promote-20260902';
+      const runId = 'task-hot-promote';
       initRun({
         run_id: runId,
         title: '动态入驻表单',
@@ -215,7 +215,7 @@ test('archive promotes ## 可复用结论; missing findings is silent skip', asy
         project_key: 'seo-daji-web',
         attach_knowledge: false
       }, cwd);
-      const findingsPath = path.join(cwd, '.workflow', 'ralph', runId, 'findings.md');
+      const findingsPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'findings.md');
       fs.writeFileSync(findingsPath, [
         '# findings',
         '',
@@ -231,7 +231,7 @@ test('archive promotes ## 可复用结论; missing findings is silent skip', asy
         '- 外部接口 path 未确认前不落码（F-002）',
         ''
       ].join('\n'), 'utf8');
-      const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+      const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
       const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
       run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
       saveRun(run, cwd);
@@ -243,7 +243,7 @@ test('archive promotes ## 可复用结论; missing findings is silent skip', asy
       });
       assert.ok(hits.hits.some((hit) => hit.rule.includes('外部接口 path')));
 
-      const otherId = 'RALPH-hot-skip-20260902';
+      const otherId = 'task-hot-skip';
       initRun({
         run_id: otherId,
         title: 'skip',
@@ -251,8 +251,8 @@ test('archive promotes ## 可复用结论; missing findings is silent skip', asy
         project_key: 'seo-daji-web',
         attach_knowledge: false
       }, cwd);
-      fs.rmSync(path.join(cwd, '.workflow', 'ralph', otherId, 'findings.md'));
-      const other = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', otherId, 'run.json'), 'utf8'));
+      fs.rmSync(path.join(cwd, '.workflow', 'ralph', 'tasks', otherId, 'findings.md'));
+      const other = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', otherId, '.state', 'run.json'), 'utf8'));
       other.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
       saveRun(other, cwd);
       const skipped = archiveRun(otherId, { cwd });
@@ -270,7 +270,7 @@ test('init/resume write hot_memory progress; finding command prefills from progr
       appendHotMemoryEntries('seo-daji-web', [
         { date: '2026-09-01', task_key: 'old', rule: '动态入驻表单 schema 未确认前不落码' }
       ]);
-      const runId = 'RALPH-hot-init-20260902';
+      const runId = 'task-hot-init';
       const run = initRun({
         run_id: runId,
         title: '动态入驻表单 schema',
@@ -278,14 +278,14 @@ test('init/resume write hot_memory progress; finding command prefills from progr
         project_key: 'seo-daji-web',
         attach_knowledge: false
       }, cwd);
-      const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+      const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
       assert.match(progress, /hot_memory:/);
-      const analyze = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'task_plan.md'), 'utf8');
+      const analyze = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'task_plan.md'), 'utf8');
       assert.match(analyze, /## hot_memory/);
       assert.equal(run.artifact_refs.analyze, 'task_plan.md');
 
       fs.appendFileSync(
-        path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'),
+        path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'),
         '- failed_must: REQ-002 countryCode 泄漏\n- over_claimed: 未测 page 拼接\n',
         'utf8'
       );
@@ -296,11 +296,11 @@ test('init/resume write hot_memory progress; finding command prefills from progr
         rule: '模板 query 只传已选 countryCode'
       }, cwd);
       assert.equal(recorded.id, 'F-001');
-      const findings = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'findings.md'), 'utf8');
+      const findings = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'findings.md'), 'utf8');
       assert.match(findings, /现象: REQ-002 countryCode 泄漏/);
       assert.match(findings, /原因: 未测 page 拼接/);
 
-      const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+      const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
       const loaded = JSON.parse(fs.readFileSync(runPath, 'utf8'));
       loaded.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
       saveRun(loaded, cwd);
@@ -318,7 +318,7 @@ test('deliver-attempt improved=false and rollback emit finding_hint until an F e
   await withHome(async () => {
     const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-hot-hint-'));
     try {
-      const runId = 'RALPH-hot-hint-20260902';
+      const runId = 'task-hot-hint';
       initRun({
         run_id: runId,
         title: 'hint',
@@ -331,7 +331,7 @@ test('deliver-attempt improved=false and rollback emit finding_hint until an F e
       setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
       const rolled = rollbackPhase(runId, { toPhase: 'ANALYZE', reason: 'retry analyze', cwd });
       assert.equal(rolled.finding_hint, FINDING_HINT);
-      const findingsPath = path.join(cwd, '.workflow', 'ralph', runId, 'findings.md');
+      const findingsPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'findings.md');
       fs.writeFileSync(findingsPath, [
         defaultFindingsStub({ taskKey: runId }),
         '### F-001 验收漏测',

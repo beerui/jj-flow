@@ -1,6 +1,6 @@
 # Exec plan — Ralph 任务工作区 P2（身份稳定化）
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
@@ -59,47 +59,47 @@
 
 设计 §3.2 / §3.10 表 B5–B8。本切片改 **ralph 控制面路径与 id**；下游 skill 文案在 P2b。
 
-- [ ] `namingConfig`：`run_id_pattern` / `run_id_regex` / `layout.active_run` / `task_dir_pattern`；`normalizeRalphSlug` 去 `task-` 与 `RALPH-` 前缀；`buildRalphRunId` 产出 `task-<slug>`（无日期）
-- [ ] schema 1.2：`run_id` pattern 仅 `task-*`；skill 副本字节同步；`examples/ralph/sample-run.json` **保持 1.0**
-- [ ] `validateRun` / `validateReviewReport` / `createRunSkeleton`：1.2 必须 `task-*`；1.0/1.1 仍接受 `RALPH-*`
-- [ ] `runDir` = `.workflow/ralph/tasks/<run_id>/`；`runJsonPath` = `.../.state/run.json`
-- [ ] `listRuns`：扫描 `tasks/task-*`（有 `.state/run.json`）；活跃 `RALPH-*` 记 `needs_migrate`；忽略 `archive/`、`.migrated-*`、`business-map.json`
-- [ ] `loadRun` 命中活跃 `RALPH-*` 目录 → 抛错含 `jj ralph migrate`；命中 `archive/` 内旧快照允许只读
-- [ ] `last_archive_path` 继续指向 **live 任务目录**（P1c 原地翻转不变，只是根从 `RALPH-*` 换成 `tasks/task-*`）
-- [ ] `tests/jj-ralph-contract.test.mjs`：init 新 run 落在 `tasks/task-…/.state/run.json`；旧 `RALPH-*` fixture 改为 1.2 或标 needs_migrate；B8 静默空列表不得回归
-- [ ] `npm run ralph:sync` + `ralph:check` + ralph 合约 + `git diff --check`
+- [x] `namingConfig`：`run_id_pattern` / `run_id_regex` / `layout.active_run` / `task_dir_pattern`；`normalizeRalphSlug` 去 `task-` 与 `RALPH-` 前缀；`buildRalphRunId` 产出 `task-<slug>`（无日期）
+- [x] schema 1.2：`run_id` pattern 仅 `task-*`；skill 副本字节同步；`examples/ralph/sample-run.json` **保持 1.0**
+- [x] `validateRun` / `validateReviewReport` / `createRunSkeleton`：1.2 必须 `task-*`；1.0/1.1 仍接受 `RALPH-*`
+- [x] `runDir` = `.workflow/ralph/tasks/<run_id>/`；`runJsonPath` = `.../.state/run.json`
+- [x] `listRuns`：扫描 `tasks/task-*`（有 `.state/run.json`）；活跃 `RALPH-*` 记 `needs_migrate`；忽略 `archive/`、`.migrated-*`、`business-map.json`
+- [x] `loadRun` 命中活跃 `RALPH-*` 目录 → 抛错含 `jj ralph migrate`；命中 `archive/` 内旧快照允许只读
+- [x] `last_archive_path` 继续指向 **live 任务目录**（P1c 原地翻转不变，只是根从 `RALPH-*` 换成 `tasks/task-*`）
+- [x] `tests/jj-ralph-contract.test.mjs`：init 新 run 落在 `tasks/task-…/.state/run.json`；旧 `RALPH-*` fixture 改为 1.2 或标 needs_migrate；B8 静默空列表不得回归
+- [x] `npm run ralph:sync` + `ralph:check` + ralph 合约 + `git diff --check`
 
 ### P2b — 下游路径与 id 派生
 
 设计 §3.10 表 A / B2–B4。P1b 已把 jj-review 四文件读取改成 `task_plan.md` 三 section；本切片只改 **定位路径**。
 
-- [ ] CAP / HOF / SNAP 剥离 `/^(?:RALPH|task)-/`（`src/ralph/{map,gates}.mjs`）
-- [ ] `skills/jj-same` 五处路径：定位 `tasks/<task_key>/.state/run.json` 与 `.state/handoff.json`；无新布局时走既有 legacy（`RALPH-*/run.json`、`handoff/handoff.json`）
-- [ ] `skills/jj-review` 定位：优先 `tasks/*/ .state/run.json`；仍能 glob 到 leftover `archive/` 与未迁 `RALPH-*`（只读）。验收：**新旧布局各定位一个 run**
-- [ ] handoff 写入改 `.state/handoff.json`；`run.handoff.path` / `artifact_refs.handoff_ref` 跟随
-- [ ] reviews 写入 `.state/reviews/`；review-record 写回仍走 `validateReviewReport`（B7）
-- [ ] skill / CLI / `docs/commands/jj-ralph.md` 文案：`RALPH-…` 示例改 `task-…`；`artifact-layout.md` 换成 tasks + `.state/`
-- [ ] `tests/jj-dispatch-contract.test.mjs` 三处 `ralph:RALPH-…` fixture 同步（协议不改）
-- [ ] `npm run ralph:check` + `tests/jj-ralph-contract.test.mjs` + `tests/jj-dispatch-contract.test.mjs` + same/review 定位用例
+- [x] CAP / HOF / SNAP 剥离 `/^(?:RALPH|task)-/`（`src/ralph/{map,gates}.mjs`）
+- [x] `skills/jj-same` 五处路径：定位 `tasks/<task_key>/.state/run.json` 与 `.state/handoff.json`；无新布局时走既有 legacy（`RALPH-*/run.json`、`handoff/handoff.json`）
+- [x] `skills/jj-review` 定位：优先 `tasks/*/ .state/run.json`；仍能 glob 到 leftover `archive/` 与未迁 `RALPH-*`（只读）。验收：**新旧布局各定位一个 run**
+- [x] handoff 写入改 `.state/handoff.json`；`run.handoff.path` / `artifact_refs.handoff_ref` 跟随
+- [x] reviews 写入 `.state/reviews/`；review-record 写回仍走 `validateReviewReport`（B7）
+- [x] skill / CLI / `docs/commands/jj-ralph.md` 文案：`RALPH-…` 示例改 `task-…`；`artifact-layout.md` 换成 tasks + `.state/`
+- [x] `tests/jj-dispatch-contract.test.mjs` 三处 `ralph:RALPH-…` fixture 同步（协议不改）
+- [x] `npm run ralph:check` + `tests/jj-ralph-contract.test.mjs` + `tests/jj-dispatch-contract.test.mjs` + same/review 定位用例
 
 ### P2c — migrate + adopt + 去掉 1.0 回退
 
 设计 §3.12 / §5 硬切。默认单仓 cwd；`--all-projects` 才走 home 地图。
 
-- [ ] `jj ralph migrate` 逐目录 1:1：去日期 → `tasks/task-<slug>/`；slug 冲突 `-2` 并提示
-- [ ] 步 2–6：四文件已在 P1b 的合成 `task_plan.md`（若仍是 analyze/plan/acceptance 则合并）；英文标题转中文（失败不阻断）；progress 原样 + 轮次索引；无 findings 则建空骨架；`run.json`/reviews/handoff 进 `.state/`；内联残留 `archive-manifest.json`；删 attach/contribution
-- [ ] 步 7：原目录改 `.migrated-RALPH-<原名>/`；不自动删
-- [ ] `archive/` 跳过；evaluated 旧路径不改名
-- [ ] 活跃 `RALPH-*` 在 migrate 前 load 仍报错（P2a 硬切保持）
-- [ ] `jj ralph adopt --task <task_key>`：把已存在 run 绑到规范目录（可从 needs_migrate 或错误 slug 纠正）
-- [ ] init：先查 business-map / 热层相似历史，**建议复用**（打印候选，默认不新建）；已有同 `task_key` → resume 而非 init
-- [ ] `adopt --absorb`：人工确认后合并；REQ/TASK/REV 机械重编号；做不到则提示人工、**不自动**（可本切片落地最小路径：拒绝自动合并 + 打印 §3.12 示例命令）
-- [ ] 移除主动路径 1.0 标题回退（`当前`→`Current`→`Tasks`→全文 的后两级）。leftover `archive/` 只读定位不走该提取器则无需保留
-- [ ] 合约：1.0 八文件 fixture 迁到 `tasks/task-slug`；leftover `archive/` 不被 mutate；`.migrated-*` 不出现在 listRuns 活集
+- [x] `jj ralph migrate` 逐目录 1:1：去日期 → `tasks/task-<slug>/`；slug 冲突 `-2` 并提示
+- [x] 步 2–6：四文件已在 P1b 的合成 `task_plan.md`（若仍是 analyze/plan/acceptance 则合并）；英文标题转中文（失败不阻断）；progress 原样 + 轮次索引；无 findings 则建空骨架；`run.json`/reviews/handoff 进 `.state/`；内联残留 `archive-manifest.json`；删 attach/contribution
+- [x] 步 7：原目录改 `.migrated-RALPH-<原名>/`；不自动删
+- [x] `archive/` 跳过；evaluated 旧路径不改名
+- [x] 活跃 `RALPH-*` 在 migrate 前 load 仍报错（P2a 硬切保持）
+- [x] `jj ralph adopt --task <task_key>`：把已存在 run 绑到规范目录（可从 needs_migrate 或错误 slug 纠正）
+- [x] init：先查 business-map / 热层相似历史，**建议复用**（打印候选，默认不新建）；已有同 `task_key` → resume 而非 init
+- [x] `adopt --absorb`：人工确认后合并；REQ/TASK/REV 机械重编号；做不到则提示人工、**不自动**（可本切片落地最小路径：拒绝自动合并 + 打印 §3.12 示例命令）
+- [x] 移除主动路径 1.0 标题回退（`当前`→`Current`→`Tasks`→全文 的后两级）。leftover `archive/` 只读定位不走该提取器则无需保留
+- [x] 合约：1.0 八文件 fixture 迁到 `tasks/task-slug`；leftover `archive/` 不被 mutate；`.migrated-*` 不出现在 listRuns 活集
 
 ## 下一刀
 
-切片 0 入库后做 **P2a**：新 run 只写 `tasks/task-*` + `.state/run.json`，活跃 `RALPH-*` load 失败并提示 migrate。不在本切片做 migrate 本体。
+P2 关闭。lite 档（P2+）未开；不在本计划范围。
 
 ## 完成定义
 

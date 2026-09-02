@@ -26,7 +26,7 @@
 | **能力** | 能力地图里的能力 | 登录密码过期提醒（系统可记 `CAP-login-reminder`） |
 | **交接** | 做完后迁到项目B/项目C | `交接到 项目B 项目C` |
 
-内部账本 id 形如 `RALPH-login-reminder-20260722`、调度号形如 `DEL-password`——**agent 自己记**；你不用当口令背。
+内部账本 id 形如 `task-login-reminder`、调度号形如 `DEL-password`——**agent 自己记**；你不用当口令背。
 
 **一句话：** 只改当前业务仓 → **ralph**；迁仓 → **same**；多仓派工 → **dispatch**；Git 收工 → **end**。
 
@@ -131,7 +131,7 @@ agent 会按 **当前会话 / 最近改动 / 标题与目标是否同一需求**
 ```text
 .workflow/ralph/
   business-map.json
-  RALPH-…/          # 任务目录（agent 维护；归档就在这里原地翻转）
+  tasks/task-…/     # 任务目录（人可见三个 md；机器面在 .state/；归档就在这里原地翻转）
   archive/…         # 旧副本只读留存（新归档不再复制到这里）
 ```
 

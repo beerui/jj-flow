@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "prompt": "交接到项目B（当前会话有 RALPH-*/run.json，run.handoff.ready=true）",
+    "prompt": "交接到项目B（当前会话有 tasks/<task_key>/.state/run.json，run.handoff.ready=true）",
     "expected": "Ralph-first 不重做源分析 → 解析 B → 🔴 branch-purpose+CREATE 新鲜度 preflight → 🔴 EXECUTION_READY 后同 turn 改业务码+聚焦测试 → 用户侧用 closeout 模板短摘要无五门；未达 HANDOFF_READY 不宣称完成"
   },
   {

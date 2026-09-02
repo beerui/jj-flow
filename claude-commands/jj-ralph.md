@@ -16,13 +16,13 @@ allowed-tools:
 用户输入：$ARGUMENTS
 
 当前业务仓 Ralph 闭环：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。  
-产物：`.workflow/ralph/RALPH-*/`、`business-map.json`。  
+产物：`.workflow/ralph/tasks/<task_key>/`、`business-map.json`。
 权威 skill：`skills/jj-ralph/`（`ralph_ops.mjs` / `jj ralph`）。
 
 ## 执行要点
 
 1. 解析脚本：repo skill → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
-2. **用户口语优先**（「再改 tip」「刚才那个」「先不做了」）；**禁止**要求用户先报 `RALPH-…`。同需求 → resume/继续，勿默认 init。
+2. **用户口语优先**（「再改 tip」「刚才那个」「先不做了」）；**禁止**要求用户先报 `task-…`。同需求 → resume/继续，勿默认 init。活跃 `RALPH-*` 先 `jj ralph migrate`。
 3. map-find；单点跟 tiny-example。
 4. 聊天不推进检查点；更新 run.json 与阶段文档。报告里可写 run_id 供核对。
 5. 同操作失败最多 2 次后换策略；校正写 `instruction-correction.md`，审查者只读、不写 `AGENTS.md`。

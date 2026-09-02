@@ -21,7 +21,7 @@ test('ralph init auto-writes knowledge_refs into run.json', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'ralph-knowledge-'));
   try {
     const run = initRun({
-      run_id: 'RALPH-knowledge-wire-20260727',
+      run_id: 'task-knowledge-wire',
       title: '零息协议 URL',
       goal: '验证 knowledge_refs 自动挂载',
       project: 'project-a',
@@ -32,9 +32,9 @@ test('ralph init auto-writes knowledge_refs into run.json', () => {
     assert.deepEqual(errors, []);
     const loaded = loadRun(run.run_id, cwd);
     assert.ok(Array.isArray(loaded.knowledge_refs));
-    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph', run.run_id, 'task_plan.md'), 'utf8');
+    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph/tasks', run.run_id, 'task_plan.md'), 'utf8');
     assert.match(analyze, /knowledge_refs/);
-    const attachPath = path.join(cwd, '.workflow/ralph', run.run_id, 'knowledge-attach.json');
+    const attachPath = path.join(cwd, '.workflow/ralph/tasks', run.run_id, 'knowledge-attach.json');
     assert.equal(fs.existsSync(attachPath), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });

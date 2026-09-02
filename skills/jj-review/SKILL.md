@@ -38,7 +38,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 ## Immediate actions
 
 1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/`. **Out:** `run.json`.  
-   Read `RALPH-*/run.json`. Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc; include archive dirs).
+   Prefer `tasks/*/ .state/run.json`. Still glob leftover `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
 
    🔴 CHECKPOINT · 🛑 STOP — **no run** (do not init):
 
@@ -65,7 +65,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.
    Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`; optional `pass` (`bugs`|`security`|`compliance`) and `importance` (`important`|`nit`).
-   Compare the diff to `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`). Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
+   Compare the diff to `task_plan.md` **## 计划 → ### 当前**. Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
    Record `source` + `host_review` (provenance; does not advance other gates).
    `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
 
@@ -76,7 +76,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    Prefer CLI (same schema; **keep provenance**):
 
    ```bash
-   jj ralph review-record --run-id RALPH-login-reminder-20260722 \
+   jj ralph review-record --run-id task-login-reminder \
      --outcome NEEDS_CHANGES --source host_builtin \
      --reviewed-commit abcdef1 \
      --finding-json '{"id":"F-1","severity":"high","pass":"bugs","importance":"important","file":"src/a.js","line":1,"description":"broken","status":"OPEN","acceptance":"fix"}' \
@@ -117,7 +117,7 @@ Still read-only; still persist `REV-*.json`; explain in `summary` / `host_review
 ## Examples
 
 ```text
-$jj-review run=RALPH-login-reminder-20260722
+$jj-review run=task-login-reminder
 $jj-review 评审当前 commit 的登录提醒改动
 $jj-review record the host review result on the latest ralph run
 $jj-review 把刚才宿主审查结论记到最新 ralph run

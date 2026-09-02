@@ -32,6 +32,7 @@ import {
   RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA,
   RALPH_REVIEW_SCHEMA_VERSION,
   RALPHS_DIR_REL,
+  STATE_REL,
   REVIEW_NIT_CAP,
   REVIEW_OUTCOMES,
   REVIEW_SOURCES,
@@ -52,10 +53,15 @@ import {
   createEmptyAcceptLayers,
   createRunSkeleton,
   hydrateIntensityFields,
+  isLegacyRalphRunId,
+  listRuns,
   loadRun,
+  migrateHint,
   nowIso,
   readJson,
   runDir,
+  runMachineFile,
+  runStateDir,
   saveRun,
   setRunStatus,
   unique,
@@ -69,7 +75,7 @@ import {
   resolveReviewScope,
   writeInstructionCorrection
 } from './gates.mjs';
-import { buildElevationFromRun, tokenize } from './map.mjs';
+import { buildElevationFromRun, mapFind, tokenize } from './map.mjs';
 
 function hotMemoryQueryFrom(run, extra = '') {
   return [run?.title, run?.goal, extra].filter(Boolean).join('\n');
@@ -162,9 +168,15 @@ export function pruneProjectHotMemory({ cwd = process.cwd(), projectKey = null }
 }
 
 export function initRun(options, cwd = process.cwd()) {
+  const requestedId = options.run_id || options.runId;
+  if (isLegacyRalphRunId(requestedId)) throw new Error(migrateHint(requestedId));
   const naming = loadNamingConfig();
   if (options?.strict_naming !== false && naming.ralph?.legacy_tolerance?.create_must_follow_config !== false) {
-    assertStrictRalphRunId(options.run_id || options.runId, naming);
+    assertStrictRalphRunId(requestedId, naming);
+  }
+  const existing = listRuns(cwd).find((row) => row.run_id === requestedId && !row.needs_migrate);
+  if (existing && !options.force) {
+    throw new Error('run already exists: ' + requestedId + ' (resume the same task_key; use --force to overwrite skeleton)');
   }
   const runOptions = { ...options };
   if (!runOptions.project_key) {
@@ -277,6 +289,33 @@ export function initRun(options, cwd = process.cwd()) {
     const filePath = path.join(dir, name);
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
   }
+  const reuse_suggestions = [];
+  const seen = new Set([run.run_id]);
+  for (const row of listRuns(cwd)) {
+    if (row.run_id === run.run_id) continue;
+    if (row.needs_migrate || (row.title && row.title === run.title)) {
+      reuse_suggestions.push({
+        run_id: row.run_id,
+        title: row.title,
+        needs_migrate: Boolean(row.needs_migrate),
+        source: 'list'
+      });
+      seen.add(row.run_id);
+    }
+  }
+  try {
+    const hits = mapFind(run.title || run.goal || '', { cwd, limit: 5 });
+    for (const match of hits.matches || []) {
+      for (const ref of match.run_refs || []) {
+        if (seen.has(ref)) continue;
+        seen.add(ref);
+        reuse_suggestions.push({ run_id: ref, title: match.title, source: 'map' });
+      }
+    }
+  } catch {
+    /* missing map is not fatal */
+  }
+  if (reuse_suggestions.length) run.reuse_suggestions = reuse_suggestions.slice(0, 5);
   return run;
 }
 
@@ -704,7 +743,7 @@ export function recordReview(runId, {
   const existingReviews = Array.isArray(run.review?.reviews) ? run.review.reviews : [];
   for (const prev of existingReviews) {
     if (!prev?.path) continue;
-    const absPrev = path.join(runDir(runId, cwd), prev.path);
+    const absPrev = runMachineFile(runId, prev.path, cwd);
     if (!fs.existsSync(absPrev)) continue;
     try {
       const old = readJson(absPrev);
@@ -748,7 +787,7 @@ export function recordReview(runId, {
   const errors = validateReviewReport(report);
   if (errors.length) throw new Error('invalid review: ' + errors.join('; '));
   const relPath = path.join('reviews', id + '.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
-  writeJson(path.join(runDir(runId, cwd), relPath), report);
+  writeJson(path.join(runStateDir(runId, cwd), relPath), report);
   const entry = {
     review_id: id,
     path: relPath,
@@ -789,7 +828,7 @@ export function recordReview(runId, {
   line += nl;
   if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, line, 'utf8');
   else fs.writeFileSync(progressPath, '# Progress' + nl + nl + line, 'utf8');
-  return { run, report, path: path.join(RALPHS_DIR_REL, runId, relPath).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
+  return { run, report, path: path.join(RALPHS_DIR_REL, runId, STATE_REL, relPath).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
 }
 
 /**

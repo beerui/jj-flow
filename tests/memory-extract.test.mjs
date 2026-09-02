@@ -81,7 +81,7 @@ test('rule about Closeout survives; task restatement and near-dup drop', () => {
 test('finalize drops narration lessons from contribution candidates', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-extract-'));
   try {
-    const runId = 'RALPH-extract-gate-20260829';
+    const runId = 'task-extract-gate';
     initRun({
       run_id: runId,
       title: 'tip down',

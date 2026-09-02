@@ -6,8 +6,11 @@ import path from 'node:path';
 import {
   RALPH_MAP_REL,
   RALPH_MAP_SCHEMA_VERSION,
+  RALPH_ROOT_REL,
   RALPHS_DIR_REL,
+  STATE_REL,
   TASK_PLAN_REL,
+  isTaskRunId,
   loadMap,
   loadRun,
   mapPath,
@@ -64,7 +67,7 @@ export function buildElevationFromRun(run, {
   cwd = process.cwd(),
   include_process_lessons_in_map = false
 } = {}) {
-  const id = run.capability_ids?.[0] || ('CAP-' + run.run_id.replace(/^RALPH-/, '').toLowerCase());
+  const id = run.capability_ids?.[0] || ('CAP-' + run.run_id.replace(/^(?:RALPH|task)-/i, '').toLowerCase());
   const acceptRel = run.artifact_refs?.acceptance || TASK_PLAN_REL;
   const defaultAcceptance = path.join(RALPHS_DIR_REL, run.run_id, acceptRel).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const processLessons = deriveAutoLessonsFromRun(run, cwd);
@@ -173,8 +176,15 @@ export function findInMap(map, query, { limit = 10 } = {}) {
       const sep = String.fromCharCode(92);
       const discover_paths = [];
       for (const runId of run_refs) {
-        for (const name of ['run.json', 'progress.md', 'task_plan.md', 'findings.md', 'analyze.md', 'plan.md', 'acceptance.md']) {
-          discover_paths.push(path.join(RALPHS_DIR_REL, runId, name).split(sep).join('/'));
+        if (isTaskRunId(runId)) {
+          discover_paths.push(path.join(RALPHS_DIR_REL, runId, STATE_REL, 'run.json').split(sep).join('/'));
+          for (const name of ['progress.md', 'task_plan.md', 'findings.md']) {
+            discover_paths.push(path.join(RALPHS_DIR_REL, runId, name).split(sep).join('/'));
+          }
+        } else {
+          for (const name of ['run.json', 'progress.md', 'task_plan.md', 'findings.md', 'analyze.md', 'plan.md', 'acceptance.md']) {
+            discover_paths.push(path.join(RALPH_ROOT_REL, runId, name).split(sep).join('/'));
+          }
         }
       }
       matches.push({

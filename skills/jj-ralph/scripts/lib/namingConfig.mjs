@@ -31,17 +31,18 @@ export const DEFAULT_NAMING_CONFIG = {
     derive_rule: 'replace_role_only'
   },
   ralph: {
-    run_id_pattern: 'RALPH-{slug}-{YYYYMMDD}',
-    run_id_regex: '^RALPH-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9]{8}$',
+    run_id_pattern: 'task-{slug}',
+    run_id_regex: '^task-[a-z0-9][a-z0-9-]{1,80}$',
     slug_style: 'kebab-case',
     slug_regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+    task_dir_pattern: 'tasks/{task_key}',
     archive_dir_pattern: '{YYYY-MM-DD}-{slug}',
     archive_dir_regex: '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$',
     completed_dirname: 'completed',
     layout: {
       root: '.workflow/ralph',
-      active_run: '.workflow/ralph/RALPH-{slug}-{YYYYMMDD}',
-      completed_run: '.workflow/ralph/completed/RALPH-{slug}-{YYYYMMDD}',
+      active_run: '.workflow/ralph/tasks/{task_key}',
+      completed_run: '.workflow/ralph/tasks/{task_key}',
       archive: '.workflow/ralph/archive/{YYYY-MM-DD}-{slug}',
       business_map: '.workflow/ralph/business-map.json',
       meta_archive_bucket: '.workflow/ralph/archive/_meta'
@@ -125,7 +126,16 @@ export function loadNamingConfig({ configDir = resolveGlobalConfigDir(), require
     ralph: {
       ...DEFAULT_NAMING_CONFIG.ralph,
       ...(raw.ralph || {}),
-      layout: { ...DEFAULT_NAMING_CONFIG.ralph.layout, ...((raw.ralph && raw.ralph.layout) || {}) },
+      // P2 identity is a hard cut: stale naming.json must not keep RALPH-{slug}-{date}.
+      run_id_pattern: DEFAULT_NAMING_CONFIG.ralph.run_id_pattern,
+      run_id_regex: DEFAULT_NAMING_CONFIG.ralph.run_id_regex,
+      task_dir_pattern: DEFAULT_NAMING_CONFIG.ralph.task_dir_pattern,
+      layout: {
+        ...DEFAULT_NAMING_CONFIG.ralph.layout,
+        ...((raw.ralph && raw.ralph.layout) || {}),
+        active_run: DEFAULT_NAMING_CONFIG.ralph.layout.active_run,
+        completed_run: DEFAULT_NAMING_CONFIG.ralph.layout.completed_run
+      },
       legacy_tolerance: {
         ...DEFAULT_NAMING_CONFIG.ralph.legacy_tolerance,
         ...((raw.ralph && raw.ralph.legacy_tolerance) || {})
@@ -344,7 +354,7 @@ export function ensureDispatchControlRoot(options = {}) {
 export function normalizeRalphSlug(input) {
   return String(input || '')
     .trim()
-    .replace(/^RALPH-/i, '')
+    .replace(/^(?:RALPH|task)-/i, '')
     .replace(/[-_]?(\d{8})$/g, '')
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/[^A-Za-z0-9]+/g, '-')
@@ -367,12 +377,12 @@ export function formatYyyyMmDd(date = new Date()) {
 }
 
 export function buildRalphRunId(slug, date = new Date(), config = loadNamingConfig()) {
+  void date;
   const normalized = normalizeRalphSlug(slug);
   if (!normalized) throw new Error('slug is required');
   const slugRe = new RegExp(config.ralph.slug_regex);
   if (!slugRe.test(normalized)) throw new Error('slug must be kebab-case: ' + normalized);
-  const ymd = typeof date === 'string' && /^\d{8}$/.test(date) ? date : formatYyyymmdd(date);
-  const runId = 'RALPH-' + normalized + '-' + ymd;
+  const runId = 'task-' + normalized;
   const runRe = new RegExp(config.ralph.run_id_regex);
   if (!runRe.test(runId)) throw new Error('built run_id failed config regex: ' + runId);
   return runId;
@@ -384,13 +394,13 @@ export function isStrictRalphRunId(runId, config = loadNamingConfig()) {
 
 export function assertStrictRalphRunId(runId, config = loadNamingConfig()) {
   if (!isStrictRalphRunId(runId, config)) {
-    throw new Error('run_id must match ' + config.ralph.run_id_pattern + ' (kebab slug + YYYYMMDD), got: ' + runId);
+    throw new Error('run_id must match ' + config.ralph.run_id_pattern + ' (task-<slug>), got: ' + runId);
   }
   return runId;
 }
 
 export function buildArchiveDirNameFromRunId(runId, now = new Date(), config = loadNamingConfig()) {
-  const raw = String(runId || '').replace(/^RALPH-/, '');
+  const raw = String(runId || '').replace(/^(?:RALPH|task)-/, '');
   const m = raw.match(/^(.*?)[-_]?([0-9]{8})$/);
   if (m && m[1]) {
     const ymd = m[2];

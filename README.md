@@ -81,7 +81,7 @@ $jj-same 准备交接 会话=019f... 源提交=c0c360f9d 功能=密码更新提�
 $jj-same 交接=@D:\path\to\handoff-snapshot.yaml 当前项目=项目B 开始迁移
 $jj-dispatch PREVIEW delivery=DEL-password
 jj ralph map-find --query "密码过期"
-jj ralph archive --run-id RALPH-login-reminder-20260722
+jj ralph archive --run-id task-login-reminder
 ```
 
 ## 继续阅读

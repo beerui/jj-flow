@@ -52,7 +52,11 @@ import {
   abandonRun,
   knowledgeContribute,
   suggestReopenAsNew,
-  loadRun
+  loadRun,
+  listRuns,
+  locateRalphRuns,
+  migrateRuns,
+  adoptRun
 } from '../src/ralph.mjs';
 import * as ralphApi from '../src/ralph.mjs';
 
@@ -86,11 +90,14 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'RALPH_ROOT_REL',
   'RALPH_RUN_SCHEMA_VERSION',
   'RALPH_RUN_SCHEMA_VERSIONS',
+  'RALPH_RUN_SCHEMA_VERSION_1_1',
   'RALPH_RUN_SCHEMA_VERSION_LEGACY',
+  'RALPH_TASKS_DIR_REL',
   'REVIEW_NIT_CAP',
   'REVIEW_SCOPES',
   'REVIEW_SOURCES',
   'RUN_STATUSES',
+  'STATE_REL',
   'SECTION_ACCEPT',
   'SECTION_ANALYZE',
   'SECTION_CURRENT',
@@ -105,6 +112,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'SECTION_UNRESOLVED',
   'TASK_PLAN_REL',
   'abandonRun',
+  'adoptRun',
   'addGateIssue',
   'applyHandoffState',
   'archiveDir',
@@ -145,10 +153,13 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'initRun',
   'inspectAcceptanceEvidence',
   'invokeKnowledgeContributeHook',
+  'isLegacyRalphRunId',
   'isReviewSkipPath',
+  'isTaskRunId',
   'isTestPath',
   'knowledgeContribute',
   'listRuns',
+  'locateRalphRuns',
   'loadMap',
   'loadNamingConfig',
   'loadRun',
@@ -156,6 +167,9 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'mapMergeFromRun',
   'mapPath',
   'mergeCapabilityIntoMap',
+  'migrateHint',
+  'migrateOneRun',
+  'migrateRuns',
   'normalizeHostMeta',
   'normalizeHostReview',
   'normalizeIntensity',
@@ -163,6 +177,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'nowIso',
   'persistRunMetrics',
   'promoteHotMemoryFromRun',
+  'proposeTaskIdFromLegacy',
   'pruneProjectHotMemory',
   'ralphRoot',
   'ralphsDir',
@@ -179,12 +194,14 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'rollbackPhase',
   'runDir',
   'runJsonPath',
+  'runStateDir',
   'saveMap',
   'saveRun',
   'setAcceptLayer',
   'setGate',
   'setRunStatus',
   'suggestReopenAsNew',
+  'stripRunIdPrefix',
   'tokenize',
   'validateMap',
   'validateReviewReport',
@@ -299,7 +316,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '项目B',
     '项目C',
     '控制项目',
-    'RALPH-login-reminder',
+    'task-login-reminder',
     'DEL-password',
     'CAP-login-reminder',
     'intensity',
@@ -334,7 +351,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/ralph.mjs'), 'utf8')
   );
-  for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs']) {
+  for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs']) {
     const dest = path.join(root, 'skills/jj-ralph/scripts/lib/ralph', name);
     assert.ok(fs.existsSync(dest), `portable lib missing ralph/${name}; run npm run ralph:sync`);
     assert.equal(
@@ -368,12 +385,12 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
   const command = read('claude-commands/jj-ralph.md');
-  assert.match(command, /\.workflow\/ralph\/RALPH/);
+  assert.match(command, /\.workflow\/ralph\/tasks/);
   assert.match(command, /map-find/);
   assert.doesNotMatch(command, /[Mm]aestro/);
 
   const layout = read('skills/jj-ralph/references/artifact-layout.md');
-  assert.match(layout, /\.workflow\/ralph\/RALPH/);
+  assert.match(layout, /\.workflow\/ralph\/tasks/);
   assert.doesNotMatch(layout, /ralph\/ralphs\//);
   assert.doesNotMatch(layout, /ralphs\/RALPH/);
   assert.doesNotMatch(layout, /ralph\/runs\//);
@@ -390,10 +407,10 @@ test('sample run and business map validate', () => {
   assert.ok(map.capabilities[0].run_refs.includes('RALPH-login-reminder-20260722'));
 });
 
-test('initRun writes Chinese task_plan.md sections (legacy ## Tasks still extractable)', () => {
+test('initRun writes Chinese task_plan.md sections and schema 1.2 task-* layout', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-init-shape-'));
   try {
-    const runId = 'RALPH-init-shape-20260825';
+    const runId = 'task-init-shape';
     const run = initRun({ run_id: runId, title: 'init shape', goal: 'Current heading', capability_ids: ['CAP-init-shape'], attach_knowledge: false }, cwd);
     assert.equal(run.schema_version, RALPH_RUN_SCHEMA_VERSION);
     assert.equal(run.artifact_refs.analyze, TASK_PLAN_REL);
@@ -401,7 +418,7 @@ test('initRun writes Chinese task_plan.md sections (legacy ## Tasks still extrac
     assert.equal(run.artifact_refs.acceptance, TASK_PLAN_REL);
     assert.equal(run.artifact_refs.findings, 'findings.md');
     assert.equal(run.gate_set, 'full');
-    const dir = path.join(cwd, '.workflow', 'ralph', runId);
+    const dir = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
     const plan = fs.readFileSync(path.join(dir, TASK_PLAN_REL), 'utf8');
     assert.match(plan, /^## 目标$/m);
     assert.match(plan, /^## 分析$/m);
@@ -429,7 +446,7 @@ test('initRun writes Chinese task_plan.md sections (legacy ## Tasks still extrac
 test('map-merge then map-find recovers historical capability and run paths', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-map-'));
   try {
-    const runId = 'RALPH-login-reminder-20260722';
+    const runId = 'task-login-reminder';
     initRun(
       {
         run_id: runId,
@@ -439,7 +456,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
       },
       cwd
     );
-    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.phase = 'ACCEPT';
     run.gates = {
@@ -473,7 +490,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
     assert.ok(byTitle.length >= 1);
     assert.equal(byTitle[0].id, 'CAP-login-reminder');
     assert.ok(byTitle[0].run_refs.includes(runId));
-    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`.workflow/ralph/${runId}/run.json`)));
+    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`.workflow/ralph/tasks/${runId}/.state/run.json`)));
 
     const byKeyword = mapFind('password_expired 登录', { cwd });
     assert.ok(byKeyword.matches.some((item) => item.id === 'CAP-login-reminder'));
@@ -497,7 +514,7 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
   const chunks = [];
   const stdout = { write: (text) => chunks.push(text) };
   try {
-    const runId = 'RALPH-demo-20260722';
+    const runId = 'task-demo';
     assert.equal(
       runCli(
         [
@@ -518,7 +535,7 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
       0
     );
 
-    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     run.gates.analyze = 'PASS';
@@ -537,22 +554,22 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
 
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'business-map.json')));
     assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'archive')));
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
     const liveAfterArchive = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     assert.equal(liveAfterArchive.status, 'COMPLETED');
-    assert.equal(liveAfterArchive.last_archive_path, '.workflow/ralph/' + runId);
+    assert.equal(liveAfterArchive.last_archive_path, '.workflow/ralph/tasks/' + runId);
     assert.ok(liveAfterArchive.archive && Array.isArray(liveAfterArchive.archive.files));
-    const handoffJson = path.join(cwd, '.workflow', 'ralph', runId, 'handoff', 'handoff.json');
+    const handoffJson = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'handoff.json');
     assert.ok(fs.existsSync(handoffJson));
     const handoffPkg = JSON.parse(fs.readFileSync(handoffJson, 'utf8'));
     assert.equal(handoffPkg.schema_version, 'jj-flow/ralph-handoff/1.1');
     assert.equal(typeof handoffPkg.ready, 'boolean');
     assert.ok(Array.isArray(handoffPkg.must));
     const runAfterHandoff = JSON.parse(fs.readFileSync(runPath, 'utf8'));
-    assert.match(runAfterHandoff.artifact_refs.handoff_ref, /RALPH-demo-20260722\/handoff\/handoff\.json$/);
+    assert.match(runAfterHandoff.artifact_refs.handoff_ref, /tasks\/task-demo\/\.state\/handoff\.json$/);
     assert.ok(
       fs.existsSync(
-        path.join(cwd, '.workflow', 'dispatch', 'recommendations', `SNAP-demo-20260722`, 'snapshot.json')
+        path.join(cwd, '.workflow', 'dispatch', 'recommendations', `SNAP-demo`, 'snapshot.json')
       )
     );
 
@@ -569,7 +586,7 @@ test('review-record associates task/review threads on ralph run', () => {
   const chunks = [];
   const stdout = { write: (text) => chunks.push(text) };
   try {
-    const runId = 'RALPH-review-demo-20260723';
+    const runId = 'task-review-demo';
     assert.equal(runCli(['ralph', 'init', '--run-id', runId, '--title', 'review demo', '--goal', 'link sessions', '--json'], { cwd, stdout }), 0);
     chunks.length = 0;
     assert.equal(runCli(['ralph', 'review-record', '--run-id', runId, '--outcome', 'PASS', '--reviewed-commit', 'abcdef1234567', '--task-thread', '019f8c85-8c32-72c3-b62b-ee9f0753a9e7', '--review-thread', '019f8cb8-14e9-79b3-bf40-30ba6c89ef2c', '--summary', 'ok', '--json'], { cwd, stdout }), 0);
@@ -578,8 +595,8 @@ test('review-record associates task/review threads on ralph run', () => {
     assert.equal(payload.report.outcome, 'PASS');
     assert.equal(payload.report.task_thread_id, '019f8c85-8c32-72c3-b62b-ee9f0753a9e7');
     assert.equal(payload.report.review_thread_id, '019f8cb8-14e9-79b3-bf40-30ba6c89ef2c');
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'reviews', 'REV-1.json')));
-    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'reviews', 'REV-1.json')));
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.review.latest_review_id, 'REV-1');
     assert.equal(run.artifact_refs.latest_review_ref, 'reviews/REV-1.json');
     assert.deepEqual(validateRun(run), []);
@@ -593,7 +610,7 @@ test('review-record persists source and host_review provenance', () => {
   const chunks = [];
   const stdout = { write: (text) => chunks.push(text) };
   try {
-    const runId = 'RALPH-review-prov-20260730';
+    const runId = 'task-review-prov';
     assert.equal(runCli(['ralph', 'init', '--run-id', runId, '--title', 'review provenance', '--goal', 'keep host source', '--json'], { cwd, stdout }), 0);
     chunks.length = 0;
     const hostJson = JSON.stringify({
@@ -617,12 +634,12 @@ test('review-record persists source and host_review provenance', () => {
     assert.equal(payload.report.host_review.method, 'skill');
     assert.equal(payload.report.host_review.entry, 'review');
     assert.deepEqual(payload.report.host_review.artifact_paths, ['tmp/host-review.md']);
-    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'reviews', 'REV-1.json'), 'utf8'));
+    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'reviews', 'REV-1.json'), 'utf8'));
     assert.equal(disk.source, 'host_builtin');
     assert.equal(disk.host_review.entry, 'review');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
     assert.match(progress, /source=host_builtin/);
-    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.review.reviews[0].source, 'host_builtin');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -639,7 +656,7 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     return JSON.parse(result.stdout);
   };
   try {
-    const runId = 'RALPH-ops-wrapper-20260723';
+    const runId = 'task-ops-wrapper';
     const init = runNode([
       'init',
       '--run-id',
@@ -656,7 +673,7 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     assert.equal(init.ok, true);
     assert.match(String(init.resolved).replaceAll('\\', '/'), /src\/ralph\.mjs$/);
 
-    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     assert.equal(run.project_key, 'ops-hot-proj');
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
@@ -680,19 +697,19 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     assert.equal(finalized.action, 'finalize');
     assert.equal(finalized.capability_id, 'CAP-ops');
     assert.equal(finalized.status, 'COMPLETED');
-    assert.equal(finalized.archive_path, '.workflow/ralph/' + runId);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    assert.equal(finalized.archive_path, '.workflow/ralph/tasks/' + runId);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
 
     const found = runNode(['map-find', '--query', 'thin-wrap']);
     assert.ok(found.matches.some((item) => item.id === 'CAP-ops'));
     const hit = found.matches.find((item) => item.id === 'CAP-ops');
-    assert.ok(hit.discover_paths.some((p) => p.includes(`${runId}/run.json`)));
+    assert.ok(hit.discover_paths.some((p) => p.includes(`${runId}/.state/run.json`)));
     assert.ok(hit.lessons.includes('thin-wrap'));
 
     const handoff = runNode(['handoff', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, handoff.path, 'handoff.json')));
-    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/RALPH-.*\/handoff$/);
-    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/RALPH-.*\/handoff$/);
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/tasks\/task-.*\/\.state$/);
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/tasks\/task-.*\/\.state$/);
     const snap = runNode(['dispatch-snapshot', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, snap.path)));
     const prep = runNode(['commit-prep', '--run-id', runId]);
@@ -718,7 +735,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(scriptsDir, 'lib', 'ralph.mjs')
     );
     fs.mkdirSync(path.join(scriptsDir, 'lib', 'ralph'), { recursive: true });
-    for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs']) {
+    for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs']) {
       const src = path.join(root, 'skills/jj-ralph/scripts/lib/ralph', name);
       assert.ok(fs.existsSync(src), `portable lib missing ralph/${name}; run npm run ralph:sync`);
       fs.copyFileSync(src, path.join(scriptsDir, 'lib', 'ralph', name));
@@ -753,12 +770,12 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       assert.equal(result.status, 0, result.stderr || result.stdout);
       return JSON.parse(result.stdout);
     };
-    const runId = 'RALPH-portable-20260723';
+    const runId = 'task-portable';
     const init = runNode(['init', '--run-id', runId, '--title', 'portable', '--goal', 'no jj-flow dep']);
     assert.equal(init.ok, true);
     assert.match(String(init.resolved).replaceAll('\\', '/'), /scripts\/lib\/ralph\.mjs$/);
 
-    const runPath = path.join(businessCwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(businessCwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     fs.writeFileSync(runPath, `${JSON.stringify(run, null, 2)}\n`);
@@ -803,10 +820,10 @@ test('defaultArchiveDirName avoids duplicated YYYYMMDD in archive folder', () =>
 test('archive soft-completes in place with inline ledger; leftover archive/ snapshot is read-only', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-arch-'));
   try {
-    const runId = 'RALPH-freeze-20260723';
-    const liveRel = '.workflow/ralph/' + runId;
+    const runId = 'task-freeze';
+    const liveRel = '.workflow/ralph/tasks/' + runId;
     initRun({ run_id: runId, title: 'freeze', goal: 'archive completed copy', capability_ids: ['CAP-freeze'] }, cwd);
-    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     saveRun(run, cwd);
@@ -818,14 +835,14 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
     assert.equal(result.archive_path, liveRel);
     assert.equal(result.manifest.schema_version, 'jj-flow/ralph-archive/1.1');
     assert.equal(result.manifest.archive_path, liveRel);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
-    const archivedRun = JSON.parse(fs.readFileSync(path.join(cwd, result.archive_path, 'run.json'), 'utf8'));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
+    const archivedRun = JSON.parse(fs.readFileSync(path.join(cwd, result.archive_path, '.state', 'run.json'), 'utf8'));
     assert.equal(archivedRun.status, 'COMPLETED');
     assert.equal(archivedRun.phase, 'ARCHIVE');
     assert.equal(archivedRun.gates.archive, 'PASS');
     assert.ok(archivedRun.archive && archivedRun.archive.archived_at);
     assert.ok(Array.isArray(archivedRun.archive.files));
-    assert.ok(archivedRun.archive.files.some((file) => file.path === 'run.json'));
+    assert.ok(archivedRun.archive.files.some((file) => file.path === '.state/run.json'));
     assert.ok(archivedRun.archive.manifest_hash);
     assert.deepEqual(archivedRun.archive_history, []);
     const active = loadRun(runId, cwd);
@@ -839,14 +856,14 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
     const re = archiveRun(runId, { cwd });
     assert.equal(re.archive_path, liveRel);
     assert.equal(re.archive_path, result.archive_path);
-    assert.ok(fs.existsSync(path.join(cwd, re.archive_path, 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, re.archive_path, '.state', 'run.json')));
     const reloaded = loadRun(runId, cwd);
     assert.equal(reloaded.status, 'COMPLETED');
     assert.equal(reloaded.last_archive_path, liveRel);
     assert.equal(reloaded.archive_history.length, 1);
     assert.equal(reloaded.archive_history[0].archived_at, result.run.archive.archived_at);
     assert.equal(reloaded.archive_history[0].manifest_hash, result.run.archive.manifest_hash);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
     assert.equal(fs.readFileSync(leftoverFile, 'utf8'), 'historical-snapshot\n');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -856,12 +873,12 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
 test('map-merge requires accept PASS unless force', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-merge-force-'));
   try {
-    const runId = 'RALPH-merge-guard-20260723';
+    const runId = 'task-merge-guard';
     initRun({ run_id: runId, title: 'guard', goal: 'require accept', capability_ids: ['CAP-guard'] }, cwd);
     assert.throws(() => mapMergeFromRun(runId, {}, cwd), /accept=PASS/);
     const forced = mapMergeFromRun(runId, { force: true, modules: ['src/x.js'] }, cwd);
     assert.equal(forced.capability.id, 'CAP-guard');
-    const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     saveRun(run, cwd);
@@ -875,7 +892,7 @@ test('map-merge requires accept PASS unless force', () => {
 test('setGate advances phase on PASS and can block', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-gate-'));
   try {
-    const runId = 'RALPH-gate-20260723';
+    const runId = 'task-gate';
     initRun({ run_id: runId, title: 'gate', goal: 'advance', capability_ids: ['CAP-gate'] }, cwd);
     let result = setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     assert.equal(result.phase, 'PLAN');
@@ -896,7 +913,7 @@ test('setGate advances phase on PASS and can block', () => {
 test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE/ABANDONED resumable', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-rollback-'));
   try {
-    const runId = 'RALPH-rollback-20260731';
+    const runId = 'task-rollback';
     initRun({ run_id: runId, title: 'rollback', goal: 'phase back', capability_ids: ['CAP-rb'] }, cwd);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
@@ -912,7 +929,7 @@ test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE
     assert.equal(run.phase, 'DELIVER');
     assert.equal(run.gates.deliver, 'FAIL');
     assert.equal(run.gates.accept, 'PENDING');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
     assert.match(progress, /rollbackPhase ACCEPT→DELIVER/);
 
     assert.throws(
@@ -965,7 +982,7 @@ test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE
     assert.equal(resumed.from, 'ABANDONED');
     assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
 
-    const suggestion = suggestReopenAsNew(run, { newRunId: 'RALPH-rollback-reopen-20260731' });
+    const suggestion = suggestReopenAsNew(run, { newRunId: 'task-rollback-reopen' });
     assert.equal(suggestion.supersedes_run_id, runId);
     assert.match(suggestion.note, /same-run resume|Prefer same-run/i);
     assert.match(suggestion.note, /progress\.md/i);
@@ -980,14 +997,14 @@ test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE
 test('setGate FAIL covers prior PASS without forging COMPLETED reopen', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-gate-fail-'));
   try {
-    const runId = 'RALPH-gate-fail-20260731';
+    const runId = 'task-gate-fail';
     initRun({ run_id: runId, title: 'gate fail', goal: 'fail gate', capability_ids: ['CAP-gf'] }, cwd);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     const failed = setGate(runId, { gate: 'plan', status: 'FAIL', cwd, advance: false });
     assert.equal(failed.run.gates.plan, 'FAIL');
     assert.equal(failed.phase, 'DELIVER');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
     assert.match(progress, /gate plan=FAIL/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -999,7 +1016,7 @@ test('cli gate and ops finalize path stay de-duplicated', () => {
   const chunks = [];
   const stdout = { write: (text) => chunks.push(text) };
   try {
-    const runId = 'RALPH-cli-gate-20260723';
+    const runId = 'task-cli-gate';
     assert.equal(runCli(['ralph', 'init', '--run-id', runId, '--title', 'cli gate', '--goal', 'gates', '--capability', 'CAP-cli-gate', '--json'], { cwd, stdout }), 0);
     assert.equal(runCli(['ralph', 'gate', '--run-id', runId, '--gate', 'analyze', '--status', 'PASS', '--json'], { cwd, stdout }), 0);
     assert.equal(runCli(['ralph', 'gate', '--run-id', runId, '--gate', 'plan', '--status', 'PASS', '--json'], { cwd, stdout }), 0);
@@ -1008,12 +1025,12 @@ test('cli gate and ops finalize path stay de-duplicated', () => {
     chunks.length = 0;
     assert.equal(runCli(['ralph', 'finalize', '--run-id', runId, '--modules', 'src/cli-gate.js', '--keywords', 'gate', '--json'], { cwd, stdout }), 0);
     const payload = JSON.parse(chunks[chunks.length - 1]);
-    assert.equal(payload.archive_path, '.workflow/ralph/RALPH-cli-gate-20260723');
+    assert.equal(payload.archive_path, '.workflow/ralph/tasks/task-cli-gate');
     assert.equal(payload.run.status, 'COMPLETED');
-    const archived = JSON.parse(fs.readFileSync(path.join(cwd, payload.archive_path, 'run.json'), 'utf8'));
+    const archived = JSON.parse(fs.readFileSync(path.join(cwd, payload.archive_path, '.state', 'run.json'), 'utf8'));
     assert.equal(archived.status, 'COMPLETED');
     assert.ok(archived.archive && Array.isArray(archived.archive.files));
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -1043,13 +1060,13 @@ test('product-consistency extracts ledger paths and detects EP-04-style drift', 
 test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-consistency-'));
   try {
-    const runId = 'RALPH-consistency-20260729';
+    const runId = 'task-consistency';
     initRun({ run_id: runId, title: 'consistency', goal: 'block false complete', capability_ids: ['CAP-consistency'] }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
     const bt = String.fromCharCode(96);
     fs.writeFileSync(
       path.join(runDirPath, TASK_PLAN_REL),
-      ['# Plan', '## Current', `- TASK: ${bt}publish-dialog.vue${bt} blur`].join('\n'),
+      ['## 计划', '### 当前', `- TASK: ${bt}publish-dialog.vue${bt} blur`].join('\n'),
       'utf8'
     );
 
@@ -1070,7 +1087,7 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
     // Align ledger and diff first, then record a failing review.
     fs.writeFileSync(
       path.join(runDirPath, TASK_PLAN_REL),
-      ['# Plan', '## Current', `- TASK: ${bt}InventoryManager.vue${bt} focus-visible`].join('\n'),
+      ['## 计划', '### 当前', `- TASK: ${bt}InventoryManager.vue${bt} focus-visible`].join('\n'),
       'utf8'
     );
     recordReview(runId, {
@@ -1099,7 +1116,7 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
     );
 
     // Direct archive must also refuse when review is NEEDS_CHANGES even if accept was forced earlier.
-    const runPath = path.join(runDirPath, 'run.json');
+    const runPath = path.join(runDirPath, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     saveRun(run, cwd);
@@ -1133,7 +1150,7 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
 test('accept PASS blocked when write-then-read evidence_class is only static', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-evclass-'));
   try {
-    const runId = 'RALPH-evidence-class-20260901';
+    const runId = 'task-evidence-class';
     initRun({
       run_id: runId,
       title: 'evidence class',
@@ -1143,7 +1160,7 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
-    const acceptancePath = path.join(cwd, '.workflow', 'ralph', runId, TASK_PLAN_REL);
+    const acceptancePath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, TASK_PLAN_REL);
     fs.writeFileSync(acceptancePath, [
       '## 验收',
       '',
@@ -1187,9 +1204,9 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
 test('archive blocks working_tree PASS review without fix commit (v2)', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-v2-'));
   try {
-    const runId = 'RALPH-review-scope-20260729';
+    const runId = 'task-review-scope';
     initRun({ run_id: runId, title: 'scope', goal: 'working tree review cannot archive', capability_ids: ['CAP-scope'], attach_knowledge: false }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
@@ -1230,14 +1247,14 @@ test('archive blocks working_tree PASS review without fix commit (v2)', () => {
 test('accept blocked when deliver pending despite progress DELIVER (v4)', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-v4-'));
   try {
-    const runId = 'RALPH-deliver-drift-20260729';
+    const runId = 'task-deliver-drift';
     initRun({ run_id: runId, title: 'drift', goal: 'deliver outside ledger', capability_ids: ['CAP-drift'], attach_knowledge: false }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     fs.appendFileSync(path.join(runDirPath, 'progress.md'), '- 2026-07-29 DELIVER: changed account.vue\n', 'utf8');
     const drift = detectDeliverOutsideLedger(
-      JSON.parse(fs.readFileSync(path.join(runDirPath, 'run.json'), 'utf8')),
+      JSON.parse(fs.readFileSync(path.join(runDirPath, '.state', 'run.json'), 'utf8')),
       cwd,
       { diff_paths: ['src/views/account.vue'] }
     );
@@ -1268,7 +1285,7 @@ test('accept blocked when deliver pending despite progress DELIVER (v4)', () => 
 test('host-record and init host metadata persist on run', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-host-'));
   try {
-    const runId = 'RALPH-host-meta-20260729';
+    const runId = 'task-host-meta';
     initRun({
       run_id: runId,
       title: 'host',
@@ -1277,7 +1294,7 @@ test('host-record and init host metadata persist on run', () => {
       attach_knowledge: false,
       host: { host_id: 'grok-build', thread_id: 'thread-1', model_id: 'grok-x' }
     }, cwd);
-    let run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    let run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.host.host_id, 'grok-build');
     assert.equal(run.host.thread_id, 'thread-1');
     const updated = recordHostMeta(runId, { export_path: '.workflow/exports/thread-1.jsonl', session_handle: 'sess-9' }, cwd);
@@ -1285,7 +1302,7 @@ test('host-record and init host metadata persist on run', () => {
     assert.equal(updated.host.session_handle, 'sess-9');
     const stdout = { write: () => {} };
     assert.equal(runCli(['ralph', 'host-record', '--run-id', runId, '--host-id', 'codex', '--thread-id', '019f', '--json'], { cwd, stdout }), 0);
-    run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'run.json'), 'utf8'));
+    run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.host.host_id, 'codex');
     assert.equal(run.host.thread_id, '019f');
     assert.equal(resolveReviewScope({ reviewed_commit: 'abcdef1' }), 'commit');
@@ -1299,7 +1316,7 @@ test('init intensity tiers set budget and accept_layers defaults', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intensity-'));
   try {
     for (const intensity of ['tiny', 'standard', 'strict']) {
-      const runId = 'RALPH-intensity-' + intensity + '-20260731';
+      const runId = 'task-intensity-' + intensity;
       initRun({
         run_id: runId,
         title: 'intensity ' + intensity,
@@ -1323,7 +1340,7 @@ test('init intensity tiers set budget and accept_layers defaults', () => {
     }
     assert.throws(
       () => initRun({
-        run_id: 'RALPH-intensity-bad-20260731',
+        run_id: 'task-intensity-bad',
         title: 'bad',
         goal: 'bad',
         capability_ids: ['CAP-intensity'],
@@ -1334,13 +1351,13 @@ test('init intensity tiers set budget and accept_layers defaults', () => {
     );
     // default standard
     initRun({
-      run_id: 'RALPH-intensity-default-20260731',
+      run_id: 'task-intensity-default',
       title: 'default',
       goal: 'default',
       capability_ids: ['CAP-intensity'],
       attach_knowledge: false
     }, cwd);
-    assert.equal(loadRun('RALPH-intensity-default-20260731', cwd).intensity, 'standard');
+    assert.equal(loadRun('task-intensity-default', cwd).intensity, 'standard');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -1349,7 +1366,7 @@ test('init intensity tiers set budget and accept_layers defaults', () => {
 test('recordDeliverAttempt stagnates then BLOCKED with STAGNATION', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-stag-'));
   try {
-    const runId = 'RALPH-stagnation-20260731';
+    const runId = 'task-stagnation';
     initRun({
       run_id: runId,
       title: 'stag',
@@ -1385,7 +1402,7 @@ test('recordDeliverAttempt stagnates then BLOCKED with STAGNATION', () => {
 test('recordDeliverAttempt auto fingerprint detects no-change stagnation', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-auto-fp-'));
   try {
-    const runId = 'RALPH-auto-fp-20260731';
+    const runId = 'task-auto-fp';
     initRun({
       run_id: runId,
       title: 'auto fp',
@@ -1441,7 +1458,7 @@ test('recordDeliverAttempt auto fingerprint detects no-change stagnation', () =>
 test('strict accept requires judgment layer; error gate_issues block; standard can skip', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-accept-layer-'));
   try {
-    const strictId = 'RALPH-strict-accept-20260731';
+    const strictId = 'task-strict-accept';
     initRun({
       run_id: strictId,
       title: 'strict accept',
@@ -1466,7 +1483,7 @@ test('strict accept requires judgment layer; error gate_issues block; standard c
     assert.equal(passed.run.accept_layers.mechanical, 'PASS');
     assert.equal(passed.run.accept_layers.judgment, 'PASS');
 
-    const stdId = 'RALPH-std-accept-20260731';
+    const stdId = 'task-std-accept';
     initRun({
       run_id: stdId,
       title: 'standard accept',
@@ -1482,7 +1499,7 @@ test('strict accept requires judgment layer; error gate_issues block; standard c
     assert.equal(stdPass.run.gates.accept, 'PASS');
     assert.equal(stdPass.run.accept_layers.judgment, 'SKIPPED');
 
-    const errId = 'RALPH-gate-issue-20260731';
+    const errId = 'task-gate-issue';
     initRun({
       run_id: errId,
       title: 'gate issue',
@@ -1498,7 +1515,7 @@ test('strict accept requires judgment layer; error gate_issues block; standard c
     assert.equal(evaluateAcceptJudgment(loadRun(errId, cwd)).ok, false);
     assert.throws(() => setGate(errId, { gate: 'accept', status: 'PASS', cwd }), /gate_issue error/);
     // warning does not block
-    const warnId = 'RALPH-gate-warn-20260731';
+    const warnId = 'task-gate-warn';
     initRun({
       run_id: warnId,
       title: 'warn',
@@ -1519,7 +1536,7 @@ test('strict accept requires judgment layer; error gate_issues block; standard c
 test('recordReview PASS sets accept_layers.judgment for strict accept path', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-judgment-'));
   try {
-    const runId = 'RALPH-review-judgment-20260731';
+    const runId = 'task-review-judgment';
     initRun({
       run_id: runId,
       title: 'review judgment',
@@ -1562,7 +1579,7 @@ test('recordReview PASS sets accept_layers.judgment for strict accept path', () 
 test('map-merge puts STAGNATION/strict into process_lessons by default', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-auto-lessons-'));
   try {
-    const runId = 'RALPH-auto-lessons-20260731';
+    const runId = 'task-auto-lessons';
     initRun({
       run_id: runId,
       title: 'lessons',
@@ -1607,7 +1624,7 @@ test('finalize skips knowledge-contribution.json (P1b degraded; durable lessons 
   withoutLocalPortfolio(() => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-contrib-'));
   try {
-    const runId = 'RALPH-contrib-20260801';
+    const runId = 'task-contrib';
     initRun({
       run_id: runId,
       title: 'tip down',
@@ -1634,7 +1651,7 @@ test('finalize skips knowledge-contribution.json (P1b degraded; durable lessons 
     assert.equal(result.elevation.durable_lessons.length, 1);
     assert.ok(result.capability.lessons.includes('tip bottom uses 6px not 8px'));
     assert.equal(
-      fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'knowledge-contribution.json')),
+      fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'knowledge-contribution.json')),
       false
     );
 
@@ -1655,7 +1672,7 @@ test('knowledge-contribute stays degraded even when a hook command is configured
   const prevCmd = process.env.RALPH_KNOWLEDGE_HOOK_CMD;
   const prevMode = process.env.RALPH_KNOWLEDGE_HOOK;
   try {
-    const runId = 'RALPH-hook-20260801';
+    const runId = 'task-hook';
     initRun({
       run_id: runId,
       title: 'hook',
@@ -1694,7 +1711,7 @@ test('knowledge-contribute stays degraded even when a hook command is configured
 test('cli deliver-attempt and accept-layer wire through', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-cli-layer-'));
   try {
-    const runId = 'RALPH-cli-layer-20260731';
+    const runId = 'task-cli-layer';
     assert.equal(
       runCli([
         'ralph', 'init',
@@ -1743,24 +1760,24 @@ test('cli deliver-attempt and accept-layer wire through', () => {
 test('init writes intent into task_plan.md except tiny; 存疑事项 is present', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intent-'));
   try {
-    const standardId = 'RALPH-intent-std-20260831';
+    const standardId = 'task-intent-std';
     initRun({ run_id: standardId, title: 'intent std', goal: 'write intent', attach_knowledge: false }, cwd);
-    const stdDir = path.join(cwd, '.workflow', 'ralph', standardId);
+    const stdDir = path.join(cwd, '.workflow', 'ralph', 'tasks', standardId);
     assert.equal(loadRun(standardId, cwd).artifact_refs.intent, TASK_PLAN_REL);
     assert.equal(fs.existsSync(path.join(stdDir, 'intent.md')), false);
     const stdPlan = fs.readFileSync(path.join(stdDir, TASK_PLAN_REL), 'utf8');
     assert.match(stdPlan, /### 存疑事项/);
     assert.match(stdPlan, /### 待答问题/);
 
-    const tinyId = 'RALPH-intent-tiny-20260831';
+    const tinyId = 'task-intent-tiny';
     initRun({ run_id: tinyId, title: 'intent tiny', goal: 'skip intent', intensity: 'tiny', attach_knowledge: false }, cwd);
     assert.equal(loadRun(tinyId, cwd).artifact_refs.intent, null);
-    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', tinyId, 'intent.md')), false);
-    const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', tinyId, TASK_PLAN_REL), 'utf8');
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', tinyId, 'intent.md')), false);
+    const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', tinyId, TASK_PLAN_REL), 'utf8');
     assert.match(tinyPlan, /^## 目标$/m);
     assert.doesNotMatch(tinyPlan, /### 待答问题/);
 
-    const forcedId = 'RALPH-intent-force-20260831';
+    const forcedId = 'task-intent-force';
     initRun({ run_id: forcedId, title: 'intent force', goal: 'tiny with intent', intensity: 'tiny', write_intent: true, attach_knowledge: false }, cwd);
     assert.equal(loadRun(forcedId, cwd).artifact_refs.intent, TASK_PLAN_REL);
   } finally {
@@ -1768,7 +1785,7 @@ test('init writes intent into task_plan.md except tiny; 存疑事项 is present'
   }
 });
 
-test('extractPlanCurrentSection ignores Landed and claimed paths use Current only', () => {
+test('extractPlanCurrentSection ignores Landed and claimed paths use 当前 only', () => {
   const bt = String.fromCharCode(96);
   const withCurrent = [
     '# Plan',
@@ -1779,7 +1796,7 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use Current onl
     '## Superseded',
     `- TASK-0 ${bt}legacy.vue${bt}`
   ].join('\n');
-  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(withCurrent)), ['tip.vue']);
+  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(withCurrent)), []);
   assert.ok(extractLedgerPathRefs(withCurrent).includes('old-panel.vue'));
 
   const chinese = [
@@ -1808,10 +1825,19 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use Current onl
 
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-current-'));
   try {
-    const runId = 'RALPH-current-paths-20260831';
+    const runId = 'task-current-paths';
     initRun({ run_id: runId, title: 'current paths', goal: 'current only', attach_knowledge: false }, cwd);
-    const dir = path.join(cwd, '.workflow', 'ralph', runId);
-    fs.writeFileSync(path.join(dir, TASK_PLAN_REL), withCurrent, 'utf8');
+    const dir = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const planOnly = [
+      '## 计划',
+      '### 当前',
+      `- TASK-2 ${bt}tip.vue${bt}`,
+      '### 已落地',
+      `- TASK-1 ${bt}old-panel.vue${bt}`,
+      '### 已取代',
+      `- TASK-0 ${bt}legacy.vue${bt}`
+    ].join('\n');
+    fs.writeFileSync(path.join(dir, TASK_PLAN_REL), planOnly, 'utf8');
     const claimed = collectClaimedImplementationPaths(loadRun(runId, cwd), cwd);
     assert.deepEqual(claimed, ['tip.vue']);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
@@ -1832,12 +1858,12 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use Current onl
 test('second unchanged deliver-attempt writes instruction-correction', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-twostrike-'));
   try {
-    const runId = 'RALPH-twostrike-20260831';
+    const runId = 'task-twostrike';
     initRun({ run_id: runId, title: 'two strike', goal: 'stagnation correction', attach_knowledge: false }, cwd);
     recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
     const second = recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
     assert.equal(second.blocked, true);
-    const correction = path.join(cwd, '.workflow', 'ralph', runId, INSTRUCTION_CORRECTION_REL);
+    const correction = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, INSTRUCTION_CORRECTION_REL);
     assert.ok(fs.existsSync(correction));
     assert.match(fs.readFileSync(correction, 'utf8'), /Proposed rule/);
   } finally {
@@ -1848,10 +1874,10 @@ test('second unchanged deliver-attempt writes instruction-correction', () => {
 test('bugfix cannot delete tests; tiny presentational does not trip', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-testint-'));
   try {
-    const runId = 'RALPH-testint-20260831';
+    const runId = 'task-testint';
     initRun({ run_id: runId, title: 'test integrity', goal: 'protect tests', attach_knowledge: false }, cwd);
     fs.appendFileSync(
-      path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'),
+      path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'),
       '- 2026-08-31T00:00:00.000Z failed_must REQ-1\n',
       'utf8'
     );
@@ -1875,7 +1901,7 @@ test('bugfix cannot delete tests; tiny presentational does not trip', () => {
       /must not delete or empty tests/
     );
 
-    const tinyId = 'RALPH-testint-tiny-20260831';
+    const tinyId = 'task-testint-tiny';
     initRun({ run_id: tinyId, title: 'tiny css', goal: 'color', intensity: 'tiny', attach_knowledge: false }, cwd);
     const skip = detectTestIntegrityViolation(loadRun(tinyId, cwd), cwd, {
       diff_paths: ['src/a.css'],
@@ -1890,7 +1916,7 @@ test('bugfix cannot delete tests; tiny presentational does not trip', () => {
 test('review findings support pass/importance, nit cap, and skip generated paths', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-policy-'));
   try {
-    const runId = 'RALPH-review-policy-20260831';
+    const runId = 'task-review-policy';
     initRun({ run_id: runId, title: 'review policy', goal: 'nits', attach_knowledge: false }, cwd);
     const nits = [];
     for (let i = 1; i <= 7; i += 1) {
@@ -1928,7 +1954,7 @@ test('review findings support pass/importance, nit cap, and skip generated paths
     assert.equal(result.report.findings.some((item) => item.file === 'src/gen/types.js'), false);
     assert.equal(result.report.outcome, 'PASS');
 
-    const capId = 'RALPH-review-nitcap-20260831';
+    const capId = 'task-review-nitcap';
     initRun({ run_id: capId, title: 'nit cap', goal: 'cap', attach_knowledge: false }, cwd);
     const cap = recordReview(capId, {
       cwd,
@@ -1953,7 +1979,7 @@ test('review findings support pass/importance, nit cap, and skip generated paths
     assert.equal(cap.report.findings.filter((item) => item.importance === 'nit' && item.status === 'OPEN').length, 5);
     assert.equal(cap.report.findings.filter((item) => item.importance === 'nit' && item.status === 'WAIVED').length, 2);
 
-    const flipId = 'RALPH-review-important-pass-20260831';
+    const flipId = 'task-review-important-pass';
     initRun({ run_id: flipId, title: 'important pass', goal: 'flip', attach_knowledge: false }, cwd);
     const flip = recordReview(flipId, {
       cwd,
@@ -1974,7 +2000,7 @@ test('review findings support pass/importance, nit cap, and skip generated paths
     });
     assert.equal(flip.report.outcome, 'NEEDS_CHANGES');
 
-    const planId = 'RALPH-review-plan-file-20260831';
+    const planId = 'task-review-plan-file';
     initRun({ run_id: planId, title: 'plan finding', goal: 'keep task_plan.md', attach_knowledge: false }, cwd);
     const planFinding = recordReview(planId, {
       cwd,
@@ -2002,7 +2028,7 @@ test('review findings support pass/importance, nit cap, and skip generated paths
 test('computeRunMetrics derives clocks as null when timestamps missing quality', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-metrics-'));
   try {
-    const runId = 'RALPH-metrics-20260831';
+    const runId = 'task-metrics';
     initRun({ run_id: runId, title: 'metrics', goal: 'derived', attach_knowledge: false }, cwd);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
@@ -2022,7 +2048,7 @@ test('computeRunMetrics derives clocks as null when timestamps missing quality',
 test('validateRun accepts 1.0 and 1.1; fragments and missing refs fail closed', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-refs-'));
   try {
-    const runId = 'RALPH-refs-20260902';
+    const runId = 'task-refs';
     const run = initRun({ run_id: runId, title: 'refs', goal: 'bare filenames', attach_knowledge: false }, cwd);
     assert.deepEqual(validateRun(run), []);
     const legacy = { ...run, schema_version: RALPH_RUN_SCHEMA_VERSION_LEGACY, artifact_refs: { ...run.artifact_refs } };
@@ -2048,6 +2074,103 @@ test('validateRun accepts 1.0 and 1.1; fragments and missing refs fail closed', 
     const emptyRef = { ...run, artifact_refs: { ...run.artifact_refs, plan: null } };
     assert.equal(readRunArtifactText(emptyRef, 'plan', cwd), '');
     assert.ok(readRunArtifactText(run, 'plan', cwd).includes('## 计划'));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+function writeLegacyActive(cwd, runId, extra = {}) {
+  const dir = path.join(cwd, '.workflow', 'ralph', runId);
+  fs.mkdirSync(dir, { recursive: true });
+  const sample = JSON.parse(fs.readFileSync(path.join(root, 'examples/ralph/sample-run.json'), 'utf8'));
+  const run = { ...sample, run_id: runId, title: extra.title || sample.title };
+  fs.writeFileSync(path.join(dir, 'run.json'), JSON.stringify(run, null, 2));
+  fs.writeFileSync(path.join(dir, 'analyze.md'), '## Analyze\n\nmust login\n');
+  fs.writeFileSync(path.join(dir, 'plan.md'), '## Plan\n\n## Current\n- `src/a.js`\n');
+  fs.writeFileSync(path.join(dir, 'acceptance.md'), '## Acceptance\n\nok\n');
+  fs.writeFileSync(path.join(dir, 'progress.md'), '- init\n');
+  return dir;
+}
+
+test('listRuns marks active RALPH-* as needs_migrate and does not hide them (B8)', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-b8-'));
+  try {
+    writeLegacyActive(cwd, 'RALPH-login-reminder-20260722');
+    const rows = listRuns(cwd);
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].run_id, 'RALPH-login-reminder-20260722');
+    assert.equal(rows[0].needs_migrate, true);
+    assert.equal(rows[0].layout, 'legacy-active');
+    assert.throws(() => loadRun('RALPH-login-reminder-20260722', cwd), /jj ralph migrate/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('locateRalphRuns finds new layout and leftover archive each once', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-locate-'));
+  try {
+    initRun({ run_id: 'task-login-reminder', title: 'new layout', goal: 'task dir', attach_knowledge: false }, cwd);
+    const leftoverDir = path.join(cwd, '.workflow', 'ralph', 'archive', '2026-07-22-login-reminder');
+    fs.mkdirSync(leftoverDir, { recursive: true });
+    const sample = JSON.parse(fs.readFileSync(path.join(root, 'examples/ralph/sample-run.json'), 'utf8'));
+    fs.writeFileSync(path.join(leftoverDir, 'run.json'), JSON.stringify(sample, null, 2));
+    const located = locateRalphRuns(cwd);
+    const fresh = located.filter((row) => row.run_id === 'task-login-reminder' && row.layout === 'task');
+    const archived = located.filter((row) => row.layout === 'archive' && row.readonly);
+    assert.equal(fresh.length, 1);
+    assert.equal(archived.length, 1);
+    const leftover = loadRun('RALPH-login-reminder-20260722', cwd);
+    assert.ok(leftover._readonly_archive_path);
+    assert.throws(() => saveRun(leftover, cwd), /read-only archive/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('ralph migrate 1:1 moves RALPH-* into tasks/task-* and leaves archive leftover', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-migrate-'));
+  try {
+    writeLegacyActive(cwd, 'RALPH-login-reminder-20260722');
+    const leftoverDir = path.join(cwd, '.workflow', 'ralph', 'archive', '2026-07-22-login-reminder');
+    fs.mkdirSync(leftoverDir, { recursive: true });
+    fs.writeFileSync(path.join(leftoverDir, 'marker.txt'), 'keep-me\n');
+    const result = migrateRuns({ cwd });
+    assert.equal(result.count, 1);
+    assert.equal(result.runs[0].to, 'task-login-reminder');
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', '.state', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', 'task_plan.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', '.migrated-RALPH-login-reminder-20260722')));
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'RALPH-login-reminder-20260722')), false);
+    const live = loadRun('task-login-reminder', cwd);
+    assert.equal(live.schema_version, RALPH_RUN_SCHEMA_VERSION);
+    assert.match(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', 'task_plan.md'), 'utf8'), /## 分析/);
+    assert.equal(fs.readFileSync(path.join(leftoverDir, 'marker.txt'), 'utf8'), 'keep-me\n');
+    const listed = listRuns(cwd);
+    assert.equal(listed.some((row) => row.needs_migrate), false);
+    assert.equal(listed.some((row) => String(row.run_id).startsWith('.migrated-')), false);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('init same task_key resumes; adopt --absorb is refused', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-adopt-'));
+  try {
+    initRun({ run_id: 'task-enter-form-dynamic', title: 'form', goal: 'schema', attach_knowledge: false }, cwd);
+    assert.throws(
+      () => initRun({ run_id: 'task-enter-form-dynamic', title: 'form', goal: 'schema', attach_knowledge: false }, cwd),
+      /resume the same task_key/
+    );
+    const refused = adoptRun({ cwd, task: 'task-enter-form-dynamic', absorb: 'task-other' });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.status, 'refused');
+    assert.match(refused.example, /jj ralph adopt --task task-enter-form-dynamic --absorb/);
+    writeLegacyActive(cwd, 'RALPH-enter-form-20260901', { title: 'legacy form' });
+    const adopted = adoptRun({ cwd, task: 'task-enter-form-legacy', from: 'RALPH-enter-form-20260901' });
+    assert.equal(adopted.ok, true);
+    assert.equal(adopted.to, 'task-enter-form-legacy');
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-enter-form-legacy', '.state', 'run.json')));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

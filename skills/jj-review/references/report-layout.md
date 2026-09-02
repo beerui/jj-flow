@@ -3,18 +3,19 @@
 ## Paths
 
 ```text
-.workflow/ralph/<run_id>/
-  run.json
+.workflow/ralph/tasks/<task_key>/
   progress.md
-  reviews/REV-n.json
+  .state/run.json
+  .state/reviews/REV-n.json
 ```
 
 ## Selecting a run
 
 - Explicit `run_id` → use that run; missing → BLOCKED.
-- Unspecified → pick latest among `.workflow/ralph/RALPH-*/run.json`:
+- Unspecified → pick latest among `.workflow/ralph/tasks/*/ .state/run.json` (also leftover `archive/**/run.json` and unmigrated `RALPH-*/run.json`, read-only):
   1. `updated_at` descending
   2. on ties, `run_id` descending
+- New layout and leftover archive must each be locatable when both exist.
 - No runs at all → BLOCKED; do not init / hand-build an empty run.
 
 ## Review source (priority)

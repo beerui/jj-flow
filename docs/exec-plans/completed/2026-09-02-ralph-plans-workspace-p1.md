@@ -79,7 +79,7 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 
 ## 下一刀
 
-P1 关闭。P2 执行计划：[Ralph 工作区 P2](../active/2026-09-02-ralph-plans-workspace-p2.md)。
+P1 关闭。P2 执行计划：[Ralph 工作区 P2](../completed/2026-09-02-ralph-plans-workspace-p2.md)。
 
 ## 完成定义
 

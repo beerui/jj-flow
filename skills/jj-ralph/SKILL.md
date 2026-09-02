@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/RALPH-*/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
+description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/tasks/<task_key>/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
 ---
 
 # jj-ralph
@@ -9,7 +9,7 @@ Single repo: requirement → acceptance → archive. Durable state is written on
 
 **Continue / resume:** same requirement → same `run_id`. Archive = in-place COMPLETED + inline sha256 ledger + map merge, **not** discard; further edits use `resume`. Mid-flight stop → `abandon` (can `resume` later). New run **only** for a truly new requirement. `$jj-end` is Git-only.
 
-**Users do not lead with run ids.** Real speech is like “nudge the tip a bit”, “change that one again”, “drop this for now”. You resolve/write `RALPH-…` in reports; **never** require the user to memorize a run_id first.
+**Users do not lead with run ids.** Real speech is like “nudge the tip a bit”, “change that one again”, “drop this for now”. You resolve/write `task-…` in reports; **never** require the user to memorize a run_id first. Active leftover `RALPH-*` dirs need `jj ralph migrate` (or `adopt --task`) before load/gate/save.
 
 ### Entry decision (route first)
 
@@ -26,7 +26,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 ## Immediate actions
 
 1. **Locate run (natural language first):**
-   - User named `RALPH-…` → use that id (uncommon)
+   - User named `task-…` (or leftover `RALPH-…`) → use that id (uncommon); leftover active dirs → migrate first
    - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED)
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
@@ -40,7 +40,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
-   - Task/approach/MUST change (incl. resume after archive): move live `task_plan.md` **### 当前** → **### 已落地** or **### 已取代**, then write new 当前. Legacy English `## Current` / `## Tasks` still extract. Shape: [artifact-layout.md](references/artifact-layout.md)
+   - Task/approach/MUST change (incl. resume after archive): move live `task_plan.md` **### 当前** → **### 已落地** or **### 已取代**, then write new 当前. Active write path no longer treats `## Current` / `## Tasks` as current. Shape: [artifact-layout.md](references/artifact-layout.md)
 5. After accept PASS, default `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`). `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, hot-memory promote status.
 7. **Idle offer (after the completion report, never during DELIVER):** archive already promoted `## 可复用结论` into `~/.jj-flow/memory/`. Ask **once** whether to also feed the opt-in portfolio KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only; P1b hook is skipped/degraded). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
@@ -86,7 +86,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
 | `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a `close` command |
-| User changes approach / MUST / plan (mid-run or after archive) | Move `task_plan.md` `### 当前` → `### 已落地` or `### 已取代`; write new 当前; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted). Legacy `## Tasks` without Current is Current — rename first | Do not replace `## Tasks` in place; do not wipe `task_plan.md` to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
+| User changes approach / MUST / plan (mid-run or after archive) | Move `task_plan.md` `### 当前` → `### 已落地` or `### 已取代`; write new 当前; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not wipe `task_plan.md` to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).
 
@@ -102,22 +102,24 @@ Source of truth: `run.handoff` (not a second workflow).
 ## Scripts
 
 ```bash
-node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--project KEY] [--knowledge-query Q] [--intent|--no-intent]
-node <resolved>/ralph_ops.mjs deliver-attempt --run-id RALPH-x --improved true|false
-node <resolved>/ralph_ops.mjs accept-layer --run-id RALPH-x --layer judgment --status PASS --mode review
-node <resolved>/ralph_ops.mjs gate --run-id RALPH-x --gate accept --status PASS
-node <resolved>/ralph_ops.mjs metrics --run-id RALPH-x [--persist]
-node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x --modules src/a.js --keywords a,b --lessons "durable rule"
-node <resolved>/ralph_ops.mjs knowledge-contribute --run-id RALPH-x [--hook]
-node <resolved>/ralph_ops.mjs finding --run-id RALPH-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]
+node <resolved>/ralph_ops.mjs init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--project KEY] [--knowledge-query Q] [--intent|--no-intent]
+node <resolved>/ralph_ops.mjs deliver-attempt --run-id task-x --improved true|false
+node <resolved>/ralph_ops.mjs accept-layer --run-id task-x --layer judgment --status PASS --mode review
+node <resolved>/ralph_ops.mjs gate --run-id task-x --gate accept --status PASS
+node <resolved>/ralph_ops.mjs metrics --run-id task-x [--persist]
+node <resolved>/ralph_ops.mjs finalize --run-id task-x --modules src/a.js --keywords a,b --lessons "durable rule"
+node <resolved>/ralph_ops.mjs knowledge-contribute --run-id task-x [--hook]
+node <resolved>/ralph_ops.mjs finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]
 node <resolved>/ralph_ops.mjs knowledge-confirm --needle "…" [--project KEY]
 node <resolved>/ralph_ops.mjs knowledge-prune [--project KEY]
-node <resolved>/ralph_ops.mjs resume --run-id RALPH-x --reason "…"
-node <resolved>/ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
-node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"
-node <resolved>/ralph_ops.mjs set-status --run-id RALPH-x --status PAUSED --reason "…"
-node <resolved>/ralph_ops.mjs handoff --run-id RALPH-x --targets ProjectB,ProjectD
-node <resolved>/ralph_ops.mjs commit-prep --run-id RALPH-x
+node <resolved>/ralph_ops.mjs resume --run-id task-x --reason "…"
+node <resolved>/ralph_ops.mjs abandon --run-id task-x --reason "…"
+node <resolved>/ralph_ops.mjs rollback-phase --run-id task-x --to DELIVER --reason "…"
+node <resolved>/ralph_ops.mjs set-status --run-id task-x --status PAUSED --reason "…"
+node <resolved>/ralph_ops.mjs handoff --run-id task-x --targets ProjectB,ProjectD
+node <resolved>/ralph_ops.mjs commit-prep --run-id task-x
+node <resolved>/ralph_ops.mjs migrate
+node <resolved>/ralph_ops.mjs adopt --task task-x [--from RALPH-x]
 ```
 
 Resolve: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`.  
@@ -170,14 +172,14 @@ User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a busi
 | 4 | Commit / push / review / handoff / dispatch / merge unless asked | Prep only (`commit-prep`); wait for user |
 | 5 | PASS write-then-read / cross-path MUST on static diff alone | Match `evidence_class`; see [must-evidence.md](references/must-evidence.md) |
 | 6 | Third identical failed tool/strategy attempt | Change approach or 🔴 ask user (STAGNATION) |
-| 7 | Run business ralph inside the control project | Business repo only; `DEL-*` ≠ `RALPH-*` |
+| 7 | Run business ralph inside the control project | Business repo only; `DEL-*` ≠ `task-*` |
 | 8 | Unrelated refactors; long analyze/plan for single-point work | Short MUST + file list; use `tiny` for single-point |
 | 9 | Ingest/promote global knowledge without user yes | This-run idle offer / 「投喂知识库」; first-time bootstrap `$jj-init`; no auto-hook on finalize |
 | 10 | `git revert` / force gate on conversational path by default | Suggest revert; no `--force` unless user overrides |
 | 11 | Treat chat/memory as checkpoint advance | Only `run.json` + artifacts + Git evidence |
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
 | 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
-| 14 | Silently replace live `task_plan.md` so prior `### 当前` text is gone (incl. replacing `## Tasks` in place) | Move `### 当前` → `### 已落地` / `### 已取代` first. Legacy: if no Current, rename `## Tasks`→Current then move. Unarchived revisions stay in the live file |
+| 14 | Silently replace live `task_plan.md` so prior `### 当前` text is gone | Move `### 当前` → `### 已落地` / `### 已取代` first. Unarchived revisions stay in the live file |
 | 15 | Pad init `knowledge_refs` or hot_memory with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
 | 16 | Delete or empty tests while fixing a failed MUST / `NEEDS_CHANGES` | Add or strengthen tests; `tiny` presentational without those signals is exempt |
 | 17 | Invent metrics clocks or block ACCEPT because timestamps are missing | `jj ralph metrics` is derived; null stays null |

@@ -2,7 +2,7 @@
 
 ## Preferred path (Ralph)
 
-When a lead Ralph run exists, prefer: `.workflow/ralph/<run_id>/handoff/handoff.json`. Users only say natural language such as “hand off to …”. Legacy csv-wave is read for compatibility only.
+When a lead Ralph run exists, prefer: `.workflow/ralph/tasks/<task_key>/.state/handoff.json` (SSOT remains `run.handoff`). Fallback: leftover `.workflow/ralph/RALPH-*/handoff/handoff.json`. Users only say natural language such as “hand off to …”. Legacy csv-wave is read for compatibility only.
 
 Handoff snapshot passes already-converged source requirement semantics to multiple target projects. It solves the duplication and understanding drift of “every target re-reads the full source session and requirement docs”. It does not replace formal requirements and does not cache target source facts.
 

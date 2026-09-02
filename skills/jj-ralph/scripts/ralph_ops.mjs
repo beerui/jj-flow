@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -69,29 +69,31 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
-  status [--run-id RALPH-x] [--cwd DIR]
-  metrics --run-id RALPH-x [--persist] [--cwd DIR]
-  archive --run-id RALPH-x [--slug name] [--cwd DIR]
-  finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
-  map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--cwd DIR]
-  knowledge-contribute --run-id RALPH-x [--modules p1,p2] [--lessons "l1|l2"] [--hook] [--cwd DIR]
-  finding --run-id RALPH-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--title "…"] [--cost "…"] [--evidence "…"] [--cwd DIR]
+  init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
+  status [--run-id task-x] [--cwd DIR]
+  metrics --run-id task-x [--persist] [--cwd DIR]
+  archive --run-id task-x [--slug name] [--cwd DIR]
+  finalize --run-id task-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
+  map-merge --run-id task-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--cwd DIR]
+  knowledge-contribute --run-id task-x [--modules p1,p2] [--lessons "l1|l2"] [--hook] [--cwd DIR]
+  finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--title "…"] [--cost "…"] [--evidence "…"] [--cwd DIR]
   knowledge-confirm --needle "…" [--project KEY] [--cwd DIR]
   knowledge-prune [--project KEY] [--cwd DIR]
-  gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
-  deliver-attempt --run-id RALPH-x [--improved true|false|auto] [--signal text] [--cwd DIR]
+  gate --run-id task-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+  deliver-attempt --run-id task-x [--improved true|false|auto] [--signal text] [--cwd DIR]
                  (omit --improved or use auto: compare workspace fingerprint)
-  accept-layer --run-id RALPH-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--cwd DIR]
-  rollback-phase --run-id RALPH-x --to PLAN|DELIVER|ANALYZE|ACCEPT --reason "..." [--cwd DIR]
-  set-status --run-id RALPH-x --status IN_PROGRESS|READY_FOR_USER_TEST|BLOCKED|PAUSED|ABANDONED|COMPLETED --reason "..." [--cwd DIR]
-  resume --run-id RALPH-x --reason "..." [--cwd DIR]
-  abandon --run-id RALPH-x --reason "..." [--cwd DIR]
+  accept-layer --run-id task-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--cwd DIR]
+  rollback-phase --run-id task-x --to PLAN|DELIVER|ANALYZE|ACCEPT --reason "..." [--cwd DIR]
+  set-status --run-id task-x --status IN_PROGRESS|READY_FOR_USER_TEST|BLOCKED|PAUSED|ABANDONED|COMPLETED --reason "..." [--cwd DIR]
+  resume --run-id task-x --reason "..." [--cwd DIR]
+  abandon --run-id task-x --reason "..." [--cwd DIR]
   map-find --query "keyword" [--limit N] [--cwd DIR]
-  handoff --run-id RALPH-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
-  dispatch-snapshot --run-id RALPH-x [--targets a,b] [--cwd DIR]
-  commit-prep --run-id RALPH-x [--cwd DIR]
-  review-record --run-id RALPH-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
+  handoff --run-id task-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
+  dispatch-snapshot --run-id task-x [--targets a,b] [--cwd DIR]
+  commit-prep --run-id task-x [--cwd DIR]
+  review-record --run-id task-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
+  migrate [--all-projects] [--cwd DIR]
+  adopt --task task-x [--from RALPH-x] [--absorb task-y] [--cwd DIR]
 `);
 }
 
@@ -207,6 +209,8 @@ async function main() {
     recordFinding,
     confirmProjectHotMemory,
     pruneProjectHotMemory,
+    migrateRuns,
+    adoptRun,
     RALPH_MAP_REL,
   } = mod;
 
@@ -244,7 +248,7 @@ async function main() {
         run_id: run.run_id,
         intensity: run.intensity || 'standard',
         max_iterations: run.max_iterations,
-        path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', run.run_id)).replaceAll('\\', '/'),
+        path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', 'tasks', run.run_id)).replaceAll('\\', '/'),
         resolved,
       });
       return;
@@ -707,6 +711,30 @@ async function main() {
         ...result,
         resolved,
       });
+      return;
+    }
+
+    if (cmd === 'migrate') {
+      if (typeof migrateRuns !== 'function') {
+        die('resolved ralph.mjs has no migrateRuns; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = migrateRuns({ cwd, all_projects: Boolean(args['all-projects']) });
+      printJson({ ok: true, ...result, resolved });
+      return;
+    }
+
+    if (cmd === 'adopt') {
+      if (typeof adoptRun !== 'function') {
+        die('resolved ralph.mjs has no adoptRun; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = adoptRun({
+        cwd,
+        task: args.task && args.task !== true ? String(args.task) : null,
+        from: args.from && args.from !== true ? String(args.from) : null,
+        absorb: args.absorb && args.absorb !== true ? String(args.absorb) : (args.absorb ? true : null)
+      });
+      printJson({ ...result, resolved });
+      if (result.ok === false) process.exitCode = 1;
       return;
     }
 

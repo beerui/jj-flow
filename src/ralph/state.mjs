@@ -5,12 +5,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.1';
+export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.2';
+export const RALPH_RUN_SCHEMA_VERSION_1_1 = 'jj-flow/ralph-run/1.1';
 export const RALPH_RUN_SCHEMA_VERSION_LEGACY = 'jj-flow/ralph-run/1.0';
 export const RALPH_RUN_SCHEMA_VERSIONS = Object.freeze([
   RALPH_RUN_SCHEMA_VERSION_LEGACY,
+  RALPH_RUN_SCHEMA_VERSION_1_1,
   RALPH_RUN_SCHEMA_VERSION
 ]);
+export const TASK_RUN_ID_RE = /^task-[a-z0-9][a-z0-9-]{1,80}$/;
+export const LEGACY_RUN_ID_RE = /^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/;
 export const TASK_PLAN_REL = 'task_plan.md';
 export const FINDINGS_REL = 'findings.md';
 export const PROGRESS_REL = 'progress.md';
@@ -31,8 +35,10 @@ export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
 export const RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA = 'jj-flow/ralph-knowledge-contribution/0.1';
 export const RALPH_REVIEW_SCHEMA_VERSION = 'jj-flow/ralph-review/1.0';
 export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
-// Runs live directly under .workflow/ralph/RALPH-*/. Reserved siblings: business-map.json, archive/
-export const RALPHS_DIR_REL = RALPH_ROOT_REL;
+export const STATE_REL = '.state';
+export const RALPH_TASKS_DIR_REL = path.join(RALPH_ROOT_REL, 'tasks');
+// Live runs: .workflow/ralph/tasks/<task_key>/. Reserved siblings: business-map.json, archive/, .migrated-*
+export const RALPHS_DIR_REL = RALPH_TASKS_DIR_REL;
 export const RALPH_ARCHIVE_DIR_REL = path.join(RALPH_ROOT_REL, 'archive');
 export const RALPH_MAP_REL = path.join(RALPH_ROOT_REL, 'business-map.json');
 export const RALPH_HANDOFF_SCHEMA_VERSION = 'jj-flow/ralph-handoff/1.1';
@@ -167,12 +173,30 @@ export function hydrateIntensityFields(run) {
   return run;
 }
 
+export function isTaskRunId(runId) { return TASK_RUN_ID_RE.test(String(runId || '')); }
+export function isLegacyRalphRunId(runId) { return LEGACY_RUN_ID_RE.test(String(runId || '')); }
+export function stripRunIdPrefix(runId) {
+  return String(runId || '').replace(/^(?:RALPH|task)-/i, '');
+}
+export function migrateHint(runId) {
+  return 'legacy RALPH run layout for ' + runId + '; run `jj ralph migrate` (or ralph_ops.mjs migrate)';
+}
+
 export function ralphRoot(cwd = process.cwd()) { return path.join(cwd, RALPH_ROOT_REL); }
 export function ralphsDir(cwd = process.cwd()) { return path.join(cwd, RALPHS_DIR_REL); }
 export function archiveDir(cwd = process.cwd()) { return path.join(cwd, RALPH_ARCHIVE_DIR_REL); }
 export function mapPath(cwd = process.cwd()) { return path.join(cwd, RALPH_MAP_REL); }
 export function runDir(runId, cwd = process.cwd()) { return path.join(ralphsDir(cwd), runId); }
-export function runJsonPath(runId, cwd = process.cwd()) { return path.join(runDir(runId, cwd), 'run.json'); }
+export function runStateDir(runId, cwd = process.cwd()) { return path.join(runDir(runId, cwd), STATE_REL); }
+export function runJsonPath(runId, cwd = process.cwd()) { return path.join(runStateDir(runId, cwd), 'run.json'); }
+export function legacyActiveRunJsonPath(runId, cwd = process.cwd()) {
+  return path.join(ralphRoot(cwd), runId, 'run.json');
+}
+export function runMachineFile(runId, rel, cwd = process.cwd()) {
+  const underState = path.join(runStateDir(runId, cwd), rel);
+  if (fs.existsSync(underState)) return underState;
+  return path.join(runDir(runId, cwd), rel);
+}
 export function nowIso() { return new Date().toISOString(); }
 export function createEmptyMap() { return { schema_version: RALPH_MAP_SCHEMA_VERSION, updated_at: nowIso(), capabilities: [] }; }
 export function unique(items) { return [...new Set((items || []).filter(Boolean))]; }
@@ -192,7 +216,7 @@ export function createRunSkeleton({
   host = null,
   created_at = nowIso()
 } = {}) {
-  if (!run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run_id)) throw new Error('run_id must match RALPH-<slug> pattern');
+  if (!isTaskRunId(run_id)) throw new Error('run_id must match task-<slug> pattern');
   if (!title) throw new Error('title is required');
   if (!goal) throw new Error('goal is required');
   const intensityNorm = normalizeIntensity(intensity);
@@ -252,7 +276,11 @@ export function validateRun(run) {
   if (!RALPH_RUN_SCHEMA_VERSIONS.includes(run.schema_version)) {
     errors.push('schema_version must be one of ' + RALPH_RUN_SCHEMA_VERSIONS.join('|'));
   }
-  if (!run.run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run.run_id)) errors.push('invalid run_id');
+  if (run.schema_version === RALPH_RUN_SCHEMA_VERSION) {
+    if (!isTaskRunId(run.run_id)) errors.push('invalid run_id');
+  } else if (!isLegacyRalphRunId(run.run_id) && !isTaskRunId(run.run_id)) {
+    errors.push('invalid run_id');
+  }
   if (!run.title) errors.push('title required');
   if (!run.goal) errors.push('goal required');
   if (!PHASES.includes(run.phase)) errors.push('invalid phase: ' + run.phase);
@@ -341,8 +369,8 @@ export function validateRun(run) {
       }
     }
   }
-  if (run.schema_version === RALPH_RUN_SCHEMA_VERSION) {
-    if (!run.artifact_refs?.findings) errors.push('artifact_refs.findings required on schema 1.1');
+  if (run.schema_version === RALPH_RUN_SCHEMA_VERSION || run.schema_version === RALPH_RUN_SCHEMA_VERSION_1_1) {
+    if (!run.artifact_refs?.findings) errors.push('artifact_refs.findings required on schema 1.1+');
     if (run.gate_set != null && !GATE_SETS.includes(run.gate_set)) errors.push('gate_set must be full|lite');
     if (run.knowledge != null) {
       if (typeof run.knowledge !== 'object' || Array.isArray(run.knowledge)) errors.push('knowledge must be object when present');
@@ -417,7 +445,7 @@ export function validateReviewReport(report) {
   if (!report || typeof report !== 'object') return ['review must be an object'];
   if (report.schema_version !== RALPH_REVIEW_SCHEMA_VERSION) errors.push('schema_version must be ' + RALPH_REVIEW_SCHEMA_VERSION);
   if (!report.review_id || !/^REV-[1-9][0-9]*$/.test(report.review_id)) errors.push('review_id must match REV-<n>');
-  if (!report.run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(report.run_id)) errors.push('invalid run_id');
+  if (!isTaskRunId(report.run_id) && !isLegacyRalphRunId(report.run_id)) errors.push('invalid run_id');
   if (!REVIEW_OUTCOMES.includes(report.outcome)) errors.push('invalid outcome');
   if (report.reviewed_commit != null && (typeof report.reviewed_commit !== 'string' || report.reviewed_commit.length < 7)) errors.push('reviewed_commit must be null or >= 7 chars');
   if (report.fix_commit != null && (typeof report.fix_commit !== 'string' || report.fix_commit.length < 7)) errors.push('fix_commit must be null or >= 7 chars');
@@ -464,7 +492,40 @@ export function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + String.fromCharCode(10), 'utf8');
 }
 
+function findArchiveRunJson(runId, cwd) {
+  const root = archiveDir(cwd);
+  if (!fs.existsSync(root)) return null;
+  const stack = [root];
+  while (stack.length) {
+    const dir = stack.pop();
+    let entries = [];
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (entry.name === 'run.json') {
+        try {
+          const run = readJson(full);
+          if (run && run.run_id === runId) return full;
+        } catch { /* skip unreadable leftover */ }
+      }
+    }
+  }
+  return null;
+}
+
 export function loadRun(runId, cwd = process.cwd()) {
+  if (isLegacyRalphRunId(runId)) {
+    const active = legacyActiveRunJsonPath(runId, cwd);
+    if (fs.existsSync(active)) throw new Error(migrateHint(runId));
+    const archived = findArchiveRunJson(runId, cwd);
+    if (!archived) throw new Error('run not found: ' + runId);
+    const run = readJson(archived);
+    const errors = validateRun(run);
+    if (errors.length) throw new Error('invalid run.json: ' + errors.join('; '));
+    run._readonly_archive_path = archived;
+    return run;
+  }
   const filePath = runJsonPath(runId, cwd);
   if (!fs.existsSync(filePath)) throw new Error('run not found: ' + runId);
   const run = readJson(filePath);
@@ -474,10 +535,14 @@ export function loadRun(runId, cwd = process.cwd()) {
 }
 
 export function saveRun(run, cwd = process.cwd()) {
+  if (run._readonly_archive_path) throw new Error('refusing to save read-only archive snapshot ' + run.run_id);
+  if (isLegacyRalphRunId(run.run_id)) throw new Error(migrateHint(run.run_id));
   const errors = validateRun(run);
   if (errors.length) throw new Error('invalid run: ' + errors.join('; '));
-  writeJson(runJsonPath(run.run_id, cwd), run);
-  return runJsonPath(run.run_id, cwd);
+  const copy = { ...run };
+  delete copy._readonly_archive_path;
+  writeJson(runJsonPath(copy.run_id, cwd), copy);
+  return runJsonPath(copy.run_id, cwd);
 }
 
 export function loadMap(cwd = process.cwd()) {
@@ -496,22 +561,76 @@ export function saveMap(map, cwd = process.cwd()) {
   return mapPath(cwd);
 }
 
+function summarizeRunFile(filePath, fallbackId, extra = {}) {
+  if (!fs.existsSync(filePath)) return { run_id: fallbackId, phase: null, status: null, title: null, ...extra };
+  try {
+    const run = readJson(filePath);
+    return {
+      run_id: run.run_id || fallbackId,
+      phase: run.phase || null,
+      status: run.status || null,
+      title: run.title || null,
+      updated_at: run.updated_at || null,
+      ...extra
+    };
+  } catch {
+    return { run_id: fallbackId, phase: null, status: null, title: null, ...extra };
+  }
+}
+
 export function listRuns(cwd = process.cwd()) {
-  const root = ralphsDir(cwd);
-  if (!fs.existsSync(root)) return [];
-  return fs.readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && entry.name.startsWith('RALPH-'))
-    .map((entry) => {
-      const filePath = path.join(root, entry.name, 'run.json');
-      if (!fs.existsSync(filePath)) return { run_id: entry.name, phase: null, status: null, title: null };
-      try {
-        const run = readJson(filePath);
-        return { run_id: run.run_id || entry.name, phase: run.phase || null, status: run.status || null, title: run.title || null, updated_at: run.updated_at || null };
-      } catch {
-        return { run_id: entry.name, phase: null, status: null, title: null };
+  const rows = [];
+  const tasksRoot = ralphsDir(cwd);
+  if (fs.existsSync(tasksRoot)) {
+    for (const entry of fs.readdirSync(tasksRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !isTaskRunId(entry.name)) continue;
+      rows.push(summarizeRunFile(path.join(tasksRoot, entry.name, STATE_REL, 'run.json'), entry.name, {
+        layout: 'task',
+        path: path.join(RALPH_TASKS_DIR_REL, entry.name).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+      }));
+    }
+  }
+  const root = ralphRoot(cwd);
+  if (fs.existsSync(root)) {
+    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name.startsWith('.migrated-')) continue;
+      if (entry.name === 'archive' || entry.name === 'tasks' || entry.name === 'completed') continue;
+      if (!entry.name.startsWith('RALPH-')) continue;
+      rows.push(summarizeRunFile(path.join(root, entry.name, 'run.json'), entry.name, {
+        layout: 'legacy-active',
+        needs_migrate: true,
+        path: path.join(RALPH_ROOT_REL, entry.name).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+      }));
+    }
+  }
+  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+}
+
+export function locateRalphRuns(cwd = process.cwd()) {
+  const rows = listRuns(cwd).map((row) => ({ ...row, readonly: Boolean(row.needs_migrate) }));
+  const archiveRoot = archiveDir(cwd);
+  if (!fs.existsSync(archiveRoot)) return rows;
+  const stack = [archiveRoot];
+  while (stack.length) {
+    const dir = stack.pop();
+    let entries = [];
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (entry.name === 'run.json') {
+        const rel = path.relative(cwd, full).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+        const summary = summarizeRunFile(full, path.basename(path.dirname(full)), {
+          layout: 'archive',
+          readonly: true,
+          path: rel
+        });
+        rows.push(summary);
       }
-    })
-    .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+    }
+  }
+  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
 }
 
 export function normalizeHostMeta(host = null) {
@@ -628,8 +747,9 @@ export function appendProgressLine(runId, cwd, line) {
 export function commitPrep(runId, cwd = process.cwd()) {
   const run = loadRun(runId, cwd);
   const base = path.join(RALPHS_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const stateBase = path.join(base, STATE_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const files = [
-    path.join(base, 'run.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    path.join(stateBase, 'run.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
     path.join(base, run.artifact_refs.analyze).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
     path.join(base, run.artifact_refs.plan).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
     path.join(base, run.artifact_refs.progress).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
@@ -638,8 +758,14 @@ export function commitPrep(runId, cwd = process.cwd()) {
   if (run.artifact_refs?.findings) {
     files.push(path.join(base, run.artifact_refs.findings).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   }
-  if (run.artifact_refs?.latest_review_ref) files.push(path.join(base, run.artifact_refs.latest_review_ref).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
-  if (Array.isArray(run.review?.reviews)) for (const item of run.review.reviews) if (item?.path) files.push(path.join(base, item.path).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+  if (run.artifact_refs?.latest_review_ref) {
+    files.push(path.join(stateBase, run.artifact_refs.latest_review_ref).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+  }
+  if (Array.isArray(run.review?.reviews)) {
+    for (const item of run.review.reviews) {
+      if (item?.path) files.push(path.join(stateBase, item.path).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+    }
+  }
   if (run.handoff?.path) {
     files.push(path.join(run.handoff.path, 'handoff.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
     files.push(path.join(run.handoff.path, 'source.md').replaceAll(String.fromCharCode(92), String.fromCharCode(47)));

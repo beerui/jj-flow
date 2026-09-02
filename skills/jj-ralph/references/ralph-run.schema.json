@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "jj-flow/ralph-run/1.1",
+  "$id": "jj-flow/ralph-run/1.2",
   "title": "jj-flow Ralph Run Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -25,7 +25,8 @@
     "schema_version": {
       "enum": [
         "jj-flow/ralph-run/1.0",
-        "jj-flow/ralph-run/1.1"
+        "jj-flow/ralph-run/1.1",
+        "jj-flow/ralph-run/1.2"
       ]
     },
     "gate_set": {
@@ -46,7 +47,7 @@
     },
     "run_id": {
       "type": "string",
-      "pattern": "^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$"
+      "pattern": "^(?:task-[a-z0-9][a-z0-9-]{1,80}|RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80})$"
     },
     "title": {
       "type": "string",

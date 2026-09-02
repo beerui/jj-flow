@@ -11,7 +11,7 @@ Sync requirement invariants; do not copy source project files. On first port of 
 
 | # | In | Action | Out / next gate |
 | --- | --- | --- | --- |
-| 1 | Session / cwd | Ralph-handoff-first: `RALPH-*/run.json` → `artifact_refs.handoff_ref` / `run.handoff` (mirror `.../handoff/handoff.json` ok). `ready=true` → **do not** redo source analysis | `handoff` pinned **or** [Failure recovery](#failure-recovery-if-x--y) |
+| 1 | Session / cwd | Ralph-handoff-first: `tasks/<task_key>/.state/run.json` → `artifact_refs.handoff_ref` / `run.handoff` (mirror `.state/handoff.json`; leftover `RALPH-*/run.json` + `handoff/handoff.json` ok). `ready=true` → **do not** redo source analysis | `handoff` pinned **or** [Failure recovery](#failure-recovery-if-x--y) |
 | 2 | User speech (+ optional control manifest) | Parse target roles; with control, **read-only** approved `targets` / `task_key`. Ambiguous multi-target (e.g.「三端」未点名) → 🔴 **CHECKPOINT**: confirm targets before coding | Authorized target set |
 | 3 | Current branch + task purpose | 🔴 **CHECKPOINT · branch purpose + CREATE base freshness** → [branch-purpose-preflight.md](references/branch-purpose-preflight.md) (`behind_count` / G6). Mismatch or stale base → 🛑 **STOP** | Work branch GO |
 | 4 | Change shape | `port_profile.mode` via [LITE vs FULL](#lite-vs-full) (single decision point) | `LITE` or `FULL` |
@@ -69,7 +69,7 @@ Use this skeleton (facts only; omit empty lines; one target block per project):
 
 ## Ralph handoff (pointer)
 
-- Resolve: session `RALPH-*/run.json` → `handoff_ref` → primary `run.handoff` (optional file mirror).
+- Resolve: session `tasks/<task_key>/.state/run.json` (legacy `RALPH-*/run.json`) → `handoff_ref` → primary `run.handoff` (optional `.state/handoff.json` or leftover `handoff/handoff.json`).
 - `ready=true` → port; `ready=false` / missing / `STALE` → [Failure recovery](#failure-recovery-if-x--y).
 - Mode: [LITE vs FULL](#lite-vs-full) only — do not restate elsewhere.
 
@@ -79,7 +79,7 @@ Trigger → first fix → still failed. No silent workarounds.
 
 | Trigger | First fix | Still failed → |
 | --- | --- | --- |
-| No `RALPH-*/run.json` or no `handoff_ref` | Legacy snapshot / session evidence / commit range (`extract_session_evidence.py`, `collect-port-evidence.mjs`) | Ask user for source commit + targets; `BLOCKED` until pinned |
+| No `tasks/*/ .state/run.json` (and no leftover `RALPH-*/run.json`) or no `handoff_ref` | Legacy snapshot / session evidence / commit range (`extract_session_evidence.py`, `collect-port-evidence.mjs`) | Ask user for source commit + targets; `BLOCKED` until pinned |
 | `run.handoff.ready=false` and only uncommitted source work | Commit source (if user allows), refresh handoff, re-read `ready` | Port only after stable commit/diff; else `BLOCKED` |
 | Handoff `STALE` / source HEAD or requirement hash changed | `REFRESH`: re-read only changed sources; pin new stable commit; successor handoff if needed | 🛑 **STOP** target business code until new commit pinned |
 | Branch purpose ≠ task purpose (e.g. release train) | Switch/create correct feat branch from freshened local `master` | 🛑 **STOP**; need **written** override that this train **is** the land line |

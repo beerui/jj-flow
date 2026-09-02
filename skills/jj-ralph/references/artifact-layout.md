@@ -3,18 +3,20 @@
 **Location: business repo** (ProjectA / ProjectB / ProjectC, etc.), not the control project.
 
 ```text
-.workflow/ralph/RALPH-{kebab-slug}-{YYYYMMDD}/
-  run.json                 # phase/gates + intensity/budget/stagnation/accept_layers + handoff + optional metrics; schema 1.1
+.workflow/ralph/tasks/task-{kebab-slug}/
   task_plan.md             # ## 目标 / ## 分析 / ## 计划 / ## 验收 (nested ### 当前 / ### 已落地 / ### 已取代)
   progress.md              # deliver-attempt / resume|abandon audit; optional supersedes|parent chain on truly new runs; hot_memory inject lines
   findings.md              # 踩坑与因果 F-00N + 可复用结论; archive promotes the latter to ~/.jj-flow/memory/
   instruction-correction.md  # two-strike candidate; Reviewer never lands this into AGENTS.md
-  reviews/REV-*.json       # optional; often required for strict judgment layer
-  handoff/handoff.json     # optional mirror for same to read
+  .state/
+    run.json               # phase/gates + intensity/budget/stagnation/accept_layers + handoff + optional metrics; schema 1.2
+    reviews/REV-*.json     # optional; often required for strict judgment layer
+    handoff.json           # optional mirror for same to read; run.handoff remains SSOT
 
 .workflow/ralph/
   business-map.json        # CAP-* capability map (ABANDONED runs do not map-merge)
   archive/YYYY-MM-DD-{kebab-slug}/   # leftover 1.0 copies only (read-only; P1c no longer writes here)
+  .migrated-RALPH-*/       # migrate leftovers; listRuns/load ignore; not auto-deleted
 ```
 
 ## Rules
@@ -23,10 +25,10 @@
 2. Do not write external `.workflow/handoffs/` or csv-wave HOF bulk packages
 3. Naming follows naming config (`jj doctor` / `JJ_GLOBAL_CONFIG_DIR`; **never** hard-code host-local paths)
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
-5. `RALPH-*` ≠ control-plane `DEL-*` / dispatch `task_key`
-6. The active directory is always the authoritative run. Archive is an in-place COMPLETED flip plus inline `run.archive` / `archive_history`. Leftover `archive/` folders are historical 1.0 snapshots (read-only). Continue after archive → **same** `RALPH-*` directory resume; do not open a new run by default
+5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
+6. The active directory is always the authoritative run. Archive is an in-place COMPLETED flip plus inline `run.archive` / `archive_history`. Leftover `archive/` folders are historical 1.0 snapshots (read-only). Continue after archive → **same** `task-*` directory resume; do not open a new run by default. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
 7. Intent is optional text under `task_plan.md` `## 目标`. `init` writes it except `tiny` or `--no-intent` (`artifact_refs.intent` = `task_plan.md`). Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
-8. Claimed implementation paths and review compliance read `task_plan.md` **## 计划 → ### 当前** (fallback: `当前` → `Current` → `Tasks` → full file). `### 已落地` / `### 已取代` do not count as the current ledger. Do not put `#` fragments in `artifact_refs`
+8. Claimed implementation paths and review compliance read `task_plan.md` **## 计划 → ### 当前** only (no `Current` / `Tasks` / full-file fallback on the active write path). `### 已落地` / `### 已取代` do not count as the current ledger. Do not put `#` fragments in `artifact_refs`
 
 ## Current contract vs history
 
@@ -70,7 +72,7 @@ On first write of a new run, `### 已落地` / `### 已取代` may stay empty un
 
 ### Legacy / init headings
 
-`ralph_ops init` writes `task_plan.md` with `### 当前`. Older 1.0 runs may still have `analyze.md` / `plan.md` / `acceptance.md` and English `## Current` / `## Tasks`. Readers fall back: `当前` → `Current` → `Tasks` → full file. Gate path checks read backtick paths, not these heading names.
+`ralph_ops init` writes `task_plan.md` with `### 当前`. Older 1.0 runs may still have `analyze.md` / `plan.md` / `acceptance.md` and English `## Current` / `## Tasks`. `jj ralph migrate` merges those files and translates headings fail-open. Active extractors no longer treat `Current`/`Tasks` as current. Gate path checks read backtick paths, not these heading names.
 
 | If you see | On task / approach change |
 | --- | --- |

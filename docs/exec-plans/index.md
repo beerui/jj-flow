@@ -13,7 +13,6 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [Ralph 工作区 P2](active/2026-09-02-ralph-plans-workspace-p2.html) | P1 已关闭；P2 身份稳定化未做 | P2a：新 run 只写 `tasks/task-*` + `.state/run.json` |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 
@@ -23,6 +22,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [Ralph 工作区 P2](completed/2026-09-02-ralph-plans-workspace-p2.html) | P2a `task-*` + `.state/` + schema 1.2；P2b same/review 定位；P2c migrate/adopt + 去掉 1.0 标题回退。lite 未开 |
 | [Ralph 工作区 P1](completed/2026-09-02-ralph-plans-workspace-p1.html) | P1a 五模块拆分、P1b 布局 8→4 + schema 1.1、P1c 归档原地翻转；P2 另开 |
 | [Grok Host Adapter Phase 2 / Wave 2](completed/2026-09-01-grok-host-adapter-phase2.html) | 真 Grok 试跑 + 人工审查升 A2；JSON 不得自关 |
 | [实验场 Loop gym / Family gym](completed/2026-08-31-jj-flow-labs.html) | 机械实验场 Implemented；PR1–PR10 合入 `main`；`lab:check` 进 `verify`。Live Agent 仍为手册 / evaluated |

@@ -4,7 +4,7 @@
 
 | Identity | Owner | Example |
 | --- | --- | --- |
-| `RALPH-*` run_id | **ralph** (business repo `.workflow/ralph/`) | `RALPH-login-reminder-20260722` |
+| `task-*` run_id | **ralph** (business repo `.workflow/ralph/tasks/`) | `task-login-reminder` |
 | `CAP-*` | ralph business-map | `CAP-login-reminder` |
 | In-run `REQ-*` / `TASK-*` | ralph plan | `TASK-1` detects password_expired |
 | `DEL-*` delivery | **dispatch** (control project / control-plane) | `DEL-password` |
@@ -26,7 +26,7 @@ The **control project** only records schedule state; do not use ralph there as a
 
 When a control plane is needed, write a dispatch recommendation. dispatch owns delivery / task_key.  
 Example: `$jj-dispatch PREVIEW delivery=DEL-password targets=ProjectA,ProjectB,ProjectC`  
-→ Separate line from `RALPH-login-reminder-20260722` in ProjectA; may cross-reference but do not write the wrong directory.
+→ Separate line from `task-login-reminder` in ProjectA; may cross-reference but do not write the wrong directory.
 
 ## Optional: jj-team-coordinate (session multi-role engine)
 
@@ -35,7 +35,7 @@ Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for
 | Item | Rule |
 | --- | --- |
 | Skill | `jj-team-coordinate` (`/jj-team-coordinate` · `$jj-team-coordinate`; legacy speech “Team Coordinate”) |
-| Session | `.workflow/.team/TC-<slug>-<date>/` — **≠** `RALPH-*` |
+| Session | `.workflow/.team/TC-<slug>-<date>/` — **≠** `task-*` |
 | Facts | Team artifacts may be **cited** in ralph progress / evidence paths |
 | Gates | Team completion **does not** set ACCEPT PASS or flip `run.json` gates |
 | Dispatch | Never creates `DEL-*` / durable `task_key` |
@@ -52,7 +52,7 @@ Use when **ANALYZE / PLAN / DELIVER needs a fixed engineering document chain** (
 | Item | Rule |
 | --- | --- |
 | Skill | `jj-team-lifecycle` (`/jj-team-lifecycle` · `$jj-team-lifecycle`; legacy `team-lifecycle-v4`) |
-| Session | `.workflow/.team/TLV4-<slug>-<date>/` — **≠** `TC-*` / `TAS-*` / `RALPH-*` |
+| Session | `.workflow/.team/TLV4-<slug>-<date>/` — **≠** `TC-*` / `TAS-*` / `task-*` |
 | Pipelines | `spec-only` · `impl-only` · `full-lifecycle` |
 | Facts | Cite `spec/` / `plan/` / `artifacts/` into ralph progress / evidence paths |
 | Gates | Lifecycle completion **does not** set ACCEPT PASS or flip `run.json` gates |
@@ -70,7 +70,7 @@ Use when **PLAN / design needs multi-hypothesis search or adversarial scoring** 
 | Item | Rule |
 | --- | --- |
 | Skill | `jj-team-swarm` (`/jj-team-swarm` · `$jj-team-swarm`; legacy TAS / 蚁群) |
-| Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `TLV4-*` / `RALPH-*` |
+| Session | `.workflow/.team/TAS-<slug>-<date>/` — **≠** `TC-*` / `TLV4-*` / `task-*` |
 | Facts | Cite `artifacts/best-solution.md` into plan/evidence only |
 | Gates | Swarm **does not** set ACCEPT PASS |
 | User notice | Nested only: `开启 swarm 模式，开始任务XXX 约 15-40分钟` |

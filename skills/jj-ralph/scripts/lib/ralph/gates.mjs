@@ -18,7 +18,10 @@ import {
   RALPH_HANDOFF_SCHEMA_VERSION,
   RALPH_MAP_REL,
   RALPH_ROOT_REL,
+  RALPH_TASKS_DIR_REL,
   RALPHS_DIR_REL,
+  STATE_REL,
+  stripRunIdPrefix,
   appendProgressLine,
   createEmptyAcceptLayers,
   createEmptyMap,
@@ -31,6 +34,7 @@ import {
   nowIso,
   readJson,
   runDir,
+  runMachineFile,
   saveRun,
   unique,
   writeJson
@@ -96,8 +100,8 @@ export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [],
   if (!git.commit_stable) blocked_reasons.push('commit_stable=false');
   if (!git.head) blocked_reasons.push('source_head_missing');
   const ready = blocked_reasons.length === 0;
-  const handoff_id = run.handoff?.handoff_id || ('HOF-' + run.run_id.replace(/^RALPH-/, ''));
-  const relDir = path.join(RALPH_ROOT_REL, run.run_id, 'handoff').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const handoff_id = run.handoff?.handoff_id || ('HOF-' + stripRunIdPrefix(run.run_id));
+  const relDir = path.join(RALPH_TASKS_DIR_REL, run.run_id, STATE_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const portMode = mode || run.handoff?.mode || 'LITE';
   const updated_at = nowIso();
   run.family = family.enabled || targets.length ? family : (run.family || null);
@@ -140,7 +144,7 @@ export function writeHandoffPackage(runId, { cwd = process.cwd(), handoff_id, ta
 
 export function writeDispatchSnapshot(runId, { cwd = process.cwd(), targets_hint = [] } = {}) {
   const run = loadRun(runId, cwd);
-  const snapId = 'SNAP-' + run.run_id.replace(/^RALPH-/, '');
+  const snapId = 'SNAP-' + stripRunIdPrefix(run.run_id);
   const rel = path.join('.workflow', 'dispatch', 'recommendations', snapId);
   const abs = path.join(cwd, rel);
   fs.mkdirSync(abs, { recursive: true });
@@ -269,29 +273,24 @@ function firstPresentHeading(text, heading, levels) {
 }
 
 /**
- * Current plan contract: `## 计划` → `### 当前`, else `当前` / `Current` / `Tasks`, else the whole file.
- * Empty `### 当前` stays empty (does not leak 已落地 / 已取代).
+ * Current plan contract: `## 计划` → `### 当前`. Empty `### 当前` stays empty
+ * (does not leak 已落地 / 已取代). P2c dropped Current/Tasks/full-file fallback.
  */
 export function extractPlanCurrentSection(text) {
   if (!text || typeof text !== 'string') return '';
   const plan = hasHeading(text, '计划', 2) ? extractMarkdownSection(text, '计划', 2) : null;
   const scope = plan != null ? plan : text;
-  const current = firstPresentHeading(scope, '当前', [3, 2])
-    ?? firstPresentHeading(scope, 'Current', [2, 3])
-    ?? firstPresentHeading(scope, 'Tasks', [2, 3]);
+  const current = firstPresentHeading(scope, '当前', [3, 2]);
   if (current != null) return current;
-  return plan != null ? plan : text;
+  return '';
 }
 
 function extractAcceptanceActiveText(text) {
   if (!text || typeof text !== 'string') return '';
   const accept = hasHeading(text, '验收', 2)
     ? extractMarkdownSection(text, '验收', 2)
-    : (hasHeading(text, 'Acceptance', 2)
-      ? extractMarkdownSection(text, 'Acceptance', 2)
-      : text);
-  const current = firstPresentHeading(accept, '当前', [3, 2])
-    ?? firstPresentHeading(accept, 'Current', [2, 3]);
+    : text;
+  const current = firstPresentHeading(accept, '当前', [3, 2]);
   const body = current != null ? current : accept;
   return body.split(/\r?\n/).filter((line) => !/(?:\bSUPERSEDED\b|已取代)/i.test(line)).join('\n');
 }
@@ -507,7 +506,7 @@ export function getLatestReviewRecord(run, cwd = process.cwd()) {
     : null;
   if (!entry) return null;
   if (entry.path) {
-    const abs = path.join(runDir(run.run_id, cwd), entry.path);
+    const abs = runMachineFile(run.run_id, entry.path, cwd);
     if (fs.existsSync(abs)) {
       try {
         return readJson(abs);
