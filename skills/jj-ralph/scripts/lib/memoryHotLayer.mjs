@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { INJECT_SOFT_CAP, rankIndexHits } from './memoryRetrieve.mjs';
+import { INJECT_SOFT_CAP, indexTokens, rankIndexHits } from './memoryRetrieve.mjs';
 import { normalizeCmp, similarText } from './memoryExtract.mjs';
 import { defaultJjFlowHome } from './homeLayout.mjs';
 
@@ -79,14 +79,42 @@ export function readHotMemoryEntries(projectKey, { home = null } = {}) {
   return { file, entries: parseHotMemoryFile(fs.readFileSync(file, 'utf8')) };
 }
 
+function jaccard(a, b) {
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  for (const token of a) if (b.has(token)) inter += 1;
+  return inter / (a.size + b.size - inter);
+}
+
+function latinWords(text) {
+  return new Set(String(text || '').toLowerCase().match(/[a-z0-9]{2,}/g) || []);
+}
+
+function multiCharTokens(text) {
+  const out = new Set();
+  for (const token of indexTokens(text).keys()) {
+    if ([...token].length >= 2) out.add(token);
+  }
+  return out;
+}
+
 function isDuplicateRule(rule, entries) {
   const needle = normalizeCmp(rule);
   if (!needle) return true;
-  return entries.some((entry) => normalizeCmp(entry.rule) === needle || similarText(rule, entry.rule));
+  const latinA = latinWords(rule);
+  const multiA = multiCharTokens(rule);
+  return entries.some((entry) => {
+    if (normalizeCmp(entry.rule) === needle) return true;
+    const latinB = latinWords(entry.rule);
+    if (latinA.size && latinB.size && jaccard(latinA, latinB) < 0.72) return false;
+    const multiB = multiCharTokens(entry.rule);
+    if (multiA.size && multiB.size) return jaccard(multiA, multiB) >= 0.85;
+    return similarText(rule, entry.rule);
+  });
 }
 
 /**
- * Append entries (dedupe: same normalized rule or >=0.72 token overlap skips).
+ * Append entries (dedupe: same normalized rule, or high multi-char overlap; latin-word mismatch keeps both).
  * Hard cap: drop oldest unconfirmed to make room; all-confirmed at cap refuses new writes.
  */
 export function appendHotMemoryEntries(projectKey, entries, { home = null } = {}) {
@@ -260,11 +288,13 @@ export function extractReusableRulesFromFindings(text, { taskKey = '', backrefBa
     if (!m) continue;
     const rule = m[1].trim();
     if (!rule || /^\(none\)$/.test(rule)) continue;
-    const fRef = rule.match(/F-\d+/);
+    const trailing = rule.match(/（(F-\d+)）\s*$/);
+    const ids = [...rule.matchAll(/F-\d+/g)].map((hit) => hit[0]);
+    const fRef = trailing?.[1] || ids.at(-1) || '';
     out.push({
       task_key: taskKey,
       rule,
-      backref: backrefBase && fRef ? `${backrefBase}#${fRef[0]}` : backrefBase || ''
+      backref: backrefBase && fRef ? `${backrefBase}#${fRef}` : backrefBase || ''
     });
   }
   return out;
@@ -278,6 +308,7 @@ export function defaultFindingsStub({ taskKey = 'findings' } = {}) {
     '',
     '## 改动摘要',
     '| 文件 | 轮次 | 变更 |',
+    '| --- | --- | --- |',
     '',
     '## 行为/契约',
     '',
@@ -293,10 +324,7 @@ export function defaultFindingsStub({ taskKey = 'findings' } = {}) {
 
 export function nextFindingId(text) {
   let max = 0;
-  const re = /\bF-(\d+)\b/g;
-  let match;
-  const src = String(text || '');
-  while ((match = re.exec(src))) {
+  for (const match of String(text || '').matchAll(/^###\s+F-(\d+)/gm)) {
     max = Math.max(max, Number(match[1]));
   }
   return 'F-' + String(max + 1).padStart(3, '0');
@@ -307,14 +335,29 @@ export function countFindingHeadings(text) {
 }
 
 export function parseProgressDraft(progressText) {
-  const lines = String(progressText || '').split(/\r?\n/);
+  const parsed = String(progressText || '').split(/\r?\n/).map((line) => {
+    const must = line.match(/^\s*-\s+failed_must:\s*(.+)$/);
+    if (must) return { kind: 'must', value: must[1].trim() };
+    const over = line.match(/^\s*-\s+over_claimed:\s*(.+)$/);
+    if (over) return { kind: 'over', value: over[1].trim() };
+    return { kind: 'other' };
+  });
   let failed_must = '';
   let over_claimed = '';
-  for (const line of lines) {
-    const must = line.match(/^\s*-\s+failed_must:\s*(.+)$/);
-    if (must) failed_must = must[1].trim();
-    const over = line.match(/^\s*-\s+over_claimed:\s*(.+)$/);
-    if (over) over_claimed = over[1].trim();
+  for (let i = parsed.length - 1; i >= 0; i -= 1) {
+    if (parsed[i].kind !== 'must') continue;
+    let paired = '';
+    for (let j = i + 1; j < parsed.length; j += 1) {
+      if (parsed[j].kind === 'must') break;
+      if (parsed[j].kind === 'over') {
+        paired = parsed[j].value;
+        break;
+      }
+    }
+    if (!paired) continue;
+    failed_must = parsed[i].value;
+    over_claimed = paired;
+    break;
   }
   return { failed_must, over_claimed };
 }

@@ -496,6 +496,7 @@ function maybeFindingHint(runId, cwd) {
   if (!fs.existsSync(findingsPath)) return FINDING_HINT;
   const text = fs.readFileSync(findingsPath, 'utf8');
   if (countFindingHeadings(text) < 1) return FINDING_HINT;
+  if (!extractReusableRulesFromFindings(text).length) return FINDING_HINT;
   return null;
 }
 
@@ -517,6 +518,7 @@ export function recordFinding(runId, fields = {}, cwd = process.cwd()) {
   if (!cause) throw new Error('finding needs --cause (or progress over_claimed)');
   if (!action) throw new Error('finding needs --action');
   if (!scope) throw new Error('finding needs --scope');
+  const rule = String(fields.rule || '').trim() || `${action}（${scope}）`;
   const result = appendFindingsEntry(existing, {
     title: fields.title,
     phenomenon,
@@ -525,7 +527,7 @@ export function recordFinding(runId, fields = {}, cwd = process.cwd()) {
     scope,
     cost: fields.cost,
     evidence: fields.evidence,
-    rule: fields.rule
+    rule
   });
   fs.writeFileSync(findingsPath, result.text, 'utf8');
   appendProgressLine(runId, cwd, '- ' + nowIso() + ' finding ' + result.id);

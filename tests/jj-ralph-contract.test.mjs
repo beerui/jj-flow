@@ -455,12 +455,25 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
   };
   try {
     const runId = 'RALPH-ops-wrapper-20260723';
-    const init = runNode(['init', '--run-id', runId, '--title', 'ops wrapper', '--goal', 'single source', '--capability', 'CAP-ops']);
+    const init = runNode([
+      'init',
+      '--run-id',
+      runId,
+      '--title',
+      'ops wrapper',
+      '--goal',
+      'single source',
+      '--capability',
+      'CAP-ops',
+      '--project',
+      'ops-hot-proj'
+    ]);
     assert.equal(init.ok, true);
     assert.match(String(init.resolved).replaceAll('\\', '/'), /src\/ralph\.mjs$/);
 
     const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+    assert.equal(run.project_key, 'ops-hot-proj');
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     fs.writeFileSync(runPath, `${JSON.stringify(run, null, 2)}\n`);
 

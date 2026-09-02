@@ -69,7 +69,7 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--intent|--no-intent] [--cwd DIR]
+  init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
   status [--run-id RALPH-x] [--cwd DIR]
   metrics --run-id RALPH-x [--persist] [--cwd DIR]
   archive --run-id RALPH-x [--slug name] [--cwd DIR]
@@ -233,6 +233,10 @@ async function main() {
         die('init: use --intent or --no-intent, not both');
       }
       if (args.intent === true) initOpts.write_intent = true;
+      if (args.project && args.project !== true) initOpts.project = String(args.project);
+      if (args['knowledge-query'] && args['knowledge-query'] !== true) {
+        initOpts.knowledge_query = String(args['knowledge-query']);
+      }
       const run = initRun(initOpts, cwd);
       printJson({
         ok: true,

@@ -80,6 +80,11 @@ test('appendHotMemoryEntries dedupes similar rules and drops oldest unconfirmed 
     ], { home });
     assert.equal(dup.added, 0);
     assert.equal(dup.skipped, 1);
+    const cjkPair = appendHotMemoryEntries('cjk-proj', [
+      { date: '2026-09-01', task_key: 't', rule: '必须先确认 path 再落码' },
+      { date: '2026-09-01', task_key: 't', rule: '必须先确认 schema 再落码' }
+    ], { home });
+    assert.equal(cjkPair.added, 2);
 
     const many = [];
     for (let i = 0; i < HOT_MEMORY_MAX_ENTRIES; i += 1) {
@@ -124,7 +129,9 @@ test('retrieveHotMemory ranks confirmed first and does not pad empty query', asy
 });
 
 test('extractReusableRulesFromFindings reads ## 可复用结论 and skips (none)', () => {
-  assert.equal(extractReusableRulesFromFindings(defaultFindingsStub({ taskKey: 'RALPH-x' })).length, 0);
+  const stub = defaultFindingsStub({ taskKey: 'RALPH-x' });
+  assert.equal(extractReusableRulesFromFindings(stub).length, 0);
+  assert.match(stub, /\| --- \| --- \| --- \|/);
   const filled = [
     '# findings',
     '',
@@ -133,6 +140,7 @@ test('extractReusableRulesFromFindings reads ## 可复用结论 and skips (none)
     '',
     '## 可复用结论',
     '- 外部接口 path 未确认前不落码（F-002）',
+    '- REV-8 F-1 只读上传仍走 OSS（F-006）',
     '',
     '## 验证'
   ].join('\n');
@@ -140,8 +148,9 @@ test('extractReusableRulesFromFindings reads ## 可复用结论 and skips (none)
     taskKey: 'RALPH-x',
     backrefBase: '.workflow/ralph/RALPH-x/findings.md'
   });
-  assert.equal(rules.length, 1);
+  assert.equal(rules.length, 2);
   assert.match(rules[0].backref, /#F-002$/);
+  assert.match(rules[1].backref, /#F-006$/);
 });
 
 test('appendFindingsEntry numbers F-00N and can add reusable rule', () => {
@@ -164,11 +173,19 @@ test('appendFindingsEntry numbers F-00N and can add reusable rule', () => {
   });
   assert.equal(second.id, 'F-002');
   assert.equal(nextFindingId(second.text), 'F-003');
+  const withInline = appendFindingsEntry(second.text, {
+    phenomenon: 'REV-8 F-1 loadAuditRecord；F-2 只读上传仍走 OSS',
+    cause: '共享状态',
+    action: 'loadSeq 挡住审核回填',
+    scope: 'audit 共享状态'
+  });
+  assert.equal(withInline.id, 'F-003');
+  assert.equal(nextFindingId(withInline.text), 'F-004');
   const rules = extractReusableRulesFromFindings(second.text);
   assert.equal(rules.length, 2);
 });
 
-test('parseProgressDraft keeps the latest failed_must / over_claimed', () => {
+test('parseProgressDraft keeps the latest complete failed_must / over_claimed pair', () => {
   const draft = parseProgressDraft([
     '- failed_must: old',
     '- over_claimed: old-claim',
@@ -177,6 +194,13 @@ test('parseProgressDraft keeps the latest failed_must / over_claimed', () => {
   ].join('\n'));
   assert.equal(draft.failed_must, 'REQ-002 countryCode 泄漏');
   assert.equal(draft.over_claimed, '未测 page 拼接');
+  const mixed = parseProgressDraft([
+    '- failed_must: old',
+    '- over_claimed: old-claim',
+    '- failed_must: incomplete-latest'
+  ].join('\n'));
+  assert.equal(mixed.failed_must, 'old');
+  assert.equal(mixed.over_claimed, 'old-claim');
 });
 
 test('archive promotes ## 可复用结论; missing findings is silent skip', async () => {
@@ -307,12 +331,27 @@ test('deliver-attempt improved=false and rollback emit finding_hint until an F e
       setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
       const rolled = rollbackPhase(runId, { toPhase: 'ANALYZE', reason: 'retry analyze', cwd });
       assert.equal(rolled.finding_hint, FINDING_HINT);
+      const findingsPath = path.join(cwd, '.workflow', 'ralph', runId, 'findings.md');
+      fs.writeFileSync(findingsPath, [
+        defaultFindingsStub({ taskKey: runId }),
+        '### F-001 验收漏测',
+        '- 现象: 验收漏测',
+        '- 原因: 只测了 helper',
+        '- 对策: 补 page 级断言',
+        '- 适用范围: 动态入驻页',
+        '- 证据:',
+        ''
+      ].join('\n'), 'utf8');
+      const headingOnly = recordDeliverAttempt(runId, { improved: false, cwd, paths: [] });
+      assert.equal(headingOnly.finding_hint, FINDING_HINT);
       recordFinding(runId, {
         phenomenon: '验收漏测',
         cause: '只测了 helper',
         action: '补 page 级断言',
         scope: '动态入驻页'
       }, cwd);
+      const findings = fs.readFileSync(findingsPath, 'utf8');
+      assert.match(findings, /## 可复用结论\n- 补 page 级断言（动态入驻页）（F-00/);
       const after = recordDeliverAttempt(runId, { improved: false, cwd, paths: [] });
       assert.equal(after.finding_hint, null);
     } finally {

@@ -102,7 +102,7 @@ Source of truth: `run.handoff` (not a second workflow).
 ## Scripts
 
 ```bash
-node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--intent|--no-intent]
+node <resolved>/ralph_ops.mjs init --run-id RALPH-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--project KEY] [--knowledge-query Q] [--intent|--no-intent]
 node <resolved>/ralph_ops.mjs deliver-attempt --run-id RALPH-x --improved true|false
 node <resolved>/ralph_ops.mjs accept-layer --run-id RALPH-x --layer judgment --status PASS --mode review
 node <resolved>/ralph_ops.mjs gate --run-id RALPH-x --gate accept --status PASS
