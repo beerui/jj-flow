@@ -8,7 +8,7 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 | Implementation plan | `PLAN` | `task_plan.md` `## 计划` | Every TASK → REQ; in-scope and out-of-scope explicit |
 | Implement & verify | `DELIVER` | Code, `progress.md` iterations, focused verification | Tasks done and verification not FAIL; rework loops allowed; `deliver-attempt` signal matches evidence_class |
 | Acceptance | `ACCEPT` | `task_plan.md` `## 验收` | Checklist items `PASS` or `N/A`+reason; **evidence level must not be lower than the MUST’s evidence_class** (ban write-then-read PASS via diff only); missing evidence → no PASS; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; path sets consistent |
-| Archive | `ARCHIVE` | `archive-manifest.json`, archive snapshot, map merge | Snapshot + merge `business-map.json`; product-consistency + if a PASS review exists then commit-scoped review SHA required; COMPLETED ≠ committed (report honestly lists dirty / commit-prep); **re-archive allowed** |
+| Archive | `ARCHIVE` | live run dir + `run.json` `archive` / `archive_history`; map merge | In-place COMPLETED (resumable); sha256 ledger inline; no `archive-manifest.json`; leftover `.workflow/ralph/archive/` snapshots are read-only; product-consistency + if a PASS review exists then commit-scoped review SHA required; COMPLETED ≠ committed (report honestly lists dirty / commit-prep); **re-archive allowed** (appends `archive_history`) |
 
 ## status
 
@@ -28,7 +28,7 @@ Read run.json + progress.md + business-map.json + Git
   → append progress + update run.json
   → verify FAIL and iteration < max → stay in DELIVER
   → needs human decision → BLOCKED / READY_FOR_USER_TEST (stop clock)
-  → accept PASS → finalize (map-merge + archive snapshot) → COMPLETED (can resume)
+  → accept PASS → finalize (map-merge + in-place archive) → COMPLETED (can resume)
   → drop mid-flight → abandon → ABANDONED (can resume)
 ```
 
@@ -109,7 +109,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 
 ## Closeout
 
-- After accept PASS, prefer `finalize` = map-merge + archive snapshot (re-archive allowed).
+- After accept PASS, prefer `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`).
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again.
 - Drop mid-flight: `abandon`; can `resume` later. `close` is deprecated.

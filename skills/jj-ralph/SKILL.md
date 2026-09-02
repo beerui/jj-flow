@@ -7,7 +7,7 @@ description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→A
 
 Single repo: requirement → acceptance → archive. Durable state is written only under `.workflow/ralph/` and Git.
 
-**Continue / resume:** same requirement → same `run_id`. Archive = snapshot + map merge, **not** discard; further edits use `resume`. Mid-flight stop → `abandon` (can `resume` later). New run **only** for a truly new requirement. `$jj-end` is Git-only.
+**Continue / resume:** same requirement → same `run_id`. Archive = in-place COMPLETED + inline sha256 ledger + map merge, **not** discard; further edits use `resume`. Mid-flight stop → `abandon` (can `resume` later). New run **only** for a truly new requirement. `$jj-end` is Git-only.
 
 **Users do not lead with run ids.** Real speech is like “nudge the tip a bit”, “change that one again”, “drop this for now”. You resolve/write `RALPH-…` in reports; **never** require the user to memorize a run_id first.
 
@@ -54,7 +54,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
 | 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows. Init/resume also inject up to 5 hot-memory one-liners from `~/.jj-flow/memory/<project_key>.md` into progress (`hot_memory:`); empty is valid |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
-| 5 finalize | accept PASS | archive snapshot + map merge + hot-memory promote (`knowledge-contribution.json` degraded) |
+| 5 finalize | accept PASS | in-place archive + map merge + hot-memory promote (`knowledge-contribution.json` degraded) |
 | 6 report | run + CAP paths | short completion report |
 
 ### Happy path (default command chain)

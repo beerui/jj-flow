@@ -14,7 +14,7 @@
 
 .workflow/ralph/
   business-map.json        # CAP-* capability map (ABANDONED runs do not map-merge)
-  archive/YYYY-MM-DD-{kebab-slug}/   # soft-archive snapshot (re-archive may use timestamp dirs; not a tombstone)
+  archive/YYYY-MM-DD-{kebab-slug}/   # leftover 1.0 copies only (read-only; P1c no longer writes here)
 ```
 
 ## Rules
@@ -24,7 +24,7 @@
 3. Naming follows naming config (`jj doctor` / `JJ_GLOBAL_CONFIG_DIR`; **never** hard-code host-local paths)
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
 5. `RALPH-*` ≠ control-plane `DEL-*` / dispatch `task_key`
-6. The active directory is always the authoritative run; under archive are historical snapshots. Continue after archive → **same** `RALPH-*` directory resume; do not open a new run by default
+6. The active directory is always the authoritative run. Archive is an in-place COMPLETED flip plus inline `run.archive` / `archive_history`. Leftover `archive/` folders are historical 1.0 snapshots (read-only). Continue after archive → **same** `RALPH-*` directory resume; do not open a new run by default
 7. Intent is optional text under `task_plan.md` `## 目标`. `init` writes it except `tiny` or `--no-intent` (`artifact_refs.intent` = `task_plan.md`). Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
 8. Claimed implementation paths and review compliance read `task_plan.md` **## 计划 → ### 当前** (fallback: `当前` → `Current` → `Tasks` → full file). `### 已落地` / `### 已取代` do not count as the current ledger. Do not put `#` fragments in `artifact_refs`
 
@@ -37,9 +37,9 @@ Live `task_plan.md` = **current contract** (what to do now). It is not a changel
 | Current contract | live `task_plan.md` (`### 当前` under 分析 / 计划 / 验收) | Update **当前**; do not delete prior rows |
 | Audit | live `progress.md` | Append only |
 | Pitfalls | live `findings.md` | Append F-00N + 可复用结论 |
-| Finalize snapshot | `.workflow/ralph/archive/*` | Created on `finalize`; never delete old dirs |
+| Finalize snapshot | live `run.json` `archive` / `archive_history` | In-place on `finalize`; leftover `archive/` dirs are not mutated |
 
-`archive/` is only a finalize snapshot. A mid-DELIVER plan that never passed `finalize` is **not** in archive. If you replace live `task_plan.md` in place, that text is gone.
+Archive is an in-place flip, not a copy. Leftover `.workflow/ralph/archive/*` dirs (if any) are read-only 1.0 snapshots. A mid-DELIVER plan that never passed `finalize` has no `archive` field. If you replace live `task_plan.md` in place, that text is gone.
 
 ### File shape (`task_plan.md`)
 

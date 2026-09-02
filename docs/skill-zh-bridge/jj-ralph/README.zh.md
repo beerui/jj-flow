@@ -75,7 +75,7 @@
 | PLAN | 计划实施 | `plan.md`、任务表 |
 | DELIVER | 实施验证 | 代码、`progress.md`、聚焦验证 |
 | ACCEPT | 验收 | `acceptance.md` |
-| ARCHIVE | 归档 | `archive-manifest.json`、snapshot、`business-map.json` 合并 |
+| ARCHIVE | 归档 | 原地 COMPLETED + `run.json` `archive` / `archive_history`、`business-map.json` 合并 |
 
 ## intensity
 

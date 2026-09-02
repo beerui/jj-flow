@@ -314,12 +314,15 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /[Ii]ntensity|intensity tier|tiny\|standard\|strict/);
   assert.match(phases, /deliver-attempt/);
   assert.match(phases, /accept-layer|accept_layers/);
+  assert.match(phases, /archive_history/);
 
   const schema = read('schemas/ralph-run.schema.json');
   assert.match(schema, /"intensity"/);
   assert.match(schema, /STAGNATION/);
   assert.match(schema, /"intent"/);
   assert.match(schema, /"metrics"/);
+  assert.match(schema, /"archive_history"/);
+  assert.match(schema, /"manifest_hash"/);
   assert.equal(
     read('skills/jj-ralph/references/ralph-run.schema.json'),
     schema
@@ -533,7 +536,12 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
     assert.equal(runCli(['ralph', 'map-find', '--query', '演示', '--json'], { cwd, stdout }), 0);
 
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'business-map.json')));
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'archive')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'archive')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    const liveAfterArchive = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+    assert.equal(liveAfterArchive.status, 'COMPLETED');
+    assert.equal(liveAfterArchive.last_archive_path, '.workflow/ralph/' + runId);
+    assert.ok(liveAfterArchive.archive && Array.isArray(liveAfterArchive.archive.files));
     const handoffJson = path.join(cwd, '.workflow', 'ralph', runId, 'handoff', 'handoff.json');
     assert.ok(fs.existsSync(handoffJson));
     const handoffPkg = JSON.parse(fs.readFileSync(handoffJson, 'utf8'));
@@ -672,7 +680,8 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     assert.equal(finalized.action, 'finalize');
     assert.equal(finalized.capability_id, 'CAP-ops');
     assert.equal(finalized.status, 'COMPLETED');
-    assert.ok(finalized.archive_path.includes('.workflow/ralph/archive/'));
+    assert.equal(finalized.archive_path, '.workflow/ralph/' + runId);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
 
     const found = runNode(['map-find', '--query', 'thin-wrap']);
     assert.ok(found.matches.some((item) => item.id === 'CAP-ops'));
@@ -791,33 +800,54 @@ test('defaultArchiveDirName avoids duplicated YYYYMMDD in archive folder', () =>
   assert.equal(defaultArchiveDirName('RALPH-demo', '2026-07-23T00:00:00.000Z'), '2026-07-23-demo');
 });
 
-test('archive soft-completes run.json and uses de-duplicated slug folder; re-archive allowed', () => {
+test('archive soft-completes in place with inline ledger; leftover archive/ snapshot is read-only', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-arch-'));
   try {
     const runId = 'RALPH-freeze-20260723';
+    const liveRel = '.workflow/ralph/' + runId;
     initRun({ run_id: runId, title: 'freeze', goal: 'archive completed copy', capability_ids: ['CAP-freeze'] }, cwd);
     const runPath = path.join(cwd, '.workflow', 'ralph', runId, 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     saveRun(run, cwd);
-    const result = archiveRun(runId, { cwd });
-    assert.equal(result.archive_path, '.workflow/ralph/archive/2026-07-23-freeze');
+    const leftoverDir = path.join(cwd, '.workflow', 'ralph', 'archive', 'old-snap');
+    fs.mkdirSync(leftoverDir, { recursive: true });
+    const leftoverFile = path.join(leftoverDir, 'marker.txt');
+    fs.writeFileSync(leftoverFile, 'historical-snapshot\n');
+    const result = archiveRun(runId, { cwd, slug: 'ignored-slug' });
+    assert.equal(result.archive_path, liveRel);
+    assert.equal(result.manifest.schema_version, 'jj-flow/ralph-archive/1.1');
+    assert.equal(result.manifest.archive_path, liveRel);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
     const archivedRun = JSON.parse(fs.readFileSync(path.join(cwd, result.archive_path, 'run.json'), 'utf8'));
     assert.equal(archivedRun.status, 'COMPLETED');
     assert.equal(archivedRun.phase, 'ARCHIVE');
     assert.equal(archivedRun.gates.archive, 'PASS');
+    assert.ok(archivedRun.archive && archivedRun.archive.archived_at);
+    assert.ok(Array.isArray(archivedRun.archive.files));
+    assert.ok(archivedRun.archive.files.some((file) => file.path === 'run.json'));
+    assert.ok(archivedRun.archive.manifest_hash);
+    assert.deepEqual(archivedRun.archive_history, []);
     const active = loadRun(runId, cwd);
     assert.equal(active.status, 'COMPLETED');
     assert.ok(active.last_archived_at);
-    assert.equal(active.last_archive_path, result.archive_path);
-    // Soft archive is not a freeze: same run can resume and re-archive.
+    assert.equal(active.last_archive_path, liveRel);
+    assert.equal(fs.readFileSync(leftoverFile, 'utf8'), 'historical-snapshot\n');
+    // Soft archive is not a freeze: same run can resume and re-archive in place.
     resumeRun(runId, { reason: 'more work after archive', cwd });
     assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
     const re = archiveRun(runId, { cwd });
-    assert.ok(re.archive_path.startsWith('.workflow/ralph/archive/2026-07-23-freeze-'));
-    assert.notEqual(re.archive_path, result.archive_path);
+    assert.equal(re.archive_path, liveRel);
+    assert.equal(re.archive_path, result.archive_path);
     assert.ok(fs.existsSync(path.join(cwd, re.archive_path, 'run.json')));
-    assert.equal(loadRun(runId, cwd).status, 'COMPLETED');
+    const reloaded = loadRun(runId, cwd);
+    assert.equal(reloaded.status, 'COMPLETED');
+    assert.equal(reloaded.last_archive_path, liveRel);
+    assert.equal(reloaded.archive_history.length, 1);
+    assert.equal(reloaded.archive_history[0].archived_at, result.run.archive.archived_at);
+    assert.equal(reloaded.archive_history[0].manifest_hash, result.run.archive.manifest_hash);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    assert.equal(fs.readFileSync(leftoverFile, 'utf8'), 'historical-snapshot\n');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -978,10 +1008,12 @@ test('cli gate and ops finalize path stay de-duplicated', () => {
     chunks.length = 0;
     assert.equal(runCli(['ralph', 'finalize', '--run-id', runId, '--modules', 'src/cli-gate.js', '--keywords', 'gate', '--json'], { cwd, stdout }), 0);
     const payload = JSON.parse(chunks[chunks.length - 1]);
-    assert.equal(payload.archive_path, '.workflow/ralph/archive/2026-07-23-cli-gate');
+    assert.equal(payload.archive_path, '.workflow/ralph/RALPH-cli-gate-20260723');
     assert.equal(payload.run.status, 'COMPLETED');
     const archived = JSON.parse(fs.readFileSync(path.join(cwd, payload.archive_path, 'run.json'), 'utf8'));
     assert.equal(archived.status, 'COMPLETED');
+    assert.ok(archived.archive && Array.isArray(archived.archive.files));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

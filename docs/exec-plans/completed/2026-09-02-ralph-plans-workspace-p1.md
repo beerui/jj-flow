@@ -1,10 +1,12 @@
 # Exec plan — Ralph 任务工作区 P1（拆分 + 布局 8→4 + 归档反转）
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
 > 开始日期：2026-09-02
+>
+> 完成日期：2026-09-02
 >
 > 关联设计：[Ralph 任务工作区 `.plans` 化改造](../../design-docs/ralph-plans-workspace.md)
 >
@@ -71,13 +73,13 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 
 设计 §3.5 / §4 P1c。
 
-- [ ] 原地翻转 + `archive` / `archive_history` 内联；停写 `archive-manifest.json`
-- [ ] `skills/jj-ralph/references/phases.md` 文案
-- [ ] `jj-ralph-contract` 归档用例：活跃目录仍可 resume；历史快照只读
+- [x] 原地翻转 + `archive` / `archive_history` 内联；停写 `archive-manifest.json`
+- [x] `skills/jj-ralph/references/phases.md` 文案
+- [x] `jj-ralph-contract` 归档用例：活跃目录仍可 resume；历史快照只读
 
 ## 下一刀
 
-P1c：归档反转 + 停写 `archive-manifest.json`。不改 run_id，不写业务仓指令文件。
+P1 关闭。P2（`task-*` run_id / migrate / adopt）另开 exec plan，等用户说「继续」再写。
 
 ## 完成定义
 
@@ -85,6 +87,16 @@ P1c：归档反转 + 停写 `archive-manifest.json`。不改 run_id，不写业�
 - P1b：schema 1.1 + 新布局 init；存量英文标题可读；jj-review 能评新布局；`npm run verify` + `git diff --check`。
 - P1c：不再写 `archive-manifest.json`；归档合约绿。
 - 全计划关闭：三切片勾完，本文件移入 `completed/`，设计文档 P1 段标落地；P2 另开 exec plan。
+
+## 验收
+
+```bash
+npm run ralph:sync
+npm run ralph:check
+node --test tests/jj-ralph-contract.test.mjs
+npm run verify
+git diff --check
+```
 
 ## 残留风险
 

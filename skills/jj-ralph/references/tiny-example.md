@@ -68,7 +68,7 @@ Move the previous `### 当前` block to 已落地 or 已取代 **before** writin
 
 ## Closeout
 
-1. After gates.accept=PASS → `finalize` (map-merge + soft archive snapshot; same run may continue)
+1. After gates.accept=PASS → `finalize` (map-merge + in-place archive; same run may continue)
 2. Merge capability: modules include changed files; keywords include business terms
 3. No commit/push unless asked; Git closeout via `$jj-end` (orthogonal to run lifetime)
 4. After archive, same requirement changes → `resume` same `run_id`; do not default to new init

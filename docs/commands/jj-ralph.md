@@ -131,8 +131,8 @@ agent 会按 **当前会话 / 最近改动 / 标题与目标是否同一需求**
 ```text
 .workflow/ralph/
   business-map.json
-  RALPH-…/          # 任务目录（agent 维护）
-  archive/…
+  RALPH-…/          # 任务目录（agent 维护；归档就在这里原地翻转）
+  archive/…         # 旧副本只读留存（新归档不再复制到这里）
 ```
 
 控制项目里是 dispatch 的 `DEL-…`，不要用 ralph 顶替业务实现。

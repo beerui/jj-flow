@@ -6,7 +6,7 @@ Rollback edges: `rollback.md`.
 ## Principles
 
 - **Same requirement → same `run_id`** (includes archived, `COMPLETED`, recover from `ABANDONED`).
-- **Archive** = map-merge + snapshot; may edit and re-archive.
+- **Archive** = map-merge + in-place COMPLETED + inline sha256 ledger; may edit and re-archive (`archive_history`).
 - **New run** only when the user clearly states a new requirement / new id.
 - Chat does not advance checkpoints.
 - **Users do not default to saying `RALPH-…`.** Speech like “tweak the tip again”, “that one from earlier”, “drop this for now” (「再改 tip」「刚才那个」「这个先不做了」) = continue signals; the agent resolves the run.

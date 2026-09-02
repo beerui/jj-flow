@@ -36,10 +36,11 @@ ARCHIVE → ACCEPT
 ## archive
 
 - Requires accept PASS (or force)
-- Writes snapshot (timestamp directory if path occupied; re-archive allowed)
+- In-place COMPLETED on the live run dir; inline `run.archive` sha256 ledger; re-archive appends `archive_history` (time + git HEAD + manifest hash)
+- Does **not** copy files or write `archive-manifest.json`
 - map-merge (forbidden when ABANDONED)
-- May record `last_archived_at` / `last_archive_path`
-- Old snapshots retained; continue edits the current run directory, does not erase history
+- Records `last_archived_at` / `last_archive_path` (path = live `.workflow/ralph/<run_id>`)
+- Leftover `.workflow/ralph/archive/` copies are read-only historical snapshots; do not migrate or delete them. Continue edits the current run directory
 
 Continue decision tree: [post-complete-continue.md](post-complete-continue.md).
 

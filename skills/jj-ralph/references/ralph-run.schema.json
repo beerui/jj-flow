@@ -752,13 +752,82 @@
       ],
       "description": "Optional host/session attestation for evaluation and recovery (codex/grok-build/...). Not a checkpoint authority."
     },
+    "archive": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Inline sha256 ledger of the live run tree at the latest archive event (P1c; no file copy, no archive-manifest.json).",
+      "required": [
+        "archived_at",
+        "files"
+      ],
+      "properties": {
+        "archived_at": {
+          "type": "string"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "head": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manifest_hash": {
+          "type": "string"
+        }
+      }
+    },
+    "archive_history": {
+      "type": "array",
+      "description": "Previous archive events (time + git HEAD + manifest hash). Appended on re-archive; the latest event lives on `archive`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "archived_at"
+        ],
+        "properties": {
+          "archived_at": {
+            "type": "string"
+          },
+          "head": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manifest_hash": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "last_archived_at": {
       "type": "string",
       "description": "ISO timestamp of the most recent soft archive event (resumable; not a freeze lock)."
     },
     "last_archive_path": {
       "type": "string",
-      "description": "Relative path of the most recent archive snapshot folder under .workflow/ralph/archive/."
+      "description": "Relative path of the live run directory after the most recent in-place archive (`.workflow/ralph/<run_id>`). Legacy 1.0 copies may still exist under `.workflow/ralph/archive/` as read-only leftovers."
     }
   },
   "$defs": {

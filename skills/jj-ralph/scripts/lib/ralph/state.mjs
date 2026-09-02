@@ -351,6 +351,39 @@ export function validateRun(run) {
       }
     }
   }
+  if (run.archive != null) {
+    if (typeof run.archive !== 'object' || Array.isArray(run.archive)) errors.push('archive must be object when present');
+    else {
+      if (typeof run.archive.archived_at !== 'string' || !run.archive.archived_at.trim()) {
+        errors.push('archive.archived_at required');
+      }
+      if (!Array.isArray(run.archive.files)) errors.push('archive.files must be array');
+      else {
+        for (const [i, file] of run.archive.files.entries()) {
+          if (!file || typeof file !== 'object' || Array.isArray(file)) {
+            errors.push('archive.files[' + i + '] must be object');
+          } else {
+            if (typeof file.path !== 'string' || !file.path.trim()) errors.push('archive.files[' + i + '].path required');
+            if (typeof file.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sha256)) {
+              errors.push('archive.files[' + i + '].sha256 must be 64-hex');
+            }
+          }
+        }
+      }
+    }
+  }
+  if (run.archive_history != null) {
+    if (!Array.isArray(run.archive_history)) errors.push('archive_history must be array when present');
+    else {
+      for (const [i, event] of run.archive_history.entries()) {
+        if (!event || typeof event !== 'object' || Array.isArray(event)) {
+          errors.push('archive_history[' + i + '] must be object');
+        } else if (typeof event.archived_at !== 'string' || !event.archived_at.trim()) {
+          errors.push('archive_history[' + i + '].archived_at required');
+        }
+      }
+    }
+  }
   if (run.review != null) {
     if (typeof run.review !== 'object' || Array.isArray(run.review)) errors.push('review must be object or null');
     else {

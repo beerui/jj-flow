@@ -1,24 +1,25 @@
 /** P1a split from src/ralph.mjs — move not rewrite.
  * archiveRun / finalizeRun / archive directory name.
+ * P1c: in-place flip; sha256 ledger lives on run.archive (no copy, no archive-manifest.json).
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildArchiveDirNameFromRunId, loadNamingConfig } from '../namingConfig.mjs';
 import {
-  RALPH_ARCHIVE_DIR_REL,
+  RALPHS_DIR_REL,
   RALPH_MAP_REL,
   appendProgressLine,
   loadRun,
   nowIso,
   runDir,
-  saveRun,
-  writeJson
+  saveRun
 } from './state.mjs';
 import {
   applyHandoffState,
   evaluateAcceptArchiveGate,
   persistRunMetrics,
+  readGitSourceFacts,
   shouldMaintainHandoff
 } from './gates.mjs';
 import { mapMergeFromRun } from './map.mjs';
@@ -29,33 +30,60 @@ import {
   writeKnowledgeContribution
 } from './knowledge.mjs';
 
+const ARCHIVE_HASH_SKIP = new Set(['archive-manifest.json']);
+
 function sha256File(filePath) {
   const hash = crypto.createHash('sha256');
   hash.update(fs.readFileSync(filePath));
   return hash.digest('hex');
 }
 
-function copyTree(src, dest) {
-  fs.mkdirSync(dest, { recursive: true });
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const from = path.join(src, entry.name);
-    const to = path.join(dest, entry.name);
-    if (entry.isDirectory()) copyTree(from, to);
-    else fs.copyFileSync(from, to);
-  }
+function sha256Text(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
+function hashRunTree(dirAbs) {
+  const files = [];
+  function walk(dir, rel = '') {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (ARCHIVE_HASH_SKIP.has(entry.name)) continue;
+      const nextRel = rel ? rel + '/' + entry.name : entry.name;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full, nextRel);
+      else files.push({
+        path: nextRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+        sha256: sha256File(full)
+      });
+    }
+  }
+  walk(dirAbs);
+  files.sort((a, b) => a.path.localeCompare(b.path));
+  return files;
+}
 
-/** Prefer archive dir `YYYY-MM-DD-{name}` without duplicating trailing YYYYMMDD from run_id. */
+function archiveEventFrom(snapshot) {
+  const files = Array.isArray(snapshot?.files) ? snapshot.files : [];
+  return {
+    archived_at: snapshot.archived_at,
+    head: snapshot.head ?? null,
+    manifest_hash: snapshot.manifest_hash || sha256Text(JSON.stringify(files))
+  };
+}
+
+/** Prefer archive dir `YYYY-MM-DD-{name}` without duplicating trailing YYYYMMDD from run_id.
+ * Kept for naming helpers and 1.0 snapshot folders; P1c no longer copies into it.
+ */
 export function defaultArchiveDirName(runId, now = new Date()) {
   return buildArchiveDirNameFromRunId(runId, now, loadNamingConfig());
 }
 
 /**
- * Soft archive event: snapshot + COMPLETED display status. Same run stays resumable;
- * re-archive is allowed (timestamped folder when path already exists). Not a tombstone.
+ * Soft archive event: in-place COMPLETED + inline sha256 ledger. Same run stays resumable.
+ * Re-archive appends archive_history (time + git HEAD + manifest hash). No file copy.
+ * `slug` is accepted for CLI compat and ignored (P1c zero-copy).
  */
-export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, diff_paths = null } = {}) {
+export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, force = false, diff_paths = null } = {}) {
   const run = loadRun(runId, cwd);
   if (run.status === 'ABANDONED') {
     throw new Error('archive forbidden for ABANDONED runs; resume first if work continues');
@@ -63,53 +91,37 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
   if (run.gates.accept !== 'PASS') throw new Error('archive requires gates.accept=PASS');
   const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate: 'archive' });
   if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
-  let folder = slug || defaultArchiveDirName(run.run_id);
-  let destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
-  let destAbs = path.join(cwd, destRel);
-  // Re-archive: append UTC timestamp so prior snapshots remain; do not hard-fail.
-  if (fs.existsSync(destAbs)) {
-    const stamp = nowIso().replace(/[:.]/g, '-');
-    folder = folder + '-' + stamp;
-    destRel = path.join(RALPH_ARCHIVE_DIR_REL, folder);
-    destAbs = path.join(cwd, destRel);
-  }
   const sourceAbs = runDir(runId, cwd);
-  // Soft closeout: COMPLETED is a display/compat alias after archive, not a freeze.
+  const liveRel = path.join(RALPHS_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const archivedAt = nowIso();
-  const archivePathNorm = destRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const git = readGitSourceFacts(cwd);
+  const files = hashRunTree(sourceAbs);
+  const manifest_hash = sha256Text(JSON.stringify(files));
+  if (run.archive && run.archive.archived_at) {
+    run.archive_history = [...(Array.isArray(run.archive_history) ? run.archive_history : []), archiveEventFrom(run.archive)];
+  } else if (!Array.isArray(run.archive_history)) {
+    run.archive_history = [];
+  }
   run.phase = 'ARCHIVE';
   run.status = 'COMPLETED';
   run.gates.archive = 'PASS';
   run.last_archived_at = archivedAt;
-  run.last_archive_path = archivePathNorm;
+  run.last_archive_path = liveRel;
   run.updated_at = archivedAt;
-  saveRun(run, cwd);
-  copyTree(sourceAbs, destAbs);
-  const files = [];
-  function walk(dir, rel = '') {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const nextRel = rel ? rel + '/' + entry.name : entry.name;
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(full, nextRel);
-      else files.push({ path: nextRel.replaceAll(String.fromCharCode(92), String.fromCharCode(47)), sha256: sha256File(full) });
-    }
-  }
-  walk(destAbs);
-  const manifest = {
-    schema_version: 'jj-flow/ralph-archive/1.0',
-    run_id: run.run_id,
+  run.archive = {
     archived_at: archivedAt,
-    archive_path: archivePathNorm,
-    files
+    files,
+    head: git.head || null,
+    manifest_hash
   };
-  writeJson(path.join(sourceAbs, 'archive-manifest.json'), manifest);
-  writeJson(path.join(destAbs, 'archive-manifest.json'), manifest);
+  saveRun(run, cwd);
   appendProgressLine(
     runId,
     cwd,
-    '- ' + archivedAt + ' archive soft path=' + archivePathNorm + ' status=COMPLETED (resumable)'
+    '- ' + archivedAt + ' archive in-place path=' + liveRel
+      + ' status=COMPLETED (resumable) files=' + files.length
+      + ' history=' + (run.archive_history || []).length
   );
-  // refresh in-memory run after manifest write (active tree now has manifest)
   const latest = loadRun(runId, cwd);
   let hot_memory = { status: 'skipped', added: 0 };
   try {
@@ -125,7 +137,20 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
     hot_memory = { status: 'error', added: 0, reason: String(err.message || err) };
     appendProgressLine(runId, cwd, '- ' + nowIso() + ' hot_memory promote skipped: ' + hot_memory.reason);
   }
-  return { run: latest, archive_path: archivePathNorm, manifest, hot_memory };
+  return {
+    run: latest,
+    archive_path: liveRel,
+    manifest: {
+      schema_version: 'jj-flow/ralph-archive/1.1',
+      run_id: latest.run_id,
+      archived_at: archivedAt,
+      archive_path: liveRel,
+      files,
+      head: git.head || null,
+      manifest_hash
+    },
+    hot_memory
+  };
 }
 
 /**
