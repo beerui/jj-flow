@@ -5,6 +5,8 @@
 > 参考模型：`daji-customer-service` 仓库 `.plans/<project>/<role>/task-*` 工作区（任务 / 进度 / 文档三套规范）
 >
 > 关联设计：[jj-ralph](jj-ralph.html)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.html)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed，本方案 P0 即其落地路径）
+>
+> 执行：[2026-09-02 Ralph 工作区 P1](../exec-plans/active/2026-09-02-ralph-plans-workspace-p1.md)（P0 已合入 `eb4e34c` / `0fb5e6f`）
 
 ## 1. 背景与问题
 

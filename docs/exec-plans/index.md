@@ -13,6 +13,7 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
+| [Ralph 工作区 P1](active/2026-09-02-ralph-plans-workspace-p1.html) | P0 热层已合入；P1a/b/c 未做 | P1a：`ralph.mjs` 拆五模块，行为零变化 |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 

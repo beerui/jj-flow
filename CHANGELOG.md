@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **Ralph P0 热层知识闭环**：`findings.md` 作为现有布局附加文件；archive 从 `## 可复用结论` 晋升 `~/.jj-flow/memory/<project_key>.md`；init / resume / dispatch 词法注入（cap 5，confirmed 置顶）。`jj ralph finding` + DELIVER 软提示；省略 `--rule` 时用对策（适用范围）写入可复用结论。不改 `run.json` schema。合约：`tests/memory-hot-layer.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`tests/jj-dispatch-contract.test.mjs`。
+- **Ralph 工作区 P1 exec-plan**：`docs/exec-plans/active/2026-09-02-ralph-plans-workspace-p1.md`。下一刀 P1a：`src/ralph.mjs` 拆五模块，行为零变化。P1b 布局 8→4、P1c 归档反转随后；P2 另开计划。
 - **全局知识库默认 `~/.jj-flow`**：`install-skill` / `jj home init` 生成 `naming.json`、`map.md`、`knowledge/index/search.json`（已有文件不覆盖）。产品默认不再依赖本机 `/portfolio`。
 - **`$jj-init`**：接入全局地图、梳理项目、补知识库。机械步骤 `jj init preview|join|ingest`；ralph / same / dispatch / doctor 只读地图，不在进场写入。用户点头后才 `join` / `ingest`。
 - **用户同意才写入**：新项目不自动进全局索引。`jj map lookup` 只读；写入走 `$jj-init`。单轮归档后的「投喂知识库」仍可在 ralph 做增量。
