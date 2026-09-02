@@ -1,0 +1,66 @@
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md
+  s_a78f71b1a6fd98::t_dbf8da4eb7c8de 3,9-10,76-78,82,90-99
+  s_a78f71b1a6fd98::t_67a93a3053cace 100
+skills/jj-ralph/references/phases.md
+  s_a78f71b1a6fd98::t_6dd49f063f89d0 11,31,112
+skills/jj-ralph/references/post-complete-continue.md
+  s_a78f71b1a6fd98::t_39aa1b38c01398 9
+skills/jj-ralph/scripts/lib/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_ed8bec2ca559bc 3,10,16,22,33-34,41-58,60-62,65-72,74-76,82-84,86,95,97-104,109,111,113-115,117,121-123,140-153
+docs/design-docs/index.md
+  s_a78f71b1a6fd98::t_9a1846aa3f946a 23
+CHANGELOG.md
+  s_a78f71b1a6fd98::t_f4fa8da1d18793 8-9
+src/ralph/state.mjs
+  s_a78f71b1a6fd98::t_b562771114607f 354-386
+tests/jj-ralph-contract.test.mjs
+  s_a78f71b1a6fd98::t_e85f9fe3eb009b 324-325,539-544,683-684,803,807,813-821,826-830,834-836,840-841,843-846,849-850,1011,1015-1016
+  s_a78f71b1a6fd98::t_e76ed7c2dcf76e 847-848
+  s_a78f71b1a6fd98::t_b3b6076d3648a4 317
+docs/exec-plans/index.md
+  s_a78f71b1a6fd98::t_0a121a2856f02f 25
+docs/commands/jj-ralph.md
+  s_a78f71b1a6fd98::t_7b59ef86702407 134-135
+docs/design-docs/ralph-plans-workspace.md
+  s_a78f71b1a6fd98::t_6434ec42ec46c8 584-585
+  s_a78f71b1a6fd98::t_4520ec1e1dcec4 9,586
+skills/jj-ralph/references/rollback.md
+  s_a78f71b1a6fd98::t_ab542efa66f8b8 39-40,42-43
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_a78f71b1a6fd98::t_1873caa5a88934 78
+schemas/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_e35dd29e9dd817 755-823,830
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_a78f71b1a6fd98::t_ed8bec2ca559bc 354-386
+src/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_fc3b5673a6c497 3,10,16,22,33-34,41-58,60-62,65-72,74-76,82-84,86,95,97-104,109,111,113-115,117,121-123,140-153
+scripts/build-docs.mjs
+  s_a78f71b1a6fd98::t_9dc726618b3463 112
+skills/jj-ralph/references/tiny-example.md
+  s_a78f71b1a6fd98::t_e5178cbba64050 71
+skills/jj-ralph/references/artifact-layout.md
+  s_a78f71b1a6fd98::t_619378addf09da 17,27,40,42
+skills/jj-ralph/SKILL.md
+  s_a78f71b1a6fd98::t_c074bfda802241 10,57
+skills/jj-ralph/references/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_3aaf96d13426f2 755-823,830
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "2f138624482f6073b737c80236c650287c087f23",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
