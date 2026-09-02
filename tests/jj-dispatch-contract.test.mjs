@@ -1721,3 +1721,10 @@ function softIntent({
         }
   };
 }
+
+test('dispatch skill brief template includes hot memory injection', () => {
+  const skill = fs.readFileSync(new URL('../skills/jj-dispatch/SKILL.md', import.meta.url), 'utf8');
+  assert.match(skill, /Hot memory/);
+  assert.match(skill, /~\/\.jj-flow\/memory/);
+  assert.match(skill, /do not pad/i);
+});

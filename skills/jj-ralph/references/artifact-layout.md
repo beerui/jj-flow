@@ -8,8 +8,9 @@
   intent.md                # optional initiator words; tiny skips; not a sixth phase
   analyze.md               # MUST + evidence_class + ## Flagged concerns; field lifecycle for write-then-read (see must-evidence.md)
   plan.md
-  progress.md              # deliver-attempt / resume|abandon audit; optional supersedes|parent chain on truly new runs
+  progress.md              # deliver-attempt / resume|abandon audit; optional supersedes|parent chain on truly new runs; hot_memory inject lines
   acceptance.md            # item + evidence_class + evidence (ban weak-evidence false green)
+  findings.md              # extra P0 file (not in run.json artifact_refs): 踩坑与因果 F-00N + 可复用结论; archive promotes the latter to ~/.jj-flow/memory/
   instruction-correction.md  # two-strike candidate; Reviewer never lands this into AGENTS.md
   reviews/REV-*.json       # optional; often required for strict judgment layer
   handoff/handoff.json     # optional mirror for same to read

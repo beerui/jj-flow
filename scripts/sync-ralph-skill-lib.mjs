@@ -12,7 +12,8 @@ const files = [
   { src: path.join(root, 'src', 'memoryExtract.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryExtract.mjs') },
   { src: path.join(root, 'src', 'homeLayout.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'homeLayout.mjs') },
   { src: path.join(root, 'src', 'projectMap.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'projectMap.mjs') },
-  { src: path.join(root, 'src', 'homeKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'homeKnowledge.mjs') }
+  { src: path.join(root, 'src', 'homeKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'homeKnowledge.mjs') },
+  { src: path.join(root, 'src', 'memoryHotLayer.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryHotLayer.mjs') }
 ]
 const checkOnly = process.argv.includes('--check');
 

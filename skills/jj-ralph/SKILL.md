@@ -36,7 +36,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
 4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate).
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
-   - After every DELIVER verify: `deliver-attempt`
+   - After every DELIVER verify: `deliver-attempt`. If `improved=false` or `rollback-phase`, the CLI may print a soft hint to record the failure with `ralph_ops.mjs finding` (does **not** block the gate). Prefill 现象/原因 from progress `failed_must` / `over_claimed`; you still write 对策 + 适用范围.
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
@@ -52,7 +52,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 | --- | --- | --- |
 | 1 Locate | user speech + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
-| 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows |
+| 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows. Init/resume also inject up to 5 hot-memory one-liners from `~/.jj-flow/memory/<project_key>.md` into progress (`hot_memory:`); empty is valid |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
 | 5 finalize | accept PASS | archive snapshot + map merge + `knowledge-contribution.json` |
 | 6 report | run + CAP paths | short completion report |
@@ -109,6 +109,9 @@ node <resolved>/ralph_ops.mjs gate --run-id RALPH-x --gate accept --status PASS
 node <resolved>/ralph_ops.mjs metrics --run-id RALPH-x [--persist]
 node <resolved>/ralph_ops.mjs finalize --run-id RALPH-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id RALPH-x [--hook]
+node <resolved>/ralph_ops.mjs finding --run-id RALPH-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]
+node <resolved>/ralph_ops.mjs knowledge-confirm --needle "…" [--project KEY]
+node <resolved>/ralph_ops.mjs knowledge-prune [--project KEY]
 node <resolved>/ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs abandon --run-id RALPH-x --reason "…"
 node <resolved>/ralph_ops.mjs rollback-phase --run-id RALPH-x --to DELIVER --reason "…"
@@ -145,6 +148,18 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | Config | `naming.json` → `ralph.knowledge_contribute`: `hook: none\|cli`, `cli` may use `{package}` `{project}` `{run_id}`; or env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
 | Default | Hook is **fail-open**; **no** auto-write on finalize; user yes is the gate |
 
+### Hot memory (P0 default loop)
+
+User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a business-repo instruction file. Do **not** write AGENTS.md / CLAUDE.md.
+
+| Step | Action |
+| --- | --- |
+| DELIVER | Increment `findings.md` with `ralph_ops.mjs finding` (five fields: 现象/原因/对策/适用范围/证据). `## 可复用结论` one-liners must point at `F-00N` |
+| ARCHIVE | `archive` / `finalize` appends `## 可复用结论` into the hot layer (missing findings.md → silent skip) |
+| init / resume | Lexical inject, cap 5, confirmed `[x]` first; record as `hot_memory:` in `progress.md`. 0 hits stay empty |
+| Confirm / prune | `knowledge-confirm --needle …` marks `[x]`; `knowledge-prune` drops oldest unconfirmed over the per-project cap |
+| Portfolio KB | Still opt-in overlay. Unavailable → skip. Do not pad either layer |
+
 ## 反例黑名单（不要做什么）
 
 | # | Do not | Do instead |
@@ -163,7 +178,7 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
 | 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
 | 14 | Silently replace live `plan.md` / `acceptance.md` / `analyze.md` so prior Current text is gone (incl. replacing `## Tasks` in place) | If no `## Current`, rename `## Tasks`→Current first; then move Current → Landed/Superseded. Unarchived revisions stay in the live files |
-| 15 | Pad init `knowledge_refs` with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
+| 15 | Pad init `knowledge_refs` or hot_memory with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
 | 16 | Delete or empty tests while fixing a failed MUST / `NEEDS_CHANGES` | Add or strengthen tests; `tiny` presentational without those signals is exempt |
 | 17 | Invent metrics clocks or block ACCEPT because timestamps are missing | `jj ralph metrics` is derived; null stays null |
 | 18 | Open a 4th parallel stream when review cannot keep up | One person, 2–3 independent streams; `$jj-review` reports only |

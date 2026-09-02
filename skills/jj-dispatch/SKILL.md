@@ -83,8 +83,11 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 - Plane: intent status / BOUND? / delivery status
 - Evidence: commit / review / attestation path / session id
 - Git base: base_action if CREATE this turn
+- Hot memory: up to 5 one-liners from ~/.jj-flow/memory/<project_key>.md (or (none))
 - Next: (one line; 🛑 if blocked)
 ```
+
+**Hot memory (optional, non-blocking):** when writing the per-task brief after DISPATCH, inject up to 5 lexical hits from `~/.jj-flow/memory/<project_key>.md` (one-line rule + backref). Empty is valid — do not pad. Confirmed `[x]` rows rank first. Never dump the whole file. Do not write AGENTS.md / CLAUDE.md. Portfolio KB overlay stays opt-in and silent-skip when missing.
 
 **Do not** claim VERIFIED in prose without attestation file path; **do not** dump full plane JSON unless user asks or BLOCKED needs it.
 

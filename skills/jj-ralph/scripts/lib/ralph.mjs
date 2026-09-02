@@ -8,6 +8,21 @@ import { INJECT_SOFT_CAP } from './memoryRetrieve.mjs';
 import { gateLesson } from './memoryExtract.mjs';
 import { ingestContribution } from './homeKnowledge.mjs';
 import { resolveProjectKeyFromCwd } from './projectMap.mjs';
+import {
+  appendFindingsEntry,
+  appendHotMemoryEntries,
+  confirmHotMemoryEntry,
+  countFindingHeadings,
+  defaultFindingsStub,
+  extractReusableRulesFromFindings,
+  formatHotMemoryMarkdown,
+  formatHotMemoryProgressLine,
+  parseProgressDraft,
+  pruneHotMemory,
+  retrieveHotMemory
+} from './memoryHotLayer.mjs';
+
+export const FINDING_HINT = '这次失败的原因记下来了吗（ralph_ops finding）';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -442,6 +457,97 @@ export function listRuns(cwd = process.cwd()) {
     .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
 }
 
+function hotMemoryQueryFrom(run, extra = '') {
+  return [run?.title, run?.goal, extra].filter(Boolean).join('\n');
+}
+
+function collectHotMemoryHits(run, { cwd, query = '' } = {}) {
+  const projectKey = run?.project_key || resolveProjectKeyFromCwd(cwd);
+  if (!projectKey) return { status: 'skipped', hits: [], reason: 'no project_key' };
+  return retrieveHotMemory({
+    projectKey,
+    query: query || hotMemoryQueryFrom(run)
+  });
+}
+
+export function promoteHotMemoryFromRun(run, { cwd = process.cwd() } = {}) {
+  const findingsPath = path.join(runDir(run.run_id, cwd), 'findings.md');
+  if (!fs.existsSync(findingsPath)) {
+    return { status: 'skipped', added: 0, skipped: 0, reason: 'no findings.md' };
+  }
+  const projectKey = run.project_key || resolveProjectKeyFromCwd(cwd);
+  if (!projectKey) return { status: 'skipped', added: 0, skipped: 0, reason: 'no project_key' };
+  const text = fs.readFileSync(findingsPath, 'utf8');
+  const backrefBase = path.join(RALPHS_DIR_REL, run.run_id, 'findings.md').replaceAll('\\', '/');
+  const rules = extractReusableRulesFromFindings(text, {
+    taskKey: run.run_id,
+    backrefBase
+  });
+  if (!rules.length) return { status: 'empty', added: 0, skipped: 0 };
+  const written = appendHotMemoryEntries(
+    projectKey,
+    rules.map((rule) => ({ ...rule, date: nowIso().slice(0, 10) }))
+  );
+  return { status: written.added ? 'ok' : 'empty', ...written };
+}
+
+function maybeFindingHint(runId, cwd) {
+  const findingsPath = path.join(runDir(runId, cwd), 'findings.md');
+  if (!fs.existsSync(findingsPath)) return FINDING_HINT;
+  const text = fs.readFileSync(findingsPath, 'utf8');
+  if (countFindingHeadings(text) < 1) return FINDING_HINT;
+  return null;
+}
+
+export function recordFinding(runId, fields = {}, cwd = process.cwd()) {
+  loadRun(runId, cwd);
+  const dir = runDir(runId, cwd);
+  const findingsPath = path.join(dir, 'findings.md');
+  const progressPath = path.join(dir, 'progress.md');
+  const existing = fs.existsSync(findingsPath)
+    ? fs.readFileSync(findingsPath, 'utf8')
+    : defaultFindingsStub({ taskKey: runId });
+  const progress = fs.existsSync(progressPath) ? fs.readFileSync(progressPath, 'utf8') : '';
+  const draft = parseProgressDraft(progress);
+  const phenomenon = String(fields.phenomenon || draft.failed_must || '').trim();
+  const cause = String(fields.cause || draft.over_claimed || '').trim();
+  const action = String(fields.action || '').trim();
+  const scope = String(fields.scope || '').trim();
+  if (!phenomenon) throw new Error('finding needs --phenomenon (or progress failed_must)');
+  if (!cause) throw new Error('finding needs --cause (or progress over_claimed)');
+  if (!action) throw new Error('finding needs --action');
+  if (!scope) throw new Error('finding needs --scope');
+  const result = appendFindingsEntry(existing, {
+    title: fields.title,
+    phenomenon,
+    cause,
+    action,
+    scope,
+    cost: fields.cost,
+    evidence: fields.evidence,
+    rule: fields.rule
+  });
+  fs.writeFileSync(findingsPath, result.text, 'utf8');
+  appendProgressLine(runId, cwd, '- ' + nowIso() + ' finding ' + result.id);
+  return {
+    run_id: runId,
+    id: result.id,
+    path: path.relative(cwd, findingsPath).replaceAll('\\', '/')
+  };
+}
+
+export function confirmProjectHotMemory(needle, { cwd = process.cwd(), projectKey = null } = {}) {
+  const key = projectKey || resolveProjectKeyFromCwd(cwd);
+  if (!key) throw new Error('project_key required for knowledge-confirm');
+  return confirmHotMemoryEntry(key, needle);
+}
+
+export function pruneProjectHotMemory({ cwd = process.cwd(), projectKey = null } = {}) {
+  const key = projectKey || resolveProjectKeyFromCwd(cwd);
+  if (!key) throw new Error('project_key required for knowledge-prune');
+  return pruneHotMemory(key);
+}
+
 export function initRun(options, cwd = process.cwd()) {
   const naming = loadNamingConfig();
   if (options?.strict_naming !== false && naming.ralph?.legacy_tolerance?.create_must_follow_config !== false) {
@@ -477,6 +583,11 @@ export function initRun(options, cwd = process.cwd()) {
     knowledge_refs: run.knowledge_refs || [],
     knowledge_summary: run.knowledge_summary || []
   });
+  const hotPack = collectHotMemoryHits(run, {
+    cwd,
+    query: options.knowledge_query || hotMemoryQueryFrom(run)
+  });
+  const hotMd = formatHotMemoryMarkdown(hotPack.hits || []);
   const writeIntent = options.write_intent === true
     || (options.write_intent !== false && run.intensity !== 'tiny');
   if (writeIntent) {
@@ -484,14 +595,16 @@ export function initRun(options, cwd = process.cwd()) {
     saveRun(run, cwd);
   }
   const stubs = {
-    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## Flagged concerns' + nl + nl + '## UNRESOLVED' + nl,
-    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + '## Current' + nl + nl + '## Out of scope' + nl,
+    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + hotMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## Flagged concerns' + nl + nl + '## UNRESOLVED' + nl,
+    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + hotMd + nl + nl + '## Current' + nl + nl + '## Out of scope' + nl,
     'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- max_iterations: ' + run.max_iterations + nl
       + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
-      + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl,
-    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | must_id | evidence_class | result | evidence |' + nl + '| --- | --- | --- | --- | --- |' + nl
+      + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl
+      + formatHotMemoryProgressLine(hotPack.hits || []) + nl,
+    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | must_id | evidence_class | result | evidence |' + nl + '| --- | --- | --- | --- | --- |' + nl,
+    'findings.md': defaultFindingsStub({ taskKey: run.run_id })
   };
   if (writeIntent) {
     stubs['intent.md'] = '# Intent' + nl + nl + 'run_id: ' + run.run_id + nl + 'Status: draft.' + nl + nl
@@ -594,7 +707,21 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
   );
   // refresh in-memory run after manifest write (active tree now has manifest)
   const latest = loadRun(runId, cwd);
-  return { run: latest, archive_path: archivePathNorm, manifest };
+  let hot_memory = { status: 'skipped', added: 0 };
+  try {
+    hot_memory = promoteHotMemoryFromRun(latest, { cwd });
+    appendProgressLine(
+      runId,
+      cwd,
+      '- ' + nowIso() + ' hot_memory promote status=' + hot_memory.status
+        + ' added=' + (hot_memory.added || 0)
+        + ' skipped=' + (hot_memory.skipped || 0)
+    );
+  } catch (err) {
+    hot_memory = { status: 'error', added: 0, reason: String(err.message || err) };
+    appendProgressLine(runId, cwd, '- ' + nowIso() + ' hot_memory promote skipped: ' + hot_memory.reason);
+  }
+  return { run: latest, archive_path: archivePathNorm, manifest, hot_memory };
 }
 
 /**
@@ -1577,7 +1704,8 @@ const LEDGER_CODE_EXT_RE = /\.(?:vue|ts|tsx|js|jsx|mjs|pas|css|scss|less|sass|js
 const LEDGER_PATH_EXCLUDE = new Set([
   'analyze.md', 'plan.md', 'acceptance.md', 'progress.md', 'run.json', 'handoff.json',
   'archive-manifest.json', 'business-map.json', 'package.json', 'package-lock.json',
-  'pnpm-lock.yaml', 'yarn.lock', 'tsconfig.json', 'jsconfig.json', 'readme.md'
+  'pnpm-lock.yaml', 'yarn.lock', 'tsconfig.json', 'jsconfig.json', 'readme.md',
+  'findings.md', 'knowledge-attach.json', 'knowledge-contribution.json'
 ]);
 
 function normalizeLedgerPathRef(value) {
@@ -2004,6 +2132,7 @@ export function recordDeliverAttempt(runId, {
       + (signal != null ? (' signal=' + String(signal)) : '')
       + (blocked ? (' BLOCKED kind=' + intervention.kind) : '')
   );
+  const finding_hint = resolvedImproved === false ? maybeFindingHint(runId, cwd) : null;
   return {
     run,
     blocked,
@@ -2013,7 +2142,8 @@ export function recordDeliverAttempt(runId, {
     iteration: run.iteration,
     stagnation: run.stagnation,
     intervention_needed: run.intervention_needed,
-    status: run.status
+    status: run.status,
+    finding_hint
   };
 }
 
@@ -2365,7 +2495,14 @@ export function rollbackPhase(runId, {
       + (fromStatus !== run.status ? ' status=' + fromStatus + '→' + run.status : '')
       + ' reason=' + reason.trim()
   );
-  return { run, fromPhase, toPhase, status: run.status, reason: reason.trim() };
+  return {
+    run,
+    fromPhase,
+    toPhase,
+    status: run.status,
+    reason: reason.trim(),
+    finding_hint: maybeFindingHint(runId, cwd)
+  };
 }
 
 /**
@@ -2422,7 +2559,9 @@ export function resumeRun(runId, { reason, cwd = process.cwd() } = {}) {
     throw new Error('reason is required for resumeRun');
   }
   const result = setRunStatus(runId, { status: 'IN_PROGRESS', reason: reason.trim(), cwd });
-  return { ...result, action: 'resume' };
+  const hotPack = collectHotMemoryHits(result.run, { cwd, query: reason.trim() });
+  appendProgressLine(runId, cwd, formatHotMemoryProgressLine(hotPack.hits || []));
+  return { ...result, action: 'resume', hot_memory: hotPack };
 }
 
 /** Mark half-done discarded work as ABANDONED (soft; resumeRun can recover). */

@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -76,6 +76,9 @@ Commands:
   finalize --run-id RALPH-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
   map-merge --run-id RALPH-x [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--cwd DIR]
   knowledge-contribute --run-id RALPH-x [--modules p1,p2] [--lessons "l1|l2"] [--hook] [--cwd DIR]
+  finding --run-id RALPH-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--title "…"] [--cost "…"] [--evidence "…"] [--cwd DIR]
+  knowledge-confirm --needle "…" [--project KEY] [--cwd DIR]
+  knowledge-prune [--project KEY] [--cwd DIR]
   gate --run-id RALPH-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
   deliver-attempt --run-id RALPH-x [--improved true|false|auto] [--signal text] [--cwd DIR]
                  (omit --improved or use auto: compare workspace fingerprint)
@@ -201,6 +204,9 @@ async function main() {
     knowledgeContribute,
     recordDeliverAttempt,
     setAcceptLayer,
+    recordFinding,
+    confirmProjectHotMemory,
+    pruneProjectHotMemory,
     RALPH_MAP_REL,
   } = mod;
 
@@ -422,6 +428,7 @@ async function main() {
         status: result.status,
         stagnation: result.stagnation,
         intervention_needed: result.intervention_needed,
+        finding_hint: result.finding_hint || null,
         resolved,
       });
       return;
@@ -471,6 +478,7 @@ async function main() {
         to_phase: result.toPhase,
         status: result.status,
         reason: result.reason,
+        finding_hint: result.finding_hint || null,
         resolved,
       });
       return;
@@ -512,6 +520,7 @@ async function main() {
         from: result.from,
         status: result.status,
         reason: result.reason,
+        hot_memory: result.hot_memory || null,
         resolved,
       });
       return;
@@ -629,6 +638,69 @@ async function main() {
         outcome: result.report.outcome,
         source: result.report.source || null,
         path: result.path,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'finding') {
+      const runId = args['run-id'];
+      if (!runId) die('finding needs --run-id');
+      if (typeof recordFinding !== 'function') {
+        die('resolved ralph.mjs has no recordFinding; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = recordFinding(runId, {
+        title: args.title && args.title !== true ? String(args.title) : '',
+        phenomenon: args.phenomenon && args.phenomenon !== true ? String(args.phenomenon) : '',
+        cause: args.cause && args.cause !== true ? String(args.cause) : '',
+        action: args.action && args.action !== true ? String(args.action) : '',
+        scope: args.scope && args.scope !== true ? String(args.scope) : '',
+        cost: args.cost && args.cost !== true ? String(args.cost) : '',
+        evidence: args.evidence && args.evidence !== true ? String(args.evidence) : '',
+        rule: args.rule && args.rule !== true ? String(args.rule) : ''
+      }, cwd);
+      printJson({
+        ok: true,
+        action: 'finding',
+        run_id: runId,
+        id: result.id,
+        path: result.path,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'knowledge-confirm') {
+      const needle = args.needle;
+      if (!needle || needle === true) die('knowledge-confirm needs --needle');
+      if (typeof confirmProjectHotMemory !== 'function') {
+        die('resolved ralph.mjs has no confirmProjectHotMemory; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = confirmProjectHotMemory(String(needle), {
+        cwd,
+        projectKey: args.project && args.project !== true ? String(args.project) : null
+      });
+      printJson({
+        ok: true,
+        action: 'knowledge-confirm',
+        ...result,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'knowledge-prune') {
+      if (typeof pruneProjectHotMemory !== 'function') {
+        die('resolved ralph.mjs has no pruneProjectHotMemory; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = pruneProjectHotMemory({
+        cwd,
+        projectKey: args.project && args.project !== true ? String(args.project) : null
+      });
+      printJson({
+        ok: true,
+        action: 'knowledge-prune',
+        ...result,
         resolved,
       });
       return;

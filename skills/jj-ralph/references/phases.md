@@ -56,6 +56,7 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - **Layer 1 mechanical**: existing product-consistency (deliver PASS, paths, review not NEEDS_CHANGES…)
 - **Layer 2 judgment**: required for strict; error-level `gate_issues` always block accept (unless waived/`--force`)
 - Consecutive `improved=false` reaching `stagnation.patience` (default 2) and/or `budget.max_same_strategy_failures` → `BLOCKED` + `intervention_needed.kind=STAGNATION`, and write run-local `instruction-correction.md`. Reviewer stays read-only; Developer may later land a durable rule under business-repo `AGENTS.md` ## Agent corrections
+- Soft hint only: `deliver-attempt --improved false` or `rollback-phase` may print `这次失败的原因记下来了吗（ralph_ops finding）` when `findings.md` has no `### F-` entry. **Does not block** the gate. Record with `ralph_ops.mjs finding` (prefill 现象/原因 from progress `failed_must` / `over_claimed`)
 - `jj ralph metrics` / `ralph_ops metrics` derives clocks from progress timestamps; missing clocks stay `null` and **never** block ACCEPT
 - Hit `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
 - `review-record` outcome=PASS/NEEDS_CHANGES → auto-write `accept_layers.judgment` (strict may gate accept directly)

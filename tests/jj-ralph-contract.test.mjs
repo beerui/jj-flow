@@ -137,7 +137,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '2–3',
     '~/.jj-flow',
     'Idle offer',
-    'jj-init'
+    'jj-init',
+    'knowledge-confirm',
+    'hot_memory'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -195,7 +197,7 @@ assert.equal(
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/memoryExtract.mjs'), 'utf8')
   );
-  for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs']) {
+  for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs', 'memoryHotLayer.mjs']) {
     assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib', extra)), extra);
     assert.equal(
       fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib', extra), 'utf8'),
@@ -235,6 +237,10 @@ test('initRun plan stub uses ## Current (legacy ## Tasks still valid in old file
     const plan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'plan.md'), 'utf8');
     assert.match(plan, /^## Current$/m);
     assert.equal((plan.match(/^## Tasks$/m) || []).length, 0);
+    const findings = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'findings.md'), 'utf8');
+    assert.match(findings, /## 可复用结论/);
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /hot_memory:/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -528,7 +534,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'),
       path.join(scriptsDir, 'lib', 'memoryExtract.mjs')
     );
-    for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs']) {
+    for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs', 'memoryHotLayer.mjs']) {
       const src = path.join(root, 'skills/jj-ralph/scripts/lib', extra);
       assert.ok(fs.existsSync(src), `portable lib missing ${extra}; run npm run ralph:sync`);
       fs.copyFileSync(src, path.join(scriptsDir, 'lib', extra));
