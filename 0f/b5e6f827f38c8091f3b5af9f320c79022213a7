@@ -1,0 +1,37 @@
+tests/jj-ralph-contract.test.mjs
+  s_a78f71b1a6fd98::t_8d65d4280330bd 458-470,476
+skills/jj-ralph/scripts/lib/memoryHotLayer.mjs
+  s_a78f71b1a6fd98::t_ff596861577eb4 15,82-100,104-113,117,291-293,297,311,327,338,340,342-360
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_a78f71b1a6fd98::t_ff596861577eb4 499,521,530
+src/memoryHotLayer.mjs
+  s_a78f71b1a6fd98::t_72b9ff924398e6 15,82-100,104-113,291-293,297,311,327,338,340,342-360
+  s_a78f71b1a6fd98::t_3d623dba2b436d 117
+src/ralph.mjs
+  s_a78f71b1a6fd98::t_6ca58d5b465925 499,521,530
+skills/jj-ralph/SKILL.md
+  s_a78f71b1a6fd98::t_1c10269bb7d0ef 105
+tests/memory-hot-layer.test.mjs
+  s_a78f71b1a6fd98::t_3b587945785e38 83-87,132-134,143,151,153,176-183,188,197-203,334-346,353-354
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_a78f71b1a6fd98::t_698b18840c29a0 72,236-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "0fb5e6f827f38c8091f3b5af9f320c79022213a7",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
