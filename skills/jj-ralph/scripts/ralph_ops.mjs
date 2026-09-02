@@ -2,8 +2,8 @@
 /**
  * Portable CLI for jj-ralph mechanical steps.
  *
- * Source of truth for library logic: jj-flow `src/ralph.mjs`
- * Portable copy shipped with skill: `scripts/lib/ralph.mjs` (npm run ralph:sync)
+ * Source of truth for library logic: jj-flow `src/ralph.mjs` (façade) + `src/ralph/*.mjs`
+ * Portable copy shipped with skill: `scripts/lib/ralph.mjs` + `scripts/lib/ralph/` (npm run ralph:sync)
  *
  * Resolve order:
  *   1) $JJ_FLOW_ROOT/src/ralph.mjs

@@ -4,8 +4,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const ralphModules = ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs'];
 const files = [
   { src: path.join(root, 'src', 'ralph.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'ralph.mjs') },
+  ...ralphModules.map((name) => ({
+    src: path.join(root, 'src', 'ralph', name),
+    dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'ralph', name)
+  })),
   { src: path.join(root, 'src', 'namingConfig.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'namingConfig.mjs') },
   { src: path.join(root, 'src', 'portfolioKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'portfolioKnowledge.mjs') },
   { src: path.join(root, 'src', 'memoryRetrieve.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryRetrieve.mjs') },

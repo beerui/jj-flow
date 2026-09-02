@@ -30,7 +30,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `skills/jj-init/` 定义全局地图接入与知识库建库。机械步骤由 `src/jjInit.mjs` + `jj init preview|join|ingest` 提供；ralph / same / dispatch 只读地图。
 - `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
-- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
+- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,knowledge,archive}.mjs` + `jj ralph *` 提供。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
 - `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-init`、`jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
 - `skills/jj-team-coordinate/` 是会话内多角色**执行引擎**（动态 role-spec / `TC-*` session），不是交付主路径；不得推进 ralph / dispatch checkpoint。设计见 `docs/design-docs/jj-team-coordinate.md`。
@@ -61,7 +61,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
 - `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
-- `src/ralph.mjs` 提供单仓闭环机械步骤：init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics。它不替代 `$jj-ralph` 对话协议。
+- `src/ralph.mjs` 是单仓闭环机械步骤门面（init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics）。实现按 DAG `state ← gates ← map ← knowledge ← archive` 拆在 `src/ralph/`。它不替代 `$jj-ralph` 对话协议。
 - `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。`src/memoryHotLayer.mjs` 是用户级热层（`~/.jj-flow/memory/<project_key>.md`）：findings `## 可复用结论` 在 archive 晋升，init/resume/dispatch 词法注入，confirmed 置顶；0 命中保持 empty。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
@@ -115,7 +115,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | --- | --- |
 | 修改全局地图接入或知识建库 | `skills/jj-init/`、`src/jjInit.mjs` |
 | 修改同源迁移或持续同步行为 | `skills/jj-same/` |
-| 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs` |
+| 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs`、`src/ralph/` |
 | 修改会话多角色执行引擎 | `skills/jj-team-coordinate/`、`docs/design-docs/jj-team-coordinate.md` |
 | 修改固定 SDLC 会话执行引擎 | `skills/jj-team-lifecycle/`、`docs/design-docs/jj-team-lifecycle.md` |
 | 修改对抗蚁群搜索引擎 | `skills/jj-team-swarm/`、`docs/design-docs/jj-team-swarm.md` |

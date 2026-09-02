@@ -49,8 +49,132 @@ import {
   suggestReopenAsNew,
   loadRun
 } from '../src/ralph.mjs';
+import * as ralphApi from '../src/ralph.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+const RALPH_PUBLIC_EXPORTS = Object.freeze([
+  'ACCEPT_LAYER_STATUSES',
+  'FINDING_HINT',
+  'FINDING_IMPORTANCE',
+  'FINDING_PASSES',
+  'GATE_ISSUE_CLASSES',
+  'HANDOFF_ROOT_REL',
+  'HOST_IDS',
+  'HOST_REVIEW_METHODS',
+  'INSTRUCTION_CORRECTION_REL',
+  'INTENSITY_DEFAULTS',
+  'JUDGMENT_MODES',
+  'PHASE_ROLLBACK_EDGES',
+  'RALPHS_DIR_REL',
+  'RALPH_ARCHIVE_DIR_REL',
+  'RALPH_HANDOFF_SCHEMA_VERSION',
+  'RALPH_INTENSITIES',
+  'RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA',
+  'RALPH_MAP_REL',
+  'RALPH_MAP_SCHEMA_VERSION',
+  'RALPH_REVIEW_SCHEMA_VERSION',
+  'RALPH_ROOT_REL',
+  'RALPH_RUN_SCHEMA_VERSION',
+  'REVIEW_NIT_CAP',
+  'REVIEW_SCOPES',
+  'REVIEW_SOURCES',
+  'RUN_STATUSES',
+  'abandonRun',
+  'addGateIssue',
+  'applyHandoffState',
+  'archiveDir',
+  'archiveRun',
+  'assertStrictRalphRunId',
+  'buildArchiveDirNameFromRunId',
+  'buildBudgetForIntensity',
+  'buildElevationFromRun',
+  'buildKnowledgeContribution',
+  'buildPlanComplianceFindings',
+  'buildRalphRunId',
+  'capabilityFromRun',
+  'collectClaimedImplementationPaths',
+  'collectGitDeletedPaths',
+  'collectGitDiffPaths',
+  'commitPrep',
+  'computeRunMetrics',
+  'confirmProjectHotMemory',
+  'createEmptyAcceptLayers',
+  'createEmptyMap',
+  'createEmptyStagnation',
+  'createRunSkeleton',
+  'defaultArchiveDirName',
+  'deriveAutoLessonsFromRun',
+  'detectDeliverOutsideLedger',
+  'detectTestIntegrityViolation',
+  'evaluateAcceptArchiveGate',
+  'evaluateAcceptJudgment',
+  'extractLedgerPathRefs',
+  'extractMarkdownSection',
+  'extractPlanCurrentSection',
+  'finalizeRun',
+  'findImplementationPathMismatch',
+  'findInMap',
+  'fingerprintDeliverState',
+  'getLatestReviewRecord',
+  'getStatus',
+  'initRun',
+  'inspectAcceptanceEvidence',
+  'invokeKnowledgeContributeHook',
+  'isReviewSkipPath',
+  'isTestPath',
+  'knowledgeContribute',
+  'listRuns',
+  'loadMap',
+  'loadNamingConfig',
+  'loadRun',
+  'mapFind',
+  'mapMergeFromRun',
+  'mapPath',
+  'mergeCapabilityIntoMap',
+  'normalizeHostMeta',
+  'normalizeHostReview',
+  'normalizeIntensity',
+  'normalizeRalphSlug',
+  'nowIso',
+  'persistRunMetrics',
+  'promoteHotMemoryFromRun',
+  'pruneProjectHotMemory',
+  'ralphRoot',
+  'ralphsDir',
+  'readJson',
+  'recordDeliverAttempt',
+  'recordFinding',
+  'recordHostMeta',
+  'recordReview',
+  'renderRalphStatusText',
+  'resolveKnowledgeContributeHookConfig',
+  'resolveReviewScope',
+  'resumeRun',
+  'rollbackPhase',
+  'runDir',
+  'runJsonPath',
+  'saveMap',
+  'saveRun',
+  'setAcceptLayer',
+  'setGate',
+  'setRunStatus',
+  'suggestReopenAsNew',
+  'tokenize',
+  'validateMap',
+  'validateReviewReport',
+  'validateRun',
+  'writeDispatchSnapshot',
+  'writeHandoffPackage',
+  'writeInstructionCorrection',
+  'writeJson',
+  'writeKnowledgeContribution'
+]);
+
+test('P1a façade export set is unchanged', () => {
+  assert.deepEqual(Object.keys(ralphApi).sort(), [...RALPH_PUBLIC_EXPORTS]);
+  assert.equal('unique' in ralphApi, false);
+});
 
 function read(rel) {
   return fs.readFileSync(path.join(root, rel), 'utf8');
@@ -176,12 +300,21 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     schema
   );
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs')));
-assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs')));
+  assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs')));
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/namingConfig.mjs')));
-assert.equal(
+  assert.equal(
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/ralph.mjs'), 'utf8')
   );
+  for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs']) {
+    const dest = path.join(root, 'skills/jj-ralph/scripts/lib/ralph', name);
+    assert.ok(fs.existsSync(dest), `portable lib missing ralph/${name}; run npm run ralph:sync`);
+    assert.equal(
+      fs.readFileSync(dest, 'utf8'),
+      fs.readFileSync(path.join(root, 'src/ralph', name), 'utf8'),
+      `ralph/${name} out of sync`
+    );
+  }
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs')));
   assert.equal(
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs'), 'utf8'),
@@ -531,6 +664,12 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs'),
       path.join(scriptsDir, 'lib', 'ralph.mjs')
     );
+    fs.mkdirSync(path.join(scriptsDir, 'lib', 'ralph'), { recursive: true });
+    for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs']) {
+      const src = path.join(root, 'skills/jj-ralph/scripts/lib/ralph', name);
+      assert.ok(fs.existsSync(src), `portable lib missing ralph/${name}; run npm run ralph:sync`);
+      fs.copyFileSync(src, path.join(scriptsDir, 'lib', 'ralph', name));
+    }
     fs.copyFileSync(
       path.join(root, 'skills/jj-ralph/scripts/lib/namingConfig.mjs'),
       path.join(scriptsDir, 'lib', 'namingConfig.mjs')

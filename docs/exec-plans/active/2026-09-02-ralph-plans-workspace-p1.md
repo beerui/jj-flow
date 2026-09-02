@@ -47,11 +47,11 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 | `src/ralph/map.mjs` | business-map merge / elevation / map-find |
 | `src/ralph.mjs` | 门面 re-export；CLI 与既有 import 路径不破坏 |
 
-- [ ] 新建 `src/ralph/` 五模块；`ralph.mjs` 只 re-export
-- [ ] `scripts/sync-ralph-skill-lib.mjs` files 清单扩展；skill `scripts/lib/ralph/` 逐字节跟随
-- [ ] `tests/jj-ralph-contract.test.mjs` 逐字节断言清单同步
-- [ ] 单模块目标 300–600 行；超限在本切片注释接受原因，禁止回填门面
-- [ ] `npm run ralph:check` + `tests/jj-ralph-contract.test.mjs` + `tests/memory-hot-layer.test.mjs` 行为不变
+- [x] 新建 `src/ralph/` 五模块；`ralph.mjs` 只 re-export
+- [x] `scripts/sync-ralph-skill-lib.mjs` files 清单扩展；skill `scripts/lib/ralph/` 逐字节跟随
+- [x] `tests/jj-ralph-contract.test.mjs` 逐字节断言清单同步
+- [x] 单模块目标 300–600 行；超限在本切片注释接受原因，禁止回填门面（gates/knowledge 超限：ledger+handoff 必须留在 gates，contribution+review 必须留在 knowledge）
+- [x] `npm run ralph:check` + `tests/jj-ralph-contract.test.mjs` + `tests/memory-hot-layer.test.mjs` 行为不变
 
 ### P1b — 布局 8→4
 
@@ -77,7 +77,7 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 
 ## 下一刀
 
-P1a：把 `src/ralph.mjs` 拆成五模块 + 门面 re-export，扩 sync 清单与逐字节断言。不改 layout、不改 schema。
+P1b：布局 8→4 + schema 1.1。不改 run_id，不写业务仓指令文件。
 
 ## 完成定义
 
