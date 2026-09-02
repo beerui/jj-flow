@@ -49,7 +49,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    ```
 
 2. **Determine scope** — **In:** run artifacts + user target. **Out:** commit and/or paths.  
-   Read `analyze.md` / `plan.md` / `progress.md` / `acceptance.md`. Resolve `reviewed_commit` / working-tree diff / user paths.
+   Read `task_plan.md` (`## 分析` / `## 计划` / `## 验收`) and `progress.md`. Resolve `reviewed_commit` / working-tree diff / user paths.
 
    🔴 CHECKPOINT · 🛑 STOP — **no commit/diff/scope**: `BLOCKED`; list missing evidence; do not invent SHA; do not call host.
 
@@ -65,7 +65,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.
    Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`; optional `pass` (`bugs`|`security`|`compliance`) and `importance` (`important`|`nit`).
-   Compare the diff to `plan.md` **## Current** (legacy `## Tasks` if no Current). Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
+   Compare the diff to `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`). Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
    Record `source` + `host_review` (provenance; does not advance other gates).
    `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
 

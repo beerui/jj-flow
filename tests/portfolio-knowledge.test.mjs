@@ -32,14 +32,10 @@ test('ralph init auto-writes knowledge_refs into run.json', () => {
     assert.deepEqual(errors, []);
     const loaded = loadRun(run.run_id, cwd);
     assert.ok(Array.isArray(loaded.knowledge_refs));
-    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph', run.run_id, 'analyze.md'), 'utf8');
+    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph', run.run_id, 'task_plan.md'), 'utf8');
     assert.match(analyze, /knowledge_refs/);
     const attachPath = path.join(cwd, '.workflow/ralph', run.run_id, 'knowledge-attach.json');
-    // attach file exists only when portfolio available; still optional
-    if (fs.existsSync(attachPath)) {
-      const attach = JSON.parse(fs.readFileSync(attachPath, 'utf8'));
-      assert.ok(Array.isArray(attach.knowledge_refs));
-    }
+    assert.equal(fs.existsSync(attachPath), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

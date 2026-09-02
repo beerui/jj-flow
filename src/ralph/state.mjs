@@ -5,7 +5,28 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
+export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.1';
+export const RALPH_RUN_SCHEMA_VERSION_LEGACY = 'jj-flow/ralph-run/1.0';
+export const RALPH_RUN_SCHEMA_VERSIONS = Object.freeze([
+  RALPH_RUN_SCHEMA_VERSION_LEGACY,
+  RALPH_RUN_SCHEMA_VERSION
+]);
+export const TASK_PLAN_REL = 'task_plan.md';
+export const FINDINGS_REL = 'findings.md';
+export const PROGRESS_REL = 'progress.md';
+export const GATE_SETS = Object.freeze(['full', 'lite']);
+export const SECTION_GOAL = '目标';
+export const SECTION_ANALYZE = '分析';
+export const SECTION_PLAN = '计划';
+export const SECTION_ACCEPT = '验收';
+export const SECTION_CURRENT = '当前';
+export const SECTION_LANDED = '已落地';
+export const SECTION_SUPERSEDED = '已取代';
+export const SECTION_MUST = '必须项';
+export const SECTION_OUT = '范围外';
+export const SECTION_FLAGGED = '存疑事项';
+export const SECTION_UNRESOLVED = '未解决';
+export const SECTION_OPEN_QUESTIONS = '待答问题';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
 export const RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA = 'jj-flow/ralph-knowledge-contribution/0.1';
 export const RALPH_REVIEW_SCHEMA_VERSION = 'jj-flow/ralph-review/1.0';
@@ -202,11 +223,14 @@ export function createRunSkeleton({
     project_key: project_key || null,
     knowledge_refs: unique(knowledge_refs),
     knowledge_summary: [...(knowledge_summary || [])],
+    knowledge: { memory_refs: [] },
+    gate_set: 'full',
     artifact_refs: {
-      analyze: 'analyze.md',
-      plan: 'plan.md',
-      acceptance: 'acceptance.md',
-      progress: 'progress.md',
+      analyze: TASK_PLAN_REL,
+      plan: TASK_PLAN_REL,
+      acceptance: TASK_PLAN_REL,
+      progress: PROGRESS_REL,
+      findings: FINDINGS_REL,
       intent: null,
       handoff_ref: null,
       dispatch_snapshot_ref: null,
@@ -225,7 +249,9 @@ export function createRunSkeleton({
 export function validateRun(run) {
   const errors = [];
   if (!run || typeof run !== 'object') return ['run must be an object'];
-  if (run.schema_version !== RALPH_RUN_SCHEMA_VERSION) errors.push('schema_version must be ' + RALPH_RUN_SCHEMA_VERSION);
+  if (!RALPH_RUN_SCHEMA_VERSIONS.includes(run.schema_version)) {
+    errors.push('schema_version must be one of ' + RALPH_RUN_SCHEMA_VERSIONS.join('|'));
+  }
   if (!run.run_id || !/^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/.test(run.run_id)) errors.push('invalid run_id');
   if (!run.title) errors.push('title required');
   if (!run.goal) errors.push('goal required');
@@ -308,6 +334,23 @@ export function validateRun(run) {
     }
   }
   if (!run.artifact_refs?.analyze || !run.artifact_refs?.plan || !run.artifact_refs?.acceptance || !run.artifact_refs?.progress) errors.push('artifact_refs incomplete');
+  if (run.artifact_refs && typeof run.artifact_refs === 'object') {
+    for (const [key, value] of Object.entries(run.artifact_refs)) {
+      if (typeof value === 'string' && value.includes('#')) {
+        errors.push('artifact_refs.' + key + ' must be a bare filename (no fragment)');
+      }
+    }
+  }
+  if (run.schema_version === RALPH_RUN_SCHEMA_VERSION) {
+    if (!run.artifact_refs?.findings) errors.push('artifact_refs.findings required on schema 1.1');
+    if (run.gate_set != null && !GATE_SETS.includes(run.gate_set)) errors.push('gate_set must be full|lite');
+    if (run.knowledge != null) {
+      if (typeof run.knowledge !== 'object' || Array.isArray(run.knowledge)) errors.push('knowledge must be object when present');
+      else if (run.knowledge.memory_refs != null && !Array.isArray(run.knowledge.memory_refs)) {
+        errors.push('knowledge.memory_refs must be array when present');
+      }
+    }
+  }
   if (run.review != null) {
     if (typeof run.review !== 'object' || Array.isArray(run.review)) errors.push('review must be object or null');
     else {
@@ -559,6 +602,9 @@ export function commitPrep(runId, cwd = process.cwd()) {
     path.join(base, run.artifact_refs.progress).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
     path.join(base, run.artifact_refs.acceptance).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
   ];
+  if (run.artifact_refs?.findings) {
+    files.push(path.join(base, run.artifact_refs.findings).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
+  }
   if (run.artifact_refs?.latest_review_ref) files.push(path.join(base, run.artifact_refs.latest_review_ref).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   if (Array.isArray(run.review?.reviews)) for (const item of run.review.reviews) if (item?.path) files.push(path.join(base, item.path).replaceAll(String.fromCharCode(92), String.fromCharCode(47)));
   if (run.handoff?.path) {

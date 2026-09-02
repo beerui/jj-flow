@@ -9,6 +9,9 @@ import { runCli } from '../src/cli.mjs';
 import {
   RALPH_MAP_SCHEMA_VERSION,
   RALPH_RUN_SCHEMA_VERSION,
+  RALPH_RUN_SCHEMA_VERSION_LEGACY,
+  TASK_PLAN_REL,
+  KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON,
   findInMap,
   initRun,
   loadMap,
@@ -23,7 +26,9 @@ import {
   setGate,
   finalizeRun,
   extractLedgerPathRefs,
+  extractMarkdownSection,
   extractPlanCurrentSection,
+  readRunArtifactText,
   collectClaimedImplementationPaths,
   findImplementationPathMismatch,
   computeRunMetrics,
@@ -58,14 +63,18 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'FINDING_HINT',
   'FINDING_IMPORTANCE',
   'FINDING_PASSES',
+  'FINDINGS_REL',
   'GATE_ISSUE_CLASSES',
+  'GATE_SETS',
   'HANDOFF_ROOT_REL',
   'HOST_IDS',
   'HOST_REVIEW_METHODS',
   'INSTRUCTION_CORRECTION_REL',
   'INTENSITY_DEFAULTS',
   'JUDGMENT_MODES',
+  'KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON',
   'PHASE_ROLLBACK_EDGES',
+  'PROGRESS_REL',
   'RALPHS_DIR_REL',
   'RALPH_ARCHIVE_DIR_REL',
   'RALPH_HANDOFF_SCHEMA_VERSION',
@@ -76,10 +85,25 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'RALPH_REVIEW_SCHEMA_VERSION',
   'RALPH_ROOT_REL',
   'RALPH_RUN_SCHEMA_VERSION',
+  'RALPH_RUN_SCHEMA_VERSIONS',
+  'RALPH_RUN_SCHEMA_VERSION_LEGACY',
   'REVIEW_NIT_CAP',
   'REVIEW_SCOPES',
   'REVIEW_SOURCES',
   'RUN_STATUSES',
+  'SECTION_ACCEPT',
+  'SECTION_ANALYZE',
+  'SECTION_CURRENT',
+  'SECTION_FLAGGED',
+  'SECTION_GOAL',
+  'SECTION_LANDED',
+  'SECTION_MUST',
+  'SECTION_OPEN_QUESTIONS',
+  'SECTION_OUT',
+  'SECTION_PLAN',
+  'SECTION_SUPERSEDED',
+  'SECTION_UNRESOLVED',
+  'TASK_PLAN_REL',
   'abandonRun',
   'addGateIssue',
   'applyHandoffState',
@@ -143,6 +167,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'ralphRoot',
   'ralphsDir',
   'readJson',
+  'readRunArtifactText',
   'recordDeliverAttempt',
   'recordFinding',
   'recordHostMeta',
@@ -171,8 +196,8 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'writeKnowledgeContribution'
 ]);
 
-test('P1a façade export set is unchanged', () => {
-  assert.deepEqual(Object.keys(ralphApi).sort(), [...RALPH_PUBLIC_EXPORTS]);
+test('P1b façade export set includes layout constants', () => {
+  assert.deepEqual(Object.keys(ralphApi).sort(), [...RALPH_PUBLIC_EXPORTS].sort());
   assert.equal('unique' in ralphApi, false);
 });
 
@@ -255,7 +280,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'accept-layer',
     'tiny',
     'strict',
-    'intent.md',
+    'task_plan.md',
     'instruction-correction',
     'metrics',
     '2–3',
@@ -354,7 +379,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
 test('sample run and business map validate', () => {
   const run = readJson('examples/ralph/sample-run.json');
   const map = readJson('examples/ralph/sample-business-map.json');
-  assert.equal(run.schema_version, RALPH_RUN_SCHEMA_VERSION);
+  assert.equal(run.schema_version, RALPH_RUN_SCHEMA_VERSION_LEGACY);
   assert.equal(map.schema_version, RALPH_MAP_SCHEMA_VERSION);
   assert.deepEqual(validateRun(run), []);
   assert.deepEqual(validateMap(map), []);
@@ -362,18 +387,37 @@ test('sample run and business map validate', () => {
   assert.ok(map.capabilities[0].run_refs.includes('RALPH-login-reminder-20260722'));
 });
 
-test('initRun plan stub uses ## Current (legacy ## Tasks still valid in old files)', () => {
+test('initRun writes Chinese task_plan.md sections (legacy ## Tasks still extractable)', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-init-shape-'));
   try {
     const runId = 'RALPH-init-shape-20260825';
-    initRun({ run_id: runId, title: 'init shape', goal: 'Current heading', capability_ids: ['CAP-init-shape'], attach_knowledge: false }, cwd);
-    const plan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'plan.md'), 'utf8');
-    assert.match(plan, /^## Current$/m);
+    const run = initRun({ run_id: runId, title: 'init shape', goal: 'Current heading', capability_ids: ['CAP-init-shape'], attach_knowledge: false }, cwd);
+    assert.equal(run.schema_version, RALPH_RUN_SCHEMA_VERSION);
+    assert.equal(run.artifact_refs.analyze, TASK_PLAN_REL);
+    assert.equal(run.artifact_refs.plan, TASK_PLAN_REL);
+    assert.equal(run.artifact_refs.acceptance, TASK_PLAN_REL);
+    assert.equal(run.artifact_refs.findings, 'findings.md');
+    assert.equal(run.gate_set, 'full');
+    const dir = path.join(cwd, '.workflow', 'ralph', runId);
+    const plan = fs.readFileSync(path.join(dir, TASK_PLAN_REL), 'utf8');
+    assert.match(plan, /^## 目标$/m);
+    assert.match(plan, /^## 分析$/m);
+    assert.match(plan, /^## 计划$/m);
+    assert.match(plan, /^## 验收$/m);
+    assert.match(plan, /^### 当前$/m);
+    assert.match(plan, /^### 必须项$/m);
+    assert.match(plan, /^### 存疑事项$/m);
     assert.equal((plan.match(/^## Tasks$/m) || []).length, 0);
-    const findings = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'findings.md'), 'utf8');
+    assert.equal(fs.existsSync(path.join(dir, 'analyze.md')), false);
+    assert.equal(fs.existsSync(path.join(dir, 'plan.md')), false);
+    assert.equal(fs.existsSync(path.join(dir, 'acceptance.md')), false);
+    assert.equal(fs.existsSync(path.join(dir, 'intent.md')), false);
+    assert.equal(fs.existsSync(path.join(dir, 'knowledge-attach.json')), false);
+    const findings = fs.readFileSync(path.join(dir, 'findings.md'), 'utf8');
     assert.match(findings, /## 可复用结论/);
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(dir, 'progress.md'), 'utf8');
     assert.match(progress, /hot_memory:/);
+    assert.doesNotMatch(progress, /failed_must:/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -972,13 +1016,8 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
     const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
     const bt = String.fromCharCode(96);
     fs.writeFileSync(
-      path.join(runDirPath, 'plan.md'),
-      ['# Plan', `- TASK: ${bt}publish-dialog.vue${bt} blur`].join('\n'),
-      'utf8'
-    );
-    fs.writeFileSync(
-      path.join(runDirPath, 'acceptance.md'),
-      ['# Acceptance', `| blur | PASS | ${bt}publish-dialog.vue${bt} |`].join('\n'),
+      path.join(runDirPath, TASK_PLAN_REL),
+      ['# Plan', '## Current', `- TASK: ${bt}publish-dialog.vue${bt} blur`].join('\n'),
       'utf8'
     );
 
@@ -998,13 +1037,8 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
 
     // Align ledger and diff first, then record a failing review.
     fs.writeFileSync(
-      path.join(runDirPath, 'plan.md'),
-      ['# Plan', `- TASK: ${bt}InventoryManager.vue${bt} focus-visible`].join('\n'),
-      'utf8'
-    );
-    fs.writeFileSync(
-      path.join(runDirPath, 'acceptance.md'),
-      ['# Acceptance', `| css | PASS | ${bt}InventoryManager.vue${bt} |`].join('\n'),
+      path.join(runDirPath, TASK_PLAN_REL),
+      ['# Plan', '## Current', `- TASK: ${bt}InventoryManager.vue${bt} focus-visible`].join('\n'),
       'utf8'
     );
     recordReview(runId, {
@@ -1014,7 +1048,7 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
       findings: [{
         id: 'F-1',
         severity: 'medium',
-        file: 'acceptance.md',
+        file: TASK_PLAN_REL,
         line: 1,
         description: 'OPEN drift',
         status: 'OPEN',
@@ -1077,11 +1111,13 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
-    const acceptancePath = path.join(cwd, '.workflow', 'ralph', runId, 'acceptance.md');
+    const acceptancePath = path.join(cwd, '.workflow', 'ralph', runId, TASK_PLAN_REL);
     fs.writeFileSync(acceptancePath, [
-      '# Acceptance',
+      '## 验收',
       '',
-      '| item | must_id | evidence_class | result | evidence |',
+      '### 当前',
+      '',
+      '| 项 | must_id | evidence_class | 结果 | 证据 |',
       '| --- | --- | --- | --- | --- |',
       '| title persist | REQ-001 | write-then-read | PASS | static |',
       ''
@@ -1097,9 +1133,11 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
     assert.equal(forced.run.gates.accept, 'PASS');
 
     fs.writeFileSync(acceptancePath, [
-      '# Acceptance',
+      '## 验收',
       '',
-      '| item | must_id | evidence_class | result | evidence |',
+      '### 当前',
+      '',
+      '| 项 | must_id | evidence_class | 结果 | 证据 |',
       '| --- | --- | --- | --- | --- |',
       '| title persist | REQ-001 | write-then-read | PASS | write_then_read:mock_ok |',
       ''
@@ -1533,7 +1571,7 @@ test('map-merge puts STAGNATION/strict into process_lessons by default', () => {
   }
 });
 
-test('finalize writes knowledge-contribution with durable lessons only by default', () => {
+test('finalize skips knowledge-contribution.json (P1b degraded; durable lessons still elevate)', () => {
   withoutLocalPortfolio(() => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-contrib-'));
   try {
@@ -1557,29 +1595,29 @@ test('finalize writes knowledge-contribution with durable lessons only by defaul
       force: true
     });
     assert.ok(result.capability.id === 'CAP-tip');
-    assert.ok(result.contribution_path);
+    assert.equal(result.contribution_path, null);
+    assert.equal(result.contribution, null);
+    assert.equal(result.contribute_hook.status, 'skipped');
+    assert.equal(result.contribute_hook.reason, KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON);
     assert.equal(result.elevation.durable_lessons.length, 1);
     assert.ok(result.capability.lessons.includes('tip bottom uses 6px not 8px'));
-    const contribAbs = path.join(cwd, result.contribution_path);
-    assert.ok(fs.existsSync(contribAbs));
-    const contrib = JSON.parse(fs.readFileSync(contribAbs, 'utf8'));
-    assert.equal(contrib.schema_version, 'jj-flow/ralph-knowledge-contribution/0.1');
-    assert.ok(contrib.candidates.some((c) => c.type === 'capability'));
-    assert.ok(contrib.candidates.some((c) => c.type === 'lesson' && /6px/.test(c.summary)));
-    assert.equal(contrib.policy.auto_promote, false);
-    // process lessons should not appear as lesson candidates
-    assert.ok(!contrib.candidates.some((c) => /STAGNATION/.test(c.summary || '')));
+    assert.equal(
+      fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'knowledge-contribution.json')),
+      false
+    );
 
     const again = knowledgeContribute(runId, { cwd, lessons: ['tip bottom uses 6px not 8px'], modules: ['src/tip.vue'] });
-    assert.ok(again.path);
+    assert.equal(again.status, 'degraded');
+    assert.equal(again.path, null);
     assert.equal(again.hook.status, 'skipped');
+    assert.equal(again.hook.reason, KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
   });
 });
 
-test('knowledge-contribute hook ok / failed fail-open via RALPH_KNOWLEDGE_HOOK_CMD', () => {
+test('knowledge-contribute stays degraded even when a hook command is configured', () => {
   withoutLocalPortfolio(() => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-hook-'));
   const prevCmd = process.env.RALPH_KNOWLEDGE_HOOK_CMD;
@@ -1600,18 +1638,17 @@ test('knowledge-contribute hook ok / failed fail-open via RALPH_KNOWLEDGE_HOOK_C
     finalizeRun(runId, { cwd, modules: ['a.js'], lessons: ['durable'], force: true });
 
     process.env.RALPH_KNOWLEDGE_HOOK = 'cli';
-    // cross-platform no-op success
-    process.env.RALPH_KNOWLEDGE_HOOK_CMD = process.platform === 'win32'
-      ? 'node -e "process.exit(0)"'
-      : 'node -e "process.exit(0)"';
+    process.env.RALPH_KNOWLEDGE_HOOK_CMD = 'node -e "process.exit(0)"';
     const ok = knowledgeContribute(runId, { cwd, lessons: ['durable'], modules: ['a.js'], hook: true });
-    assert.equal(ok.hook.status, 'ok');
+    assert.equal(ok.status, 'degraded');
+    assert.equal(ok.hook.status, 'skipped');
+    assert.equal(ok.path, null);
 
     process.env.RALPH_KNOWLEDGE_HOOK_CMD = 'node -e "process.exit(2)"';
     const bad = knowledgeContribute(runId, { cwd, lessons: ['durable'], modules: ['a.js'], hook: true });
-    assert.equal(bad.hook.status, 'failed');
-    // fail-open: still returns package path
-    assert.ok(bad.path);
+    assert.equal(bad.status, 'degraded');
+    assert.equal(bad.hook.status, 'skipped');
+    assert.equal(bad.path, null);
   } finally {
     if (prevCmd === undefined) delete process.env.RALPH_KNOWLEDGE_HOOK_CMD;
     else process.env.RALPH_KNOWLEDGE_HOOK_CMD = prevCmd;
@@ -1671,24 +1708,29 @@ test('cli deliver-attempt and accept-layer wire through', () => {
   }
 });
 
-test('init writes intent.md except tiny; analyze has Flagged concerns', () => {
+test('init writes intent into task_plan.md except tiny; 存疑事项 is present', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intent-'));
   try {
     const standardId = 'RALPH-intent-std-20260831';
     initRun({ run_id: standardId, title: 'intent std', goal: 'write intent', attach_knowledge: false }, cwd);
     const stdDir = path.join(cwd, '.workflow', 'ralph', standardId);
-    assert.equal(loadRun(standardId, cwd).artifact_refs.intent, 'intent.md');
-    assert.ok(fs.existsSync(path.join(stdDir, 'intent.md')));
-    assert.match(fs.readFileSync(path.join(stdDir, 'analyze.md'), 'utf8'), /## Flagged concerns/);
+    assert.equal(loadRun(standardId, cwd).artifact_refs.intent, TASK_PLAN_REL);
+    assert.equal(fs.existsSync(path.join(stdDir, 'intent.md')), false);
+    const stdPlan = fs.readFileSync(path.join(stdDir, TASK_PLAN_REL), 'utf8');
+    assert.match(stdPlan, /### 存疑事项/);
+    assert.match(stdPlan, /### 待答问题/);
 
     const tinyId = 'RALPH-intent-tiny-20260831';
     initRun({ run_id: tinyId, title: 'intent tiny', goal: 'skip intent', intensity: 'tiny', attach_knowledge: false }, cwd);
     assert.equal(loadRun(tinyId, cwd).artifact_refs.intent, null);
     assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', tinyId, 'intent.md')), false);
+    const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', tinyId, TASK_PLAN_REL), 'utf8');
+    assert.match(tinyPlan, /^## 目标$/m);
+    assert.doesNotMatch(tinyPlan, /### 待答问题/);
 
     const forcedId = 'RALPH-intent-force-20260831';
     initRun({ run_id: forcedId, title: 'intent force', goal: 'tiny with intent', intensity: 'tiny', write_intent: true, attach_knowledge: false }, cwd);
-    assert.equal(loadRun(forcedId, cwd).artifact_refs.intent, 'intent.md');
+    assert.equal(loadRun(forcedId, cwd).artifact_refs.intent, TASK_PLAN_REL);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -1708,12 +1750,36 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use Current onl
   assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(withCurrent)), ['tip.vue']);
   assert.ok(extractLedgerPathRefs(withCurrent).includes('old-panel.vue'));
 
+  const chinese = [
+    '## 计划',
+    '### 当前',
+    `- TASK-2 ${bt}tip.vue${bt}`,
+    '### 已落地',
+    `- TASK-1 ${bt}old-panel.vue${bt}`,
+    '### 已取代',
+    `- TASK-0 ${bt}legacy.vue${bt}`,
+    '## 验收',
+    '### 当前',
+    `- ${bt}should-not-count.vue${bt}`
+  ].join('\n');
+  assert.match(extractMarkdownSection(chinese, '计划', 2), /tip\.vue/);
+  assert.match(extractMarkdownSection(chinese, '计划', 2), /old-panel\.vue/);
+  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(chinese)), ['tip.vue']);
+  const emptyCurrent = [
+    '## 计划',
+    '### 当前',
+    '',
+    '### 已落地',
+    `- TASK-1 ${bt}old-panel.vue${bt}`
+  ].join('\n');
+  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(emptyCurrent)), []);
+
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-current-'));
   try {
     const runId = 'RALPH-current-paths-20260831';
     initRun({ run_id: runId, title: 'current paths', goal: 'current only', attach_knowledge: false }, cwd);
     const dir = path.join(cwd, '.workflow', 'ralph', runId);
-    fs.writeFileSync(path.join(dir, 'plan.md'), withCurrent, 'utf8');
+    fs.writeFileSync(path.join(dir, TASK_PLAN_REL), withCurrent, 'utf8');
     const claimed = collectClaimedImplementationPaths(loadRun(runId, cwd), cwd);
     assert.deepEqual(claimed, ['tip.vue']);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
@@ -1877,7 +1943,7 @@ test('review findings support pass/importance, nit cap, and skip generated paths
     assert.equal(flip.report.outcome, 'NEEDS_CHANGES');
 
     const planId = 'RALPH-review-plan-file-20260831';
-    initRun({ run_id: planId, title: 'plan finding', goal: 'keep plan.md', attach_knowledge: false }, cwd);
+    initRun({ run_id: planId, title: 'plan finding', goal: 'keep task_plan.md', attach_knowledge: false }, cwd);
     const planFinding = recordReview(planId, {
       cwd,
       outcome: 'NEEDS_CHANGES',
@@ -1888,14 +1954,14 @@ test('review findings support pass/importance, nit cap, and skip generated paths
         severity: 'high',
         pass: 'compliance',
         importance: 'important',
-        file: 'plan.md',
+        file: TASK_PLAN_REL,
         line: 1,
         description: 'diff misses Current',
         status: 'OPEN',
         acceptance: 'align Current'
       }]
     });
-    assert.equal(planFinding.report.findings.some((item) => item.file === 'plan.md' && item.status === 'OPEN'), true);
+    assert.equal(planFinding.report.findings.some((item) => item.file === TASK_PLAN_REL && item.status === 'OPEN'), true);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -1916,6 +1982,40 @@ test('computeRunMetrics derives clocks as null when timestamps missing quality',
     assert.equal(runCli(['ralph', 'metrics', '--run-id', runId, '--json'], { cwd, stdout: { write: (t) => chunks.push(t) } }), 0);
     const payload = JSON.parse(chunks[chunks.length - 1]);
     assert.equal(payload.metrics.clock_quality, 'derived');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('validateRun accepts 1.0 and 1.1; fragments and missing refs fail closed', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-refs-'));
+  try {
+    const runId = 'RALPH-refs-20260902';
+    const run = initRun({ run_id: runId, title: 'refs', goal: 'bare filenames', attach_knowledge: false }, cwd);
+    assert.deepEqual(validateRun(run), []);
+    const legacy = { ...run, schema_version: RALPH_RUN_SCHEMA_VERSION_LEGACY, artifact_refs: { ...run.artifact_refs } };
+    delete legacy.artifact_refs.findings;
+    assert.deepEqual(validateRun(legacy), []);
+    const withFragment = {
+      ...run,
+      artifact_refs: { ...run.artifact_refs, plan: TASK_PLAN_REL + '#计划' }
+    };
+    assert.ok(validateRun(withFragment).some((err) => /fragment/.test(err)));
+    assert.throws(
+      () => readRunArtifactText(withFragment, 'plan', cwd),
+      /bare filename/
+    );
+    const missing = {
+      ...run,
+      artifact_refs: { ...run.artifact_refs, plan: 'missing.md' }
+    };
+    assert.throws(
+      () => readRunArtifactText(missing, 'plan', cwd),
+      /missing file/
+    );
+    const emptyRef = { ...run, artifact_refs: { ...run.artifact_refs, plan: null } };
+    assert.equal(readRunArtifactText(emptyRef, 'plan', cwd), '');
+    assert.ok(readRunArtifactText(run, 'plan', cwd).includes('## 计划'));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

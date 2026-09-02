@@ -23,13 +23,13 @@ Rollback edges: `rollback.md`.
    - `ABANDONED` → `resume`
    - Archived / `COMPLETED` / `phase=ARCHIVE` → `resume` or `rollback-phase` (e.g. →DELIVER)
    - Active → edit directly; if accept already PASS: first `gate accept FAIL` or rollback
-3. Truly new requirement (user clearly says “do another thing”, “new run”, or semantic is brand new) → `init` (new optional `intent.md`); optional progress notes `parent_run_id` / `supersedes_run_id` (**do not** invent these into run.json). Same-requirement resume keeps the existing intent.
+3. Truly new requirement (user clearly says “do another thing”, “new run”, or semantic is brand new) → `init` (new optional intent under `task_plan.md` `## 目标`); optional progress notes `parent_run_id` / `supersedes_run_id` (**do not** invent these into run.json). Same-requirement resume keeps the existing intent.
 
 ## Fix mistakes
 
 | Stage | Action |
 | --- | --- |
-| During DELIVER | If approach/MUST changed: move plan/acceptance Current → Landed/Superseded, write new Current, then change code + progress + re-verify ([artifact-layout.md](artifact-layout.md)) |
+| During DELIVER | If approach/MUST changed: move `task_plan.md` `### 当前` → `### 已落地`/`### 已取代`, write new 当前, then change code + progress + re-verify ([artifact-layout.md](artifact-layout.md)) |
 | accept wrongly PASS | `gate accept FAIL` or `rollback-phase --to DELIVER` |
 | Plan/analyze wrong | Roll back on **adjacent edges** only (no skipping) |
 | Already archived | `resume` → same as above → may `finalize` again |
@@ -38,8 +38,8 @@ Rollback edges: `rollback.md`.
 
 ## Add requirements
 
-Same run: add REQ in analyze, add TASK under plan `## Current`, expand `scope.in`; one re-acceptance covers all (still-true items stay PASS).  
-If a prior Current is no longer the approach, move it to `## Superseded` first — do not replace the whole plan/acceptance file. If an older `plan.md` has `## Tasks` and no `## Current`, rename Tasks→Current first. Shape: [artifact-layout.md](artifact-layout.md).  
+Same run: add REQ under `## 分析` `### 必须项`, add TASK under `## 计划` `### 当前`, expand `scope.in`; one re-acceptance covers all (still-true items stay PASS).
+If a prior 当前 is no longer the approach, move it to `### 已取代` first — do not replace the whole `task_plan.md`. Legacy `plan.md` with `## Tasks` and no Current: rename Tasks→Current first. Shape: [artifact-layout.md](artifact-layout.md).
 If accept already passed or archived: return to DELIVER first, then edit and re-verify.
 
 ## Abandon
@@ -63,7 +63,7 @@ ralph_ops.mjs resume --run-id RALPH-x --reason "…"
 | Write lineage fields into run.json | Write parent/supersedes in progress.md for a truly new run |
 | finalize while ABANDONED | resume first |
 | Treat `$jj-end` as task completion | end is Git only |
-| New `intent.md` on same-requirement resume | Keep the existing intent; new intent only on a truly new run |
+| New intent on same-requirement resume | Keep the existing `task_plan.md` `## 目标`; new intent only on a truly new run |
 | Auto-edit skill text after an incident | Add `evals/regression/` case; promote only with human approval |
 
 ## Commands
@@ -82,6 +82,6 @@ When the user says 「投喂知识库 / 补充全局知识」 or “feed knowled
 
 1. Resolve run (same continue detection)
 2. `knowledge-contribute --hook` (built-in ingest into `~/.jj-flow/knowledge` for the **current** `project_key`; custom CLI may use `{project}`)
-3. Report: `path`, candidate count, `hook.status` (ok|skipped|failed)
+3. Report: `status=degraded` (P1b no longer writes `knowledge-contribution.json`); hot memory already promoted at archive
 4. Failures are fail-open; archive unchanged; hint checking `knowledge_root` / `RALPH_KNOWLEDGE_HOOK_CMD`
 5. Do **not** hook on finalize unless the user said yes. Map join / first-time KB bootstrap → `$jj-init`.

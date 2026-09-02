@@ -4,13 +4,10 @@
 
 ```text
 .workflow/ralph/RALPH-{kebab-slug}-{YYYYMMDD}/
-  run.json                 # phase/gates + intensity/budget/stagnation/accept_layers + handoff + optional metrics
-  intent.md                # optional initiator words; tiny skips; not a sixth phase
-  analyze.md               # MUST + evidence_class + ## Flagged concerns; field lifecycle for write-then-read (see must-evidence.md)
-  plan.md
+  run.json                 # phase/gates + intensity/budget/stagnation/accept_layers + handoff + optional metrics; schema 1.1
+  task_plan.md             # ## 目标 / ## 分析 / ## 计划 / ## 验收 (nested ### 当前 / ### 已落地 / ### 已取代)
   progress.md              # deliver-attempt / resume|abandon audit; optional supersedes|parent chain on truly new runs; hot_memory inject lines
-  acceptance.md            # item + evidence_class + evidence (ban weak-evidence false green)
-  findings.md              # extra P0 file (not in run.json artifact_refs): 踩坑与因果 F-00N + 可复用结论; archive promotes the latter to ~/.jj-flow/memory/
+  findings.md              # 踩坑与因果 F-00N + 可复用结论; archive promotes the latter to ~/.jj-flow/memory/
   instruction-correction.md  # two-strike candidate; Reviewer never lands this into AGENTS.md
   reviews/REV-*.json       # optional; often required for strict judgment layer
   handoff/handoff.json     # optional mirror for same to read
@@ -28,59 +25,69 @@
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
 5. `RALPH-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. The active directory is always the authoritative run; under archive are historical snapshots. Continue after archive → **same** `RALPH-*` directory resume; do not open a new run by default
-7. `intent.md` is optional. `init` writes it except `tiny` or `--no-intent`. Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
-8. Claimed implementation paths and review compliance read `plan.md` **## Current** (legacy `## Tasks` if no Current). Landed / Superseded do not count as the current ledger
+7. Intent is optional text under `task_plan.md` `## 目标`. `init` writes it except `tiny` or `--no-intent` (`artifact_refs.intent` = `task_plan.md`). Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
+8. Claimed implementation paths and review compliance read `task_plan.md` **## 计划 → ### 当前** (fallback: `当前` → `Current` → `Tasks` → full file). `### 已落地` / `### 已取代` do not count as the current ledger. Do not put `#` fragments in `artifact_refs`
 
 ## Current contract vs history
 
-Live `analyze.md` / `plan.md` / `acceptance.md` = **current contract** (what to do now). They are not a changelog.
+Live `task_plan.md` = **current contract** (what to do now). It is not a changelog.
 
 | Layer | Where | Mutate how |
 | --- | --- | --- |
-| Current contract | live `analyze.md` / `plan.md` / `acceptance.md` | Update **Current**; do not delete prior rows |
+| Current contract | live `task_plan.md` (`### 当前` under 分析 / 计划 / 验收) | Update **当前**; do not delete prior rows |
 | Audit | live `progress.md` | Append only |
+| Pitfalls | live `findings.md` | Append F-00N + 可复用结论 |
 | Finalize snapshot | `.workflow/ralph/archive/*` | Created on `finalize`; never delete old dirs |
 
-`archive/` is only a finalize snapshot. A mid-DELIVER plan that never passed `finalize` is **not** in archive. If you replace live `plan.md` in place, that text is gone.
+`archive/` is only a finalize snapshot. A mid-DELIVER plan that never passed `finalize` is **not** in archive. If you replace live `task_plan.md` in place, that text is gone.
 
-### File shape (plan / analyze / acceptance)
+### File shape (`task_plan.md`)
 
-Keep this section order. `tiny` uses the same shape, shortest bullets.
+Keep this H2 order. Nested H3 under 计划 / 验收. `tiny` uses the same shape, shortest bullets. `init` writes **Chinese headings only**.
 
 ```markdown
-## Current
-- only in-force MUST / TASK / acceptance items for this loop
-
-## Landed
+## 目标
+## 分析
+### 必须项
+### 范围外
+### 存疑事项
+### 未解决
+## 计划
+### 当前
+- only in-force TASK items for this loop
+### 已落地
 - still-true completed items (do not re-implement)
-- optional pointer: `last_archive_path`
-
-## Superseded
-- previous Current that is no longer the approach
-- keep the old TASK/MUST/item text; one line why + timestamp
+### 已取代
+- previous 当前 that is no longer the approach
+## 验收
+### 当前
+| 项 | must_id | evidence_class | 结果 | 证据 |
+| --- | --- | --- | --- | --- |
+### 已落地
 ```
 
-On first write of a new run, `## Landed` / `## Superseded` may be omitted until something lands or is replaced.
+On first write of a new run, `### 已落地` / `### 已取代` may stay empty until something lands or is replaced.
 
 ### Legacy / init headings
 
-`ralph_ops init` writes `plan.md` with `## Current`. Older runs may still have `## Tasks`. `analyze.md` keeps `## MUST`; `acceptance.md` stays a table. Gate path checks read backtick paths, not these heading names.
+`ralph_ops init` writes `task_plan.md` with `### 当前`. Older 1.0 runs may still have `analyze.md` / `plan.md` / `acceptance.md` and English `## Current` / `## Tasks`. Readers fall back: `当前` → `Current` → `Tasks` → full file. Gate path checks read backtick paths, not these heading names.
 
-| File | If you see | On task / approach change |
-| --- | --- | --- |
-| `plan.md` | `## Tasks` and no `## Current` | That `## Tasks` block **is** Current. Rename it to `## Current` first (do not delete bullets), then move it to Landed/Superseded and write the new Current. Never replace `## Tasks` in place. |
-| `analyze.md` | `## MUST` / `## OUT` | Keep those headings. Do not rename MUST→Current. Keep still-true REQ; mark abandoned MUST `SUPERSEDED`. |
-| `acceptance.md` | markdown table, no Current sections | Keep the table. `result` = `PASS` (既有) / `SUPERSEDED` + reason / empty until evidence. Do not convert the table into Current/Landed/Superseded headings. |
+| If you see | On task / approach change |
+| --- | --- |
+| `task_plan.md` `### 当前` | Move that block to `### 已落地` / `### 已取代`, then write the new 当前. Never replace 当前 in place. |
+| Legacy `plan.md` `## Tasks` and no `## Current` | That Tasks block **is** Current. Rename it to Current first, then move. |
+| Legacy `analyze.md` `## MUST` / `## OUT` | Keep those headings on 1.0 files. New runs use `### 必须项` / `### 范围外`. Mark abandoned MUST `SUPERSEDED` / `已取代`. |
+| Legacy `acceptance.md` table, no Current sections | Keep the table on 1.0 files. `结果`/`result` = `PASS` (既有) / `SUPERSEDED`/`已取代` + reason / empty until evidence. New runs put the table under `## 验收` `### 当前`. |
 
 ### When the task / approach / MUST changes
 
 Includes: resume after archive, user correction, mid-DELIVER policy swap. Same `run_id`.
 
-1. **Before** replacing `## Current`: move that whole block into `## Landed` (still true) or `## Superseded` (approach abandoned). Then write the new `## Current`.
-2. This move is mandatory even if the previous Current was never archived. Do not wait for `finalize` to preserve it.
-3. `analyze.md`: add or tighten MUST; do not drop still-true REQ; mark abandoned MUST `SUPERSEDED`.
-4. `plan.md`: new work only under `## Current`. Old TASKs stay in Landed or Superseded — never a file that contains only this loop’s TASKs after a prior loop existed.
-5. `acceptance.md`: still-true rows stay `PASS` (evidence `既有` or archive pointer). Replaced rows `SUPERSEDED` + reason. New rows empty/FAIL until evidence. Do not wipe the table down to only the new round.
+1. **Before** replacing `### 当前`: move that whole block into `### 已落地` (still true) or `### 已取代` (approach abandoned). Then write the new `### 当前`.
+2. This move is mandatory even if the previous 当前 was never archived. Do not wait for `finalize` to preserve it.
+3. `## 分析`: add or tighten `### 必须项`; do not drop still-true REQ; mark abandoned MUST `已取代`.
+4. `## 计划`: new work only under `### 当前`. Old TASKs stay in 已落地 or 已取代 — never a file that contains only this loop’s TASKs after a prior loop existed.
+5. `## 验收`: still-true rows stay `PASS` (evidence `既有` or archive pointer). Replaced rows `已取代` + reason. New rows empty/FAIL until evidence. Do not wipe the table down to only the new round.
 6. `progress.md`: append `failed_must` / `failed_evidence_class` / `over_claimed` when a correction retracts a claim.
-7. Gate meaning of “rewrite plan/acceptance before accepting”: **Current** must match the code. It does not mean erase Landed/Superseded.
-8. “Add REQ / TASK” = append under Current (and analyze MUST). Do not keep superseded TASKs in Current as if they were still to-do.
+7. Gate meaning of “rewrite plan/acceptance before accepting”: **当前** must match the code. It does not mean erase 已落地/已取代.
+8. “Add REQ / TASK” = append under 当前 (and 必须项). Do not keep superseded TASKs in 当前 as if they were still to-do.

@@ -2,7 +2,7 @@
 
 `jj-review` is an **adapter**: prefer the review engine already available on the current host; this skill writes results into ralph `REV-*.json`.
 
-Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `plan.md` ## Current).
+Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `task_plan.md` ### 当前).
 
 Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose. Choose the entry via **capability discovery**.
 
@@ -56,7 +56,7 @@ At minimum provide:
 
 | Item | Content |
 | --- | --- |
-| Scope | ralph `run_id`, goal, MUST / OUT (from analyze/plan) |
+| Scope | ralph `run_id`, goal, MUST / OUT (from `task_plan.md` 分析/计划) |
 | Target | `reviewed_commit` or working tree / specified paths |
 | Constraints | read-only; do not fix code; do not init ralph |
 | Expectation | structured findings (file/line/severity/description) + overall verdict |

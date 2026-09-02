@@ -280,9 +280,9 @@ test('init/resume write hot_memory progress; finding command prefills from progr
       }, cwd);
       const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
       assert.match(progress, /hot_memory:/);
-      const analyze = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'analyze.md'), 'utf8');
+      const analyze = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'task_plan.md'), 'utf8');
       assert.match(analyze, /## hot_memory/);
-      assert.equal(run.artifact_refs.analyze, 'analyze.md');
+      assert.equal(run.artifact_refs.analyze, 'task_plan.md');
 
       fs.appendFileSync(
         path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'),

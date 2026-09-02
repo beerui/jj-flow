@@ -12,7 +12,7 @@ import {
   isThisTimeOnly,
   scoreDraft
 } from '../src/memoryExtract.mjs';
-import { initRun, loadRun, saveRun, finalizeRun } from '../src/ralph.mjs';
+import { initRun, loadRun, saveRun, finalizeRun, buildKnowledgeContribution, KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON } from '../src/ralph.mjs';
 
 test('hasRealLesson drops empty / this-time-only / short notes', () => {
   assert.equal(hasRealLesson(''), false);
@@ -100,7 +100,14 @@ test('finalize drops narration lessons from contribution candidates', () => {
       lessons: ['tip bottom uses 6px not 8px', '没有第 3 条', '仅本次改这一处'],
       force: true
     });
-    const contrib = JSON.parse(fs.readFileSync(path.join(cwd, result.contribution_path), 'utf8'));
+    assert.equal(result.contribution_path, null);
+    assert.equal(result.contribute_hook.status, 'skipped');
+    assert.equal(result.contribute_hook.reason, KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON);
+    const contrib = buildKnowledgeContribution(loadRun(runId, cwd), {
+      cwd,
+      modules: ['src/tip.vue'],
+      lessons: ['tip bottom uses 6px not 8px', '没有第 3 条', '仅本次改这一处']
+    });
     assert.ok(contrib.candidates.some((c) => c.type === 'capability'));
     assert.ok(contrib.candidates.some((c) => c.type === 'lesson' && /6px/.test(c.summary)));
     assert.ok(!contrib.candidates.some((c) => /没有第/.test(c.summary || '')));

@@ -7,36 +7,37 @@ Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”
 
 - Change exactly 1 business file (plus at most 1 reference implementation file, read-only)
 - No long background; no whole-repo search
-- **No `intent.md`** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
+- **No intent block** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
 - After every DELIVER verification, record `deliver-attempt --improved true|false` (prevents empty loops)
 
-## analyze.md (example)
+## task_plan.md (example)
 
 ```markdown
-# ANALYZE
-run_id: RALPH-zero-interest-url-20260723
+# RALPH-zero-interest-url-20260723
 
-## MUST
+## 目标
+
+## 分析
+### 必须项
 - Agreement link uses backend field zeroInterestBizAgreementUrl  
   evidence_class: behavior-local
-
-## OUT
+### 范围外
 - Do not change other agreement download logic
+### 存疑事项
+### 未解决
 
-## Acceptance
-- Rendered agreement URL comes from traderCorpOrderInfo.zeroInterestBizAgreementUrl  
-  (class inherits behavior-local; tiny presentational → no write-then-read ceremony)
-```
-
-## plan.md (example)
-
-```markdown
-# PLAN
-## Current
+## 计划
+### 当前
 - TASK-1 → REQ-001: update order-operation-link.vue agreement URL binding
+### 已落地
+### 已取代
 
-## Out of scope
-- Backend field definition
+## 验收
+### 当前
+| 项 | must_id | evidence_class | 结果 | 证据 |
+| --- | --- | --- | --- | --- |
+| Uses zeroInterestBizAgreementUrl | REQ-001 | behavior-local | PASS | order-operation-link.vue + rg |
+### 已落地
 ```
 
 ## progress.md (append)
@@ -48,33 +49,22 @@ run_id: RALPH-zero-interest-url-20260723
 - 2026-07-23T00:01:01Z deliver-attempt improved=true signal=rg_clean
 ```
 
-## acceptance.md (example)
-
-```markdown
-| item | must_id | evidence_class | result | evidence |
-| --- | --- | --- | --- | --- |
-| Uses zeroInterestBizAgreementUrl | REQ-001 | behavior-local | PASS | order-operation-link.vue + rg |
-```
-
 `diff-only` / `behavior-local` only — do **not** add field-lifecycle or dual-path checks for tiny presentational work. Full rules: [must-evidence.md](must-evidence.md).
 
 ## Resume / policy change (even tiny)
 
-Same `run_id`. Do not overwrite `plan.md` / `acceptance.md` down to only the new bullets.
+Same `run_id`. Do not overwrite `task_plan.md` down to only the new bullets.
 
 ```markdown
-# PLAN
-## Current
+## 计划
+### 当前
 - TASK-2 → REQ-001: tip 8px → 6px
-
-## Landed
+### 已落地
 - TASK-1 → REQ-001: bind zeroInterestBizAgreementUrl  (still true)
-
-## Superseded
-- (none)
+### 已取代
 ```
 
-Move the previous `## Current` block to Landed or Superseded **before** writing the new Current. If an older live file still says `## Tasks`, that block is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
+Move the previous `### 当前` block to 已落地 or 已取代 **before** writing the new 当前. Legacy English `## Tasks` without Current is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
 
 ## Closeout
 

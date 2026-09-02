@@ -4,10 +4,10 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 
 | Stage (gloss) | phase | Required artifacts | gates.* PASS conditions |
 | --- | --- | --- | --- |
-| Requirements analysis | `ANALYZE` | `analyze.md`, REQ ledger; optional `intent.md` | MUST/acceptance traceable; every MUST has **evidence_class** (see [must-evidence.md](must-evidence.md)); add field lifecycle for `write-then-read`/`cross-path`; **## Flagged concerns** must answer or carry forward every intent open question; no blocking UNRESOLVED, or already `BLOCKED` |
-| Implementation plan | `PLAN` | `plan.md`, task table | Every TASK → REQ; in-scope and out-of-scope explicit |
+| Requirements analysis | `ANALYZE` | `task_plan.md` `## 分析`; optional intent under `## 目标` | MUST/acceptance traceable; every MUST has **evidence_class** (see [must-evidence.md](must-evidence.md)); add field lifecycle for `write-then-read`/`cross-path`; **### 存疑事项** must answer or carry forward every intent open question; no blocking 未解决, or already `BLOCKED` |
+| Implementation plan | `PLAN` | `task_plan.md` `## 计划` | Every TASK → REQ; in-scope and out-of-scope explicit |
 | Implement & verify | `DELIVER` | Code, `progress.md` iterations, focused verification | Tasks done and verification not FAIL; rework loops allowed; `deliver-attempt` signal matches evidence_class |
-| Acceptance | `ACCEPT` | `acceptance.md` | Checklist items `PASS` or `N/A`+reason; **evidence level must not be lower than the MUST’s evidence_class** (ban write-then-read PASS via diff only); missing evidence → no PASS; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; path sets consistent |
+| Acceptance | `ACCEPT` | `task_plan.md` `## 验收` | Checklist items `PASS` or `N/A`+reason; **evidence level must not be lower than the MUST’s evidence_class** (ban write-then-read PASS via diff only); missing evidence → no PASS; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; path sets consistent |
 | Archive | `ARCHIVE` | `archive-manifest.json`, archive snapshot, map merge | Snapshot + merge `business-map.json`; product-consistency + if a PASS review exists then commit-scoped review SHA required; COMPLETED ≠ committed (report honestly lists dirty / commit-prep); **re-archive allowed** |
 
 ## status
@@ -127,10 +127,10 @@ See [rollback.md](rollback.md). Adjacent phases only; ARCHIVE→ACCEPT is legal;
   - `gates.deliver` must already be `PASS` or `N/A` (forbid code landed while ledger still on PLAN)
   - progress/diff shows DELIVER evidence but `deliver` not PASS → reject (deliver-outside-ledger)
   - Latest review = `NEEDS_CHANGES` or `BLOCKED` → reject PASS
-  - Implementation paths in plan **## Current** (legacy `## Tasks` if no Current), active acceptance rows, and `scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS. Landed / Superseded paths are not current claims
+  - Implementation paths in `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`), active `## 验收` rows, and `scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS. 已落地 / 已取代 paths are not current claims
   - Bugfix / `failed_must` / latest `NEEDS_CHANGES` runs must not delete or empty tests; `tiny` presentational without those signals is exempt
   - **ARCHIVE** with latest `PASS` review: must have `review_scope=commit` and `fix_commit`/`reviewed_commit`; `working_tree` PASS is temporary evidence only and cannot archive as landed
-  - When policy changes mid-run, revise plan/acceptance **Current** before accepting; do not only change code. Move the previous Current block to Landed or Superseded first ([artifact-layout.md](artifact-layout.md) § Current contract vs history). Do not delete prior TASK/MUST/acceptance rows
+  - When policy changes mid-run, revise `task_plan.md` **### 当前** before accepting; do not only change code. Move the previous 当前 block to 已落地 or 已取代 first ([artifact-layout.md](artifact-layout.md) § Current contract vs history). Do not delete prior TASK/MUST/acceptance rows
   - Ops override: `force: true` (library API / finalize force); default conversational path must not use force
 - Host metadata (optional, does not advance checkpoints): `run.host.host_id` / `thread_id` / `model_id` / `export_path`; write via `jj ralph host-record` or init for evaluation and session replay
 - Optional review fields: `--review-scope working_tree|commit`, `--fix-commit <sha>`

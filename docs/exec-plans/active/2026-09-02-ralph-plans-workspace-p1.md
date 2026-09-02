@@ -57,15 +57,15 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 
 设计 §3.3 / §3.4 / §3.6 / §3.10 表 B1 / §3.11。
 
-- [ ] `task_plan.md` 三 section（分析 / 计划 / 验收）；init 只写中文段名
-- [ ] 停写 `knowledge-attach.json` / `knowledge-contribution.json`；home ingest 链显式降级（§3.6）
-- [ ] schema 1.1：`artifact_refs.findings`、`knowledge.memory_refs`、`gate_set` 预留；skill schema 副本同步
-- [ ] `LEDGER_PATH_EXCLUDE` 加入 `task_plan.md` / `findings.md`
-- [ ] `artifact_refs` 禁锚点；`readRunArtifactText` 解析失败抛错（防合规 gate 静默放行）
-- [ ] `extractMarkdownSection(text, heading, level)` 层级感知；Current 提取两跳：`计划`(2) → `当前`(3)
-- [ ] 读端四级回退：`当前` → `Current` → `Tasks` → 全文；存量英文标题仍能提取
-- [ ] jj-review 四文件读取改三 section；段名常量同批；`agents/jj-workflow-reviewer.toml` 对照段名
-- [ ] `tests/jj-ralph-contract.test.mjs`：骨架中文段名、`:237` 假绿断言改掉、存量英文 Current 回退用例
+- [x] `task_plan.md` 三 section（分析 / 计划 / 验收）；init 只写中文段名
+- [x] 停写 `knowledge-attach.json` / `knowledge-contribution.json`；home ingest 链显式降级（§3.6）
+- [x] schema 1.1：`artifact_refs.findings`、`knowledge.memory_refs`、`gate_set` 预留；skill schema 副本同步
+- [x] `LEDGER_PATH_EXCLUDE` 加入 `task_plan.md` / `findings.md`
+- [x] `artifact_refs` 禁锚点；`readRunArtifactText` 解析失败抛错（防合规 gate 静默放行）
+- [x] `extractMarkdownSection(text, heading, level)` 层级感知；Current 提取两跳：`计划`(2) → `当前`(3)
+- [x] 读端四级回退：`当前` → `Current` → `Tasks` → 全文；存量英文标题仍能提取
+- [x] jj-review 四文件读取改三 section；段名常量同批；`agents/jj-workflow-reviewer.toml` 对照段名
+- [x] `tests/jj-ralph-contract.test.mjs`：骨架中文段名、`:237` 假绿断言改掉、存量英文 Current 回退用例
 
 ### P1c — 归档反转
 
@@ -77,7 +77,7 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 
 ## 下一刀
 
-P1b：布局 8→4 + schema 1.1。不改 run_id，不写业务仓指令文件。
+P1c：归档反转 + 停写 `archive-manifest.json`。不改 run_id，不写业务仓指令文件。
 
 ## 完成定义
 

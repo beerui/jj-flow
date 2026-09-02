@@ -47,7 +47,7 @@ diff-only < behavior-local < write-then-read ≤ cross-path < runtime-env
 
 Expand only when at least one MUST is `write-then-read` or `cross-path`, **or** the plan touches **more than one write entry** for the same meaning.
 
-Answer in `analyze.md` (short bullets, domain-neutral):
+Answer in `task_plan.md` `## 分析` (short bullets, domain-neutral):
 
 1. **Write paths** — How many ways can the user (or system) change this value?
 2. **Read paths** — On reopen / reload / list / detail, where does the value come from?
@@ -63,7 +63,7 @@ Answer in `analyze.md` (short bullets, domain-neutral):
 
 Business-specific lessons (named APIs, product quirks) belong in the **business repo** capability map / knowledge contribution — not in this skill.
 
-## ACCEPT: `acceptance.md` shape
+## ACCEPT: `task_plan.md` `## 验收` shape
 
 Prefer a table that includes class and evidence ref:
 
@@ -76,7 +76,7 @@ Prefer a table that includes class and evidence ref:
 
 Rules:
 
-1. Every acceptance row that maps to a MUST must state `evidence_class` (or inherit from the MUST list in `analyze.md`).
+1. Every acceptance row that maps to a MUST must state `evidence_class` (or inherit from the MUST list in `task_plan.md` `### 必须项`).
 2. `PASS` requires evidence meeting the class minimum above.
 3. **Over-claim is FAIL:** e.g. `write-then-read` MUST marked PASS with only “code contains handler” / raw diff.
 4. If evidence cannot be produced in-session:

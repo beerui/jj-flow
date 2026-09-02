@@ -32,7 +32,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
-   - Optional `intent.md` (initiator words). `tiny` skips it unless `--intent`. ANALYZE must answer intent open questions under `## Flagged concerns`.
+   - Optional intent lives in `task_plan.md` `## 目标` (initiator words). `tiny` skips it unless `--intent`. ANALYZE must answer intent open questions under `### 存疑事项`.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
 4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate).
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
@@ -40,10 +40,10 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
-   - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. If an older `plan.md` still has `## Tasks` and no `## Current`, that Tasks block is Current — rename it first, do not replace in place. Shape: [artifact-layout.md](references/artifact-layout.md)
-5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
-6. Completion report (short): local CAP id, contribution package path, hook status.
-7. **Idle offer (after the completion report, never during DELIVER):** if this run has a contribution package not yet hooked, ask **once** whether to feed KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
+   - Task/approach/MUST change (incl. resume after archive): move live `task_plan.md` **### 当前** → **### 已落地** or **### 已取代**, then write new 当前. Legacy English `## Current` / `## Tasks` still extract. Shape: [artifact-layout.md](references/artifact-layout.md)
+5. After accept PASS, default `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`). `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
+6. Completion report (short): local CAP id, hot-memory promote status.
+7. **Idle offer (after the completion report, never during DELIVER):** archive already promoted `## 可复用结论` into `~/.jj-flow/memory/`. Ask **once** whether to also feed the opt-in portfolio KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only; P1b hook is skipped/degraded). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
 8. 🔴 **CHECKPOINT (irreversible):** push / merge / release / delete data → prepare only (`commit-prep` / report); **do not execute** until the user explicitly asks.
 
 ### Step I/O
@@ -54,7 +54,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
 | 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows. Init/resume also inject up to 5 hot-memory one-liners from `~/.jj-flow/memory/<project_key>.md` into progress (`hot_memory:`); empty is valid |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
-| 5 finalize | accept PASS | archive snapshot + map merge + `knowledge-contribution.json` |
+| 5 finalize | accept PASS | archive snapshot + map merge + hot-memory promote (`knowledge-contribution.json` degraded) |
 | 6 report | run + CAP paths | short completion report |
 
 ### Happy path (default command chain)
@@ -86,7 +86,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
 | `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a `close` command |
-| User changes approach / MUST / plan (mid-run or after archive) | If plan has `## Tasks` and no `## Current`, rename Tasks→Current first; then move Current → Landed or Superseded; write new Current; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not replace `## Tasks` in place; do not wipe plan/acceptance to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
+| User changes approach / MUST / plan (mid-run or after archive) | Move `task_plan.md` `### 当前` → `### 已落地` or `### 已取代`; write new 当前; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted). Legacy `## Tasks` without Current is Current — rename first | Do not replace `## Tasks` in place; do not wipe `task_plan.md` to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).
 
@@ -141,7 +141,7 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 
 | Step | Action |
 | --- | --- |
-| After archive | `knowledge-contribution.json` already present (finalize writes it) |
+| After archive | Hot memory already promoted from `findings.md`; `knowledge-contribution.json` is not written (P1b degraded) |
 | Lesson gate | Durable lessons pass Gate B **and** future-reuse: 换一张卡还得遵守才收录. Human-locked keep/drop: `tests/fixtures/extract-future-reuse.golden.json`. Process narration / 仅本次 / task restatement / this-change nits / field-howto memos without 必须/不要/勿/协议 → `extract_audit`. Prefer 0 over dirty. |
 | User speech | 「投喂知识库」「补充全局知识」 / “feed knowledge base”; also the idle offer after archive |
 | Mechanical | `ralph_ops knowledge-contribute --run-id … --hook` → built-in `~/.jj-flow/knowledge` ingest for the **current** `project_key` (`{project}` if a custom CLI is set) |
@@ -177,7 +177,7 @@ User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a busi
 | 11 | Treat chat/memory as checkpoint advance | Only `run.json` + artifacts + Git evidence |
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |
 | 13 | Treat `$jj-end` as ralph archive / phase advance | `$jj-end` is Git-only; archive via `finalize` |
-| 14 | Silently replace live `plan.md` / `acceptance.md` / `analyze.md` so prior Current text is gone (incl. replacing `## Tasks` in place) | If no `## Current`, rename `## Tasks`→Current first; then move Current → Landed/Superseded. Unarchived revisions stay in the live files |
+| 14 | Silently replace live `task_plan.md` so prior `### 当前` text is gone (incl. replacing `## Tasks` in place) | Move `### 当前` → `### 已落地` / `### 已取代` first. Legacy: if no Current, rename `## Tasks`→Current then move. Unarchived revisions stay in the live file |
 | 15 | Pad init `knowledge_refs` or hot_memory with unrelated same-project history to fill a quota | Lexical retrieve only; 0 hits → empty; cap 5 |
 | 16 | Delete or empty tests while fixing a failed MUST / `NEEDS_CHANGES` | Add or strengthen tests; `tiny` presentational without those signals is exempt |
 | 17 | Invent metrics clocks or block ACCEPT because timestamps are missing | `jj ralph metrics` is derived; null stays null |

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "jj-flow/ralph-run/1.0",
+  "$id": "jj-flow/ralph-run/1.1",
   "title": "jj-flow Ralph Run Ledger",
   "type": "object",
   "additionalProperties": false,
@@ -23,7 +23,26 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "jj-flow/ralph-run/1.0"
+      "enum": [
+        "jj-flow/ralph-run/1.0",
+        "jj-flow/ralph-run/1.1"
+      ]
+    },
+    "gate_set": {
+      "type": "string",
+      "enum": ["full", "lite"],
+      "description": "P1b reserved. full = analyze/plan/deliver/accept/archive; lite lands later as brief/deliver/close."
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Hot-memory injection trace. Distinct from top-level knowledge_refs (portfolio attach).",
+      "properties": {
+        "memory_refs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
     },
     "run_id": {
       "type": "string",
@@ -283,6 +302,10 @@
         "pattern": "^CAP-"
       }
     },
+    "project_key": {
+      "type": ["string", "null"],
+      "description": "Home-map project key for hot memory. Optional."
+    },
     "artifact_refs": {
       "type": "object",
       "additionalProperties": false,
@@ -294,21 +317,30 @@
       ],
       "properties": {
         "analyze": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^#]+$"
         },
         "plan": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^#]+$"
         },
         "acceptance": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^#]+$"
         },
         "progress": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^#]+$"
+        },
+        "findings": {
+          "type": "string",
+          "pattern": "^[^#]+$",
+          "description": "Required on schema 1.1. Bare filename; fragments forbidden."
         },
         "intent": {
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^[^#]+$" }
           ]
         },
         "handoff_ref": {

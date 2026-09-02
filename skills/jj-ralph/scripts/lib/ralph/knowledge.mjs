@@ -27,12 +27,27 @@ import {
   FINDING_IMPORTANCE,
   FINDING_PASSES,
   HOST_REVIEW_METHODS,
+  FINDINGS_REL,
+  PROGRESS_REL,
   RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA,
   RALPH_REVIEW_SCHEMA_VERSION,
   RALPHS_DIR_REL,
   REVIEW_NIT_CAP,
   REVIEW_OUTCOMES,
   REVIEW_SOURCES,
+  SECTION_ACCEPT,
+  SECTION_ANALYZE,
+  SECTION_CURRENT,
+  SECTION_FLAGGED,
+  SECTION_GOAL,
+  SECTION_LANDED,
+  SECTION_MUST,
+  SECTION_OPEN_QUESTIONS,
+  SECTION_OUT,
+  SECTION_PLAN,
+  SECTION_SUPERSEDED,
+  SECTION_UNRESOLVED,
+  TASK_PLAN_REL,
   appendProgressLine,
   createEmptyAcceptLayers,
   createRunSkeleton,
@@ -70,14 +85,18 @@ function collectHotMemoryHits(run, { cwd, query = '' } = {}) {
 }
 
 export function promoteHotMemoryFromRun(run, { cwd = process.cwd() } = {}) {
-  const findingsPath = path.join(runDir(run.run_id, cwd), 'findings.md');
+  const rel = String(run.artifact_refs?.findings || FINDINGS_REL).replace(/\\/g, '/');
+  if (rel.includes('#')) {
+    return { status: 'skipped', added: 0, skipped: 0, reason: 'artifact_refs.findings must be a bare filename' };
+  }
+  const findingsPath = path.join(runDir(run.run_id, cwd), rel);
   if (!fs.existsSync(findingsPath)) {
     return { status: 'skipped', added: 0, skipped: 0, reason: 'no findings.md' };
   }
   const projectKey = run.project_key || resolveProjectKeyFromCwd(cwd);
   if (!projectKey) return { status: 'skipped', added: 0, skipped: 0, reason: 'no project_key' };
   const text = fs.readFileSync(findingsPath, 'utf8');
-  const backrefBase = path.join(RALPHS_DIR_REL, run.run_id, 'findings.md').replaceAll('\\', '/');
+  const backrefBase = path.join(RALPHS_DIR_REL, run.run_id, rel).replaceAll('\\', '/');
   const rules = extractReusableRulesFromFindings(text, {
     taskKey: run.run_id,
     backrefBase
@@ -91,9 +110,11 @@ export function promoteHotMemoryFromRun(run, { cwd = process.cwd() } = {}) {
 }
 
 export function recordFinding(runId, fields = {}, cwd = process.cwd()) {
-  loadRun(runId, cwd);
+  const run = loadRun(runId, cwd);
   const dir = runDir(runId, cwd);
-  const findingsPath = path.join(dir, 'findings.md');
+  const findingsRel = String(run.artifact_refs?.findings || FINDINGS_REL).replace(/\\/g, '/');
+  if (findingsRel.includes('#')) throw new Error('artifact_refs.findings must be a bare filename');
+  const findingsPath = path.join(dir, findingsRel);
   const progressPath = path.join(dir, 'progress.md');
   const existing = fs.existsSync(findingsPath)
     ? fs.readFileSync(findingsPath, 'utf8')
@@ -183,36 +204,78 @@ export function initRun(options, cwd = process.cwd()) {
   const writeIntent = options.write_intent === true
     || (options.write_intent !== false && run.intensity !== 'tiny');
   if (writeIntent) {
-    run.artifact_refs.intent = 'intent.md';
-    saveRun(run, cwd);
+    run.artifact_refs.intent = TASK_PLAN_REL;
   }
+  run.knowledge = {
+    memory_refs: unique((hotPack.hits || []).map((hit) => hit.id || hit.rule).filter(Boolean))
+  };
+  saveRun(run, cwd);
+  const knowledgeLine = '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)');
+  const goalBody = writeIntent
+    ? ('## ' + SECTION_GOAL + nl + nl + (run.goal || '') + nl + nl
+      + '### ' + SECTION_OPEN_QUESTIONS + nl + nl
+      + '### 问题' + nl + nl
+      + '### 预期结果' + nl + nl
+      + '### 影响面' + nl + nl
+      + '### 约束' + nl)
+    : ('## ' + SECTION_GOAL + nl);
+  const taskPlan = [
+    '# ' + run.run_id,
+    '',
+    '> 运行: ' + run.run_id + '　状态: ' + run.phase + '/' + run.status,
+    '',
+    goalBody,
+    '',
+    '## ' + SECTION_ANALYZE,
+    '',
+    knowledgeMd,
+    '',
+    hotMd,
+    '',
+    '### ' + SECTION_MUST,
+    '',
+    '### ' + SECTION_OUT,
+    '',
+    '### ' + SECTION_FLAGGED,
+    '',
+    '### ' + SECTION_UNRESOLVED,
+    '',
+    '## ' + SECTION_PLAN,
+    '',
+    knowledgeLine,
+    '',
+    '### ' + SECTION_CURRENT,
+    '',
+    '### ' + SECTION_LANDED,
+    '',
+    '### ' + SECTION_SUPERSEDED,
+    '',
+    '## ' + SECTION_ACCEPT,
+    '',
+    '### ' + SECTION_CURRENT,
+    '',
+    '| 项 | must_id | evidence_class | 结果 | 证据 |',
+    '| --- | --- | --- | --- | --- |',
+    '',
+    '### ' + SECTION_LANDED,
+    ''
+  ].join(nl);
   const stubs = {
-    'analyze.md': '# Analyze' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + hotMd + nl + nl + '## MUST' + nl + nl + '## OUT' + nl + nl + '## Acceptance' + nl + nl + '## Flagged concerns' + nl + nl + '## UNRESOLVED' + nl,
-    'plan.md': '# Plan' + nl + nl + 'run_id: ' + run.run_id + nl + nl + knowledgeMd + nl + nl + hotMd + nl + nl + '## Current' + nl + nl + '## Out of scope' + nl,
-    'progress.md': '# Progress' + nl + nl + '- ' + nowIso() + ' init ' + run.run_id + nl
+    [TASK_PLAN_REL]: taskPlan,
+    [PROGRESS_REL]: '# ' + run.run_id + ' - 进度' + nl + nl
+      + '> 用于上下文恢复。压缩/重启后先读此文件（最后 30 行）。' + nl
+      + '> **追加式，时间正序**。' + nl + nl
+      + '- ' + nowIso() + ' init ' + run.run_id + nl
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- max_iterations: ' + run.max_iterations + nl
       + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
       + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl
       + formatHotMemoryProgressLine(hotPack.hits || []) + nl,
-    'acceptance.md': '# Acceptance' + nl + nl + 'run_id: ' + run.run_id + nl + nl + '| item | must_id | evidence_class | result | evidence |' + nl + '| --- | --- | --- | --- | --- |' + nl,
-    'findings.md': defaultFindingsStub({ taskKey: run.run_id })
+    [FINDINGS_REL]: defaultFindingsStub({ taskKey: run.run_id })
   };
-  if (writeIntent) {
-    stubs['intent.md'] = '# Intent' + nl + nl + 'run_id: ' + run.run_id + nl + 'Status: draft.' + nl + nl
-      + '## Problem' + nl + nl + '## Proposed outcome' + nl + nl
-      + '## Affected users and systems' + nl + nl + '## Constraints' + nl + nl + '## Open questions' + nl;
-  }
   for (const [name, bodyText] of Object.entries(stubs)) {
     const filePath = path.join(dir, name);
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
-  }
-  if (runOptions._knowledge_attach) {
-    writeJson(path.join(dir, 'knowledge-attach.json'), {
-      ...runOptions._knowledge_attach,
-      attached_at: nowIso(),
-      run_id: run.run_id
-    });
   }
   return run;
 }
@@ -334,34 +397,24 @@ export function buildKnowledgeContribution(run, {
   };
 }
 
+export const KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON =
+  'P1b stopped knowledge-contribution.json; home ingest replaced by hot memory';
+
 export function writeKnowledgeContribution(runId, options = {}) {
   const cwd = options.cwd || process.cwd();
   const run = loadRun(runId, cwd);
   if (run.status === 'ABANDONED') {
     throw new Error('knowledge contribution forbidden for ABANDONED runs');
   }
-  const contribution = buildKnowledgeContribution(run, { ...options, cwd });
-  const rel = path.join(RALPHS_DIR_REL, runId, 'knowledge-contribution.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
-  const abs = path.join(cwd, RALPHS_DIR_REL, runId, 'knowledge-contribution.json');
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  writeJson(abs, contribution);
-  // Best-effort: copy into latest archive snapshot if present
-  if (run.last_archive_path) {
-    try {
-      const archAbs = path.join(cwd, run.last_archive_path, 'knowledge-contribution.json');
-      if (fs.existsSync(path.dirname(archAbs))) writeJson(archAbs, contribution);
-    } catch {
-      // archive copy optional
-    }
-  }
-  appendProgressLine(
-    runId,
-    cwd,
-    '- ' + nowIso() + ' knowledge-contribute written path=' + rel
-      + ' candidates=' + (contribution.candidates?.length || 0)
-      + ' durable=' + (contribution.elevation?.durable_lessons?.length || 0)
-  );
-  return { path: rel, abs, contribution, run_id: runId };
+  appendProgressLine(runId, cwd, '- ' + nowIso() + ' knowledge-contribute skipped: ' + KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON);
+  return {
+    path: null,
+    abs: null,
+    contribution: null,
+    run_id: runId,
+    status: 'degraded',
+    reason: KNOWLEDGE_CONTRIBUTION_DEGRADED_REASON
+  };
 }
 
 /**
@@ -501,6 +554,9 @@ export function knowledgeContribute(runId, {
     status,
     include_process_lessons_in_map
   });
+  if (written.status === 'degraded') {
+    return { ...written, hook: { status: 'skipped', reason: written.reason } };
+  }
   const hookCfg = resolveKnowledgeContributeHookConfig({ hook, cwd });
   let hookResult;
   if (!hook) {

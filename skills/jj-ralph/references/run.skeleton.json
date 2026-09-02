@@ -1,5 +1,5 @@
 {
-  "schema_version": "jj-flow/ralph-run/1.0",
+  "schema_version": "jj-flow/ralph-run/1.1",
   "run_id": "RALPH-example-20260723",
   "title": "Example title",
   "phase": "ANALYZE",
@@ -45,11 +45,15 @@
   "capability_ids": [
     "CAP-example"
   ],
+  "gate_set": "full",
+  "knowledge": { "memory_refs": [] },
   "artifact_refs": {
-    "analyze": "analyze.md",
-    "plan": "plan.md",
-    "acceptance": "acceptance.md",
+    "analyze": "task_plan.md",
+    "plan": "task_plan.md",
+    "acceptance": "task_plan.md",
     "progress": "progress.md",
+    "findings": "findings.md",
+    "intent": null,
     "handoff_ref": null,
     "dispatch_snapshot_ref": null,
     "latest_review_ref": null

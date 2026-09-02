@@ -10,7 +10,7 @@ Run three passes. Tag each finding with `pass` when known:
 | --- | --- |
 | `bugs` | Logic errors, broken edges, silent regressions |
 | `security` | Injection, auth gaps, secrets/PII in logs, weakened tests on a bugfix |
-| `compliance` | Diff does not match `plan.md` **## Current** (legacy `## Tasks` if no Current) |
+| `compliance` | Diff does not match `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`) |
 
 Untagged host findings default to `bugs`. Style/naming keywords map to nits (`importance=nit`, `severity=info`).
 
@@ -27,12 +27,12 @@ At most **5** OPEN nits per review. Extra nits are `WAIVED` and summarized as a 
 
 - Generated paths (`src/gen/`, `*.generated.*`)
 - Lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`) and `run.json` / `package.json`
-- Style nits on ledger wording in `analyze.md` / `plan.md` / `acceptance.md` (compliance findings may still target `plan.md`)
+- Style nits on ledger wording in `task_plan.md` (compliance findings may still target `task_plan.md`)
 - Anything CI already enforces (`npm test` / `npm run verify` green is **not** a review PASS)
 
 ## Compliance vs Current
 
-When a ralph run exists, compare the implementation diff to `plan.md` ## Current (not Landed / Superseded). Mismatch → OPEN finding `pass=compliance`, `importance=important`, `file=plan.md`. Mechanical helper: `buildPlanComplianceFindings` in `src/ralph.mjs`.
+When a ralph run exists, compare the implementation diff to `task_plan.md` ## 计划 → ### 当前 (not 已落地 / 已取代). Mismatch → OPEN finding `pass=compliance`, `importance=important`, `file=task_plan.md`. Mechanical helper: `buildPlanComplianceFindings` in `src/ralph.mjs`.
 
 ## Test integrity (bugfix)
 

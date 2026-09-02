@@ -219,7 +219,8 @@ const LEDGER_PATH_EXCLUDE = new Set([
   'analyze.md', 'plan.md', 'acceptance.md', 'progress.md', 'run.json', 'handoff.json',
   'archive-manifest.json', 'business-map.json', 'package.json', 'package-lock.json',
   'pnpm-lock.yaml', 'yarn.lock', 'tsconfig.json', 'jsconfig.json', 'readme.md',
-  'findings.md', 'knowledge-attach.json', 'knowledge-contribution.json'
+  'findings.md', 'knowledge-attach.json', 'knowledge-contribution.json',
+  'task_plan.md'
 ]);
 
 function normalizeLedgerPathRef(value) {
@@ -235,33 +236,64 @@ function normalizeLedgerPathRef(value) {
   return token;
 }
 
-/** Return the body of `## heading` until the next `##`, or empty string. */
-export function extractMarkdownSection(text, heading) {
-  if (!text || typeof text !== 'string' || !heading) return '';
+function headingStartRe(heading, level) {
+  const n = Number(level);
+  if (!Number.isInteger(n) || n < 1) throw new Error('extractMarkdownSection level must be integer >= 1');
   const escaped = String(heading).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const start = new RegExp('^##\\s+' + escaped + '\\s*$', 'im');
+  return { n, start: new RegExp('^#{' + n + '}\\s+' + escaped + '\\s*$', 'im') };
+}
+
+function hasHeading(text, heading, level) {
+  if (!text || typeof text !== 'string' || !heading) return false;
+  return headingStartRe(heading, level).start.test(text);
+}
+
+/** Return the body of a heading at `level` until the next heading of the same or higher level. */
+export function extractMarkdownSection(text, heading, level = 2) {
+  if (!text || typeof text !== 'string' || !heading) return '';
+  const { n, start } = headingStartRe(heading, level);
   const match = start.exec(text);
   if (!match) return '';
   const from = match.index + match[0].length;
   const rest = text.slice(from);
-  const next = /^##\s+/im.exec(rest);
+  const next = new RegExp('^#{1,' + n + '}\\s+', 'im').exec(rest);
   return (next ? rest.slice(0, next.index) : rest).trim();
 }
 
+/** First matching heading that exists (empty body is still a hit; missing heading is not). */
+function firstPresentHeading(text, heading, levels) {
+  for (const level of levels) {
+    if (hasHeading(text, heading, level)) return extractMarkdownSection(text, heading, level);
+  }
+  return null;
+}
+
 /**
- * Current contract of plan.md: `## Current`, else legacy `## Tasks`, else the whole file.
- * Landed / Superseded are excluded when Current exists.
+ * Current plan contract: `## 计划` → `### 当前`, else `当前` / `Current` / `Tasks`, else the whole file.
+ * Empty `### 当前` stays empty (does not leak 已落地 / 已取代).
  */
 export function extractPlanCurrentSection(text) {
   if (!text || typeof text !== 'string') return '';
-  if (/^##\s+Current\s*$/im.test(text)) return extractMarkdownSection(text, 'Current');
-  if (/^##\s+Tasks\s*$/im.test(text)) return extractMarkdownSection(text, 'Tasks');
-  return text;
+  const plan = hasHeading(text, '计划', 2) ? extractMarkdownSection(text, '计划', 2) : null;
+  const scope = plan != null ? plan : text;
+  const current = firstPresentHeading(scope, '当前', [3, 2])
+    ?? firstPresentHeading(scope, 'Current', [2, 3])
+    ?? firstPresentHeading(scope, 'Tasks', [2, 3]);
+  if (current != null) return current;
+  return plan != null ? plan : text;
 }
 
 function extractAcceptanceActiveText(text) {
   if (!text || typeof text !== 'string') return '';
-  return text.split(/\r?\n/).filter((line) => !/\bSUPERSEDED\b/i.test(line)).join('\n');
+  const accept = hasHeading(text, '验收', 2)
+    ? extractMarkdownSection(text, '验收', 2)
+    : (hasHeading(text, 'Acceptance', 2)
+      ? extractMarkdownSection(text, 'Acceptance', 2)
+      : text);
+  const current = firstPresentHeading(accept, '当前', [3, 2])
+    ?? firstPresentHeading(accept, 'Current', [2, 3]);
+  const body = current != null ? current : accept;
+  return body.split(/\r?\n/).filter((line) => !/(?:\bSUPERSEDED\b|已取代)/i.test(line)).join('\n');
 }
 
 /** Extract implementation path refs from plan/acceptance markdown. */
@@ -332,8 +364,14 @@ export function collectGitDiffPaths(cwd = process.cwd()) {
 export function readRunArtifactText(run, key, cwd) {
   const rel = run?.artifact_refs?.[key];
   if (!rel) return '';
-  const abs = path.join(runDir(run.run_id, cwd), rel);
-  if (!fs.existsSync(abs)) return '';
+  const normalized = String(rel).replace(/\\/g, '/');
+  if (normalized.includes('#')) {
+    throw new Error('artifact_refs.' + key + ' must be a bare filename (no fragment): ' + rel);
+  }
+  const abs = path.join(runDir(run.run_id, cwd), normalized);
+  if (!fs.existsSync(abs)) {
+    throw new Error('artifact_refs.' + key + ' missing file: ' + normalized);
+  }
   return fs.readFileSync(abs, 'utf8');
 }
 
@@ -454,11 +492,11 @@ export function buildPlanComplianceFindings(run, cwd = process.cwd(), { diff_pat
     severity: 'high',
     pass: 'compliance',
     importance: 'important',
-    file: 'plan.md',
+    file: 'task_plan.md',
     line: 1,
     description: mismatch,
     status: 'OPEN',
-    acceptance: 'Align diff with plan.md ## Current (or move Current → Landed/Superseded first)'
+    acceptance: '对齐 task_plan.md ## 计划 ### 当前（先把旧当前挪到已落地/已取代）'
   }];
 }
 
@@ -757,22 +795,24 @@ export function inspectAcceptanceEvidence(run, cwd = process.cwd()) {
   };
   const runId = run?.run_id;
   if (!runId) return details;
-  const file = path.join(runDir(runId, cwd), 'acceptance.md');
-  details.path = file;
-  if (!fs.existsSync(file)) return details;
-  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  const headerLine = lines.find((line) => line.includes('|') && /item/i.test(line) && !/^\|\s*---/.test(line));
+  const rel = run?.artifact_refs?.acceptance;
+  if (!rel) return details;
+  details.path = path.join(runDir(runId, cwd), String(rel).replace(/\\/g, '/'));
+  const raw = readRunArtifactText(run, 'acceptance', cwd);
+  const body = extractAcceptanceActiveText(raw) || raw;
+  const lines = body.split(/\r?\n/);
+  const headerLine = lines.find((line) => line.includes('|') && /item|项/i.test(line) && !/^\|\s*---/.test(line));
   if (!headerLine) return details;
   const headers = splitMarkdownTableCells(headerLine).map((cell) => cell.toLowerCase());
   const classIdx = headers.indexOf('evidence_class');
-  const resultIdx = headers.indexOf('result');
-  const evidenceIdx = headers.indexOf('evidence');
+  const resultIdx = headers.includes('result') ? headers.indexOf('result') : headers.indexOf('结果');
+  const evidenceIdx = headers.includes('evidence') ? headers.indexOf('evidence') : headers.indexOf('证据');
   details.header_has_class = classIdx >= 0;
   if (classIdx < 0 || resultIdx < 0 || evidenceIdx < 0) return details;
   for (const line of lines) {
     if (!/^\|/.test(line) || /^\|\s*---/.test(line)) continue;
     const cells = splitMarkdownTableCells(line);
-    if (!cells.length || /^item$/i.test(cells[0] || '')) continue;
+    if (!cells.length || /^(item|项)$/i.test(cells[0] || '')) continue;
     const evidenceClass = cells[classIdx] || '';
     const result = String(cells[resultIdx] || '').toUpperCase();
     const evidence = cells[evidenceIdx] || '';
@@ -1058,7 +1098,7 @@ export function computeRunMetrics(run, cwd = process.cwd()) {
   const firstDeliver = first('deliver-attempt');
   const deliverAttempts = events.filter((item) => item.kind === 'deliver-attempt');
   const falseDelivers = deliverAttempts.filter((item) => item.improved === false);
-  const analyzeRework = /SUPERSEDED|\bfailed_must\b|\bover_claimed\b/i.test(progress)
+  const analyzeRework = /(?:\bSUPERSEDED\b|已取代)|\bfailed_must\b|\bover_claimed\b/i.test(progress)
     && Boolean(planPass);
   const latestReview = getLatestReviewRecord(run, cwd);
   const findings = Array.isArray(latestReview?.findings) ? latestReview.findings : [];

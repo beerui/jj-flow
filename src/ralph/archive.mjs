@@ -131,7 +131,7 @@ export function archiveRun(runId, { cwd = process.cwd(), slug, force = false, di
 /**
  * map-merge + archive + elevation package (L1 map, L2 contribution).
  * @param {object} [options]
- * @param {boolean} [options.contribution_package=true] write knowledge-contribution.json
+ * @param {boolean} [options.contribution_package=true] attempt contribution package (P1b writes none; status=degraded)
  * @param {boolean} [options.include_process_lessons_in_map=false] put process lessons into main lessons[]
  */
 export function finalizeRun(runId, {
@@ -172,17 +172,21 @@ export function finalizeRun(runId, {
     });
     contribution = written.contribution;
     contribution_path = written.path;
-    const hookCfg = resolveKnowledgeContributeHookConfig({ hook: false, cwd });
-    if (hookCfg.on_finalize && hookCfg.mode && hookCfg.mode !== 'none') {
-      contribute_hook = invokeKnowledgeContributeHook(written.abs, contribution, { cwd, ...hookCfg });
-      appendProgressLine(
-        runId,
-        cwd,
-        '- ' + nowIso() + ' knowledge-contribute hook on_finalize status=' + contribute_hook.status
-          + (contribute_hook.reason ? (' reason=' + contribute_hook.reason) : '')
-      );
+    if (written.status === 'degraded') {
+      contribute_hook = { status: 'skipped', reason: written.reason };
     } else {
-      contribute_hook = { status: 'skipped', reason: 'hook not enabled on finalize (say 投喂知识库 or --hook)' };
+      const hookCfg = resolveKnowledgeContributeHookConfig({ hook: false, cwd });
+      if (hookCfg.on_finalize && hookCfg.mode && hookCfg.mode !== 'none') {
+        contribute_hook = invokeKnowledgeContributeHook(written.abs, contribution, { cwd, ...hookCfg });
+        appendProgressLine(
+          runId,
+          cwd,
+          '- ' + nowIso() + ' knowledge-contribute hook on_finalize status=' + contribute_hook.status
+            + (contribute_hook.reason ? (' reason=' + contribute_hook.reason) : '')
+        );
+      } else {
+        contribute_hook = { status: 'skipped', reason: 'hook not enabled on finalize (say 投喂知识库 or --hook)' };
+      }
     }
   }
   return {

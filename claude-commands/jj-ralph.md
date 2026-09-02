@@ -26,7 +26,7 @@ allowed-tools:
 3. map-find；单点跟 tiny-example。
 4. 聊天不推进检查点；更新 run.json 与阶段文档。报告里可写 run_id 供核对。
 5. 同操作失败最多 2 次后换策略；校正写 `instruction-correction.md`，审查者只读、不写 `AGENTS.md`。
-   tiny 默认不写 `intent.md`；ANALYZE 要回应 intent 未决问题。
+   tiny 默认不写 `task_plan.md` `## 目标` 意图块；ANALYZE 要回应 intent 未决问题。
 6. accept PASS 后 `finalize`；之后仍可同 run 再改。
 7. 一半不做：`abandon`；再做：`resume`。
 8. 未要求 commit/push/review/handoff/dispatch 不做。
