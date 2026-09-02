@@ -11,6 +11,7 @@
 
 | 你想… | 用这个 | 说明 |
 |--------|--------|------|
+| **把当前仓接入全局地图** / 梳理项目 / 补知识库 | [init](command-jj-init.html) | 须你点头才写入 |
 | **只改当前这一个仓库**，从做到验收 | [ralph](command-jj-ralph.html) | 单仓闭环 |
 | **把 A 仓的能力搬到 B/C 仓** | [same](command-jj-same.html) | 同源迁移 |
 | **多个项目一起派、一起盯** | [dispatch](command-jj-dispatch.html) | 多项目调度 |

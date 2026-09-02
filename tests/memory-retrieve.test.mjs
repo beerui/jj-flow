@@ -51,6 +51,27 @@ test('rankIndex: Gate B score only breaks ties among equal relevance', () => {
   assert.equal(got[0], 'exp_adopted');
 });
 
+test('rankIndex: same-family related can inject; other-family still drops', () => {
+  const q = { text: '动态入驻表单 schema', projectId: 'seo-daji-web', familyId: '中国大集', familyProjectIds: ['scsk-admin', 'seo-daji-web'] };
+  const sibling = row({
+    id: 'exp_admin',
+    title: '动态入驻表单 schema 写入',
+    body: '后管粘贴 schema 写入画布。',
+    sourceProjectId: 'scsk-admin',
+    familyId: '中国大集'
+  });
+  const other = row({
+    id: 'exp_cj',
+    title: '动态入驻表单 schema 写入',
+    body: '承接无关条目。',
+    sourceProjectId: 'cj-web',
+    familyId: '承接'
+  });
+  const got = rankIndex(q, [sibling, other]);
+  assert.ok(got.includes('exp_admin'));
+  assert.ok(!got.includes('exp_cj'));
+});
+
 test('rankIndex: same-project confirmed only; drafts/user/global/other-project drop', () => {
   const q = { text: 'SQLite persist closeout 抽取 条目', projectId: 'prj_a' };
   const rows = [

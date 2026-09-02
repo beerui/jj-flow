@@ -2,7 +2,7 @@
 
 ## 一句话
 
-`jj-flow` = **项目族编排协议**：same 迁移、ralph 单仓闭环、dispatch 多项目调度。  
+`jj-flow` = **项目族编排协议**：init 接入地图、same 迁移、ralph 单仓闭环、dispatch 多项目调度。
 可选会话引擎：team-coordinate / team-lifecycle / team-swarm（**不**推进 checkpoint）。  
 产品中心是编排与证据门禁，不是重写外部 coding agent。
 
@@ -29,6 +29,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 | `skills/jj-*` | 对话协议 SSOT（多端 install） |
 | `src/dispatch*.mjs` | 控制面状态机、tick、CAS、host 契约 |
 | `src/ralph.mjs` | 单仓机械步骤 |
+| `src/jjInit.mjs` | 全局地图接入与知识建库 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
 | `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（Wave 2 / A2 已关；JSON 不得自关） |

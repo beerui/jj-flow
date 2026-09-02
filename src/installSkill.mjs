@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureJjFlowHome } from './homeLayout.mjs';
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
@@ -186,6 +187,7 @@ export function installSkill({
     };
   }
 
+  let home = null;
   if (!dryRun) {
     for (const job of jobs) {
       fs.mkdirSync(job.target, { recursive: true });
@@ -198,6 +200,7 @@ export function installSkill({
       }
       writeInstallManifest(job);
     }
+    home = ensureJjFlowHome({ homeDir: homeDir || os.homedir() });
   }
 
   const action = dryRun ? 'Would install' : conflicts.length ? 'Updated' : 'Installed';
@@ -212,7 +215,11 @@ export function installSkill({
     status: dryRun ? 'dry-run' : conflicts.length ? 'updated' : 'installed',
     conflicts,
     manifest_paths: jobs.map((job) => path.join(job.target, INSTALL_MANIFEST_FILENAME)),
+    jj_flow_home: home ? home.root : null,
+    map_path: home ? home.map_path : null,
+    knowledge_root: home ? home.knowledge_root : null,
     message: `${action} jj assets: ${details}`
+      + (home ? `; home ${home.root}` : '')
   };
 }
 

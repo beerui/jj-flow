@@ -30,8 +30,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED)
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
-   - Naming and map: `jj doctor` / `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` → `naming.json` + project map
-   - 🔴 **CHECKPOINT · hard-stop:** missing naming/map config → stop and report how to set `JJ_GLOBAL_CONFIG_DIR` / `DAJI_CONFIG_DIR`; **do not invent** host-local paths
+   - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
    - Optional `intent.md` (initiator words). `tiny` skips it unless `--intent`. ANALYZE must answer intent open questions under `## Flagged concerns`.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
@@ -44,7 +43,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - Task/approach/MUST change (incl. resume after archive): move live plan/acceptance/analyze **Current** → Landed or Superseded, then write new Current. If an older `plan.md` still has `## Tasks` and no `## Current`, that Tasks block is Current — rename it first, do not replace in place. Shape: [artifact-layout.md](references/artifact-layout.md)
 5. After accept PASS, default `finalize` (L1 map-merge + archive + write `knowledge-contribution.json`). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, contribution package path, hook status.
-7. User says **「投喂知识库 / 补充全局知识」** or “feed knowledge base / contribute global knowledge” → `knowledge-contribute --hook` (candidate only; config below).
+7. **Idle offer (after the completion report, never during DELIVER):** if this run has a contribution package not yet hooked, ask **once** whether to feed KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
 8. 🔴 **CHECKPOINT (irreversible):** push / merge / release / delete data → prepare only (`commit-prep` / report); **do not execute** until the user explicitly asks.
 
 ### Step I/O
@@ -75,7 +74,8 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 
 | Trigger | First fix | Still fails |
 | --- | --- | --- |
-| Missing `naming.json` / project map | 🔴 hard-stop; tell user to set `JJ_GLOBAL_CONFIG_DIR` or `DAJI_CONFIG_DIR` and run `jj doctor` | Do not invent paths; do not init a run |
+| Missing `~/.jj-flow` map / naming | `jj home init`; continue | Do not invent `/portfolio` paths |
+| Current repo not in global map | Continue the task unindexed | Join / bootstrap → `$jj-init` |
 | Script resolve fails (`ralph_ops.mjs` not found) | Try: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph <cmd>` | Report resolve chain; stop mechanical steps |
 | Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; ralph writes `instruction-correction.md` | `set-status BLOCKED` + ask user; no third identical attempt; Reviewer does **not** write `AGENTS.md` |
 | `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
@@ -140,10 +140,10 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | --- | --- |
 | After archive | `knowledge-contribution.json` already present (finalize writes it) |
 | Lesson gate | Durable lessons pass Gate B **and** future-reuse: 换一张卡还得遵守才收录. Human-locked keep/drop: `tests/fixtures/extract-future-reuse.golden.json`. Process narration / 仅本次 / task restatement / this-change nits / field-howto memos without 必须/不要/勿/协议 → `extract_audit`. Prefer 0 over dirty. |
-| User speech | 「投喂知识库」「补充全局知识」 / “feed knowledge base” |
-| Mechanical | `ralph_ops knowledge-contribute --run-id …` or add `--hook` to call extract |
-| Config | `naming.json` → `ralph.knowledge_contribute`: `hook: none\|cli`, `cli` template includes `{package}`; or env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
-| Default | Hook is **fail-open**; **no** auto-promote to active |
+| User speech | 「投喂知识库」「补充全局知识」 / “feed knowledge base”; also the idle offer after archive |
+| Mechanical | `ralph_ops knowledge-contribute --run-id … --hook` → built-in `~/.jj-flow/knowledge` ingest for the **current** `project_key` (`{project}` if a custom CLI is set) |
+| Config | `naming.json` → `ralph.knowledge_contribute`: `hook: none\|cli`, `cli` may use `{package}` `{project}` `{run_id}`; or env `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD` |
+| Default | Hook is **fail-open**; **no** auto-write on finalize; user yes is the gate |
 
 ## 反例黑名单（不要做什么）
 
@@ -151,13 +151,13 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | --- | --- | --- |
 | 1 | Default `init` because status is COMPLETED/ABANDONED/archived | Same requirement → `resume` |
 | 2 | Require the user to memorize/type `run_id` first | Resolve from speech; report id yourself |
-| 3 | Invent host-local config paths when map/naming missing | 🔴 hard-stop + `jj doctor` guidance |
+| 3 | Invent `/portfolio` paths or silent-add a repo to the global map | `jj home init` if missing; join via `$jj-init` |
 | 4 | Commit / push / review / handoff / dispatch / merge unless asked | Prep only (`commit-prep`); wait for user |
 | 5 | PASS write-then-read / cross-path MUST on static diff alone | Match `evidence_class`; see [must-evidence.md](references/must-evidence.md) |
 | 6 | Third identical failed tool/strategy attempt | Change approach or 🔴 ask user (STAGNATION) |
 | 7 | Run business ralph inside the control project | Business repo only; `DEL-*` ≠ `RALPH-*` |
 | 8 | Unrelated refactors; long analyze/plan for single-point work | Short MUST + file list; use `tiny` for single-point |
-| 9 | Auto-promote knowledge hook results to active KB | Candidate package only; fail-open |
+| 9 | Ingest/promote global knowledge without user yes | This-run idle offer / 「投喂知识库」; first-time bootstrap `$jj-init`; no auto-hook on finalize |
 | 10 | `git revert` / force gate on conversational path by default | Suggest revert; no `--force` unless user overrides |
 | 11 | Treat chat/memory as checkpoint advance | Only `run.json` + artifacts + Git evidence |
 | 12 | Call `$jj-same` when handoff `ready=false` as if portable | Fix blockers or report `blocked_reasons` |

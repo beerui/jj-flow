@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { runCli } from '../src/cli.mjs';
@@ -28,6 +29,22 @@ import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs'
 const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const packageVersion = packageJson.version;
 const currentReleaseLog = loadCurrentReleaseLog();
+const TEST_JJ_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-install-home-'));
+
+function install(opts = {}) {
+  return installSkill({ homeDir: TEST_JJ_HOME, ...opts });
+}
+
+function withJjHome(fn) {
+  const prev = process.env.JJ_FLOW_HOME;
+  process.env.JJ_FLOW_HOME = TEST_JJ_HOME;
+  try {
+    return fn();
+  } finally {
+    if (prev === undefined) delete process.env.JJ_FLOW_HOME;
+    else process.env.JJ_FLOW_HOME = prev;
+  }
+}
 
 test('published package includes skills SSOT, agents, and Claude command wrappers', () => {
   assert.ok(packageJson.files.includes('skills/'));
@@ -119,10 +136,26 @@ test('Qoder and Grok skill targets point to vendor skill directories', () => {
   );
 });
 
+test('installSkill scaffolds ~/.jj-flow map and knowledge without clobbering', () => {
+  const workspace = makeWorkspace('jj-flow-install-home-');
+  const target = path.join(workspace, 'skills');
+  const isolated = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-home-scaffold-'));
+  const result = installSkill({ targetDir: target, homeDir: isolated, force: true });
+  assert.equal(result.ok, true);
+  assert.equal(path.resolve(result.jj_flow_home), path.resolve(isolated, '.jj-flow'));
+  assert.ok(fs.existsSync(path.join(isolated, '.jj-flow', 'map.md')));
+  assert.ok(fs.existsSync(path.join(isolated, '.jj-flow', 'knowledge', 'index', 'search.json')));
+  assert.ok(fs.existsSync(path.join(isolated, '.jj-flow', 'naming.json')));
+  fs.writeFileSync(path.join(isolated, '.jj-flow', 'map.md'), '# kept-by-user\n', 'utf8');
+  const again = installSkill({ targetDir: target, homeDir: isolated, force: true });
+  assert.equal(again.ok, true);
+  assert.equal(fs.readFileSync(path.join(isolated, '.jj-flow', 'map.md'), 'utf8'), '# kept-by-user\n');
+});
+
 test('installSkill dry run does not write files', () => {
   const workspace = makeWorkspace('jj-flow-install-');
   const target = path.join(workspace, 'skills');
-  const result = installSkill({ targetDir: target, dryRun: true });
+  const result = install({ targetDir: target, dryRun: true });
 
   assert.equal(result.ok, true);
   assert.equal(result.status, 'dry-run');
@@ -142,7 +175,7 @@ test('installSkill installs global Codex skills and agents under the same CODEX_
   const workspace = makeWorkspace('jj-flow-install-global-');
   const codexHome = path.join(workspace, '.codex-home');
 
-  const installed = installSkill({ codexHome });
+  const installed = install({ codexHome });
 
   assert.equal(installed.ok, true);
   assert.equal(installed.target, path.join(codexHome, 'skills'));
@@ -168,7 +201,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   const workspace = makeWorkspace('jj-flow-install-');
   const target = path.join(workspace, 'skills');
 
-  const installed = installSkill({ targetDir: target });
+  const installed = install({ targetDir: target });
   assert.equal(installed.ok, true);
   assert.equal(installed.status, 'installed');
   assert.ok(installed.skills.includes('jj'));
@@ -260,18 +293,18 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   );
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /jj-same\s+"/);
 
-  const blocked = installSkill({ targetDir: target });
+  const blocked = install({ targetDir: target });
   assert.equal(blocked.ok, false);
   assert.equal(blocked.status, 'target-exists');
   assert.ok(blocked.conflicts.some((file) => file.endsWith(path.join('skills', 'jj'))));
   assert.ok(blocked.conflicts.some((file) => file.endsWith(path.join('agents', 'jj-workflow-reviewer.toml'))));
 
-  const preview = installSkill({ targetDir: target, dryRun: true });
+  const preview = install({ targetDir: target, dryRun: true });
   assert.equal(preview.ok, true);
   assert.equal(preview.status, 'dry-run');
   assert.ok(preview.conflicts.length > 0);
 
-  const updated = installSkill({ targetDir: target, force: true });
+  const updated = install({ targetDir: target, force: true });
   assert.equal(updated.ok, true);
   assert.equal(updated.status, 'updated');
 });
@@ -284,19 +317,19 @@ test('an agent-only conflict blocks the whole Codex install until force is used'
   fs.mkdirSync(agentsTarget, { recursive: true });
   fs.writeFileSync(reviewerTarget, 'local = true\n');
 
-  const blocked = installSkill({ targetDir: skillsTarget });
+  const blocked = install({ targetDir: skillsTarget });
   assert.equal(blocked.ok, false);
   assert.equal(blocked.status, 'target-exists');
   assert.ok(blocked.conflicts.includes(reviewerTarget));
   assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), false);
   assert.equal(fs.readFileSync(reviewerTarget, 'utf8'), 'local = true\n');
 
-  const preview = installSkill({ targetDir: skillsTarget, dryRun: true });
+  const preview = install({ targetDir: skillsTarget, dryRun: true });
   assert.equal(preview.ok, true);
   assert.ok(preview.conflicts.includes(reviewerTarget));
   assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), false);
 
-  const updated = installSkill({ targetDir: skillsTarget, force: true });
+  const updated = install({ targetDir: skillsTarget, force: true });
   assert.equal(updated.ok, true);
   assert.equal(updated.status, 'updated');
   assert.match(fs.readFileSync(reviewerTarget, 'utf8'), /sandbox_mode = "read-only"/);
@@ -307,7 +340,7 @@ test('installSkill can install Claude full skills and slash commands', () => {
   const skillsTarget = path.join(workspace, '.claude', 'skills');
   const commandsTarget = path.join(workspace, '.claude', 'commands');
 
-  const installed = installSkill({
+  const installed = install({
     platform: 'claude',
     claudeSkillsTargetDir: skillsTarget,
     claudeTargetDir: commandsTarget
@@ -342,7 +375,7 @@ test('installSkill can install Grok skills from Codex skill sources', () => {
   const workspace = makeWorkspace('jj-flow-install-grok-');
   const target = path.join(workspace, '.grok', 'skills');
 
-  const installed = installSkill({ platform: 'grok', targetDir: target });
+  const installed = install({ platform: 'grok', targetDir: target });
   assert.equal(installed.ok, true);
   assert.equal(installed.platform, 'grok');
   assert.equal(installed.target, target);
@@ -363,7 +396,7 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
 
-  const installed = installSkill({
+  const installed = install({
     platform: 'all',
     codexTargetDir: codexTarget,
     claudeSkillsTargetDir: claudeSkillsTarget,
@@ -392,7 +425,7 @@ test('uninstallSkill removes owned Codex assets and preserves unrelated files', 
   const workspace = makeWorkspace('jj-flow-uninstall-');
   const target = path.join(workspace, 'skills');
   const unrelated = path.join(target, 'jj-custom', 'SKILL.md');
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
   fs.mkdirSync(path.dirname(unrelated), { recursive: true });
   fs.writeFileSync(unrelated, '# user owned\n', 'utf8');
 
@@ -417,7 +450,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   const claudeTarget = path.join(workspace, '.claude', 'commands');
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
-  installSkill({
+  install({
     platform: 'all',
     codexTargetDir: codexTarget,
     claudeSkillsTargetDir: claudeSkillsTarget,
@@ -448,7 +481,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
 test('uninstallSkill dry run reports targets without deleting files', () => {
   const workspace = makeWorkspace('jj-flow-uninstall-preview-');
   const target = path.join(workspace, 'skills');
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
 
   const result = uninstallSkill({ targetDir: target, dryRun: true });
 
@@ -464,7 +497,7 @@ test('uninstallSkill blocks modified assets atomically until force is explicit',
   const workspace = makeWorkspace('jj-flow-uninstall-modified-');
   const target = path.join(workspace, 'skills');
   const modified = path.join(target, 'jj', 'SKILL.md');
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
   fs.appendFileSync(modified, '\nlocal change\n', 'utf8');
 
   const blocked = uninstallSkill({ targetDir: target });
@@ -529,7 +562,7 @@ test('uninstallSkill rejects a manifest that attempts path traversal', () => {
 test('CLI uninstall-skill returns structured output', () => {
   const workspace = makeWorkspace('jj-flow-uninstall-cli-');
   const target = path.join(workspace, 'skills');
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
   const stdout = createStdout();
 
   const status = runCli(['uninstall-skill', '--target', target, '--json'], { stdout });
@@ -543,27 +576,31 @@ test('CLI uninstall-skill returns structured output', () => {
 });
 
 test('CLI install-skill returns structured output', () => {
-  const workspace = makeWorkspace('jj-flow-install-cli-');
-  const target = path.join(workspace, 'skills');
-  const stdout = createStdout();
-  const status = runCli(['install-skill', '--target', target, '--json'], { stdout });
+  withJjHome(() => {
+    const workspace = makeWorkspace('jj-flow-install-cli-');
+    const target = path.join(workspace, 'skills');
+    const stdout = createStdout();
+    const status = runCli(['install-skill', '--target', target, '--json'], { stdout });
 
-  const parsed = JSON.parse(stdout.output);
-  assert.equal(status, 0);
-  assert.equal(parsed.ok, true);
-  assert.equal(parsed.status, 'installed');
-  assert.equal(parsed.version, packageVersion);
-  assert.equal(parsed.release_notes, currentReleaseLog.release_notes);
-  assert.ok(parsed.skills.includes('jj-same'));
-  assert.ok(parsed.skills.includes('jj-same'));
-  assert.ok(parsed.skills.includes('jj-dispatch'));
-  assert.ok(parsed.agents.includes('jj-workflow-reviewer'));
-  assert.equal(parsed.agent_target, path.join(workspace, 'agents'));
-  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
-  assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), true);
+    const parsed = JSON.parse(stdout.output);
+    assert.equal(status, 0);
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.status, 'installed');
+    assert.equal(parsed.version, packageVersion);
+    assert.equal(parsed.release_notes, currentReleaseLog.release_notes);
+    assert.ok(parsed.skills.includes('jj-same'));
+    assert.ok(parsed.skills.includes('jj-same'));
+    assert.ok(parsed.skills.includes('jj-dispatch'));
+    assert.ok(parsed.agents.includes('jj-workflow-reviewer'));
+    assert.equal(parsed.agent_target, path.join(workspace, 'agents'));
+    assert.equal(path.resolve(parsed.jj_flow_home), path.resolve(TEST_JJ_HOME));
+    assert.equal(fs.existsSync(path.join(target, 'jj-same', 'SKILL.md')), true);
+    assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), true);
+  });
 });
 
 test('CLI install-skill prints latest version log after install and update', () => {
+  withJjHome(() => {
   const workspace = makeWorkspace('jj-flow-install-log-');
   const target = path.join(workspace, 'skills');
   const installStdout = createStdout();
@@ -576,6 +613,7 @@ test('CLI install-skill prints latest version log after install and update', () 
   assert.equal(runCli(['install-skill', '--target', target, '--force'], { stdout: updateStdout }), 0);
   assert.match(updateStdout.output, /Updated jj assets/);
   assert.ok(updateStdout.output.includes(`版本日志（${packageVersion}）`));
+  });
 });
 
 test('CLI install-skill omits version log for dry run and failed install', () => {
@@ -587,29 +625,32 @@ test('CLI install-skill omits version log for dry run and failed install', () =>
   assert.equal(runCli(['install-skill', '--target', target, '--dry-run'], { stdout: previewStdout }), 0);
   assert.doesNotMatch(previewStdout.output, /版本日志/);
 
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
   assert.equal(runCli(['install-skill', '--target', target], { stdout: failedStdout }), 1);
   assert.doesNotMatch(failedStdout.output, /版本日志/);
 });
 
 test('CLI install-skill can install Claude skills and command assets', () => {
-  const workspace = makeWorkspace('jj-flow-install-cli-');
-  const commandsTarget = path.join(workspace, '.claude', 'commands');
-  const skillsTarget = path.join(workspace, '.claude', 'skills');
-  const stdout = createStdout();
-  // --target …/commands: skills go to sibling …/skills, commands to --target
-  const status = runCli(['install-skill', '--platform', 'claude', '--target', commandsTarget, '--json'], { stdout });
-  const parsed = JSON.parse(stdout.output);
+  withJjHome(() => {
+    const workspace = makeWorkspace('jj-flow-install-cli-');
+    const commandsTarget = path.join(workspace, '.claude', 'commands');
+    const skillsTarget = path.join(workspace, '.claude', 'skills');
+    const stdout = createStdout();
+    // --target …/commands: skills go to sibling …/skills, commands to --target
+    const status = runCli(['install-skill', '--platform', 'claude', '--target', commandsTarget, '--json'], { stdout });
+    const parsed = JSON.parse(stdout.output);
 
-  assert.equal(status, 0);
-  assert.equal(parsed.ok, true);
-  assert.ok(parsed.skills.includes('jj-same'));
-  assert.ok(parsed.commands.includes('jj-same'));
-  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-same.md')), true);
-  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-same', 'SKILL.md')), true);
+    assert.equal(status, 0);
+    assert.equal(parsed.ok, true);
+    assert.ok(parsed.skills.includes('jj-same'));
+    assert.ok(parsed.commands.includes('jj-same'));
+    assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-same.md')), true);
+    assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-same', 'SKILL.md')), true);
+  });
 });
 
 test('CLI install-skill can target the current project', () => {
+  withJjHome(() => {
   const workspace = makeWorkspace('jj-flow-install-project-');
   const stdout = createStdout();
   const status = runCli(['install-skill', '--platform', 'all', '--project', '--dry-run', '--json'], { cwd: workspace, stdout });
@@ -641,6 +682,7 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.grok', 'skills', 'jj-same', 'SKILL.md')), true);
+  });
 });
 
 test('CLI help keeps user-facing labels in Chinese', () => {
@@ -672,7 +714,7 @@ test('CLI help keeps user-facing labels in Chinese', () => {
 test('CLI install-skill exits non-zero when target exists without force', () => {
   const workspace = makeWorkspace('jj-flow-install-cli-');
   const target = path.join(workspace, 'skills');
-  installSkill({ targetDir: target });
+  install({ targetDir: target });
 
   const stdout = createStdout();
   const status = runCli(['install-skill', '--target', target], { stdout });

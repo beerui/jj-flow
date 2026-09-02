@@ -23,6 +23,10 @@ Sync requirement invariants; do not copy source project files. On first port of 
 | 10 | Verify + acceptance | 🔴 **CHECKPOINT · `HANDOFF_READY`** before `READY_FOR_HANDOFF` / `COMPLETED` / advancing sync checkpoints. Unmet → 🛑 **STOP** claiming complete | Handoff claim or hold |
 | 11 | `sync_key` scenario | Continuous sync: restore checkpoint → [continuous-sync.md](references/continuous-sync.md) | Delta plan |
 
+### Global map (read-only here)
+
+Product default: `~/.jj-flow/map.md`. Missing home → `jj home init`, then continue. Unindexed cwd does not block authorized port. Map join / KB bootstrap → `$jj-init`.
+
 Full prose path + control-plane boundary → [happy-path.md](references/happy-path.md).
 
 ### LITE vs FULL
@@ -89,6 +93,7 @@ Trigger → first fix → still failed. No silent workarounds.
 | Runtime verification required, user not confirmed | Pending; ship static/focused evidence only | `HANDOFF_READY` only with pass or evidenced `N/A` |
 | Continuous sync: missing `sync_key` / checkpoint | Discover last successful baseline from family plan / prior artifacts | Ask which baseline; do not invent HEAD-as-baseline |
 | Commit/push without explicit user request | Do not commit/push | Wait for explicit “commit / push / 提交” |
+| Current repo not in `~/.jj-flow/map.md` | Continue authorized port unindexed | Join / bootstrap → `$jj-init` |
 
 Hard-block catalog → [happy-path.md](references/happy-path.md), [branch-purpose-preflight.md](references/branch-purpose-preflight.md), [handoff-snapshot.md](references/handoff-snapshot.md).
 

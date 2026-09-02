@@ -6,12 +6,12 @@ Dispatch **does not require** a local `/portfolio`. Product default state lives 
 
 | Concept | Meaning | Configuration |
 | --- | --- | --- |
-| **Config file** | global naming and directory SSOT | `$JJ_GLOBAL_CONFIG_DIR/naming.json` (Windows without env may default-discover `/portfolio/config/naming.json`) |
+| **Config file** | global naming and directory SSOT | `~/.jj-flow/naming.json` (override with `$JJ_GLOBAL_CONFIG_DIR/naming.json`) |
 | **portfolio root** | top-level tree of business repos / map / knowledge | `dispatch.portfolio_root` or `JJ_PORTFOLIO_ROOT` (e.g. `/portfolio`) |
 | **Controlled projects** | business repos under portfolio, see `project_map` | `project_map` / `JJ_PROJECT_MAP` |
 | **Launch cwd** | `$jj-dispatch` from a business-repo session | need not be the control directory |
 | **dispatch state root** | stores only manifest / task / receipt (**not** a business worktree) | **`dispatch.control_root` default `~/.jj-flow`**; may be changed e.g. `/portfolio/dispatch-control` |
-| **Knowledge base** | Portfolio KB | `dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT` (default may derive `{portfolio_root}/knowledge`) |
+| **Knowledge base** | Portfolio KB | `dispatch.knowledge_root` / `PORTFOLIO_KB_ROOT` (default `~/.jj-flow/knowledge`) |
 | **One delivery wave** | under state root `.workflow/dispatch/<DELIVERY_ID>/` | not a new control git repo per wave |
 
 Starting dispatch from project A or project B is a first-class path; the Agent writes coordination state into the **resolved control_root** (verify with `jj doctor`).

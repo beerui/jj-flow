@@ -60,6 +60,32 @@ function readJson(rel) {
   return JSON.parse(read(rel));
 }
 
+function withEnv(envPatch, fn) {
+  const prev = {};
+  for (const key of Object.keys(envPatch)) {
+    prev[key] = process.env[key];
+    if (envPatch[key] === undefined) delete process.env[key];
+    else process.env[key] = envPatch[key];
+  }
+  try {
+    return fn();
+  } finally {
+    for (const key of Object.keys(envPatch)) {
+      if (prev[key] === undefined) delete process.env[key];
+      else process.env[key] = prev[key];
+    }
+  }
+}
+
+function withoutLocalPortfolio(fn) {
+  return withEnv({
+    JJ_GLOBAL_CONFIG_DIR: undefined,
+    DAJI_CONFIG_DIR: undefined,
+    RALPH_KNOWLEDGE_HOOK: undefined,
+    RALPH_KNOWLEDGE_HOOK_CMD: undefined
+  }, fn);
+}
+
 test('ralph schemas, samples, skill and command assets exist with key markers', () => {
   for (const rel of [
     'schemas/ralph-run.schema.json',
@@ -108,7 +134,10 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'intent.md',
     'instruction-correction',
     'metrics',
-    '2–3'
+    '2–3',
+    '~/.jj-flow',
+    'Idle offer',
+    'jj-init'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -166,6 +195,13 @@ assert.equal(
     fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'), 'utf8'),
     fs.readFileSync(path.join(root, 'src/memoryExtract.mjs'), 'utf8')
   );
+  for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs']) {
+    assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib', extra)), extra);
+    assert.equal(
+      fs.readFileSync(path.join(root, 'skills/jj-ralph/scripts/lib', extra), 'utf8'),
+      fs.readFileSync(path.join(root, 'src', extra), 'utf8')
+    );
+  }
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
   const command = read('claude-commands/jj-ralph.md');
@@ -492,6 +528,11 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'),
       path.join(scriptsDir, 'lib', 'memoryExtract.mjs')
     );
+    for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs']) {
+      const src = path.join(root, 'skills/jj-ralph/scripts/lib', extra);
+      assert.ok(fs.existsSync(src), `portable lib missing ${extra}; run npm run ralph:sync`);
+      fs.copyFileSync(src, path.join(scriptsDir, 'lib', extra));
+    }
     const ops = path.join(scriptsDir, 'ralph_ops.mjs');
     const runNode = (args) => {
       const result = spawnSync(process.execPath, [ops, ...args, '--cwd', businessCwd], {
@@ -1335,6 +1376,7 @@ test('map-merge puts STAGNATION/strict into process_lessons by default', () => {
 });
 
 test('finalize writes knowledge-contribution with durable lessons only by default', () => {
+  withoutLocalPortfolio(() => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-contrib-'));
   try {
     const runId = 'RALPH-contrib-20260801';
@@ -1376,9 +1418,11 @@ test('finalize writes knowledge-contribution with durable lessons only by defaul
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
+  });
 });
 
 test('knowledge-contribute hook ok / failed fail-open via RALPH_KNOWLEDGE_HOOK_CMD', () => {
+  withoutLocalPortfolio(() => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-hook-'));
   const prevCmd = process.env.RALPH_KNOWLEDGE_HOOK_CMD;
   const prevMode = process.env.RALPH_KNOWLEDGE_HOOK;
@@ -1417,6 +1461,7 @@ test('knowledge-contribute hook ok / failed fail-open via RALPH_KNOWLEDGE_HOOK_C
     else process.env.RALPH_KNOWLEDGE_HOOK = prevMode;
     fs.rmSync(cwd, { recursive: true, force: true });
   }
+  });
 });
 
 test('cli deliver-attempt and accept-layer wire through', () => {

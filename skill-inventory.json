@@ -31,6 +31,12 @@
       "platforms": ["codex", "qoder", "grok", "claude"]
     },
     {
+      "id": "jj-init",
+      "claude_command": "jj-init.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"]
+    },
+    {
       "id": "jj-same",
       "claude_command": "jj-same.md",
       "user_invocable": true,

@@ -6,6 +6,8 @@ import { assertStrictRalphRunId, buildArchiveDirNameFromRunId, loadNamingConfig 
 import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown, resolvePortfolioKbRoot } from './portfolioKnowledge.mjs';
 import { INJECT_SOFT_CAP } from './memoryRetrieve.mjs';
 import { gateLesson } from './memoryExtract.mjs';
+import { ingestContribution } from './homeKnowledge.mjs';
+import { resolveProjectKeyFromCwd } from './projectMap.mjs';
 
 export const RALPH_RUN_SCHEMA_VERSION = 'jj-flow/ralph-run/1.0';
 export const RALPH_MAP_SCHEMA_VERSION = 'jj-flow/ralph-business-map/1.0';
@@ -166,6 +168,7 @@ export function createRunSkeleton({
   capability_ids = [],
   knowledge_refs = [],
   knowledge_summary = [],
+  project_key = null,
   max_iterations = null,
   intensity = 'standard',
   budget = null,
@@ -200,6 +203,7 @@ export function createRunSkeleton({
     gates: { analyze: 'PENDING', plan: 'PENDING', deliver: 'PENDING', accept: 'PENDING', archive: 'PENDING' },
     intervention_needed: null,
     capability_ids: [...capability_ids],
+    project_key: project_key || null,
     knowledge_refs: unique(knowledge_refs),
     knowledge_summary: [...(knowledge_summary || [])],
     artifact_refs: {
@@ -444,11 +448,14 @@ export function initRun(options, cwd = process.cwd()) {
     assertStrictRalphRunId(options.run_id || options.runId, naming);
   }
   const runOptions = { ...options };
+  if (!runOptions.project_key) {
+    runOptions.project_key = options.project || options.project_key || resolveProjectKeyFromCwd(cwd);
+  }
   if (options?.attach_knowledge !== false && !(options?.knowledge_refs?.length)) {
     const pack = attachKnowledgeRefs({
       title: options.title,
       goal: options.goal,
-      project: options.project || options.project_key || null,
+      project: runOptions.project_key,
       q: options.knowledge_query || '',
       cwd,
       limit: options.knowledge_limit || INJECT_SOFT_CAP
@@ -957,7 +964,7 @@ export function resolveKnowledgeContributeHookConfig({ hook = false, cwd = proce
   if (hook === true || hook === 'cli') mode = envMode || cfg.hook || 'cli';
   else if (typeof hook === 'string' && hook) mode = hook;
   else if (cfg.on_finalize && cfg.hook && cfg.hook !== 'none') mode = cfg.hook;
-  else mode = envMode || cfg.hook || 'none';
+  else mode = envMode || 'none';
   if (mode === true) mode = 'cli';
   return {
     mode,
@@ -992,27 +999,45 @@ export function invokeKnowledgeContributeHook(packageAbs, packageObj, options = 
     return { status: 'skipped', reason: 'unknown hook mode: ' + String(cfg.mode) };
   }
 
+  const projectKey = packageObj?.source?.project_key
+    || resolveProjectKeyFromCwd(cfg.cwd)
+    || '';
+
   let command = cfg.cli;
   if (!command) {
+    const ingested = ingestContribution(packageObj, { cwd: cfg.cwd, projectKey });
+    if (ingested.ok) {
+      return {
+        status: 'ok',
+        command: 'builtin-home-knowledge',
+        project_key: ingested.project_key,
+        written: ingested.written,
+        ids: ingested.ids,
+        stdout: JSON.stringify(ingested)
+      };
+    }
     const root = resolvePortfolioKbRoot();
     if (!root) {
-      return { status: 'skipped', reason: 'knowledge_root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT)' };
+      return { status: 'skipped', reason: ingested.reason || 'knowledge_root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT)' };
     }
     const kbJs = path.join(root, 'tools', 'kb.mjs');
     if (!fs.existsSync(kbJs)) {
       return {
         status: 'skipped',
-        reason: 'default kb CLI missing: ' + kbJs.replaceAll(String.fromCharCode(92), String.fromCharCode(47))
-          + ' (set ralph.knowledge_contribute.cli or RALPH_KNOWLEDGE_HOOK_CMD)'
+        reason: ingested.reason
+          || ('default kb CLI missing: ' + kbJs.replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+          + ' (set ralph.knowledge_contribute.cli or RALPH_KNOWLEDGE_HOOK_CMD)')
       };
     }
-    command = 'node "' + kbJs + '" extract --source "{package}" --status candidate';
+    command = 'node "' + kbJs + '" extract --source "{package}" --project "{project}" --status candidate';
   }
 
   const filled = String(command)
     .replaceAll('{package}', packageAbs)
     .replaceAll('{package_json}', packageAbs)
-    .replaceAll('{run_id}', packageObj?.run_id || '');
+    .replaceAll('{run_id}', packageObj?.run_id || '')
+    .replaceAll('{project}', projectKey)
+    .replaceAll('{project_key}', projectKey);
 
   try {
     const stdout = execSync(filled, {
@@ -1065,7 +1090,7 @@ export function knowledgeContribute(runId, {
   });
   const hookCfg = resolveKnowledgeContributeHookConfig({ hook, cwd });
   let hookResult;
-  if (!hook && hookCfg.mode === 'none') {
+  if (!hook) {
     hookResult = { status: 'skipped', reason: 'hook not requested' };
   } else {
     // explicit hook:true forces cli mode if config is none

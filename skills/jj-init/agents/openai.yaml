@@ -1,0 +1,4 @@
+interface:
+  display_name: "jj-init"
+  short_description: "Join the global map and backfill home knowledge"
+  default_prompt: "$jj-init"

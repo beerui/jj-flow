@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+- **全局知识库默认 `~/.jj-flow`**：`install-skill` / `jj home init` 生成 `naming.json`、`map.md`、`knowledge/index/search.json`（已有文件不覆盖）。产品默认不再依赖本机 `/portfolio`。
+- **`$jj-init`**：接入全局地图、梳理项目、补知识库。机械步骤 `jj init preview|join|ingest`；ralph / same / dispatch / doctor 只读地图，不在进场写入。用户点头后才 `join` / `ingest`。
+- **用户同意才写入**：新项目不自动进全局索引。`jj map lookup` 只读；写入走 `$jj-init`。单轮归档后的「投喂知识库」仍可在 ralph 做增量。
+- **家族检索**：同一 `map.md` 家族可共享知识挂载；未分组项目仍仅同仓。无自定义 hook 时，「投喂知识库」走内置 home ingest（当前 `project_key`）。
 - **Grok Mode P（Phase 2c）**：opt-in 子会话 1:1（非默认）。PREVIEW `proposed_mode=P`；写责任 BIND 不得共享 session；placeholder 拒 BIND；Mode P + isolation → PREFLIGHT #5 BLOCKED（改用 Mode W）。不升 A3/A4。
 - **Autonomy A2**：人工审查认定 `real-host-acceptance` 清单 1–4 PASS。`max_unattended_level=A2`（`default_level` 仍 A1）。Grok Wave 2 关闭条件是里程碑 `completed` + manifest A2 + 试跑 JSON evaluable；JSON 不得自关。未升 A3/A4。
 - **Grok Host Wave 2 真试跑**：`jj grok-trial run` 绑定真实 `GROK_SESSION_ID`（拒绝 placeholder / host:trial），协议含中断 RECONCILE、exclusive-worktree、Review 返工。已写入 `docs/milestones/real-host-trial-grok.json`（evaluable）。`real-host-acceptance` 为 `in_progress`。不进 `verify`，不关 Wave 2，不升 A2。

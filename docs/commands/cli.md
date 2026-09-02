@@ -12,7 +12,8 @@
 
 | 命令 | 用途 |
 |------|------|
-| `install-skill` / `uninstall-skill` | 安装或卸载 skill / 薄命令 |
+| `install-skill` / `uninstall-skill` | 安装或卸载 skill / 薄命令（同时生成 `~/.jj-flow` 空 map/知识结构） |
+| `home init` / `init preview\|join\|ingest` / `map lookup` / `map add` | 生成用户主目录；接入地图与补知识（`$jj-init` 对话入口，须用户同意）；`map lookup` 只读 |
 | `doctor` | 只读诊断 Git / Harness / 路径 / capabilities |
 | `ralph *` | 单仓 run 机械步骤（不替代对话） |
 | `dispatch-tick` | 单次调度 tick 预览或 CAS 写入 |
@@ -35,6 +36,18 @@ jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-
 - 默认不按名称前缀扫描未知文件；只动 ownership 登记资产  
 - 本地改过或历史未登记：默认拒绝，审查后 `--force`  
 - 用户装入口仍可在 [安装](installation.html) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI  
+- `install-skill` 会在 `~/.jj-flow` 生成空 `naming.json` / `map.md` / `knowledge/`（已有文件不覆盖）
+
+```bash
+jj home init [--json]
+jj init preview [--cwd dir] [--root DIR] [--json]
+jj init join --path DIR [--name NAME] [--aliases a,b] [--family FAMILY] [--json]
+jj init ingest --run-id RALPH-x | --file path [--json]
+jj map lookup [--cwd dir] [--json]
+jj map add --path DIR [--name NAME] [--aliases a,b] [--family FAMILY] [--json]
+```
+
+对话入口是 `$jj-init`。`preview` 只提案（默认短中文 `user_view`；`--json` 给 Agent，不要贴给用户）；`join` / `ingest` 须用户同意后由 Agent 代写。`map lookup` / doctor / ralph 只读地图。`jj ralph init` 是开单仓 run，不是接入。
 
 ---
 
@@ -44,7 +57,7 @@ jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-
 jj doctor [--json]
 ```
 
-只读：版本、Git、`control_root` / `portfolio_root` / `knowledge_root`、Harness、宿主 capability 线索。不修复、不安装、不派发。
+默认给用户看短中文（主目录 / 地图 / 知识 / 当前项目在不在地图里）。`--json` 给 Agent，**不要**把整份 JSON 贴给用户；复述 `user_view` 即可。业务仓缺 harness-manifest 不算失败。
 
 ---
 

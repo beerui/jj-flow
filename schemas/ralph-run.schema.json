@@ -652,7 +652,7 @@
         "minLength": 1
       },
       "default": [],
-      "description": "Portfolio knowledge entry ids attached at ANALYZE/init (/portfolio/knowledge)"
+      "description": "Global knowledge entry ids attached at ANALYZE/init (~/.jj-flow/knowledge or configured knowledge_root)"
     },
     "knowledge_summary": {
       "type": "array",

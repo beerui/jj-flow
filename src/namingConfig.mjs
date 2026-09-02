@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { defaultJjFlowHome, ensureJjFlowHome } from './homeLayout.mjs';
 
 /** Expand leading ~ to os.homedir(). */
 export function expandUserPath(input) {
@@ -15,18 +16,18 @@ export function expandUserPath(input) {
 
 /** Product default: user-home coordination data (not machine-specific /portfolio). */
 export function defaultDispatchControlRoot() {
-  return path.join(os.homedir(), '.jj-flow');
+  return defaultJjFlowHome();
 }
 
-/** Defaults; local portfolio machines override via /portfolio/config/naming.json. */
+/** Defaults; optional local portfolio machines override via naming.json. */
 export const DEFAULT_NAMING_CONFIG = {
   schema_version: 'jj-flow/naming/1.0',
-  project_map: '/portfolio/map.md',
+  project_map: '~/.jj-flow/map.md',
   branch: {
     pattern: '{type}/{role}-{release_date}[-{req_suffix}][-{developer}]',
     date_format: 'MMDD',
     developer: 'dev',
-    role_map_source: '/portfolio/map.md',
+    role_map_source: '~/.jj-flow/map.md',
     derive_rule: 'replace_role_only'
   },
   ralph: {
@@ -68,7 +69,7 @@ export const DEFAULT_NAMING_CONFIG = {
    * - project_map: portfolio map file
    * - dispatch.portfolio_root: project-family top (map / knowledge / business repos)
    * - dispatch.control_root: coordination state root (default ~/.jj-flow)
-   * - dispatch.knowledge_root: Portfolio KB root (default {portfolio_root}/knowledge)
+   * - dispatch.knowledge_root: Portfolio KB root (default ~/.jj-flow/knowledge)
    *
    * Override order for control_root:
    *   explicit CLI > JJ_DISPATCH_CONTROL_ROOT > naming.json > ~/.jj-flow
@@ -76,7 +77,7 @@ export const DEFAULT_NAMING_CONFIG = {
   dispatch: {
     portfolio_root: null,
     control_root: '~/.jj-flow',
-    knowledge_root: null,
+    knowledge_root: '~/.jj-flow/knowledge',
     layout: {
       plane: 'control-plane.json',
       delivery_dir: '.workflow/dispatch/{delivery_id}',
@@ -85,9 +86,10 @@ export const DEFAULT_NAMING_CONFIG = {
     },
     notes: [
       'Default state root is ~/.jj-flow under the user home directory',
+      'Install scaffolds map.md + knowledge/ under ~/.jj-flow',
       'Users launch jj-dispatch from a business project workspace',
       'Configure directories in naming.json: dispatch.control_root / portfolio_root / knowledge_root',
-      'Optional local portfolio (e.g. /portfolio) sets portfolio_root and may override control_root',
+      'Optional local portfolio may override control_root / knowledge_root / project_map',
       'Do not create a new control repo per delivery wave',
       'Override control_root with JJ_DISPATCH_CONTROL_ROOT or --control-root / --manifest'
     ]
@@ -97,8 +99,7 @@ export const DEFAULT_NAMING_CONFIG = {
 export function resolveGlobalConfigDir() {
   const fromEnv = process.env.JJ_GLOBAL_CONFIG_DIR || process.env.DAJI_CONFIG_DIR;
   if (fromEnv) return path.resolve(fromEnv);
-  if (process.platform === 'win32') return '/portfolio/config';
-  return null;
+  return defaultJjFlowHome();
 }
 
 export function namingConfigPath(configDir = resolveGlobalConfigDir()) {
@@ -197,14 +198,14 @@ export function resolvePortfolioRoot({
 }
 
 /**
- * Resolve Portfolio KB root.
+ * Resolve global KB root.
  *
  * Order:
  * 1. explicit
  * 2. PORTFOLIO_KB_ROOT
  * 3. naming.json dispatch.knowledge_root
- * 4. {portfolio_root}/knowledge when portfolio_root is set
- * 5. null
+ * 4. {control_root}/knowledge
+ * 5. ~/.jj-flow/knowledge
  */
 export function resolveKnowledgeRoot({
   explicit = null,
@@ -219,15 +220,15 @@ export function resolveKnowledgeRoot({
   if (configured && String(configured).trim()) {
     return expandUserPath(String(configured).trim());
   }
-  const portfolio = resolvePortfolioRoot({ configDir });
-  if (portfolio) return path.join(portfolio, 'knowledge');
-  return null;
+  const control = resolveDispatchControlRoot({ configDir });
+  if (control) return path.join(control, 'knowledge');
+  return path.join(defaultJjFlowHome(), 'knowledge');
 }
 
 /**
  * Resolve project map path (map.md).
  *
- * Order: explicit > JJ_PROJECT_MAP > naming.json project_map > {portfolio_root}/map.md > null
+ * Order: explicit > JJ_PROJECT_MAP > naming.json project_map > {control_root}/map.md > ~/.jj-flow/map.md
  */
 export function resolveProjectMapPath({
   explicit = null,
@@ -239,21 +240,12 @@ export function resolveProjectMapPath({
 
   const cfg = loadNamingConfig({ configDir, required: false });
   const configured = cfg?.project_map || null;
-  if (configured && String(configured).trim() && configured !== DEFAULT_NAMING_CONFIG.project_map) {
-    return expandUserPath(String(configured).trim());
-  }
-  if (configured && String(configured).trim() && fs.existsSync(expandUserPath(String(configured).trim()))) {
-    return expandUserPath(String(configured).trim());
-  }
-  const portfolio = resolvePortfolioRoot({ configDir });
-  if (portfolio) {
-    const candidate = path.join(portfolio, 'map.md');
-    if (fs.existsSync(candidate)) return candidate;
-  }
   if (configured && String(configured).trim()) {
     return expandUserPath(String(configured).trim());
   }
-  return null;
+  const control = resolveDispatchControlRoot({ configDir });
+  if (control) return path.join(control, 'map.md');
+  return path.join(defaultJjFlowHome(), 'map.md');
 }
 
 /**
@@ -291,7 +283,8 @@ export function describePathConfig({ configDir = resolveGlobalConfigDir() } = {}
     defaults: {
       control_root: DEFAULT_NAMING_CONFIG.dispatch.control_root,
       portfolio_root: null,
-      knowledge_root: null
+      knowledge_root: DEFAULT_NAMING_CONFIG.dispatch.knowledge_root,
+      project_map: DEFAULT_NAMING_CONFIG.project_map
     },
     env: {
       JJ_GLOBAL_CONFIG_DIR: process.env.JJ_GLOBAL_CONFIG_DIR || process.env.DAJI_CONFIG_DIR || null,
@@ -309,6 +302,11 @@ export function describePathConfig({ configDir = resolveGlobalConfigDir() } = {}
  */
 export function ensureDispatchControlRoot(options = {}) {
   const root = resolveDispatchControlRoot(options);
+  const defaultHome = defaultJjFlowHome();
+  if (path.resolve(root) === path.resolve(defaultHome)) {
+    ensureJjFlowHome({ root });
+    return root;
+  }
   fs.mkdirSync(root, { recursive: true });
   const readme = path.join(root, 'README.md');
   if (!fs.existsSync(readme)) {
@@ -319,24 +317,16 @@ export function ensureDispatchControlRoot(options = {}) {
         '',
         'Default location: `~/.jj-flow` (user home).',
         '',
-        'Configure a different directory in `naming.json`:',
+        'This directory holds dispatch state, `map.md`, and `knowledge/`.',
+        'Agents ask before adding a map row or feeding knowledge.',
         '',
-        '```json',
-        '{',
-        '  "dispatch": {',
-        '    "portfolio_root": "/portfolio",',
-        '    "control_root": "/portfolio/dispatch-control",',
-        '    "knowledge_root": "/portfolio/knowledge"',
-        '  },',
-        '  "project_map": "/portfolio/map.md"',
-        '}',
-        '```',
+        'Override in `naming.json` only when a local portfolio must live elsewhere.',
         '',
-        'Config file: `$JJ_GLOBAL_CONFIG_DIR/naming.json` (Windows default `/portfolio/config/naming.json`).',
-        'Env overrides: `JJ_DISPATCH_CONTROL_ROOT`, `JJ_PORTFOLIO_ROOT`, `PORTFOLIO_KB_ROOT`.',
+        'Config file: `~/.jj-flow/naming.json` (or `$JJ_GLOBAL_CONFIG_DIR/naming.json`).',
+        'Env overrides: `JJ_DISPATCH_CONTROL_ROOT`, `JJ_PORTFOLIO_ROOT`, `PORTFOLIO_KB_ROOT`, `JJ_PROJECT_MAP`.',
         '',
         'Layout:',
-        '`.workflow/dispatch/<DELIVERY_ID>/control-plane.json`, `.workflow/tasks/…`',
+        '`map.md`, `knowledge/index/search.json`, `.workflow/dispatch/<DELIVERY_ID>/control-plane.json`, `.workflow/tasks/…`',
         '',
         'Business source code does not belong here.',
         ''

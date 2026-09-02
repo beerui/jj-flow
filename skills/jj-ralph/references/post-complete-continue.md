@@ -78,9 +78,10 @@ ralph_ops.mjs knowledge-contribute --run-id RALPH-x --hook   # user: feed knowle
 
 ## Knowledge contribute
 
-When the user says 「投喂知识库 / 补充全局知识」 or “feed knowledge base / contribute global knowledge” (**do not** require a run id):
+When the user says 「投喂知识库 / 补充全局知识」 or “feed knowledge base / contribute global knowledge”, **or** after the completion report they accept the idle offer (**do not** require a run id):
 
 1. Resolve run (same continue detection)
-2. `knowledge-contribute --hook` (rewrite package + optional extract → candidate only)
+2. `knowledge-contribute --hook` (built-in ingest into `~/.jj-flow/knowledge` for the **current** `project_key`; custom CLI may use `{project}`)
 3. Report: `path`, candidate count, `hook.status` (ok|skipped|failed)
 4. Failures are fail-open; archive unchanged; hint checking `knowledge_root` / `RALPH_KNOWLEDGE_HOOK_CMD`
+5. Do **not** hook on finalize unless the user said yes. Map join / first-time KB bootstrap → `$jj-init`.

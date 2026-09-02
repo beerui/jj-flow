@@ -53,6 +53,11 @@
         "authority_for": ["same-workflow-contract"]
       },
       {
+        "id": "init-contract",
+        "path": "skills/jj-init/SKILL.md",
+        "authority_for": ["init-onboarding-contract"]
+      },
+      {
         "id": "ralph-contract",
         "path": "skills/jj-ralph/SKILL.md",
         "authority_for": ["ralph-workflow-contract"]

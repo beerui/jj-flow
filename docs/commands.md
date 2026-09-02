@@ -1,12 +1,13 @@
 # 命令总览
 
-日常 **只在对话里** 用下面这些入口。  
+日常 **只在对话里** 用下面这些入口。
 不用记命令行。
 
 ## 选哪个？
 
 | 入口 | 一句话 | 谁能用 |
 |------|--------|--------|
+| [init](command-jj-init.html) | 接入全局地图、梳理项目、补知识库 | 全平台 |
 | [ralph](command-jj-ralph.html) | 当前仓库从做到验收 | 全平台 |
 | [same](command-jj-same.html) | 迁到别的同源仓库 | 全平台 |
 | [dispatch](command-jj-dispatch.html) | 多个项目一起派、一起盯 | Codex / Grok / Qoder（**无 Claude**） |
@@ -18,7 +19,7 @@
 | [team-swarm](command-jj-team-swarm.html) | 对抗蚁群**搜索**方案（不推进验收门） | 全平台 |
 | [jj](command-jj.html) | 说不清时让它帮你选路 | 全平台 |
 
-**拿不准：** 只改一个仓 → ralph；要搬到别的仓 → same；好几个仓一起协调 → dispatch。  
+**拿不准：** 接入地图 → init；只改一个仓 → ralph；要搬到别的仓 → same；好几个仓一起协调 → dispatch。
 **可选协作（不是交付主路径）：** 动态多角色 → coordinate；固定 PRD/架构链 → lifecycle；多假设搜索 → swarm。三者**都不会**单独算验收通过。
 
 ## 可以怎么说
@@ -26,6 +27,7 @@
 口语（推荐）：
 
 ```text
+$jj-init 当前仓加入全局地图
 $jj-ralph 票面预览关闭按钮点了没反应
 $jj-same 交接到 项目B 项目C
 /jj-dispatch 分发当前任务到 项目A和项目D

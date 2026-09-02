@@ -55,14 +55,15 @@ npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 
 ## 本机路径（可选）
 
-多项目调度状态默认写在用户目录 **`~/.jj-flow`**。  
-若公司本机还有 portfolio / 知识库路径，可在配置文件里改（Agent 会读；你一般不用管）。
+`install-skill` 会在用户目录 **`~/.jj-flow`** 生成空结构（已有文件不覆盖）：调度状态、`map.md`、`knowledge/`。
+新项目默认不进全局索引；要写入地图或补知识库，在对话里用 `$jj-init` / `/jj-init`。公司若另有 portfolio 路径，可在 `naming.json` 里改。
 
 | 配置项 | 默认 | 干什么 |
 |--------|------|--------|
 | 调度状态目录 | `~/.jj-flow` | 多项目调度记录 |
+| 项目地图 | `~/.jj-flow/map.md` | 全局项目索引（须你同意才加行） |
+| 知识库目录 | `~/.jj-flow/knowledge` | 跨项目知识（须你同意才投喂） |
 | 项目族根目录 | 可选 | 本机多个仓库的根 |
-| 知识库目录 | 可选 | 跨项目知识 |
 
 维护者改 skill 源码：见 [维护说明](maintenance.html)。
 

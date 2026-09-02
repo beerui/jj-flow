@@ -1,12 +1,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { resolveKnowledgeRoot, resolvePortfolioRoot } from './namingConfig.mjs';
+import { resolveDispatchControlRoot, resolveKnowledgeRoot } from './namingConfig.mjs';
 import {
   INJECT_SOFT_CAP,
   MIN_RELATED_SCORE,
   knowledgeItemToRow,
   rankIndexHits
 } from './memoryRetrieve.mjs';
+import {
+  familyOfProjectKey,
+  familyProjectKeys,
+  isGroupedFamily,
+  resolveProjectKeyFromCwd
+} from './projectMap.mjs';
 
 function readJson(file, fallback = null) {
   try {
@@ -23,18 +29,16 @@ function looksLikeKbRoot(root) {
 }
 
 /**
- * Resolve Portfolio KB root from config (naming.json / env) then legacy /portfolio fallbacks.
+ * Resolve KB root from config (naming.json / env / ~/.jj-flow/knowledge).
  */
 export function resolvePortfolioKbRoot(explicitRoot = null) {
   const configured = resolveKnowledgeRoot({ explicit: explicitRoot });
-  const portfolio = resolvePortfolioRoot();
+  const control = resolveDispatchControlRoot();
   const candidates = [
     explicitRoot,
     configured,
     process.env.PORTFOLIO_KB_ROOT,
-    portfolio ? path.join(portfolio, 'knowledge') : null,
-    '/portfolio/knowledge',
-    '/portfolio/knowledge'
+    control ? path.join(control, 'knowledge') : null
   ].filter(Boolean);
 
   const seen = new Set();
@@ -48,9 +52,7 @@ export function resolvePortfolioKbRoot(explicitRoot = null) {
 }
 
 function inferProjectKey(cwd = process.cwd()) {
-  const base = path.basename(path.resolve(cwd)).toLowerCase();
-  if (!base || base === 'a' || base === 'knowledge') return null;
-  return base;
+  return resolveProjectKeyFromCwd(cwd);
 }
 
 function emptyAttach(extra = {}) {
@@ -75,7 +77,7 @@ function emptyAttach(extra = {}) {
 /**
  * Attach portfolio knowledge_refs for a ralph/dispatch task.
  * Ranking is jj-multica retrieve: CJK bigram, strong relatedness floor,
- * same-project confirmed only. Empty is a valid result — never dump N
+ * same-project or same-family confirmed only. Empty is a valid result — never dump N
  * same-project rows to fill a quota.
  */
 export function attachKnowledgeRefs({
@@ -86,22 +88,31 @@ export function attachKnowledgeRefs({
   cwd = process.cwd(),
   limit = INJECT_SOFT_CAP,
   status = 'active',
-  portfolioRoot = null
+  portfolioRoot = null,
+  family = null
 } = {}) {
   const root = resolvePortfolioKbRoot(portfolioRoot);
   if (!root) {
     return emptyAttach({
       status: 'unavailable',
-      reason: 'portfolio knowledge root not found (set dispatch.knowledge_root / PORTFOLIO_KB_ROOT / portfolio_root, or create knowledge under portfolio)'
+      reason: 'knowledge root not found (install-skill / jj home init creates ~/.jj-flow/knowledge; or set dispatch.knowledge_root / PORTFOLIO_KB_ROOT)'
     });
   }
 
   const rootNorm = root.replaceAll('\\', '/');
   const search = readJson(path.join(root, 'index', 'search.json'), { items: [] });
   const projectKey = project || inferProjectKey(cwd);
+  const familyId = family || familyOfProjectKey(projectKey);
+  const familyKeys = isGroupedFamily(familyId) ? familyProjectKeys(familyId) : [];
   const needle = String(q || [title, goal].filter(Boolean).join('\n')).trim();
   const cap = Math.max(1, Number(limit) || INJECT_SOFT_CAP);
-  const matchMeta = { min_related: MIN_RELATED_SCORE, inject_soft_cap: cap, ranked: 0 };
+  const matchMeta = {
+    min_related: MIN_RELATED_SCORE,
+    inject_soft_cap: cap,
+    ranked: 0,
+    family: isGroupedFamily(familyId) ? familyId : '',
+    family_projects: familyKeys
+  };
 
   if (!projectKey) {
     return emptyAttach({
@@ -126,7 +137,12 @@ export function attachKnowledgeRefs({
     if (row) rows.push(row);
   }
 
-  const hits = rankIndexHits({ text: needle, projectId: projectKey }, rows);
+  const hits = rankIndexHits({
+    text: needle,
+    projectId: projectKey,
+    familyId: isGroupedFamily(familyId) ? familyId : '',
+    familyProjectIds: familyKeys
+  }, rows);
   matchMeta.ranked = hits.length;
   const sliced = hits.slice(0, cap);
   if (!sliced.length) {
@@ -137,7 +153,7 @@ export function attachKnowledgeRefs({
       query: needle,
       match: matchMeta,
       reason: needle
-        ? 'no confirmed same-project short passed MinRelatedScore'
+        ? 'no confirmed same-project/same-family short passed MinRelatedScore'
         : 'empty query; lexical retrieve injects nothing'
     });
   }

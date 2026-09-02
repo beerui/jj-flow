@@ -21,7 +21,8 @@ test('doctor reports the current repository from versioned Harness truth', () =>
   assert.ok(result.capabilities.some((item) => item.id === 'harness-check'));
   assert.ok(result.paths);
   assert.ok(result.paths.control_root);
-  assert.match(renderDoctorText(result), /control_root:/);
+  assert.match(renderDoctorText(result), /主目录/);
+  assert.match(result.user_view, /jj-flow：就绪/);
 });
 
 test('doctor blocks when a forbidden local state path exists', () => {
@@ -35,6 +36,28 @@ test('doctor blocks when a forbidden local state path exists', () => {
     assert.equal(result.autonomy.available_level, 'A0');
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-STATE-001'));
     assert.match(renderDoctorText(result), /HNS-STATE-001/);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test('doctor from a business cwd reports paths without harness BLOCKED', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-flow-doctor-biz-'));
+  try {
+    const result = inspectHarnessRepository({ cwd: tempRoot, runCommand: missingGitRunner });
+    assert.equal(result.mode, 'paths');
+    assert.equal(result.harness.status, 'SKIPPED');
+    assert.equal(result.ok, true, JSON.stringify(result.findings, null, 2));
+    assert.equal(result.status, 'READY');
+    assert.ok(!result.findings.some((finding) => finding.rule_id === 'HNS-MANIFEST-001'));
+    assert.ok(!result.findings.some((finding) => finding.rule_id === 'HNS-GIT-001'));
+    assert.ok(result.paths.control_root);
+    assert.ok(result.paths.project_map);
+    assert.ok(result.paths.knowledge_root);
+    assert.match(result.user_view, /jj-flow：就绪/);
+    assert.match(result.user_view, /未加入地图/);
+    assert.match(renderDoctorText(result), /主目录/);
+    assert.doesNotMatch(renderDoctorText(result), /HNS-MANIFEST-001/);
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
@@ -67,6 +90,10 @@ function copyHarnessFixture(target) {
     fs.cpSync(source, destination, { recursive: true });
   }
   fs.writeFileSync(path.join(target, 'harness-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+function missingGitRunner() {
+  return { status: 1, stdout: '', error: new Error('git missing') };
 }
 
 function fakeGitRunner(command, args) {

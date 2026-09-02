@@ -4,6 +4,7 @@
 
 `jj-flow` 是项目族编排工作流，解决三类相关问题：
 
+- `jj-init` 把仓库写入全局地图并补知识库（用户同意后才写）；不是交付主路径。
 - `jj-same` 在同源但已分叉的仓库之间迁移功能，或持续同步后续变更。
 - `jj-ralph` 在**单一业务仓库**内完成分析 → 计划 → 验收 → 归档，并沉淀可检索能力地图。
 - `jj-dispatch` 从独立控制项目协调一次涉及动态项目集合的交付。
@@ -27,10 +28,11 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 ### 对话入口资产
 
+- `skills/jj-init/` 定义全局地图接入与知识库建库。机械步骤由 `src/jjInit.mjs` + `jj init preview|join|ingest` 提供；ralph / same / dispatch 只读地图。
 - `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
 - `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs` + `jj ralph *` 提供。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
-- `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
+- `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-init`、`jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
 - `skills/jj-team-coordinate/` 是会话内多角色**执行引擎**（动态 role-spec / `TC-*` session），不是交付主路径；不得推进 ralph / dispatch checkpoint。设计见 `docs/design-docs/jj-team-coordinate.md`。
 - `skills/jj-team-lifecycle/` 是固定 SDLC **执行引擎**（固定角色 + prefab pipeline / `TLV4-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-lifecycle.md`。
 - `skills/jj-team-swarm/` 是对抗蚁群**搜索引擎**（ACO + explore/score/converge/synthesize / `TAS-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-swarm.md`。
@@ -111,6 +113,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 
 | 需求 | 起点 |
 | --- | --- |
+| 修改全局地图接入或知识建库 | `skills/jj-init/`、`src/jjInit.mjs` |
 | 修改同源迁移或持续同步行为 | `skills/jj-same/` |
 | 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs` |
 | 修改会话多角色执行引擎 | `skills/jj-team-coordinate/`、`docs/design-docs/jj-team-coordinate.md` |

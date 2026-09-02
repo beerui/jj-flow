@@ -56,6 +56,9 @@ import {
   resolveDeliveryManifestPath,
   resolveDispatchControlRoot
 } from './namingConfig.mjs';
+import { ensureJjFlowHome } from './homeLayout.mjs';
+import { ingestInit, joinInit, previewInit } from './jjInit.mjs';
+import { appendProjectMapRow, findProjectByCwd, loadProjectMap } from './projectMap.mjs';
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
@@ -70,6 +73,18 @@ export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.std
 
   if (args[0] === 'dispatch-tick') {
     return runDispatchTick(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'home') {
+    return runHomeCommand(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'init') {
+    return runInitCommand(args.slice(1), { cwd, stdout });
+  }
+
+  if (args[0] === 'map') {
+    return runMapCommand(args.slice(1), { cwd, stdout });
   }
 
   if (args[0] === 'doctor') {
@@ -373,6 +388,149 @@ function renderTaskStatus(status) {
   return `${lines.join('\n')}\n`;
 }
 
+function printInitHelp(stdout) {
+  stdout.write(`jj init preview [--cwd dir] [--root DIR] [--json]
+jj init join --path DIR [--name NAME] [--aliases a,b] [--family FAMILY] [--entry FILE] [--json]
+jj init ingest --run-id RALPH-x | --file path [--cwd dir] [--json]
+
+对话入口是 $jj-init。preview 只提案；join / ingest 须用户同意后由 Agent 代写。
+默认短中文（user_view）；--json 给 Agent，不要贴给用户。
+默认 preview 当前仓。用户点名根目录时用 --root（只扫该目录及其直接子仓）。
+jj ralph init 是开单仓 run，不是这个命令。
+`);
+}
+
+function runInitCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  if (args[0] === '--help' || args[0] === '-h') {
+    printInitHelp(stdout);
+    return 0;
+  }
+  let sub = args[0];
+  let rest = args.slice(1);
+  if (!sub || (sub !== 'preview' && sub !== 'join' && sub !== 'ingest')) {
+    rest = args;
+    sub = 'preview';
+  }
+  if (sub === 'preview') {
+    let previewCwd = cwd;
+    let root = null;
+    for (let i = 0; i < rest.length; i += 1) {
+      if (rest[i] === '--cwd') previewCwd = rest[++i];
+      else if (rest[i] === '--root') root = rest[++i];
+      else throw new Error('Unknown init preview option: ' + rest[i]);
+    }
+    const payload = previewInit({ cwd: previewCwd, root });
+    if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else stdout.write(`${payload.user_view}\n`);
+    return 0;
+  }
+  if (sub === 'join') {
+    const options = { projectPath: null, name: '', aliases: [], family: '', type: 'repo', host: '', entry: '' };
+    for (let i = 0; i < rest.length; i += 1) {
+      const arg = rest[i];
+      if (arg === '--path') options.projectPath = rest[++i];
+      else if (arg === '--name') options.name = rest[++i];
+      else if (arg === '--aliases') options.aliases = String(rest[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
+      else if (arg === '--family') options.family = rest[++i];
+      else if (arg === '--type') options.type = rest[++i];
+      else if (arg === '--host') options.host = rest[++i];
+      else if (arg === '--entry') options.entry = rest[++i];
+      else throw new Error('Unknown init join option: ' + arg);
+    }
+    if (!options.projectPath) options.projectPath = cwd;
+    const result = joinInit({ cwd, ...options });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`init join ${result.status}: ${result.project?.project_key || ''} ${result.project?.path || result.reason || ''}\n`);
+    return result.ok ? 0 : 1;
+  }
+  if (sub === 'ingest') {
+    const options = { runId: null, file: null, ingestCwd: cwd };
+    for (let i = 0; i < rest.length; i += 1) {
+      const arg = rest[i];
+      if (arg === '--run-id') options.runId = rest[++i];
+      else if (arg === '--file') options.file = rest[++i];
+      else if (arg === '--cwd') options.ingestCwd = rest[++i];
+      else throw new Error('Unknown init ingest option: ' + arg);
+    }
+    if (!options.runId && !options.file) throw new Error('init ingest needs --run-id or --file');
+    const result = ingestInit({ cwd: options.ingestCwd, runId: options.runId, file: options.file });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`init ingest ${result.status}: written=${result.written || 0} ${result.file || result.reason || ''}\n`);
+    return result.ok ? 0 : 1;
+  }
+  stdout.write(`Unknown init command: ${sub}\n`);
+  return 1;
+}
+
+function runHomeCommand(rawArgs, { stdout } = {}) {
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const sub = args[0] || 'init';
+  if (sub === '--help' || sub === '-h' || rawArgs.includes('--help') || rawArgs.includes('-h')) {
+    stdout.write('jj home init [--json]\n\n在 ~/.jj-flow 生成 naming.json、map.md 和 knowledge/ 空结构（已有文件不覆盖）。\n');
+    return 0;
+  }
+  if (sub !== 'init') {
+    stdout.write(`Unknown home command: ${sub}\n`);
+    return 1;
+  }
+  const home = ensureJjFlowHome();
+  if (json) stdout.write(`${JSON.stringify(home, null, 2)}\n`);
+  else stdout.write(`jj home: ${home.root}\n  map: ${home.map_path}\n  knowledge: ${home.knowledge_root}\n`);
+  return 0;
+}
+
+function runMapCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
+  const json = rawArgs.includes('--json');
+  const args = rawArgs.filter((arg) => arg !== '--json');
+  const sub = args.shift();
+  if (!sub || sub === '--help' || sub === '-h') {
+    stdout.write('jj map lookup [--cwd dir] [--json]\njj map add --path DIR [--name NAME] [--aliases a,b] [--family FAMILY] [--json]\n');
+    return 0;
+  }
+  if (sub === 'lookup') {
+    let lookupCwd = cwd;
+    for (let i = 0; i < args.length; i += 1) {
+      if (args[i] === '--cwd') lookupCwd = args[++i];
+    }
+    const map = loadProjectMap();
+    const hit = findProjectByCwd(lookupCwd, { map });
+    const payload = {
+      cwd: lookupCwd,
+      map_path: map.path,
+      indexed: Boolean(hit),
+      project: hit
+    };
+    if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else if (!hit) stdout.write(`not indexed: ${lookupCwd}\n`);
+    else stdout.write(`${hit.project_key}  ${hit.name}  family=${hit.family || hit.heading || '-'}  ${hit.path}\n`);
+    return 0;
+  }
+  if (sub === 'add') {
+    const options = { projectPath: null, name: '', aliases: [], family: '', type: 'repo', host: '', entry: '' };
+    for (let i = 0; i < args.length; i += 1) {
+      const arg = args[i];
+      if (arg === '--path') options.projectPath = args[++i];
+      else if (arg === '--name') options.name = args[++i];
+      else if (arg === '--aliases') options.aliases = String(args[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
+      else if (arg === '--family') options.family = args[++i];
+      else if (arg === '--type') options.type = args[++i];
+      else if (arg === '--host') options.host = args[++i];
+      else if (arg === '--entry') options.entry = args[++i];
+      else throw new Error('Unknown map add option: ' + arg);
+    }
+    if (!options.projectPath) options.projectPath = cwd;
+    const result = appendProjectMapRow(options);
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else stdout.write(`map ${result.status}: ${result.project?.project_key || ''} ${result.project?.path || result.reason || ''}\n`);
+    return result.ok ? 0 : 1;
+  }
+  stdout.write(`Unknown map command: ${sub}\n`);
+  return 1;
+}
+
 function runDoctor(rawArgs, { cwd = process.cwd(), stdout } = {}) {
   if (rawArgs.includes('--help') || rawArgs.includes('-h')) {
     printDoctorHelp(stdout);
@@ -472,7 +630,7 @@ function runDispatchTick(rawArgs, { cwd = process.cwd(), stdout } = {}) {
       + '  未给 --manifest 时，从 control_root 解析：\n'
       + '  {control_root}/.workflow/dispatch/<DELIVERY_ID>/control-plane.json\n'
       + '  control_root 顺序：--control-root > JJ_DISPATCH_CONTROL_ROOT > naming.json dispatch.control_root > ~/.jj-flow\n'
-      + '  配置文件：$JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）\n'
+      + '  配置文件：~/.jj-flow/naming.json（可用 $JJ_GLOBAL_CONFIG_DIR 覆盖）\n'
     );
     return 0;
   }
@@ -647,7 +805,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认 control_root；本机可用 $JJ_GLOBAL_CONFIG_DIR/naming.json（Windows 默认识别 /portfolio/config/naming.json）设置 dispatch.control_root / portfolio_root / knowledge_root。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj home init [--json]\n  jj init preview|join|ingest [--json]\n  jj map lookup|add [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-init / $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-init / /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认（control_root / map.md / knowledge/）；可用 $JJ_GLOBAL_CONFIG_DIR/naming.json 覆盖。install-skill 会生成空 map 与知识结构。地图写入与知识建库走 $jj-init / jj init（须用户同意）。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
 
@@ -1279,7 +1437,7 @@ function printRalphHelp(stdout) {
 }
 
 function printDoctorHelp(stdout) {
-  stdout.write(`jj doctor\n\n用法：\n  jj doctor [--json]\n\n说明：\n  只读检查 Git、Harness manifest（含 skill-inventory 对账）、权威文件、禁止路径、host capabilities 和可用 autonomy level。\n`);
+  stdout.write(`jj doctor\n\n用法：\n  jj doctor [--json]\n\n说明：\n  默认给用户看短中文：主目录 / 地图项目数 / 知识条数 / 当前目录是否在地图里。不要把 --json 贴给用户。\n  --json 给 Agent：含 user_view（同默认短文）和完整 paths。业务仓不要求 harness-manifest。\n`);
 }
 
 function printScenarioHelp(stdout) {
@@ -1303,7 +1461,7 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
 }
 
 function printUninstallHelp(stdout) {

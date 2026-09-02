@@ -9,7 +9,10 @@ const files = [
   { src: path.join(root, 'src', 'namingConfig.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'namingConfig.mjs') },
   { src: path.join(root, 'src', 'portfolioKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'portfolioKnowledge.mjs') },
   { src: path.join(root, 'src', 'memoryRetrieve.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryRetrieve.mjs') },
-  { src: path.join(root, 'src', 'memoryExtract.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryExtract.mjs') }
+  { src: path.join(root, 'src', 'memoryExtract.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'memoryExtract.mjs') },
+  { src: path.join(root, 'src', 'homeLayout.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'homeLayout.mjs') },
+  { src: path.join(root, 'src', 'projectMap.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'projectMap.mjs') },
+  { src: path.join(root, 'src', 'homeKnowledge.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'homeKnowledge.mjs') }
 ]
 const checkOnly = process.argv.includes('--check');
 

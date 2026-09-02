@@ -115,6 +115,17 @@ export function sameProjectPool(row, projectId) {
   return String(row.sourceProjectId || '').trim() === pid;
 }
 
+export function sameFamilyPool(row, query) {
+  const fam = String(query?.familyId || '').trim();
+  if (!fam) return false;
+  const rowFam = String(row.familyId || row.family || '').trim();
+  if (rowFam && rowFam.toLowerCase() === fam.toLowerCase()) return true;
+  const ids = Array.isArray(query?.familyProjectIds) ? query.familyProjectIds : [];
+  if (!ids.length) return false;
+  const pid = String(row.sourceProjectId || '').trim();
+  return Boolean(pid) && ids.includes(pid);
+}
+
 export function projectInjectScope(scope) {
   const sc = String(scope || '').trim().toLowerCase();
   return sc === '' || sc === SCOPE_PROJECT;
@@ -139,7 +150,7 @@ export function rankIndexHits(query, rows) {
     if (!isConfirmed(row)) continue;
     if (String(row.layer || '').trim().toLowerCase() === LAYER_CARD) continue;
     if (seen.has(row.id)) continue;
-    if (!sameProjectPool(row, query.projectId)) continue;
+    if (!sameProjectPool(row, query.projectId) && !sameFamilyPool(row, query)) continue;
     if (!projectInjectScope(row.scope)) continue;
     const { total, strong } = relatedScore(row, qtok);
     if (strong < MIN_RELATED_SCORE) continue;
@@ -179,6 +190,7 @@ export function knowledgeItemToRow(item) {
     whenToInject: '',
     body: item.summary || '',
     sourceProjectId: item.project_key || item.project || item.source_project_id || '',
+    familyId: item.family || item.family_id || '',
     status: status === 'active' ? STATUS_CONFIRMED : status,
     scope: item.scope || SCOPE_PROJECT,
     layer: item.layer || '',

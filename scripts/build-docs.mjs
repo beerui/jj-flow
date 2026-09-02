@@ -37,6 +37,7 @@ const SIDEBAR_GROUPS = [
     title: '工作流',
     pages: [
       { title: '命令总览', source: 'docs/commands.md', output: 'commands.html' },
+      { title: 'init 接入地图', source: 'docs/commands/jj-init.md', output: 'command-jj-init.html' },
       { title: 'ralph 单仓闭环', source: 'docs/commands/jj-ralph.md', output: 'command-jj-ralph.html' },
       { title: 'same 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
       { title: 'dispatch 调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' },

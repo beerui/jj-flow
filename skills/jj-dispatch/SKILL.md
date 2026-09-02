@@ -94,16 +94,16 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 
 | Item | Value |
 | --- | --- |
-| Config dir | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`; on Windows without env, **optional** discovery of `/portfolio/config` (legacy; not product default state root) |
-| Config file | `<configDir>/naming.json` |
-| Inspect | `jj doctor` → `control_root` / `portfolio_root` / `knowledge_root` / `project_map` |
+| Config dir | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`, else **`~/.jj-flow`** |
+| Config file | `<configDir>/naming.json` (install writes `~/.jj-flow/naming.json`) |
+| Inspect | `jj doctor` (default text / JSON `user_view`) → home / map / knowledge. Do **not** paste `--json` to the user |
 
 | Config key | Meaning | Product default | Env var |
 | --- | --- | --- | --- |
 | `dispatch.control_root` | plane / task / receipt | **`~/.jj-flow`** | `JJ_DISPATCH_CONTROL_ROOT` |
 | `dispatch.portfolio_root` | business-repo tree | null | `JJ_PORTFOLIO_ROOT` |
-| `dispatch.knowledge_root` | Portfolio KB | `{portfolio_root}/knowledge` or none | `PORTFOLIO_KB_ROOT` |
-| `project_map` | project map | null | `JJ_PROJECT_MAP` |
+| `dispatch.knowledge_root` | Portfolio KB | **`~/.jj-flow/knowledge`** | `PORTFOLIO_KB_ROOT` |
+| `project_map` | project map | **`~/.jj-flow/map.md`** | `JJ_PROJECT_MAP` |
 
 CLI overrides: `--control-root` / `--manifest`. Order: CLI → env → naming.json → **`~/.jj-flow`**.
 
@@ -113,6 +113,10 @@ CLI overrides: `--control-root` / `--manifest`. Order: CLI → env → naming.js
 | Portfolio example (not default) | e.g. `/portfolio/project-a` | only after naming config, e.g. `/portfolio/dispatch-control` |
 
 Details → [control-project.md](references/control-project.md).
+
+### Global map (read-only here)
+
+Install scaffolds empty `map.md` + `knowledge/` under `~/.jj-flow`. Unindexed cwd does not block PREVIEW. Map join / KB bootstrap → `$jj-init`. Missing home → `jj home init`, continue.
 
 ## Four actions
 

@@ -27,7 +27,7 @@ With a `$jj-dispatch` control project, do not use a single `SOURCE` for every ro
 
 Paths, role short names, and aliases are **not hard-coded by this file**. At task start, read the global project map:
 
-- Authoritative file: `/portfolio/map.md`
+- Authoritative file: `~/.jj-flow/map.md` (override via `naming.json` `project_map`)
 - Match keys: Chinese name / aliases / directory name / package.name / remote repo name
 - On hit, use that row’s `path` as the work target (for module/electron-production also combine `host`)
 - Historical absolute paths are retired; if seen, treat as old evidence only, not live path
@@ -123,17 +123,17 @@ Recommended work-branch structure (lead branch is the only template):
 | Segment | Meaning | Source | Example |
 | --- | --- | --- | --- |
 | `type` | change type | lead branch | `feat` |
-| `role` | project short name | target alias/short name in `/portfolio/map.md` | `pa` / `pb` / `pc` |
+| `role` | project short name | target alias/short name in `~/.jj-flow/map.md` | `pa` / `pb` / `pc` |
 | `release_date` | planned ship day | lead branch; usually `MMDD` or `YYYYMMDD` | `0731` (2026-07-31) |
 | `req_suffix` | **optional** requirement suffix; only when same day/same developer needs multiple lines | **only** if lead already has it or user/requirement explicitly requires | `qi` |
 | `developer` | developer abbreviation | lead branch; otherwise optional config, not hard-coded business logic | `dev` |
 
 Optional config (does not override lead-branch facts):
 
-- Authoritative file: `/portfolio/config/naming.json` under `branch.*`
+- Authoritative file: `~/.jj-flow/naming.json` under `branch.*`
 - `branch.developer`: default developer abbreviation (example `dev`) for prompts/completion when the user has not created a branch
 - `branch.date_format`: default `MMDD`
-- `role_map`: **do not maintain a second table inside the skill**; always parse from `/portfolio/map.md` (see `branch.role_map_source`)
+- `role_map`: **do not maintain a second table inside the skill**; always parse from `~/.jj-flow/map.md` (see `branch.role_map_source`)
 
 ### Derivation algorithm
 
