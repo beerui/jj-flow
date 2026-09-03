@@ -6,7 +6,7 @@
 >
 > 关联设计：[jj-ralph](jj-ralph.html)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.html)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed，本方案 P0 即其落地路径）
 >
-> 执行：[2026-09-02 Ralph 工作区 P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；P0 已合入 `eb4e34c` / `0fb5e6f`；P1a/P1b/P1c 已落地）。整体仍是 Proposed，直到有 `> 验收证据：`；lite 档未开。
+> 执行：[P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；review-fix `b11d670`）· [P2+ lite](../exec-plans/active/2026-09-03-ralph-plans-workspace-p2-lite.md)（进行中）。整体仍是 Proposed，直到 lite 落地并有 `> 验收证据：`。
 
 ## 1. 背景与问题
 

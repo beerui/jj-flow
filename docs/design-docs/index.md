@@ -20,7 +20,7 @@
 | [任务分配 UX](task-assignment-ux.html) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.html) | Implemented |
 | [Ralph → 知识库贡献](ralph-knowledge-contribute.html) | Proposed（归档投喂全局 KB） |
-| [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.html) | Proposed（P0/P1/P2 已落地；lite 档未开） |
+| [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.html) | Proposed（P0/P1/P2 已落地；[P2+ lite](../exec-plans/active/2026-09-03-ralph-plans-workspace-p2-lite.html) 进行中） |
 | [Ralph 多轮任务内容预览](ralph-plans-workspace.preview.html) | Proposed（§3.2/§3.4 目标布局示例，非运行输出） |
 | [Ralph 归档提升](ralph-archive-elevation.html) | Accepted |
 | [jj-evaluated](jj-evaluated.html) | Implemented（MVP runner） |

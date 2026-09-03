@@ -99,7 +99,7 @@
 
 ## 下一刀
 
-P2 关闭。lite 档（P2+）未开；不在本计划范围。
+P2 关闭。lite 档见 [P2+](../active/2026-09-03-ralph-plans-workspace-p2-lite.md)。
 
 ## 完成定义
 
