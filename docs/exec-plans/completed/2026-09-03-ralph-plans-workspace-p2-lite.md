@@ -79,7 +79,12 @@
 
 P2+ 关闭（P2+a `7fcd43c` + `38a9f4c`；P2+b `5cc314a` + `c3f0550`）。整体设计 [Ralph 任务工作区 `.plans` 化改造](../../design-docs/ralph-plans-workspace.md) 标 Implemented。
 
-收口批（不属本计划，已完成）：sibling gym pin 升到 loop `ed72b08` / family `0b8ec50`（`.github/actions/prepare-lab-roots`），本地按 CI 同法 clone + seed 后 `npm run lab:check` PASS、`npm run verify` 全绿。仍待办：启发式词表按真实误判样本收敛（仍只建议）。
+收口批（不属本计划，已完成）：
+
+- sibling gym pin 升到 loop `ed72b08` / family `0b8ec50`（`.github/actions/prepare-lab-roots`），本地按 CI 同法 clone + seed 后 `npm run lab:check` PASS、`npm run verify` 全绿。
+- 审查发现的一处缺口：lite 预算到顶后走 `gate deliver FAIL` 出口虽升 full、恢复预算，但 run 仍留在 `BLOCKED` 且 `intervention_needed` 还是过期的 `MAX_ITERATIONS`，与「继续走五 gate」的口径不符。修复：`promoteGateSetToFull` 在 `gate … FAIL` / `scope --in` 膨胀触发升档时解除这条因预算而起的 BLOCKED（progress 行带 `status=BLOCKED→IN_PROGRESS`）；显式写 BLOCKED 的 gate 与 STAGNATION 不解除。合约：`tests/jj-ralph-contract.test.mjs` P2+a 升档用例补 d3–d5。
+
+仍待办：启发式词表按真实误判样本收敛（仍只建议）。
 
 ## 完成定义
 

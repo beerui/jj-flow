@@ -651,7 +651,7 @@ export function recordDeliverAttempt(runId, {
       kind: 'MAX_ITERATIONS',
       reason: 'iteration ' + run.iteration + ' reached budget.max_deliver_loops ' + maxLoops,
       unblock: 'Raise budget.max_deliver_loops or change approach'
-        + (effectiveGateSet(run) === 'lite' ? '; lite run: gate deliver FAIL (or scope growth) promotes to full and restores the intensity budget' : ''),
+        + (effectiveGateSet(run) === 'lite' ? '; lite run: gate deliver FAIL (or scope growth) promotes to full, restores the intensity budget and lifts this block' : ''),
       at: nowIso()
     };
   } else if (!resolvedImproved && stag.unchanged_count >= sameCap) {
@@ -1103,8 +1103,10 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   for (const key of keys) {
     applyGateKey(run, key, status, { cwd, advance, force, diff_paths, deleted_paths });
   }
+  // FAIL is the documented exit from a lite budget stop, so it may lift that block; a gate
+  // written BLOCKED keeps the run BLOCKED.
   const promotion = (status === 'FAIL' || status === 'BLOCKED') && effectiveGateSet(run) === 'lite'
-    ? promoteGateSetToFull(run, { reason: 'gate ' + gate + '=' + status })
+    ? promoteGateSetToFull(run, { reason: 'gate ' + gate + '=' + status, lift_budget_stop: status === 'FAIL' })
     : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
   if (keys.some((key) => key === 'accept' || key === 'archive') && shouldMaintainHandoff(run)) {
     applyHandoffState(run, { cwd, write_file: true });

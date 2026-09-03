@@ -91,7 +91,8 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
 | `close` spoken | Map to `abandon` (drop) or `finalize` (archive). The lite alias `gate --gate close` is a ledger step (accept+archive), not a user command | Never invent a conversational `close` command |
-| lite gate FAIL/BLOCKED, `scope --in` grows, or lite budget hits `max_deliver_loops=3` | Ledger auto-promotes `lite→full` (progress `promoted lite→full`, intensity budget restored); on the budget stop use `gate deliver FAIL` or change approach, then continue with the five gates | Do not re-init a new run, force `brief`/`close` on a full run, or raise the lite cap by hand |
+| lite gate FAIL/BLOCKED or `scope --in` grows | Ledger auto-promotes `lite→full` (progress `promoted lite→full`, intensity budget restored); continue with the five gates | Do not re-init a new run or force `brief`/`close` on a full run |
+| lite budget stop (`MAX_ITERATIONS` at `max_deliver_loops=3`) | **Not** auto-promoted: run is BLOCKED and `unblock` names the exit — `gate deliver FAIL` (or `scope --in` growth) promotes to full, restores the intensity budget and lifts the block; otherwise change approach | Do not raise the lite cap by hand |
 | User changes approach / MUST / plan (mid-run or after archive) | Move `task_plan.md` `### 当前` → `### 已落地` or `### 已取代`; write new 当前; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not wipe `task_plan.md` to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).

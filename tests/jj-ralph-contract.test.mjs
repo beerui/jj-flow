@@ -2561,10 +2561,55 @@ test('P2+a lite FAIL/BLOCKED or scope.in growth promotes to full in place (same 
     assert.match(third.intervention_needed.reason, /budget\.max_deliver_loops 3/);
     assert.match(third.intervention_needed.unblock, /lite run: gate deliver FAIL/);
     assert.equal(loadRun(budgetId, cwd).gate_set, 'lite');
+    assert.equal(loadRun(budgetId, cwd).status, 'BLOCKED');
+    // taking the documented exit lifts the budget stop: the cap is gone, so is the stale MAX_ITERATIONS block
     const escaped = setGate(budgetId, { gate: 'deliver', status: 'FAIL', cwd, advance: false });
     assert.equal(escaped.promotion.promoted, true);
+    assert.equal(escaped.promotion.unblocked, true);
     assert.deepEqual(escaped.promotion.max_deliver_loops, { from: 3, to: INTENSITY_DEFAULTS.standard.budget.max_deliver_loops });
-    assert.equal(loadRun(budgetId, cwd).budget.max_deliver_loops, INTENSITY_DEFAULTS.standard.budget.max_deliver_loops);
+    run = loadRun(budgetId, cwd);
+    assert.equal(run.budget.max_deliver_loops, INTENSITY_DEFAULTS.standard.budget.max_deliver_loops);
+    assert.equal(run.status, 'IN_PROGRESS');
+    assert.equal(run.intervention_needed, null);
+    assert.equal(run.gates.deliver, 'FAIL');
+    assert.match(progressOf(budgetId), /promoted lite→full reason=gate deliver=FAIL max_deliver_loops=3→20 status=BLOCKED→IN_PROGRESS/);
+    const fourth = recordDeliverAttempt(budgetId, { improved: true, signal: 'd', cwd });
+    assert.equal(fourth.blocked, false);
+    assert.equal(fourth.iteration, 4);
+    // (d4) a gate written BLOCKED at the lite cap promotes but stays BLOCKED (the gate itself is blocked)
+    const stayId = 'task-lite-stay-blocked';
+    initRun({ run_id: stayId, title: 'stay', goal: 'blocked gate keeps block', attach_knowledge: false, gate_set: 'lite' }, cwd);
+    setGate(stayId, { gate: 'brief', status: 'PASS', cwd });
+    for (const s of ['a', 'b', 'c']) recordDeliverAttempt(stayId, { improved: true, signal: s, cwd });
+    assert.equal(loadRun(stayId, cwd).status, 'BLOCKED');
+    const stayed = setGate(stayId, { gate: 'deliver', status: 'BLOCKED', cwd, advance: false });
+    assert.equal(stayed.promotion.promoted, true);
+    assert.equal(stayed.promotion.unblocked, false);
+    run = loadRun(stayId, cwd);
+    assert.equal(run.gate_set, 'full');
+    assert.equal(run.status, 'BLOCKED');
+    assert.equal(run.intervention_needed?.kind, 'MAX_ITERATIONS');
+    assert.doesNotMatch(progressOf(stayId), /status=BLOCKED→IN_PROGRESS/);
+    // (d5) scope growth at the lite cap also lifts the budget stop; a STAGNATION block never does
+    const scopeCapId = 'task-lite-scope-cap';
+    initRun({ run_id: scopeCapId, title: 'scope cap', goal: 'growth lifts cap stop', attach_knowledge: false, gate_set: 'lite', scope: { in: ['src/a.js'], out: [] } }, cwd);
+    setGate(scopeCapId, { gate: 'brief', status: 'PASS', cwd });
+    for (const s of ['a', 'b', 'c']) recordDeliverAttempt(scopeCapId, { improved: true, signal: s, cwd });
+    const grown = updateRunScope(scopeCapId, { add_in: ['src/b.js'], cwd });
+    assert.equal(grown.promotion.unblocked, true);
+    assert.equal(loadRun(scopeCapId, cwd).status, 'IN_PROGRESS');
+    assert.equal(loadRun(scopeCapId, cwd).intervention_needed, null);
+    const stagId = 'task-lite-stagnation';
+    initRun({ run_id: stagId, title: 'stagnation', goal: 'stagnation block stands', attach_knowledge: false, gate_set: 'lite' }, cwd);
+    setGate(stagId, { gate: 'brief', status: 'PASS', cwd });
+    recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    const stalled = recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    assert.equal(stalled.intervention_needed?.kind, 'STAGNATION');
+    const stagPromoted = setGate(stagId, { gate: 'deliver', status: 'FAIL', cwd, advance: false });
+    assert.equal(stagPromoted.promotion.promoted, true);
+    assert.equal(stagPromoted.promotion.unblocked, false);
+    assert.equal(loadRun(stagId, cwd).status, 'BLOCKED');
+    assert.equal(loadRun(stagId, cwd).intervention_needed?.kind, 'STAGNATION');
 
     // (e) promoteGateSetToFull is a no-op on full; scope growth on a full run never touches gate_set
     const fullId = 'task-full-scope';

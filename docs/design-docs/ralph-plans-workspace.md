@@ -400,24 +400,24 @@ gate 判据调整：PLAN gate 要求 `## 计划` 的 `### 当前` 存在且非�
 
 五阶段全档对 10 分钟级 bugfix / 配置变更是纯流程税——用户感知的「Ralph 太重」多来源于此。参考模型以「大任务建文件夹、小任务直接消息」分档，ralph 侧对应：
 
-| | full（现状） | lite（新增） |
+| | full（默认） | lite |
 | --- | --- | --- |
-| 入口判档 | `$jj-ralph` 默认 full | init 时按规模判档（改动面小、无架构影响、单一验收项）；`--lite` / `--full` 可显式覆写 |
-| 阶段与 gate | ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE | 合并为 BRIEF→DELIVER→CLOSE（ANALYZE 并入 BRIEF，ACCEPT+ARCHIVE 合并 CLOSE） |
-| 文件 | task_plan / progress / findings / run.json | **同一布局不另起一套**；仅 Analyze 节允许缩为一句话 |
+| 入口判档 | 无 flag 即 full；`--full` 显式 | 仅 `--lite` 显式选择。无 flag 时 init 按规模（改动面小、无架构词、单一验收项）**只给建议**，不改档 |
+| 阶段与 gate | ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE | BRIEF→DELIVER→CLOSE（BRIEF = ANALYZE+PLAN，CLOSE = ACCEPT+ARCHIVE；账本仍写五键） |
+| 文件 | task_plan / progress / findings / run.json | **同一布局不另起一套**；仅 `## 分析` 允许缩为一句话 |
 | 循环控制 | budget + stagnation 全量 | budget 收紧（max_deliver_loops ≤ 3）；stagnation 的 fingerprint 保留 |
-| 升档 | — | 任一 gate 失败或范围膨胀 → 自动升 full |
+| 升档 | — | 任一 gate FAIL/BLOCKED 或 `scope.in` 膨胀 → 自动升 full；预算到顶只停不升，出口是 `gate deliver FAIL` |
 
 分档判错是可恢复的：lite 升 full **不换目录、不丢证据**，已有文件直接续写——这是「任务目录即身份」（§3.2）的直接收益。
 
-schema 层面：1.1 在 P1 即预留 `gate_set: full | lite` 字段（full = 现五 gate；lite = brief / deliver / close），lite 落地时不再二次动 schema；`gate_issues`、`budget`、`stagnation` 两种档位共用结构，仅取值范围不同。
+schema 层面：1.1 在 P1 即预留 `gate_set: full | lite` 字段（full = 现五 gate；lite = brief / deliver / close），lite 落地时不再二次动 schema（P2+ 实际只改了该字段的 description，`$id` 仍为 1.2）；`gate_issues`、`budget`、`stagnation` 两种档位共用结构，仅取值范围不同。
 
 落地口径（[P2+ 执行计划](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md)）：
 
 - **显式优先、默认 full**：`init --lite` / `--full` 写 `gate_set`；无 flag 一律 full。`intensity` 与 `gate_set` 正交，`tiny` 不自动变 lite。
 - **别名而非新键**：`gate brief` = `analyze`+`plan`，`gate close` = `accept`+`archive`，内部仍写五键（progress 五键行带 `via=brief|close`），仅 `gate_set=lite` 生效；`close` 照走 accept/archive 证据门与 judgment 层，弱证据仍挡。`phase` 枚举与 schema 1.2 不动。
-- **升档兜底先落地**：任一 lite gate FAIL/BLOCKED（`gate` / `rollback-phase`）或 `scope --in` 新增 `scope.in` → `gate_set=full`、`max_deliver_loops` 按 intensity 默认恢复（不小于已用次数），progress 追 `promoted lite→full`；同 `run_id` 同目录。lite 预算到顶（3）时 `unblock` 指明 `gate deliver FAIL` 出口，不自动升档。
-- **判档只建议**：无 flag 的 init 用 `suggestGateSet` 按「改动面小（`scope.in` ≤ 2 个具体文件或小改口语）∧ 无架构词 ∧ 单一验收项」给出 `gate_set_suggestion`（返回对象 + progress 一行；`run.json` 不落此键），拿不准即 full。设计未定义任何自动改档的「明确规则」，因此**启发式永不写 `gate_set`**；skill / 命令文档把「小改 / 顺手修」映射到 `--lite`、「完整走一遍」映射到 `--full`。
+- **升档兜底先落地**：任一 lite gate FAIL/BLOCKED（`gate` / `rollback-phase`）或 `scope --in` 新增 `scope.in` → `gate_set=full`、`max_deliver_loops` 按 intensity 默认恢复（不小于已用次数），progress 追 `promoted lite→full`；同 `run_id` 同目录。lite 预算到顶（3）时只置 BLOCKED，`unblock` 指明 `gate deliver FAIL` 出口，不自动升档；走该出口（或 `scope --in` 膨胀）升 full 时，这条因预算而起的 BLOCKED 一并解除（progress 行带 `status=BLOCKED→IN_PROGRESS`），STAGNATION 或显式写 BLOCKED 的 gate 不解除。
+- **判档只建议**：无 flag 的 init 用 `suggestGateSet` 按「改动面小（`scope.in` ≤ 2 个具体文件或小改口语）∧ 无架构词 ∧ 单一验收项」给出 `gate_set_suggestion`（挂在返回对象 + progress 一行；`run.json` 不落此键），拿不准即 full。设计未定义任何自动改档的「明确规则」，因此**启发式永不写 `gate_set`**；skill / 命令文档把「小改 / 顺手修」映射到 `--lite`、「完整走一遍」映射到 `--full`。
 
 ### 3.9 `ralph.mjs` 模块拆分（与 P1 同批）
 
