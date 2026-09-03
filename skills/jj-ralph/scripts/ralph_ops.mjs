@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
+ *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -69,7 +69,8 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
+  init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
+                 (gate_set defaults to full; --lite = brief→deliver→close with max_deliver_loops≤3, auto-promotes to full on FAIL/BLOCKED or scope growth)
   status [--run-id task-x] [--cwd DIR]
   metrics --run-id task-x [--persist] [--cwd DIR]
   archive --run-id task-x [--slug name] [--cwd DIR]
@@ -79,7 +80,10 @@ Commands:
   finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--title "…"] [--cost "…"] [--evidence "…"] [--cwd DIR]
   knowledge-confirm --needle "…" [--project KEY] [--cwd DIR]
   knowledge-prune [--project KEY] [--cwd DIR]
-  gate --run-id task-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+  gate --run-id task-x --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|... [--no-advance] [--cwd DIR]
+                 (brief/close are lite-only aliases; they still write the five ledger keys and close runs the accept/archive evidence gates)
+  scope --run-id task-x [--in a,b] [--out c,d] [--cwd DIR]
+                 (append scope entries; new --in paths on a lite run promote gate_set to full)
   deliver-attempt --run-id task-x [--improved true|false|auto] [--signal text] [--cwd DIR]
                  (omit --improved or use auto: compare workspace fingerprint)
   accept-layer --run-id task-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--cwd DIR]
@@ -229,6 +233,9 @@ async function main() {
         capability_ids: splitList(args.capability),
       };
       if (args.intensity) initOpts.intensity = args.intensity;
+      if (args.lite && args.full) die('init: use --lite or --full, not both');
+      if (args.lite) initOpts.gate_set = 'lite';
+      if (args.full) initOpts.gate_set = 'full';
       if (args['max-iterations'] != null && args['max-iterations'] !== true) {
         initOpts.max_iterations = Number(args['max-iterations']);
       }
@@ -247,7 +254,9 @@ async function main() {
         action: 'init',
         run_id: run.run_id,
         intensity: run.intensity || 'standard',
+        gate_set: run.gate_set || 'full',
         max_iterations: run.max_iterations,
+        max_deliver_loops: run.budget?.max_deliver_loops ?? null,
         path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', 'tasks', run.run_id)).replaceAll('\\', '/'),
         reuse_suggestions: run.reuse_suggestions || [],
         resolved,
@@ -395,8 +404,34 @@ async function main() {
         run_id: runId,
         gate,
         status,
+        gates_written: result.gates_written || [gate],
+        gate_set: result.gate_set || result.run?.gate_set || 'full',
+        promotion: result.promotion || null,
         phase: result.phase,
         run_status: result.run?.status,
+        resolved,
+      });
+      return;
+    }
+
+    if (cmd === 'scope') {
+      const runId = args['run-id'];
+      if (!runId) die('scope needs --run-id');
+      const addIn = splitList(args.in);
+      const addOut = splitList(args.out);
+      if (!addIn.length && !addOut.length) die('scope needs --in and/or --out');
+      const updateScope = mod.updateRunScope;
+      if (typeof updateScope !== 'function') die('resolved ralph.mjs has no updateRunScope; upgrade jj-ralph skill / npm run ralph:sync');
+      const result = updateScope(runId, { add_in: addIn, add_out: addOut, cwd });
+      printJson({
+        ok: true,
+        action: 'scope',
+        run_id: runId,
+        added_in: result.added_in,
+        added_out: result.added_out,
+        gate_set: result.gate_set,
+        promotion: result.promotion,
+        scope: result.run?.scope,
         resolved,
       });
       return;

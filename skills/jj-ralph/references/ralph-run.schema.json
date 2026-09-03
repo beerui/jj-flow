@@ -32,7 +32,7 @@
     "gate_set": {
       "type": "string",
       "enum": ["full", "lite"],
-      "description": "P1b reserved. full = analyze/plan/deliver/accept/archive; lite lands later as brief/deliver/close."
+      "description": "Policy layer over the same five gates. full (default) = analyze/plan/deliver/accept/archive; lite = brief/deliver/close aliases (brief=analyze+plan, close=accept+archive) with budget.max_deliver_loops<=3. Any lite gate FAIL/BLOCKED or scope.in growth promotes to full in the same task dir."
     },
     "knowledge": {
       "type": "object",
