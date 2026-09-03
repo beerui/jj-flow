@@ -30,7 +30,7 @@ jobs:
           exit 0
       - name: Upload Harness GC report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: harness-gc-report
           path: harness-gc-report.json
