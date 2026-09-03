@@ -1,6 +1,6 @@
 {
   "name": "@brewer/jj-flow",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Project-family orchestration workflow: same migration, ralph single-repo loop, multi-project dispatch; optional session team engines (coordinate / lifecycle / swarm).",
   "type": "module",
   "repository": {
