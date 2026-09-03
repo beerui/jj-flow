@@ -22,7 +22,7 @@
 .workflow/handoffs/…   # 交接导出
 ```
 
-任务目录里：人看 `task_plan.md` / `progress.md` / `findings.md`；机器事件在 `.state/events.jsonl`。
+任务目录里常见：`index.md`、`task_plan.md`、`progress.md`、`findings.md`、`business-map.json`；机器事件在 `.state/events.jsonl`。
 
 ## 相关
 
