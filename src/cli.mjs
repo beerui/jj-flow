@@ -833,6 +833,9 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       for (const item of run.reuse_suggestions || []) {
         stdout.write(`reuse? ${item.run_id}${item.needs_migrate ? ' (needs_migrate)' : ''}${item.title ? (' · ' + item.title) : ''}\n`);
       }
+      if (run.gate_set_suggestion?.gate_set === 'lite') {
+        stdout.write(`gate_set? lite (advisory; gate_set stays ${run.gate_set || 'full'} — pass --lite explicitly to take it) · ${run.gate_set_suggestion.reasons.join('; ')}\n`);
+      }
     }
     return 0;
   }
@@ -1597,7 +1600,7 @@ function printRalphHelp(stdout) {
   jj ralph host-record --run-id task-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph migrate [--all-projects] [--json]
   jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
-  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/tasks/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,reviews/,handoff.json}。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
+  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  无 --lite/--full 时 init 按规模只做建议（改动面小 / 无架构词 / 单一验收项才建议 lite；拿不准即 full）：文本模式打印 gate_set? 行，--json 带 run.gate_set_suggestion；run.json 仍写 full，不自动改档。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/tasks/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,reviews/,handoff.json}。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }
 
 function printDoctorHelp(stdout) {

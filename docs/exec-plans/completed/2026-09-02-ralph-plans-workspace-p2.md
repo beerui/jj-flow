@@ -99,7 +99,7 @@
 
 ## 下一刀
 
-P2 关闭。lite 档见 [P2+](../active/2026-09-03-ralph-plans-workspace-p2-lite.md)。
+P2 关闭。lite 档见 [P2+](../completed/2026-09-03-ralph-plans-workspace-p2-lite.md)（已关闭）。
 
 ## 完成定义
 

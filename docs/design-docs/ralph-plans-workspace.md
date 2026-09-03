@@ -1,12 +1,14 @@
 # Ralph 任务工作区 `.plans` 化改造
 
-> 状态：Proposed
+> 状态：Implemented
+>
+> 验收证据：`tests/jj-ralph-contract.test.mjs`（P1b 布局 / P1c 归档 / P2 `task-*` 身份与 migrate·adopt / P2+a lite 别名·升 full / P2+b 启发式只建议）、`tests/memory-hot-layer.test.mjs`（P0 热层）、`tests/jj-dispatch-contract.test.mjs`（派单简报热层）、`npm run ralph:check`、`npm run verify`（`lab:check` 由 sibling gym pin 另行更新，见 P2+ 执行计划验收证据）
 >
 > 参考模型：`daji-customer-service` 仓库 `.plans/<project>/<role>/task-*` 工作区（任务 / 进度 / 文档三套规范）
 >
 > 关联设计：[jj-ralph](jj-ralph.html)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.html)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed，本方案 P0 即其落地路径）
 >
-> 执行：[P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；review-fix `b11d670`）· [P2+ lite](../exec-plans/active/2026-09-03-ralph-plans-workspace-p2-lite.md)（进行中）。整体仍是 Proposed，直到 lite 落地并有 `> 验收证据：`。
+> 执行：[P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；review-fix `b11d670`）· [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md)（已关闭：P2+a `7fcd43c`、P2+b `5cc314a`）。P0–P2+ 全部落地，整体标 Implemented。
 
 ## 1. 背景与问题
 
@@ -394,7 +396,7 @@ gate 判据调整：PLAN gate 要求 `## 计划` 的 `### 当前` 存在且非�
 - **事实来源红线**（AGENTS.md）：checkpoint 只认控制面 manifest、run.json、Git commit、verification/review artifact 与 sandbox attestation；3 个 md 不推进任何 gate，只作为证据载体被 gate 校验。
 - **Reviewer 只读**、Developer 仅在批准目标项目写工作区、delivery_id ≠ 对话入口等多项目调度边界不变。
 
-### 3.8 任务分档（lite path）
+### 3.8 任务分档（lite path）（已落地：P2+a / P2+b）
 
 五阶段全档对 10 分钟级 bugfix / 配置变更是纯流程税——用户感知的「Ralph 太重」多来源于此。参考模型以「大任务建文件夹、小任务直接消息」分档，ralph 侧对应：
 
@@ -409,6 +411,13 @@ gate 判据调整：PLAN gate 要求 `## 计划` 的 `### 当前` 存在且非�
 分档判错是可恢复的：lite 升 full **不换目录、不丢证据**，已有文件直接续写——这是「任务目录即身份」（§3.2）的直接收益。
 
 schema 层面：1.1 在 P1 即预留 `gate_set: full | lite` 字段（full = 现五 gate；lite = brief / deliver / close），lite 落地时不再二次动 schema；`gate_issues`、`budget`、`stagnation` 两种档位共用结构，仅取值范围不同。
+
+落地口径（[P2+ 执行计划](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md)）：
+
+- **显式优先、默认 full**：`init --lite` / `--full` 写 `gate_set`；无 flag 一律 full。`intensity` 与 `gate_set` 正交，`tiny` 不自动变 lite。
+- **别名而非新键**：`gate brief` = `analyze`+`plan`，`gate close` = `accept`+`archive`，内部仍写五键（progress 五键行带 `via=brief|close`），仅 `gate_set=lite` 生效；`close` 照走 accept/archive 证据门与 judgment 层，弱证据仍挡。`phase` 枚举与 schema 1.2 不动。
+- **升档兜底先落地**：任一 lite gate FAIL/BLOCKED（`gate` / `rollback-phase`）或 `scope --in` 新增 `scope.in` → `gate_set=full`、`max_deliver_loops` 按 intensity 默认恢复（不小于已用次数），progress 追 `promoted lite→full`；同 `run_id` 同目录。lite 预算到顶（3）时 `unblock` 指明 `gate deliver FAIL` 出口，不自动升档。
+- **判档只建议**：无 flag 的 init 用 `suggestGateSet` 按「改动面小（`scope.in` ≤ 2 个具体文件或小改口语）∧ 无架构词 ∧ 单一验收项」给出 `gate_set_suggestion`（返回对象 + progress 一行；`run.json` 不落此键），拿不准即 full。设计未定义任何自动改档的「明确规则」，因此**启发式永不写 `gate_set`**；skill / 命令文档把「小改 / 顺手修」映射到 `--lite`、「完整走一遍」映射到 `--full`。
 
 ### 3.9 `ralph.mjs` 模块拆分（与 P1 同批）
 
@@ -585,7 +594,7 @@ RALPH-enter-form-dynamic-apply-20260901  →  tasks/task-enter-form-dynamic-appl
 | P1b 布局 8→4（已落地） | task_plan.md 三 section 合并；删 knowledge-attach / knowledge-contribution（含 §3.6 home 索引断供处理）；schema 1.1（含 `gate_set` 预留）；`LEDGER_PATH_EXCLUDE` 同步新文件名（`src/ralph.mjs:1577`，防合规 gate 误报）；**artifact_refs 禁锚点 + ref 解析失败改抛错**（§3.10 表 B1，防合规 gate 静默放行）；`extractPlanCurrentSection` / `extractAcceptanceActiveText` 先按一级 section 裁段；**章节名中文化 + 读端四级回退**（§3.11，含 `extractMarkdownSection` 层级感知改造）；**jj-review 四文件读取改三 section + 段名常量同批修**（否则本阶段起无法评审）；新增 `artifact_refs.findings` 键 + schema | `schemas/ralph-run.schema.json` 及其 skill 副本 `skills/jj-ralph/references/ralph-run.schema.json`（合约测试校验两份同步）、新增 `knowledge.memory_refs` 键（§3.6 可追溯，P0 期间以 progress.md 行过渡）、`src/ralph.mjs`（init/gate/ledger 读写路径）、skill SKILL.md + 模板 | `jj-ralph-contract`、`npm run verify`、`git diff --check`；读端保留 1.0 回退（**过渡措施，P2 migrate 收尾时移除**） | 中 |
 | P1c 归档反转（已落地） | 原地翻转 + `archive` / `archive_history` 内联，停写 archive-manifest.json（专项核查：该文件无任何 gate/attestation/评估消费者；唯一定位点现为 `src/ralph/archive.mjs` archiveRun） | `src/ralph/archive.mjs`（archiveRun）、schema 1.1 `archive`/`archive_history`、`skills/jj-ralph/references/phases.md` 文案 | `jj-ralph-contract` 归档用例 | 中；证据语义变化独立成批，可单独回滚 |
 | P2 身份稳定化（已落地） | 稳定 task_key 目录 + **run_id 合一为 `task-<短语>`**（§3.2）+ init 建议复用 + `jj ralph adopt` + `ralph migrate` 存量迁移 + **移除 P1b 的 1.0 读端回退** | `src/namingConfig.mjs`（pattern 模板组）、`schemas/ralph-run.schema.json`（run_id 正则）、`src/ralph.mjs`（路径解析）、`skills/jj-same` 路径常量 5 处（含 `.state/` 深一层）、`skills/jj-review` **仅剩 run 定位路径**（四文件读取已在 P1b 修）、`ralph.mjs:178/233/348/431` 四处 run_id 硬阻断（§3.10 表 B5-B8）、`CAP-`/`HOF-`/`SNAP-` 前缀剥离正则 3 处（§3.10 表 B2-B4）、`tests/jj-dispatch-contract` fixture 3 处 | 上列全部 + dispatch 合约 + jj-same 交接用例 + **jj-review 新旧布局各定位一个 run 的用例** | 高；独立变更，最后做（§3.10 核查结论：same/review 必改、dispatch 零破坏） |
-| P2+ lite 档 | §3.8 任务分档：BRIEF→DELIVER→CLOSE 三 gate、budget 收紧、自动升 full 兜底；可与 P2 并行或紧随其后 | `src/ralph/` gates 模块（判档 + gate 合并）、skill SKILL.md 与 references 文案 | `jj-ralph-contract` 增 lite 档合约（判档 / 升档 / 收紧 budget） | 中；判档错误的兜底（升 full）必须先落地 |
+| P2+ lite 档（已落地） | §3.8 任务分档：BRIEF→DELIVER→CLOSE 三 gate、budget 收紧、自动升 full 兜底；可与 P2 并行或紧随其后。P2+a `--lite` + 别名 + 升 full（`7fcd43c`）先落地，P2+b 启发式**只建议**（无 flag 仍 full）+ skill 文案（`5cc314a`）紧随 | `src/ralph/` gates 模块（判档 + gate 合并）、skill SKILL.md 与 references 文案 | `jj-ralph-contract` 增 lite 档合约（判档 / 升档 / 收紧 budget） | 中；判档错误的兜底（升 full）必须先落地 |
 
 每阶段独立可交付、独立回滚；P1/P2 各自先出 exec plan 再实现。
 

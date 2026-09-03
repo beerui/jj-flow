@@ -63,6 +63,21 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - `map-merge` / finalize auto-write STAGNATION, strict, etc. into capability `lessons` (weak pheromone for map-find)
 - **ABANDONED** forbids `map-merge` / `archive` (resume first)
 
+## Gate set (full / lite)
+
+`run.gate_set` is a policy layer over the **same five ledger keys**: schema stays 1.2, `phase` stays the five values, `gates` stays `analyze/plan/deliver/accept/archive`. Orthogonal to intensity — `tiny` is “how short the plan is”, `lite` is “how many gates”; `tiny` never implies `lite`.
+
+| gate_set | Path | Budget | How chosen |
+| --- | --- | --- | --- |
+| `full` (default) | ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE | intensity default | no flag, `--full`, or user says 「完整走一遍 / 按流程走」 |
+| `lite` | BRIEF→DELIVER→CLOSE | `max_deliver_loops ≤ 3` (stagnation fingerprint still runs) | **explicit `init --lite` only**; user says 「小改 / 顺手修 / 改个 typo」 |
+
+- **Aliases (lite only)**: `gate --gate brief` writes `analyze`+`plan` and lands in DELIVER; `gate --gate close` writes `accept`+`archive` **through the same product-consistency evidence gate and judgment layer** (weak write-then-read evidence still blocks; strict still needs `accept_layers.judgment=PASS`; then `finalize` as usual). `deliver` is shared. progress keeps five-key gate lines tagged `via=brief|close`; `brief`/`close` are never `gates.*` keys. Aliases are refused on a full run.
+- **Same files**: one `task_plan.md` / `progress.md` / `findings.md` + `.state/`; only `## 分析` may shrink to one line. No second template tree.
+- **Promotion (tier was wrong)**: any lite gate FAIL/BLOCKED (`gate` or `rollback-phase`) or a new `scope.in` entry via `scope --in` → `gate_set=full`, `max_deliver_loops` back to the intensity default (never below iterations already used), progress `promoted lite→full reason=…`. Same `run_id`, same dir, no gate reset, no evidence lost; from here walk the five gates.
+- **Budget stop on lite** (`MAX_ITERATIONS` at 3): the `unblock` hint names the exit — `gate deliver FAIL` promotes to full and restores the intensity budget. Do not raise the lite cap by hand and do not open a new run.
+- **Init advisory (no flag)**: init prints `gate_set? lite …` (text) / returns `gate_set_suggestion` (`--json`, `ralph_ops`) when 改动面小 (≤ 2 concrete `--in` files, or small-change wording such as 小改 / 顺手 / typo / px) ∧ 无架构词 (重构 / 协议 / 鉴权 / 迁移 / schema / api …) ∧ 单一验收项. **Advisory only**: `run.json` keeps `gate_set=full`; anything uncertain reads full. Take it by re-running `init --lite --force` **before any gate**, and only when the user's own words also say small.
+
 ## MUST evidence (generic, anti false-green)
 
 Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
@@ -112,8 +127,8 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 - After accept PASS, prefer `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`).
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again.
-- Drop mid-flight: `abandon`; can `resume` later. `close` is deprecated.
-- Truly new requirement only → `init` a new RALPH.
+- Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated (`gate --gate close` is only the lite accept+archive alias).
+- Truly new requirement only → `init` a new run.
 
 ## Rollback
 
@@ -121,7 +136,7 @@ See [rollback.md](rollback.md). Adjacent phases only; ARCHIVE→ACCEPT is legal;
 
 ## gate
 
-- Prefer `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS`.
+- Prefer `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS` (lite run: `brief|deliver|close`, see § Gate set).
 - PASS advances phase by default; `--no-advance` only flips the gate.
 - `accept`/`archive` PASS run product-consistency:
   - `gates.deliver` must already be `PASS` or `N/A` (forbid code landed while ledger still on PLAN)

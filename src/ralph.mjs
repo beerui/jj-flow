@@ -95,6 +95,7 @@ export {
 export {
   FINDING_HINT,
   GATE_ALIASES,
+  GATE_SET_HEURISTIC,
   PHASE_ROLLBACK_EDGES,
   addGateIssue,
   applyHandoffState,
@@ -125,6 +126,7 @@ export {
   rollbackPhase,
   setAcceptLayer,
   setGate,
+  suggestGateSet,
   writeDispatchSnapshot,
   writeHandoffPackage,
   writeInstructionCorrection

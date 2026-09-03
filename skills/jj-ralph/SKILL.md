@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/tasks/<task_key>/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
+description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE (lite: BRIEF→DELIVER→CLOSE via explicit --lite, auto-promotes to full); artifacts under .workflow/ralph/tasks/<task_key>/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, lite, 小改, 顺手修, 完整走一遍, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
 ---
 
 # jj-ralph
@@ -33,8 +33,9 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
 2. **intensity** (user speech first): single-point / `tiny` → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
    - Optional intent lives in `task_plan.md` `## 目标` (initiator words). `tiny` skips it unless `--intent`. ANALYZE must answer intent open questions under `### 存疑事项`.
+   - **gate_set** (user speech first; orthogonal to intensity — `tiny` never implies `lite`): 「小改 / 顺手修 / 顺手改一下 / 改个 typo / 只动一行」 → `init --lite` (BRIEF→DELIVER→CLOSE, `max_deliver_loops ≤ 3`); 「完整走一遍 / 按流程走 / 要完整记录」 → `init --full`; nothing said → **full** (default). A no-flag init may print `gate_set? lite …` (改动面小 ∧ 无架构词 ∧ 单一验收项) — **advisory only**, `run.json` stays `full`; take it (`init --lite --force` before any gate) only when the user's own words also say small. Wrong tier is recoverable: any lite gate FAIL/BLOCKED or `scope --in` growth auto-promotes to full in the same task dir.
 3. `map-find`; for single-point work read [tiny-example.md](references/tiny-example.md) first.
-4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate).
+4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate). On `--lite`: `gate brief` (= analyze+plan) → `gate deliver` → `gate close` (= accept+archive, **same evidence gates and judgment layer**); aliases are refused on a full run.
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
    - After every DELIVER verify: `deliver-attempt`. If `improved=false` or `rollback-phase`, the CLI may print a soft hint to record the failure with `ralph_ops.mjs finding` (does **not** block the gate). Prefill 现象/原因 from progress `failed_must` / `over_claimed`; you still write 对策 + 适用范围.
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
@@ -52,6 +53,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 | --- | --- | --- |
 | 1 Locate | user speech + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
+| 2 gate_set | user speech (小改 / 顺手修 vs 完整走一遍); init `gate_set?` advisory is a hint only | `full` (default) \| `lite` on run — only via explicit `--lite` / `--full`; lite budget `max_deliver_loops ≤ 3`; `promoted lite→full` progress line if the tier was wrong |
 | 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows. Init/resume also inject up to 5 hot-memory one-liners from `~/.jj-flow/memory/<project_key>.md` into progress (`hot_memory:`); empty is valid |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
 | 5 finalize | accept PASS | in-place archive + map merge + hot-memory promote (`knowledge-contribution.json` degraded) |
@@ -65,6 +67,9 @@ map-find → init | resume
 → deliver-attempt → gate deliver PASS → gate accept PASS
 → finalize → completion report
 # strict only: accept-layer judgment PASS before gate accept
+# lite (user said 小改 / 顺手修): init --lite → gate brief PASS → edit files
+#   → deliver-attempt → gate deliver PASS → gate close PASS (accept+archive evidence gates) → finalize
+#   any FAIL/BLOCKED or scope --in growth → promoted lite→full, continue with the five gates
 # stop only at 🔴 CHECKPOINT or failure table
 ```
 
@@ -85,7 +90,8 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 | Verify FAIL under `max_iterations` | Stay DELIVER; rework; append progress | On ceiling: `intervention_needed.kind=MAX_ITERATIONS`; stop and report |
 | Uncommitted dirty would overwrite user edits | 🔴 stop; show status; ask how to proceed | Do not clobber; no silent stash/reset |
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
-| `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a `close` command |
+| `close` spoken | Map to `abandon` (drop) or `finalize` (archive). The lite alias `gate --gate close` is a ledger step (accept+archive), not a user command | Never invent a conversational `close` command |
+| lite gate FAIL/BLOCKED, `scope --in` grows, or lite budget hits `max_deliver_loops=3` | Ledger auto-promotes `lite→full` (progress `promoted lite→full`, intensity budget restored); on the budget stop use `gate deliver FAIL` or change approach, then continue with the five gates | Do not re-init a new run, force `brief`/`close` on a full run, or raise the lite cap by hand |
 | User changes approach / MUST / plan (mid-run or after archive) | Move `task_plan.md` `### 当前` → `### 已落地` or `### 已取代`; write new 当前; append `progress.md` (`failed_must` / `over_claimed` if a claim is retracted) | Do not wipe `task_plan.md` to only this loop ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).
@@ -102,10 +108,12 @@ Source of truth: `run.handoff` (not a second workflow).
 ## Scripts
 
 ```bash
-node <resolved>/ralph_ops.mjs init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--project KEY] [--knowledge-query Q] [--intent|--no-intent]
+node <resolved>/ralph_ops.mjs init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--lite|--full] [--in a,b] [--project KEY] [--knowledge-query Q] [--intent|--no-intent]
 node <resolved>/ralph_ops.mjs deliver-attempt --run-id task-x --improved true|false
 node <resolved>/ralph_ops.mjs accept-layer --run-id task-x --layer judgment --status PASS --mode review
 node <resolved>/ralph_ops.mjs gate --run-id task-x --gate accept --status PASS
+node <resolved>/ralph_ops.mjs gate --run-id task-x --gate brief|close --status PASS   # lite only: brief=analyze+plan, close=accept+archive
+node <resolved>/ralph_ops.mjs scope --run-id task-x --in src/extra.js               # new scope.in on lite → promoted lite→full
 node <resolved>/ralph_ops.mjs metrics --run-id task-x [--persist]
 node <resolved>/ralph_ops.mjs finalize --run-id task-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id task-x [--hook]
@@ -134,10 +142,11 @@ Details: [phases.md](references/phases.md), [rollback.md](references/rollback.md
 | Pause / block | `set-status PAUSED\|BLOCKED` |
 | Work after archive | Same run `resume` → edit → re-verify → may `finalize` again |
 | Drop mid-flight | `abandon` (no map; can `resume`) |
+| Tier was wrong (lite too small) | Automatic: any FAIL/BLOCKED or `scope --in` growth → `promoted lite→full`, same run, same dir; keep going with the five gates |
 | Truly new requirement | Only then `init` a new run |
 | Git closeout | `$jj-end` |
 
-`close` is deprecated → use `abandon` or `finalize`. Do not git-revert by default.
+Conversational `close` is deprecated → use `abandon` or `finalize` (`gate --gate close` is only the lite accept+archive alias). Do not git-revert by default.
 
 ### Knowledge contribute (L2)
 
@@ -184,10 +193,12 @@ User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a busi
 | 16 | Delete or empty tests while fixing a failed MUST / `NEEDS_CHANGES` | Add or strengthen tests; `tiny` presentational without those signals is exempt |
 | 17 | Invent metrics clocks or block ACCEPT because timestamps are missing | `jj ralph metrics` is derived; null stays null |
 | 18 | Open a 4th parallel stream when review cannot keep up | One person, 2–3 independent streams; `$jj-review` reports only |
+| 19 | Treat `tiny` as `lite`, or flip `gate_set` from the init `gate_set?` advisory / your own guess | `gate_set` changes only via explicit `--lite` / `--full`; no flag = full; the advisory is a hint the user's words must back |
+| 20 | Skip accept evidence on lite because `close` is “one step” | `close` = accept **and** archive through the same evidence gates; weak evidence still blocks; strict still needs judgment PASS |
 
 ## Completion report
 
-- `run_id` / phase / status / intensity
+- `run_id` / phase / status / intensity / gate_set (say so if `promoted lite→full` happened)
 - Acceptance outcome; if just archived, note same-run continue is still allowed
 - Handoff: `ready` + “hand off to …”
 - Blockers (including STAGNATION / MAX_ITERATIONS)
@@ -197,6 +208,8 @@ User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a busi
 ```text
 $jj-ralph 先改项目A：登录后密码过期提示
 $jj-ralph tiny：tip bottom 4px→6px
+$jj-ralph 顺手修一下：footer 版权年份改成 2026        # → init --lite
+$jj-ralph 完整走一遍：登录后密码过期提示               # → init --full
 $jj-ralph tip 应是 6px 不是 8px
 $jj-ralph close 也跟着下移
 $jj-ralph 这个先不做了，产品砍了
