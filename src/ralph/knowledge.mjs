@@ -50,6 +50,7 @@ import {
   SECTION_UNRESOLVED,
   TASK_PLAN_REL,
   appendProgressLine,
+  appendProgressRound,
   createEmptyAcceptLayers,
   createRunSkeleton,
   hydrateIntensityFields,
@@ -57,16 +58,19 @@ import {
   listRuns,
   loadRun,
   migrateHint,
+  moveRunToActive,
   nowIso,
   readJson,
   runDir,
+  runLayoutOf,
   runMachineFile,
   runStateDir,
   saveRun,
   setRunStatus,
   unique,
   validateReviewReport,
-  writeJson
+  writeJson,
+  writeRalphIndex
 } from './state.mjs';
 import {
   buildPlanComplianceFindings,
@@ -854,14 +858,22 @@ export function recordReview(runId, {
 
 /**
  * Resume same run_id to IN_PROGRESS (from COMPLETED / ABANDONED / PAUSED / BLOCKED / etc.).
- * Preferred path after soft archive or abandon; does not force a new run_id.
+ * If the run sits under completed/, rename it back to the ralph root first, then open a new progress round.
  */
 export function resumeRun(runId, { reason, cwd = process.cwd() } = {}) {
   if (!reason || typeof reason !== 'string' || !reason.trim()) {
     throw new Error('reason is required for resumeRun');
   }
+  const moved = runLayoutOf(runId, cwd) === 'completed' ? moveRunToActive(runId, cwd) : { moved: false };
   const result = setRunStatus(runId, { status: 'IN_PROGRESS', reason: reason.trim(), cwd });
+  appendProgressRound(runId, cwd, {
+    title: 'resume',
+    goal: reason.trim(),
+    result: '进行中',
+    findingHint: null
+  });
   const hotPack = collectHotMemoryHits(result.run, { cwd, query: reason.trim() });
   appendProgressLine(runId, cwd, formatHotMemoryProgressLine(hotPack.hits || []));
-  return { ...result, action: 'resume', hot_memory: hotPack };
+  writeRalphIndex(cwd);
+  return { ...result, action: 'resume', moved, hot_memory: hotPack };
 }

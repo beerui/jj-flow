@@ -38,6 +38,7 @@ import {
   readJson,
   runDir,
   runMachineFileFor,
+  runStateDir,
   runWorkspaceDir,
   assertWritableRun,
   saveRun,
@@ -107,7 +108,7 @@ export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [],
   if (!git.head) blocked_reasons.push('source_head_missing');
   const ready = blocked_reasons.length === 0;
   const handoff_id = run.handoff?.handoff_id || ('HOF-' + stripRunIdPrefix(run.run_id));
-  const relDir = path.join(RALPH_TASKS_DIR_REL, run.run_id, STATE_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const relDir = path.relative(cwd, runStateDir(run.run_id, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const portMode = mode || run.handoff?.mode || 'LITE';
   const updated_at = nowIso();
   run.family = family.enabled || targets.length ? family : (run.family || null);
@@ -1272,9 +1273,54 @@ function parseProgressEvents(progress) {
   return events;
 }
 
+function parseEventsJsonl(events) {
+  const out = [];
+  for (const item of Array.isArray(events) ? events : []) {
+    const at = item?.ts || item?.at || null;
+    const message = String(item?.message || item?.line || '');
+    if (item?.type === 'gate' || /\bgate\s+/.test(message)) {
+      const gate = message.match(/gate\s+(analyze|plan|deliver|accept|archive)=(PASS|FAIL|PENDING|N\/A|BLOCKED)/i)
+        || String(item?.gate || '').match(/^(analyze|plan|deliver|accept|archive)$/i);
+      const status = item?.status || (message.match(/=(PASS|FAIL|PENDING|N\/A|BLOCKED)/i) || [])[1];
+      if (gate && status) {
+        out.push({
+          kind: 'gate',
+          at,
+          gate: String(Array.isArray(gate) ? gate[1] : gate).toLowerCase(),
+          status: String(status).toUpperCase()
+        });
+      }
+      continue;
+    }
+    if (item?.type === 'deliver_attempt' || /deliver-attempt/.test(message)) {
+      const improved = item?.improved != null
+        ? Boolean(item.improved)
+        : /improved=true/i.test(message);
+      out.push({ kind: 'deliver-attempt', at, improved });
+      continue;
+    }
+    if (item?.type === 'review' || /\breview\s+REV-/.test(message)) {
+      const review = message.match(/review\s+(REV-\d+)\s+(PASS|NEEDS_CHANGES|BLOCKED)/i);
+      if (review) out.push({ kind: 'review', at, review_id: review[1], outcome: review[2] });
+    }
+  }
+  return out;
+}
+
 export function computeRunMetrics(run, cwd = process.cwd()) {
   const progress = readRunArtifactText(run, 'progress', cwd);
-  const events = parseProgressEvents(progress);
+  let events = parseProgressEvents(progress);
+  try {
+    // Prefer JSONL SSOT when present (Scheme A dual-track).
+    const eventsPath = path.join(runDir(run.run_id, cwd), STATE_REL, 'events.jsonl');
+    if (fs.existsSync(eventsPath)) {
+      const rows = fs.readFileSync(eventsPath, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => {
+        try { return JSON.parse(line); } catch { return null; }
+      }).filter(Boolean);
+      const fromJsonl = parseEventsJsonl(rows);
+      if (fromJsonl.length) events = fromJsonl;
+    }
+  } catch { /* keep markdown fallback */ }
   const first = (kind, extra) => events.find((item) => item.kind === kind && (!extra || extra(item)));
   const analyzePass = first('gate', (item) => item.gate === 'analyze' && item.status === 'PASS');
   const planPass = first('gate', (item) => item.gate === 'plan' && item.status === 'PASS');

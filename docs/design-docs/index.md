@@ -20,6 +20,7 @@
 | [任务分配 UX](task-assignment-ux.html) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.html) | Implemented |
 | [Ralph → 知识库贡献](ralph-knowledge-contribute.html) | Proposed（归档投喂全局 KB） |
+| [Ralph 工作区布局（方案 A）](ralph-workspace-layout.html) | Implemented（扁平 live + `completed/` + `events.jsonl` + `--prune-archive`；finding 软提示） |
 | [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.html) | Implemented（P0 热层 / P1 布局与归档 / P2 `task-*` 身份 / [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.html) 均已落地；schema 1.2） |
 | [Ralph 多轮任务内容预览](ralph-plans-workspace.preview.html) | Proposed（§3.2/§3.4 目标布局示例，非运行输出） |
 | [Ralph 工作区目录对齐 exec-plans 与 progress 双轨](ralph-workspace-layout.html) | Proposed（规划草案：`index.md` + `tasks/`≡active + `completed/` + `migrated/`；progress 人读轨 / `.state/events.log` 机器轨分离；Phase 0–2 待开 exec plan） |

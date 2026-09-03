@@ -8,12 +8,15 @@ import path from 'node:path';
 import { buildArchiveDirNameFromRunId, loadNamingConfig } from '../namingConfig.mjs';
 import {
   RALPHS_DIR_REL,
+  RALPH_COMPLETED_DIR_REL,
   RALPH_MAP_REL,
   appendProgressLine,
   loadRun,
+  moveRunToCompleted,
   nowIso,
   runDir,
-  saveRun
+  saveRun,
+  writeRalphIndex
 } from './state.mjs';
 import {
   applyHandoffState,
@@ -92,7 +95,7 @@ export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, for
   const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate: 'archive' });
   if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
   const sourceAbs = runDir(runId, cwd);
-  const liveRel = path.join(RALPHS_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  const liveRelBefore = path.relative(cwd, sourceAbs).split(path.sep).join('/');
   const archivedAt = nowIso();
   const git = readGitSourceFacts(cwd);
   const files = hashRunTree(sourceAbs);
@@ -106,7 +109,6 @@ export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, for
   run.status = 'COMPLETED';
   run.gates.archive = 'PASS';
   run.last_archived_at = archivedAt;
-  run.last_archive_path = liveRel;
   run.updated_at = archivedAt;
   run.archive = {
     archived_at: archivedAt,
@@ -118,11 +120,16 @@ export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, for
   appendProgressLine(
     runId,
     cwd,
-    '- ' + archivedAt + ' archive in-place path=' + liveRel
-      + ' status=COMPLETED (resumable) files=' + files.length
+    '- ' + archivedAt + ' archive status=COMPLETED (moving to completed/) files=' + files.length
       + ' history=' + (run.archive_history || []).length
+      + ' from=' + liveRelBefore
   );
+  const moved = moveRunToCompleted(runId, cwd);
+  const completedRel = path.join(RALPH_COMPLETED_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   const latest = loadRun(runId, cwd);
+  latest.last_archive_path = completedRel;
+  saveRun(latest, cwd);
+  writeRalphIndex(cwd);
   let hot_memory = { status: 'skipped', added: 0 };
   try {
     hot_memory = promoteHotMemoryFromRun(latest, { cwd });
@@ -138,13 +145,14 @@ export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, for
     appendProgressLine(runId, cwd, '- ' + nowIso() + ' hot_memory promote skipped: ' + hot_memory.reason);
   }
   return {
-    run: latest,
-    archive_path: liveRel,
+    run: loadRun(runId, cwd),
+    archive_path: completedRel,
+    moved,
     manifest: {
       schema_version: 'jj-flow/ralph-archive/1.1',
-      run_id: latest.run_id,
+      run_id: runId,
       archived_at: archivedAt,
-      archive_path: liveRel,
+      archive_path: completedRel,
       files,
       head: git.head || null,
       manifest_hash

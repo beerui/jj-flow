@@ -4,7 +4,7 @@
 
 | Identity | Owner | Example |
 | --- | --- | --- |
-| `task-*` run_id | **ralph** (business repo `.workflow/ralph/tasks/`) | `task-login-reminder` |
+| `task-*` run_id | **ralph** (business repo `.workflow/ralph/`) | `task-login-reminder` |
 | `CAP-*` | ralph business-map | `CAP-login-reminder` |
 | In-run `REQ-*` / `TASK-*` | ralph plan | `TASK-1` detects password_expired |
 | `DEL-*` delivery | **dispatch** (control project / control-plane) | `DEL-password` |

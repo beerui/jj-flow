@@ -7,10 +7,14 @@ import {
   PROGRESS_REL,
   RALPH_ROOT_REL,
   RALPH_RUN_SCHEMA_VERSION,
+  RALPH_TASKS_DIR_REL,
   STATE_REL,
   TASK_PLAN_REL,
+  archiveDir,
   isTaskRunId,
+  legacyTasksDir,
   listRuns,
+  migratedDir,
   nowIso,
   ralphRoot,
   readJson,
@@ -18,7 +22,8 @@ import {
   runJsonPath,
   runStateDir,
   stripRunIdPrefix,
-  writeJson
+  writeJson,
+  writeRalphIndex
 } from './state.mjs';
 import { defaultFindingsStub } from '../memoryHotLayer.mjs';
 
@@ -157,7 +162,7 @@ export function migrateOneRun(legacyId, { cwd = process.cwd(), taken = new Set()
   run.artifact_refs.findings = FINDINGS_REL;
   if (run.artifact_refs.intent) run.artifact_refs.intent = TASK_PLAN_REL;
   inlineArchiveManifest(run, srcDir);
-  run.last_archive_path = path.join(RALPH_ROOT_REL, 'tasks', destId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  run.last_archive_path = path.join(RALPH_ROOT_REL, destId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
   run.updated_at = nowIso();
   writeJson(runJsonPath(destId, cwd), run);
 
@@ -184,7 +189,7 @@ export function migrateOneRun(legacyId, { cwd = process.cwd(), taken = new Set()
   if (fs.existsSync(handoffFile)) fs.copyFileSync(handoffFile, path.join(stateDir, 'handoff.json'));
   else if (fs.existsSync(handoffFlat)) fs.copyFileSync(handoffFlat, path.join(stateDir, 'handoff.json'));
   if (run.handoff) {
-    run.handoff.path = path.join(RALPH_ROOT_REL, 'tasks', destId, STATE_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+    run.handoff.path = path.join(RALPH_ROOT_REL, destId, STATE_REL).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
     if (run.artifact_refs) {
       run.artifact_refs.handoff_ref = path.join(run.handoff.path, 'handoff.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));
     }
@@ -201,29 +206,116 @@ export function migrateOneRun(legacyId, { cwd = process.cwd(), taken = new Set()
     if (fs.existsSync(victim)) fs.rmSync(victim, { force: true });
   }
 
-  const migratedName = '.migrated-' + legacyId;
-  const migratedAbs = path.join(ralphRoot(cwd), migratedName);
+  const migratedAbs = path.join(migratedDir(cwd), legacyId);
+  fs.mkdirSync(path.dirname(migratedAbs), { recursive: true });
+  if (fs.existsSync(migratedAbs)) fs.rmSync(migratedAbs, { recursive: true, force: true });
   fs.renameSync(srcDir, migratedAbs);
   taken.add(destId);
   return {
     from: legacyId,
     to: destId,
-    path: path.join(RALPH_ROOT_REL, 'tasks', destId).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
-    migrated: path.join(RALPH_ROOT_REL, migratedName).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+    path: path.join(RALPH_ROOT_REL, destId).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+    migrated: path.join(RALPH_ROOT_REL, 'migrated', legacyId).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
   };
 }
 
-export function migrateRuns({ cwd = process.cwd(), all_projects = false } = {}) {
+export function liftLegacyTasksLayout(cwd = process.cwd()) {
+  const legacyRoot = legacyTasksDir(cwd);
+  const lifted = [];
+  if (!fs.existsSync(legacyRoot)) return { lifted };
+  for (const entry of fs.readdirSync(legacyRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !isTaskRunId(entry.name)) continue;
+    const from = path.join(legacyRoot, entry.name);
+    const to = path.join(ralphRoot(cwd), entry.name);
+    if (fs.existsSync(to)) {
+      throw new Error('cannot lift ' + entry.name + ': already exists at ralph root');
+    }
+    fs.renameSync(from, to);
+    lifted.push({
+      from: path.join(RALPH_TASKS_DIR_REL, entry.name).replaceAll('\\', '/'),
+      to: path.join(RALPH_ROOT_REL, entry.name).replaceAll('\\', '/')
+    });
+  }
+  try {
+    if (fs.existsSync(legacyRoot) && fs.readdirSync(legacyRoot).length === 0) fs.rmdirSync(legacyRoot);
+  } catch { /* keep empty tasks/ if busy */ }
+  return { lifted };
+}
+
+export function shelterDotMigrated(cwd = process.cwd()) {
+  const root = ralphRoot(cwd);
+  const moved = [];
+  if (!fs.existsSync(root)) return { moved };
+  fs.mkdirSync(migratedDir(cwd), { recursive: true });
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory() || !entry.name.startsWith('.migrated-')) continue;
+    const bare = entry.name.slice('.migrated-'.length) || entry.name;
+    const from = path.join(root, entry.name);
+    const to = path.join(migratedDir(cwd), bare);
+    if (fs.existsSync(to)) fs.rmSync(to, { recursive: true, force: true });
+    fs.renameSync(from, to);
+    moved.push({
+      from: path.join(RALPH_ROOT_REL, entry.name).replaceAll('\\', '/'),
+      to: path.join(RALPH_ROOT_REL, 'migrated', bare).replaceAll('\\', '/')
+    });
+  }
+  return { moved };
+}
+
+/**
+ * Remove 1.0 archive/ snapshot dirs. Default dry-run; require confirm=true (CLI --yes) to delete.
+ */
+export function pruneArchive({ cwd = process.cwd(), confirm = false } = {}) {
+  const root = archiveDir(cwd);
+  const entries = [];
+  if (fs.existsSync(root)) {
+    for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      entries.push(path.join(RALPH_ROOT_REL, 'archive', entry.name).replaceAll('\\', '/'));
+    }
+  }
+  if (!confirm) {
+    return {
+      ok: true,
+      action: 'prune-archive',
+      dry_run: true,
+      count: entries.length,
+      paths: entries,
+      note: 'pass --yes to delete; jj-review may still want one old+one new sample'
+    };
+  }
+  for (const rel of entries) {
+    fs.rmSync(path.join(cwd, rel), { recursive: true, force: true });
+  }
+  if (fs.existsSync(root) && fs.readdirSync(root).length === 0) {
+    try { fs.rmdirSync(root); } catch { /* ignore */ }
+  }
+  return { ok: true, action: 'prune-archive', dry_run: false, count: entries.length, paths: entries };
+}
+
+export function migrateRuns({ cwd = process.cwd(), all_projects = false, prune_archive = false, yes = false } = {}) {
   if (all_projects) {
     throw new Error('--all-projects walks ~/.jj-flow map; not implemented in this slice — run migrate per repo cwd');
   }
+  const lift = liftLegacyTasksLayout(cwd);
+  const shelter = shelterDotMigrated(cwd);
   const pending = listRuns(cwd).filter((row) => row.needs_migrate);
   const taken = new Set(listRuns(cwd).filter((row) => !row.needs_migrate).map((row) => row.run_id));
   const results = [];
   for (const row of pending) {
     results.push(migrateOneRun(row.run_id, { cwd, taken }));
   }
-  return { ok: true, action: 'migrate', count: results.length, runs: results };
+  const prune = prune_archive ? pruneArchive({ cwd, confirm: yes }) : null;
+  writeRalphIndex(cwd);
+  return {
+    ok: true,
+    action: 'migrate',
+    count: results.length,
+    runs: results,
+    lifted: lift.lifted,
+    sheltered: shelter.moved,
+    prune_archive: prune
+  };
 }
 
 export function adoptRun({ cwd = process.cwd(), task, from = null, absorb = null } = {}) {
@@ -255,7 +347,7 @@ export function adoptRun({ cwd = process.cwd(), task, from = null, absorb = null
     return { ok: true, action: 'adopt', ...migrateOneRun(sourceId, { cwd, taken, taskId: task }) };
   }
   if (fs.existsSync(runJsonPath(task, cwd)) || fs.existsSync(runDir(task, cwd))) {
-    return { ok: true, action: 'adopt', to: task, path: path.join(RALPH_ROOT_REL, 'tasks', task).replaceAll('\\', '/'), note: 'already on canonical task dir' };
+    return { ok: true, action: 'adopt', to: task, path: path.join(RALPH_ROOT_REL, task).replaceAll('\\', '/'), note: 'already on canonical task dir' };
   }
   throw new Error('adopt could not find a legacy run to bind; pass --from RALPH-…');
 }

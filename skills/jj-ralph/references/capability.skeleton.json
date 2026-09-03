@@ -5,7 +5,7 @@
   "summary": "One-line capability summary",
   "reqs": ["REQ-001"],
   "modules": ["src/path/to/file.vue"],
-  "acceptance": [".workflow/ralph/tasks/task-example/task_plan.md"],
+  "acceptance": [".workflow/ralph/task-example/task_plan.md"],
   "run_refs": ["task-example"],
   "depends_on": [],
   "keywords": ["example", "keyword"],

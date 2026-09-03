@@ -16,7 +16,7 @@ allowed-tools:
 用户输入：$ARGUMENTS
 
 当前业务仓 Ralph 闭环：ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE。  
-产物：`.workflow/ralph/tasks/<task_key>/`、`business-map.json`。
+产物：`.workflow/ralph/task-<slug>/`、`business-map.json`。
 权威 skill：`skills/jj-ralph/`（`ralph_ops.mjs` / `jj ralph`）。
 
 ## 执行要点

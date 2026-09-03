@@ -32,9 +32,9 @@ test('ralph init auto-writes knowledge_refs into run.json', () => {
     assert.deepEqual(errors, []);
     const loaded = loadRun(run.run_id, cwd);
     assert.ok(Array.isArray(loaded.knowledge_refs));
-    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph/tasks', run.run_id, 'task_plan.md'), 'utf8');
+    const analyze = fs.readFileSync(path.join(cwd, '.workflow/ralph', run.run_id, 'task_plan.md'), 'utf8');
     assert.match(analyze, /knowledge_refs/);
-    const attachPath = path.join(cwd, '.workflow/ralph/tasks', run.run_id, 'knowledge-attach.json');
+    const attachPath = path.join(cwd, '.workflow/ralph', run.run_id, 'knowledge-attach.json');
     assert.equal(fs.existsSync(attachPath), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
