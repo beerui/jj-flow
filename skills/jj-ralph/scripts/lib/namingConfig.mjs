@@ -35,14 +35,14 @@ export const DEFAULT_NAMING_CONFIG = {
     run_id_regex: '^task-[a-z0-9][a-z0-9-]{1,80}$',
     slug_style: 'kebab-case',
     slug_regex: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
-    task_dir_pattern: 'tasks/{task_key}',
+    task_dir_pattern: '{task_key}',
     archive_dir_pattern: '{YYYY-MM-DD}-{slug}',
     archive_dir_regex: '^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$',
     completed_dirname: 'completed',
     layout: {
       root: '.workflow/ralph',
-      active_run: '.workflow/ralph/tasks/{task_key}',
-      completed_run: '.workflow/ralph/tasks/{task_key}',
+      active_run: '.workflow/ralph/{task_key}',
+      completed_run: '.workflow/ralph/completed/{task_key}',
       archive: '.workflow/ralph/archive/{YYYY-MM-DD}-{slug}',
       business_map: '.workflow/ralph/business-map.json',
       meta_archive_bucket: '.workflow/ralph/archive/_meta'

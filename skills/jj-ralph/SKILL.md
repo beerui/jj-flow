@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE (lite: BRIEF→DELIVER→CLOSE via explicit --lite, auto-promotes to full); artifacts under .workflow/ralph/tasks/<task_key>/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, lite, 小改, 顺手修, 完整走一遍, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
+description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE (lite: BRIEF→DELIVER→CLOSE via explicit --lite, auto-promotes to full); artifacts under .workflow/ralph/<task_key>/ + business-map; handoff in run.handoff. Same requirement → same run_id (resume after archive; abandon mid-flight recoverable). Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, abandon, archive, tiny, strict, lite, 小改, 顺手修, 完整走一遍, 投喂知识库. Cross-repo → jj-same; multi-project → jj-dispatch. Mechanical: ralph_ops.mjs."
 ---
 
 # jj-ralph

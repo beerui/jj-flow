@@ -66,7 +66,9 @@ import {
   createRunSkeleton,
   promoteGateSetToFull,
   suggestGateSet,
-  updateRunScope
+  updateRunScope,
+  appendProgressRound,
+  pruneArchive
 } from '../src/ralph.mjs';
 import * as ralphApi from '../src/ralph.mjs';
 
@@ -74,10 +76,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'ACCEPT_LAYER_STATUSES',
+  'EVENTS_JSONL_REL',
+  'FINDINGS_REL',
   'FINDING_HINT',
   'FINDING_IMPORTANCE',
   'FINDING_PASSES',
-  'FINDINGS_REL',
   'GATE_ALIASES',
   'GATE_ISSUE_CLASSES',
   'GATE_SETS',
@@ -85,6 +88,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'HANDOFF_ROOT_REL',
   'HOST_IDS',
   'HOST_REVIEW_METHODS',
+  'INDEX_MD_REL',
   'INSTRUCTION_CORRECTION_REL',
   'INTENSITY_DEFAULTS',
   'JUDGMENT_MODES',
@@ -94,11 +98,13 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'PROGRESS_REL',
   'RALPHS_DIR_REL',
   'RALPH_ARCHIVE_DIR_REL',
+  'RALPH_COMPLETED_DIR_REL',
   'RALPH_HANDOFF_SCHEMA_VERSION',
   'RALPH_INTENSITIES',
   'RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA',
   'RALPH_MAP_REL',
   'RALPH_MAP_SCHEMA_VERSION',
+  'RALPH_MIGRATED_DIR_REL',
   'RALPH_REVIEW_SCHEMA_VERSION',
   'RALPH_ROOT_REL',
   'RALPH_RUN_SCHEMA_VERSION',
@@ -110,7 +116,6 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'REVIEW_SCOPES',
   'REVIEW_SOURCES',
   'RUN_STATUSES',
-  'STATE_REL',
   'SECTION_ACCEPT',
   'SECTION_ANALYZE',
   'SECTION_CURRENT',
@@ -123,10 +128,14 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'SECTION_PLAN',
   'SECTION_SUPERSEDED',
   'SECTION_UNRESOLVED',
+  'STATE_REL',
   'TASK_PLAN_REL',
   'abandonRun',
-  'adoptRun',
   'addGateIssue',
+  'adoptRun',
+  'appendEvent',
+  'appendProgressLine',
+  'appendProgressRound',
   'applyHandoffState',
   'applyLiteBudget',
   'archiveDir',
@@ -173,11 +182,12 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'isTaskRunId',
   'isTestPath',
   'knowledgeContribute',
+  'liftLegacyTasksLayout',
   'listRuns',
-  'locateRalphRuns',
   'loadMap',
   'loadNamingConfig',
   'loadRun',
+  'locateRalphRuns',
   'mapFind',
   'mapMergeFromRun',
   'mapPath',
@@ -185,6 +195,8 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'migrateHint',
   'migrateOneRun',
   'migrateRuns',
+  'moveRunToActive',
+  'moveRunToCompleted',
   'normalizeGateSet',
   'normalizeHostMeta',
   'normalizeHostReview',
@@ -196,9 +208,11 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'promoteHotMemoryFromRun',
   'promotionProgressLine',
   'proposeTaskIdFromLegacy',
+  'pruneArchive',
   'pruneProjectHotMemory',
   'ralphRoot',
   'ralphsDir',
+  'readEvents',
   'readJson',
   'readRunArtifactText',
   'recordDeliverAttempt',
@@ -219,9 +233,10 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'setAcceptLayer',
   'setGate',
   'setRunStatus',
-  'suggestReopenAsNew',
+  'shelterDotMigrated',
   'stripRunIdPrefix',
   'suggestGateSet',
+  'suggestReopenAsNew',
   'tokenize',
   'updateRunScope',
   'validateMap',
@@ -231,7 +246,8 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'writeHandoffPackage',
   'writeInstructionCorrection',
   'writeJson',
-  'writeKnowledgeContribution'
+  'writeKnowledgeContribution',
+  'writeRalphIndex'
 ]);
 
 test('P1b façade export set includes layout constants', () => {
@@ -426,12 +442,12 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(skill, /[Mm]aestro/);
 
   const command = read('claude-commands/jj-ralph.md');
-  assert.match(command, /\.workflow\/ralph\/tasks/);
+  assert.match(command, /\.workflow\/ralph\/(?:tasks\/)?(?:task-|<task)/);
   assert.match(command, /map-find/);
   assert.doesNotMatch(command, /[Mm]aestro/);
 
   const layout = read('skills/jj-ralph/references/artifact-layout.md');
-  assert.match(layout, /\.workflow\/ralph\/tasks/);
+  assert.match(layout, /\.workflow\/ralph\/(?:tasks\/)?(?:task-|<task)/);
   assert.doesNotMatch(layout, /ralph\/ralphs\//);
   assert.doesNotMatch(layout, /ralphs\/RALPH/);
   assert.doesNotMatch(layout, /ralph\/runs\//);
@@ -459,7 +475,7 @@ test('initRun writes Chinese task_plan.md sections and schema 1.2 task-* layout'
     assert.equal(run.artifact_refs.acceptance, TASK_PLAN_REL);
     assert.equal(run.artifact_refs.findings, 'findings.md');
     assert.equal(run.gate_set, 'full');
-    const dir = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const dir = path.join(cwd, '.workflow', 'ralph', runId);
     const plan = fs.readFileSync(path.join(dir, TASK_PLAN_REL), 'utf8');
     assert.match(plan, /^## 目标$/m);
     assert.match(plan, /^## 分析$/m);
@@ -497,7 +513,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
       },
       cwd
     );
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.phase = 'ACCEPT';
     run.gates = {
@@ -531,7 +547,7 @@ test('map-merge then map-find recovers historical capability and run paths', () 
     assert.ok(byTitle.length >= 1);
     assert.equal(byTitle[0].id, 'CAP-login-reminder');
     assert.ok(byTitle[0].run_refs.includes(runId));
-    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`.workflow/ralph/tasks/${runId}/.state/run.json`)));
+    assert.ok(byTitle[0].discover_paths.some((p) => p.includes(`.workflow/ralph/${runId}/.state/run.json`)));
 
     const byKeyword = mapFind('password_expired 登录', { cwd });
     assert.ok(byKeyword.matches.some((item) => item.id === 'CAP-login-reminder'));
@@ -576,7 +592,7 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
       0
     );
 
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     run.gates.analyze = 'PASS';
@@ -594,20 +610,21 @@ test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-
     assert.equal(runCli(['ralph', 'map-find', '--query', '演示', '--json'], { cwd, stdout }), 0);
 
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'business-map.json')));
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'archive')));
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
-    const liveAfterArchive = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
+    const completedRunPath = path.join(cwd, '.workflow', 'ralph', 'completed', runId, '.state', 'run.json');
+    assert.ok(fs.existsSync(completedRunPath));
+    const liveAfterArchive = JSON.parse(fs.readFileSync(completedRunPath, 'utf8'));
     assert.equal(liveAfterArchive.status, 'COMPLETED');
-    assert.equal(liveAfterArchive.last_archive_path, '.workflow/ralph/tasks/' + runId);
+    assert.equal(liveAfterArchive.last_archive_path, '.workflow/ralph/completed/' + runId);
     assert.ok(liveAfterArchive.archive && Array.isArray(liveAfterArchive.archive.files));
-    const handoffJson = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'handoff.json');
+    const handoffJson = path.join(cwd, '.workflow', 'ralph', 'completed', runId, '.state', 'handoff.json');
     assert.ok(fs.existsSync(handoffJson));
     const handoffPkg = JSON.parse(fs.readFileSync(handoffJson, 'utf8'));
     assert.equal(handoffPkg.schema_version, 'jj-flow/ralph-handoff/1.1');
     assert.equal(typeof handoffPkg.ready, 'boolean');
     assert.ok(Array.isArray(handoffPkg.must));
-    const runAfterHandoff = JSON.parse(fs.readFileSync(runPath, 'utf8'));
-    assert.match(runAfterHandoff.artifact_refs.handoff_ref, /tasks\/task-demo\/\.state\/handoff\.json$/);
+    const runAfterHandoff = JSON.parse(fs.readFileSync(completedRunPath, 'utf8'));
+    assert.match(runAfterHandoff.artifact_refs.handoff_ref, /(?:completed\/)?task-demo\/\.state\/handoff\.json$/);
     assert.ok(
       fs.existsSync(
         path.join(cwd, '.workflow', 'dispatch', 'recommendations', `SNAP-demo`, 'snapshot.json')
@@ -636,8 +653,8 @@ test('review-record associates task/review threads on ralph run', () => {
     assert.equal(payload.report.outcome, 'PASS');
     assert.equal(payload.report.task_thread_id, '019f8c85-8c32-72c3-b62b-ee9f0753a9e7');
     assert.equal(payload.report.review_thread_id, '019f8cb8-14e9-79b3-bf40-30ba6c89ef2c');
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'reviews', 'REV-1.json')));
-    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'reviews', 'REV-1.json')));
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.review.latest_review_id, 'REV-1');
     assert.equal(run.artifact_refs.latest_review_ref, 'reviews/REV-1.json');
     assert.deepEqual(validateRun(run), []);
@@ -675,12 +692,12 @@ test('review-record persists source and host_review provenance', () => {
     assert.equal(payload.report.host_review.method, 'skill');
     assert.equal(payload.report.host_review.entry, 'review');
     assert.deepEqual(payload.report.host_review.artifact_paths, ['tmp/host-review.md']);
-    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'reviews', 'REV-1.json'), 'utf8'));
+    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'reviews', 'REV-1.json'), 'utf8'));
     assert.equal(disk.source, 'host_builtin');
     assert.equal(disk.host_review.entry, 'review');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.match(progress, /source=host_builtin/);
-    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
+    const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.review.reviews[0].source, 'host_builtin');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -714,7 +731,7 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     assert.equal(init.ok, true);
     assert.match(String(init.resolved).replaceAll('\\', '/'), /src\/ralph\.mjs$/);
 
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     assert.equal(run.project_key, 'ops-hot-proj');
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
@@ -738,8 +755,8 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
     assert.equal(finalized.action, 'finalize');
     assert.equal(finalized.capability_id, 'CAP-ops');
     assert.equal(finalized.status, 'COMPLETED');
-    assert.equal(finalized.archive_path, '.workflow/ralph/tasks/' + runId);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
+    assert.equal(finalized.archive_path, '.workflow/ralph/completed/' + runId);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
 
     const found = runNode(['map-find', '--query', 'thin-wrap']);
     assert.ok(found.matches.some((item) => item.id === 'CAP-ops'));
@@ -749,8 +766,8 @@ test('skill ralph_ops.mjs thin-wrap resolves src/ralph and supports finalize + m
 
     const handoff = runNode(['handoff', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, handoff.path, 'handoff.json')));
-    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/tasks\/task-.*\/\.state$/);
-    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/tasks\/task-.*\/\.state$/);
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/(?:completed\/)?task-.*\/\.state$/);
+    assert.match(handoff.path.replaceAll('\\', '/'), /\.workflow\/ralph\/(?:completed\/)?task-.*\/\.state$/);
     const snap = runNode(['dispatch-snapshot', '--run-id', runId]);
     assert.ok(fs.existsSync(path.join(cwd, snap.path)));
     const prep = runNode(['commit-prep', '--run-id', runId]);
@@ -816,7 +833,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
     assert.equal(init.ok, true);
     assert.match(String(init.resolved).replaceAll('\\', '/'), /scripts\/lib\/ralph\.mjs$/);
 
-    const runPath = path.join(businessCwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(businessCwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     fs.writeFileSync(runPath, `${JSON.stringify(run, null, 2)}\n`);
@@ -862,9 +879,10 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-arch-'));
   try {
     const runId = 'task-freeze';
-    const liveRel = '.workflow/ralph/tasks/' + runId;
+    const liveRel = '.workflow/ralph/' + runId;
+    const completedRel = '.workflow/ralph/completed/' + runId;
     initRun({ run_id: runId, title: 'freeze', goal: 'archive completed copy', capability_ids: ['CAP-freeze'] }, cwd);
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates = { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' };
     saveRun(run, cwd);
@@ -873,10 +891,10 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
     const leftoverFile = path.join(leftoverDir, 'marker.txt');
     fs.writeFileSync(leftoverFile, 'historical-snapshot\n');
     const result = archiveRun(runId, { cwd, slug: 'ignored-slug' });
-    assert.equal(result.archive_path, liveRel);
+    assert.equal(result.archive_path, completedRel);
     assert.equal(result.manifest.schema_version, 'jj-flow/ralph-archive/1.1');
-    assert.equal(result.manifest.archive_path, liveRel);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
+    assert.equal(result.manifest.archive_path, completedRel);
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
     const archivedRun = JSON.parse(fs.readFileSync(path.join(cwd, result.archive_path, '.state', 'run.json'), 'utf8'));
     assert.equal(archivedRun.status, 'COMPLETED');
     assert.equal(archivedRun.phase, 'ARCHIVE');
@@ -889,22 +907,23 @@ test('archive soft-completes in place with inline ledger; leftover archive/ snap
     const active = loadRun(runId, cwd);
     assert.equal(active.status, 'COMPLETED');
     assert.ok(active.last_archived_at);
-    assert.equal(active.last_archive_path, liveRel);
+    assert.equal(active.last_archive_path, completedRel);
     assert.equal(fs.readFileSync(leftoverFile, 'utf8'), 'historical-snapshot\n');
     // Soft archive is not a freeze: same run can resume and re-archive in place.
     resumeRun(runId, { reason: 'more work after archive', cwd });
     assert.equal(loadRun(runId, cwd).status, 'IN_PROGRESS');
+    assert.ok(fs.existsSync(path.join(cwd, liveRel, '.state', 'run.json')));
     const re = archiveRun(runId, { cwd });
-    assert.equal(re.archive_path, liveRel);
+    assert.equal(re.archive_path, completedRel);
     assert.equal(re.archive_path, result.archive_path);
     assert.ok(fs.existsSync(path.join(cwd, re.archive_path, '.state', 'run.json')));
     const reloaded = loadRun(runId, cwd);
     assert.equal(reloaded.status, 'COMPLETED');
-    assert.equal(reloaded.last_archive_path, liveRel);
+    assert.equal(reloaded.last_archive_path, completedRel);
     assert.equal(reloaded.archive_history.length, 1);
     assert.equal(reloaded.archive_history[0].archived_at, result.run.archive.archived_at);
     assert.equal(reloaded.archive_history[0].manifest_hash, result.run.archive.manifest_hash);
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
     assert.equal(fs.readFileSync(leftoverFile, 'utf8'), 'historical-snapshot\n');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -919,7 +938,7 @@ test('map-merge requires accept PASS unless force', () => {
     assert.throws(() => mapMergeFromRun(runId, {}, cwd), /accept=PASS/);
     const forced = mapMergeFromRun(runId, { force: true, modules: ['src/x.js'] }, cwd);
     assert.equal(forced.capability.id, 'CAP-guard');
-    const runPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json');
+    const runPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json');
     const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
     run.gates.accept = 'PASS';
     saveRun(run, cwd);
@@ -970,7 +989,7 @@ test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE
     assert.equal(run.phase, 'DELIVER');
     assert.equal(run.gates.deliver, 'FAIL');
     assert.equal(run.gates.accept, 'PENDING');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.match(progress, /rollbackPhase ACCEPT→DELIVER/);
 
     assert.throws(
@@ -1045,7 +1064,7 @@ test('setGate FAIL covers prior PASS without forging COMPLETED reopen', () => {
     const failed = setGate(runId, { gate: 'plan', status: 'FAIL', cwd, advance: false });
     assert.equal(failed.run.gates.plan, 'FAIL');
     assert.equal(failed.phase, 'DELIVER');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.match(progress, /gate plan=FAIL/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -1066,12 +1085,12 @@ test('cli gate and ops finalize path stay de-duplicated', () => {
     chunks.length = 0;
     assert.equal(runCli(['ralph', 'finalize', '--run-id', runId, '--modules', 'src/cli-gate.js', '--keywords', 'gate', '--json'], { cwd, stdout }), 0);
     const payload = JSON.parse(chunks[chunks.length - 1]);
-    assert.equal(payload.archive_path, '.workflow/ralph/tasks/task-cli-gate');
+    assert.equal(payload.archive_path, '.workflow/ralph/completed/task-cli-gate');
     assert.equal(payload.run.status, 'COMPLETED');
     const archived = JSON.parse(fs.readFileSync(path.join(cwd, payload.archive_path, '.state', 'run.json'), 'utf8'));
     assert.equal(archived.status, 'COMPLETED');
     assert.ok(archived.archive && Array.isArray(archived.archive.files));
-    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'archive-manifest.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'archive-manifest.json')));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -1103,7 +1122,7 @@ test('accept/archive PASS blocked by NEEDS_CHANGES review and path drift', () =>
   try {
     const runId = 'task-consistency';
     initRun({ run_id: runId, title: 'consistency', goal: 'block false complete', capability_ids: ['CAP-consistency'] }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
     const bt = String.fromCharCode(96);
     fs.writeFileSync(
       path.join(runDirPath, TASK_PLAN_REL),
@@ -1201,7 +1220,7 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
-    const acceptancePath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, TASK_PLAN_REL);
+    const acceptancePath = path.join(cwd, '.workflow', 'ralph', runId, TASK_PLAN_REL);
     fs.writeFileSync(acceptancePath, [
       '## 验收',
       '',
@@ -1247,7 +1266,7 @@ test('archive blocks working_tree PASS review without fix commit (v2)', () => {
   try {
     const runId = 'task-review-scope';
     initRun({ run_id: runId, title: 'scope', goal: 'working tree review cannot archive', capability_ids: ['CAP-scope'], attach_knowledge: false }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
@@ -1290,7 +1309,7 @@ test('accept blocked when deliver pending despite progress DELIVER (v4)', () => 
   try {
     const runId = 'task-deliver-drift';
     initRun({ run_id: runId, title: 'drift', goal: 'deliver outside ledger', capability_ids: ['CAP-drift'], attach_knowledge: false }, cwd);
-    const runDirPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const runDirPath = path.join(cwd, '.workflow', 'ralph', runId);
     setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
     setGate(runId, { gate: 'plan', status: 'PASS', cwd });
     fs.appendFileSync(path.join(runDirPath, 'progress.md'), '- 2026-07-29 DELIVER: changed account.vue\n', 'utf8');
@@ -1335,7 +1354,7 @@ test('host-record and init host metadata persist on run', () => {
       attach_knowledge: false,
       host: { host_id: 'grok-build', thread_id: 'thread-1', model_id: 'grok-x' }
     }, cwd);
-    let run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
+    let run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.host.host_id, 'grok-build');
     assert.equal(run.host.thread_id, 'thread-1');
     const updated = recordHostMeta(runId, { export_path: '.workflow/exports/thread-1.jsonl', session_handle: 'sess-9' }, cwd);
@@ -1343,7 +1362,7 @@ test('host-record and init host metadata persist on run', () => {
     assert.equal(updated.host.session_handle, 'sess-9');
     const stdout = { write: () => {} };
     assert.equal(runCli(['ralph', 'host-record', '--run-id', runId, '--host-id', 'codex', '--thread-id', '019f', '--json'], { cwd, stdout }), 0);
-    run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, '.state', 'run.json'), 'utf8'));
+    run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.host.host_id, 'codex');
     assert.equal(run.host.thread_id, '019f');
     assert.equal(resolveReviewScope({ reviewed_commit: 'abcdef1' }), 'commit');
@@ -1692,7 +1711,7 @@ test('finalize skips knowledge-contribution.json (P1b degraded; durable lessons 
     assert.equal(result.elevation.durable_lessons.length, 1);
     assert.ok(result.capability.lessons.includes('tip bottom uses 6px not 8px'));
     assert.equal(
-      fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'knowledge-contribution.json')),
+      fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, 'knowledge-contribution.json')),
       false
     );
 
@@ -1803,7 +1822,7 @@ test('init writes intent into task_plan.md except tiny; 存疑事项 is present'
   try {
     const standardId = 'task-intent-std';
     initRun({ run_id: standardId, title: 'intent std', goal: 'write intent', attach_knowledge: false }, cwd);
-    const stdDir = path.join(cwd, '.workflow', 'ralph', 'tasks', standardId);
+    const stdDir = path.join(cwd, '.workflow', 'ralph', standardId);
     assert.equal(loadRun(standardId, cwd).artifact_refs.intent, TASK_PLAN_REL);
     assert.equal(fs.existsSync(path.join(stdDir, 'intent.md')), false);
     const stdPlan = fs.readFileSync(path.join(stdDir, TASK_PLAN_REL), 'utf8');
@@ -1813,8 +1832,8 @@ test('init writes intent into task_plan.md except tiny; 存疑事项 is present'
     const tinyId = 'task-intent-tiny';
     initRun({ run_id: tinyId, title: 'intent tiny', goal: 'skip intent', intensity: 'tiny', attach_knowledge: false }, cwd);
     assert.equal(loadRun(tinyId, cwd).artifact_refs.intent, null);
-    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', tinyId, 'intent.md')), false);
-    const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', tinyId, TASK_PLAN_REL), 'utf8');
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', tinyId, 'intent.md')), false);
+    const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', tinyId, TASK_PLAN_REL), 'utf8');
     assert.match(tinyPlan, /^## 目标$/m);
     assert.doesNotMatch(tinyPlan, /### 待答问题/);
 
@@ -1868,7 +1887,7 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use 当前 only
   try {
     const runId = 'task-current-paths';
     initRun({ run_id: runId, title: 'current paths', goal: 'current only', attach_knowledge: false }, cwd);
-    const dir = path.join(cwd, '.workflow', 'ralph', 'tasks', runId);
+    const dir = path.join(cwd, '.workflow', 'ralph', runId);
     const planOnly = [
       '## 计划',
       '### 当前',
@@ -1904,7 +1923,7 @@ test('second unchanged deliver-attempt writes instruction-correction', () => {
     recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
     const second = recordDeliverAttempt(runId, { cwd, improved: false, signal: 'same-tool' });
     assert.equal(second.blocked, true);
-    const correction = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, INSTRUCTION_CORRECTION_REL);
+    const correction = path.join(cwd, '.workflow', 'ralph', runId, INSTRUCTION_CORRECTION_REL);
     assert.ok(fs.existsSync(correction));
     assert.match(fs.readFileSync(correction, 'utf8'), /Proposed rule/);
   } finally {
@@ -1918,7 +1937,7 @@ test('bugfix cannot delete tests; tiny presentational does not trip', () => {
     const runId = 'task-testint';
     initRun({ run_id: runId, title: 'test integrity', goal: 'protect tests', attach_knowledge: false }, cwd);
     fs.appendFileSync(
-      path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'),
+      path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'),
       '- 2026-08-31T00:00:00.000Z failed_must REQ-1\n',
       'utf8'
     );
@@ -2157,7 +2176,7 @@ test('locateRalphRuns finds new layout and leftover archive each once', () => {
     const sample = JSON.parse(fs.readFileSync(path.join(root, 'examples/ralph/sample-run.json'), 'utf8'));
     fs.writeFileSync(path.join(leftoverDir, 'run.json'), JSON.stringify(sample, null, 2));
     const located = locateRalphRuns(cwd);
-    const fresh = located.filter((row) => row.run_id === 'task-login-reminder' && row.layout === 'task');
+    const fresh = located.filter((row) => row.run_id === 'task-login-reminder' && (row.layout === 'task' || row.layout === 'active' || row.layout === 'live'));
     const archived = located.filter((row) => row.layout === 'archive' && row.readonly);
     assert.equal(fresh.length, 1);
     assert.equal(archived.length, 1);
@@ -2172,7 +2191,7 @@ test('locateRalphRuns finds new layout and leftover archive each once', () => {
     const status = getStatus({ runId: leftover.run_id, cwd });
     assert.match(String(status.path || '').replaceAll('\\', '/'), /archive\//);
     assert.throws(() => writeHandoffPackage(leftover.run_id, { cwd }), /read-only archive/);
-    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', leftover.run_id)), false);
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', leftover.run_id)), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2188,17 +2207,17 @@ test('ralph migrate 1:1 moves RALPH-* into tasks/task-* and leaves archive lefto
     const result = migrateRuns({ cwd });
     assert.equal(result.count, 1);
     assert.equal(result.runs[0].to, 'task-login-reminder');
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', '.state', 'run.json')));
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', 'task_plan.md')));
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', '.migrated-RALPH-login-reminder-20260722')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'task-login-reminder', '.state', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'task-login-reminder', 'task_plan.md')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'migrated', 'RALPH-login-reminder-20260722')) || fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'migrated', 'login-reminder-20260722')));
     assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'RALPH-login-reminder-20260722')), false);
     const live = loadRun('task-login-reminder', cwd);
     assert.equal(live.schema_version, RALPH_RUN_SCHEMA_VERSION);
-    assert.match(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-login-reminder', 'task_plan.md'), 'utf8'), /## 分析/);
+    assert.match(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'task-login-reminder', 'task_plan.md'), 'utf8'), /## 分析/);
     assert.equal(fs.readFileSync(path.join(leftoverDir, 'marker.txt'), 'utf8'), 'keep-me\n');
     const listed = listRuns(cwd);
     assert.equal(listed.some((row) => row.needs_migrate), false);
-    assert.equal(listed.some((row) => String(row.run_id).startsWith('.migrated-')), false);
+    assert.equal(listed.some((row) => String(row.run_id).startsWith('.migrated-') || String(row.path || '').includes('/migrated/')), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2220,7 +2239,7 @@ test('init same task_key resumes; adopt --absorb is refused', () => {
     const adopted = adoptRun({ cwd, task: 'task-enter-form-legacy', from: 'RALPH-enter-form-20260901' });
     assert.equal(adopted.ok, true);
     assert.equal(adopted.to, 'task-enter-form-legacy');
-    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-enter-form-legacy', '.state', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'task-enter-form-legacy', '.state', 'run.json')));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2230,7 +2249,7 @@ test('adopt --task refuses to clobber a live dest; leftover archive status is re
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-adopt-guard-'));
   try {
     initRun({ run_id: 'task-enter-form-dynamic', title: 'form', goal: 'schema', attach_knowledge: false }, cwd);
-    const livePath = path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-enter-form-dynamic', '.state', 'run.json');
+    const livePath = path.join(cwd, '.workflow', 'ralph', 'task-enter-form-dynamic', '.state', 'run.json');
     const before = fs.readFileSync(livePath, 'utf8');
     writeLegacyActive(cwd, 'RALPH-enter-form-20260901', { title: 'legacy form' });
     const clobber = adoptRun({ cwd, task: 'task-enter-form-dynamic', from: 'RALPH-enter-form-20260901' });
@@ -2280,7 +2299,7 @@ test('P2+a init --lite sets gate_set=lite and caps max_deliver_loops; default an
     assert.equal(lite.max_iterations, INTENSITY_DEFAULTS.standard.max_iterations);
     assert.equal(lite.stagnation.patience, INTENSITY_DEFAULTS.standard.stagnation_patience);
     assert.deepEqual(validateRun(loadRun('task-lite-std', cwd)), []);
-    const liteDir = path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-lite-std');
+    const liteDir = path.join(cwd, '.workflow', 'ralph', 'task-lite-std');
     const progress = fs.readFileSync(path.join(liteDir, 'progress.md'), 'utf8');
     assert.match(progress, /gate_set: lite/);
     // same layout, same task_plan template (analyze section may be one line, no new tree)
@@ -2323,7 +2342,7 @@ test('P2+a init --lite sets gate_set=lite and caps max_deliver_loops; default an
       () => runCli(['ralph', 'init', '--run-id', 'task-both-cli', '--title', 'cli', '--goal', 'both', '--no-knowledge-refs', '--lite', '--full'], { cwd, stdout }),
       /--lite or --full, not both/
     );
-    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-both-cli')), false);
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'task-both-cli')), false);
     chunks.length = 0;
     assert.equal(runCli(['ralph', 'status', '--run-id', 'task-lite-cli'], { cwd, stdout }), 0);
     assert.match(chunks.join(''), /gate_set: lite/);
@@ -2353,7 +2372,7 @@ test('P2+a setGate brief PASS writes analyze+plan PASS and lands in DELIVER; ali
     assert.equal(Object.hasOwn(run.gates, 'brief'), false);
     assert.equal(Object.hasOwn(run.gates, 'close'), false);
     // progress keeps five-key gate lines (metrics parser) tagged with the alias
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.match(progress, /gate analyze=PASS phase=DELIVER status=IN_PROGRESS via=brief/);
     assert.match(progress, /gate plan=PASS phase=DELIVER status=IN_PROGRESS via=brief/);
     assert.doesNotMatch(progress, /gate brief=/);
@@ -2397,7 +2416,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     assert.throws(() => setGate(runId, { gate: 'close', status: 'PASS', cwd }), /requires gates\.deliver=PASS/);
     setGate(runId, { gate: 'brief', status: 'PASS', cwd });
     setGate(runId, { gate: 'deliver', status: 'PASS', cwd });
-    const planPath = path.join(cwd, '.workflow', 'ralph', 'tasks', runId, TASK_PLAN_REL);
+    const planPath = path.join(cwd, '.workflow', 'ralph', runId, TASK_PLAN_REL);
 
     fs.writeFileSync(planPath, liteAcceptanceTable('static'), 'utf8');
     assert.throws(() => setGate(runId, { gate: 'close', status: 'PASS', cwd }), /evidence_class over-claim/);
@@ -2407,7 +2426,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     assert.equal(run.phase, 'ACCEPT');
     assert.equal(run.status, 'IN_PROGRESS');
     assert.equal(run.gate_set, 'lite');
-    const progressWeak = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progressWeak = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.doesNotMatch(progressWeak, /gate accept=PASS/);
     assert.doesNotMatch(progressWeak, /promoted lite→full/);
 
@@ -2424,13 +2443,13 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     assert.equal(run.status, 'COMPLETED');
     assert.equal(run.gate_set, 'lite');
     assert.deepEqual(validateRun(run), []);
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'progress.md'), 'utf8');
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
     assert.match(progress, /gate accept=PASS phase=ARCHIVE status=COMPLETED via=close/);
     assert.match(progress, /gate archive=PASS phase=ARCHIVE status=COMPLETED via=close/);
 
     // existing finalize still applies on top (in-place ledger, no copy)
     const finalized = withoutLocalPortfolio(() => finalizeRun(runId, { cwd, modules: ['src/lite.js'], keywords: ['lite'] }));
-    assert.equal(finalized.archive_path, '.workflow/ralph/tasks/' + runId);
+    assert.equal(finalized.archive_path, '.workflow/ralph/completed/' + runId);
     assert.equal(finalized.run.status, 'COMPLETED');
     assert.ok(Array.isArray(finalized.run.archive.files) && finalized.run.archive.files.length > 0);
 
@@ -2439,7 +2458,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     initRun({ run_id: strictId, title: 'strict lite', goal: 'judgment still required', attach_knowledge: false, gate_set: 'lite', intensity: 'strict' }, cwd);
     setGate(strictId, { gate: 'brief', status: 'PASS', cwd });
     setGate(strictId, { gate: 'deliver', status: 'PASS', cwd });
-    fs.writeFileSync(path.join(cwd, '.workflow', 'ralph', 'tasks', strictId, TASK_PLAN_REL), liteAcceptanceTable('write_then_read:mock_ok'), 'utf8');
+    fs.writeFileSync(path.join(cwd, '.workflow', 'ralph', strictId, TASK_PLAN_REL), liteAcceptanceTable('write_then_read:mock_ok'), 'utf8');
     assert.throws(() => setGate(strictId, { gate: 'close', status: 'PASS', cwd }), /accept judgment layer blocked PASS/);
     assert.equal(loadRun(strictId, cwd).gates.accept, 'PENDING');
   } finally {
@@ -2450,7 +2469,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
 test('P2+a lite FAIL/BLOCKED or scope.in growth promotes to full in place (same run_id, dir, evidence)', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-lite-promote-'));
   try {
-    const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', 'tasks', id);
+    const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', id);
     const progressOf = (id) => fs.readFileSync(path.join(dirOf(id), 'progress.md'), 'utf8');
 
     // (a) gate FAIL on lite → full; budget restored to intensity default; BRIEF evidence kept
@@ -2724,7 +2743,7 @@ test('P2+b suggestGateSet reads title/goal/scope/capability_ids only; lite needs
 test('P2+b init without --lite/--full stays full; heuristic only advises (returned object + progress), never the ledger', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-lite-hint-'));
   try {
-    const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', 'tasks', id);
+    const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', id);
     const progressOf = (id) => fs.readFileSync(path.join(dirOf(id), 'progress.md'), 'utf8');
     const diskOf = (id) => JSON.parse(fs.readFileSync(path.join(dirOf(id), '.state', 'run.json'), 'utf8'));
 
@@ -2826,6 +2845,59 @@ test('P2+b init without --lite/--full stays full; heuristic only advises (return
     const opsFull = runNode(['init', '--run-id', 'task-hint-ops-full', '--title', 'tip 位置', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--full', '--project', 'ops-hint-proj']);
     assert.equal(opsFull.gate_set, 'full');
     assert.equal(opsFull.gate_set_suggestion, null);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('Scheme A: events.jsonl is machine SSOT; progress rounds append; abandon parks under completed/', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-scheme-a-'));
+  try {
+    const runId = 'task-scheme-a-events';
+    initRun({ run_id: runId, title: 'scheme a', goal: 'jsonl + completed', capability_ids: ['CAP-a'], attach_knowledge: false }, cwd);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', runId)));
+
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    const eventsPath = path.join(cwd, '.workflow', 'ralph', runId, '.state', 'events.jsonl');
+    assert.ok(fs.existsSync(eventsPath));
+    const rows = fs.readFileSync(eventsPath, 'utf8').trim().split(/\n/).map((line) => JSON.parse(line));
+    assert.ok(rows.some((row) => row.type === 'gate' || /gate/i.test(row.message || row.line || '')));
+
+    appendProgressRound(runId, cwd, { title: '用户纠正', goal: '第二轮', result: '进行中' });
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /## 轮次 \d+/);
+    assert.match(progress, /用户纠正/);
+
+    const abandoned = abandonRun(runId, { reason: 'park incomplete work', cwd });
+    assert.equal(abandoned.status, 'ABANDONED');
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'completed', runId, '.state', 'run.json')));
+    assert.ok(!fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'index.md')));
+    const index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.match(index, /completed|已完成/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('migrate --prune-archive dry-run by default; --yes deletes 1.0 archive/ snapshots', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-prune-'));
+  try {
+    const snap = path.join(cwd, '.workflow', 'ralph', 'archive', '2026-01-01-old');
+    fs.mkdirSync(snap, { recursive: true });
+    fs.writeFileSync(path.join(snap, 'marker.txt'), 'keep-until-yes\n');
+    const dry = pruneArchive({ cwd, confirm: false });
+    assert.equal(dry.dry_run, true);
+    assert.equal(dry.count, 1);
+    assert.ok(fs.existsSync(path.join(snap, 'marker.txt')));
+    const viaMigrate = migrateRuns({ cwd, prune_archive: true, yes: false });
+    assert.equal(viaMigrate.prune_archive.dry_run, true);
+    assert.ok(fs.existsSync(path.join(snap, 'marker.txt')));
+    const deleted = migrateRuns({ cwd, prune_archive: true, yes: true });
+    assert.equal(deleted.prune_archive.dry_run, false);
+    assert.equal(deleted.prune_archive.count, 1);
+    assert.ok(!fs.existsSync(snap));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

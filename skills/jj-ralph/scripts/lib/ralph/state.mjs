@@ -39,11 +39,19 @@ export const RALPH_KNOWLEDGE_CONTRIBUTION_SCHEMA = 'jj-flow/ralph-knowledge-cont
 export const RALPH_REVIEW_SCHEMA_VERSION = 'jj-flow/ralph-review/1.0';
 export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
 export const STATE_REL = '.state';
+export const EVENTS_JSONL_REL = path.join(STATE_REL, 'events.jsonl');
+export const INDEX_MD_REL = path.join(RALPH_ROOT_REL, 'index.md');
+/** @deprecated P2 nested live dir; Scheme A lifts live runs to ralph root. Kept for migrate lift. */
 export const RALPH_TASKS_DIR_REL = path.join(RALPH_ROOT_REL, 'tasks');
-// Live runs: .workflow/ralph/tasks/<task_key>/. Reserved siblings: business-map.json, archive/, .migrated-*
-export const RALPHS_DIR_REL = RALPH_TASKS_DIR_REL;
+export const RALPH_COMPLETED_DIR_REL = path.join(RALPH_ROOT_REL, 'completed');
+export const RALPH_MIGRATED_DIR_REL = path.join(RALPH_ROOT_REL, 'migrated');
+// Scheme A: live runs sit flat at .workflow/ralph/<task_key>/. Reserved siblings: business-map.json, completed/, migrated/, archive/, tasks/ (legacy), index.md
+export const RALPHS_DIR_REL = RALPH_ROOT_REL;
 export const RALPH_ARCHIVE_DIR_REL = path.join(RALPH_ROOT_REL, 'archive');
 export const RALPH_MAP_REL = path.join(RALPH_ROOT_REL, 'business-map.json');
+export const RALPH_ROOT_RESERVED = Object.freeze([
+  'archive', 'completed', 'migrated', 'tasks', 'index.md', 'business-map.json'
+]);
 export const RALPH_HANDOFF_SCHEMA_VERSION = 'jj-flow/ralph-handoff/1.1';
 /** @deprecated external handoffs dir; new handoffs live under the run */
 export const HANDOFF_ROOT_REL = path.join('.workflow', 'handoffs');
@@ -200,11 +208,37 @@ export function migrateHint(runId) {
 
 export function ralphRoot(cwd = process.cwd()) { return path.join(cwd, RALPH_ROOT_REL); }
 export function ralphsDir(cwd = process.cwd()) { return path.join(cwd, RALPHS_DIR_REL); }
+export function completedDir(cwd = process.cwd()) { return path.join(cwd, RALPH_COMPLETED_DIR_REL); }
+export function migratedDir(cwd = process.cwd()) { return path.join(cwd, RALPH_MIGRATED_DIR_REL); }
+export function legacyTasksDir(cwd = process.cwd()) { return path.join(cwd, RALPH_TASKS_DIR_REL); }
 export function archiveDir(cwd = process.cwd()) { return path.join(cwd, RALPH_ARCHIVE_DIR_REL); }
 export function mapPath(cwd = process.cwd()) { return path.join(cwd, RALPH_MAP_REL); }
-export function runDir(runId, cwd = process.cwd()) { return path.join(ralphsDir(cwd), runId); }
+export function indexMdPath(cwd = process.cwd()) { return path.join(cwd, INDEX_MD_REL); }
+export function activeRunDir(runId, cwd = process.cwd()) { return path.join(ralphRoot(cwd), runId); }
+export function completedRunDir(runId, cwd = process.cwd()) { return path.join(completedDir(cwd), runId); }
+function runJsonUnder(dir) { return path.join(dir, STATE_REL, 'run.json'); }
+/** Resolve live (root) → completed/ → legacy tasks/ → default live path for create. */
+export function runDir(runId, cwd = process.cwd()) {
+  const live = activeRunDir(runId, cwd);
+  if (fs.existsSync(runJsonUnder(live))) return live;
+  const done = completedRunDir(runId, cwd);
+  if (fs.existsSync(runJsonUnder(done))) return done;
+  const legacy = path.join(legacyTasksDir(cwd), runId);
+  if (fs.existsSync(runJsonUnder(legacy))) return legacy;
+  return live;
+}
+export function runLayoutOf(runId, cwd = process.cwd()) {
+  const abs = runDir(runId, cwd);
+  const root = ralphRoot(cwd);
+  const rel = path.relative(root, abs).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+  if (rel === runId) return 'active';
+  if (rel === path.join('completed', runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47))) return 'completed';
+  if (rel === path.join('tasks', runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47))) return 'legacy-tasks';
+  return 'other';
+}
 export function runStateDir(runId, cwd = process.cwd()) { return path.join(runDir(runId, cwd), STATE_REL); }
 export function runJsonPath(runId, cwd = process.cwd()) { return path.join(runStateDir(runId, cwd), 'run.json'); }
+export function eventsJsonlPath(runId, cwd = process.cwd()) { return path.join(runDir(runId, cwd), EVENTS_JSONL_REL); }
 export function legacyActiveRunJsonPath(runId, cwd = process.cwd()) {
   return path.join(ralphRoot(cwd), runId, 'run.json');
 }
@@ -611,30 +645,57 @@ function summarizeRunFile(filePath, fallbackId, extra = {}) {
   }
 }
 
+function pushTaskRow(rows, absDir, runId, layout, relPath) {
+  rows.push(summarizeRunFile(path.join(absDir, STATE_REL, 'run.json'), runId, {
+    layout,
+    path: relPath.replaceAll(String.fromCharCode(92), String.fromCharCode(47))
+  }));
+}
+
 export function listRuns(cwd = process.cwd()) {
   const rows = [];
-  const tasksRoot = ralphsDir(cwd);
-  if (fs.existsSync(tasksRoot)) {
-    for (const entry of fs.readdirSync(tasksRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory() || !isTaskRunId(entry.name)) continue;
-      rows.push(summarizeRunFile(path.join(tasksRoot, entry.name, STATE_REL, 'run.json'), entry.name, {
-        layout: 'task',
-        path: path.join(RALPH_TASKS_DIR_REL, entry.name).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
-      }));
-    }
-  }
   const root = ralphRoot(cwd);
   if (fs.existsSync(root)) {
     for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
       if (entry.name.startsWith('.migrated-')) continue;
-      if (entry.name === 'archive' || entry.name === 'tasks' || entry.name === 'completed') continue;
+      if (RALPH_ROOT_RESERVED.includes(entry.name)) continue;
+      if (isTaskRunId(entry.name)) {
+        pushTaskRow(rows, path.join(root, entry.name), entry.name, 'active', path.join(RALPH_ROOT_REL, entry.name));
+        continue;
+      }
       if (!entry.name.startsWith('RALPH-')) continue;
       rows.push(summarizeRunFile(path.join(root, entry.name, 'run.json'), entry.name, {
         layout: 'legacy-active',
         needs_migrate: true,
         path: path.join(RALPH_ROOT_REL, entry.name).replaceAll(String.fromCharCode(92), String.fromCharCode(47))
       }));
+    }
+  }
+  const completedRoot = completedDir(cwd);
+  if (fs.existsSync(completedRoot)) {
+    for (const entry of fs.readdirSync(completedRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !isTaskRunId(entry.name)) continue;
+      pushTaskRow(
+        rows,
+        path.join(completedRoot, entry.name),
+        entry.name,
+        'completed',
+        path.join(RALPH_COMPLETED_DIR_REL, entry.name)
+      );
+    }
+  }
+  const legacyRoot = legacyTasksDir(cwd);
+  if (fs.existsSync(legacyRoot)) {
+    for (const entry of fs.readdirSync(legacyRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !isTaskRunId(entry.name)) continue;
+      pushTaskRow(
+        rows,
+        path.join(legacyRoot, entry.name),
+        entry.name,
+        'legacy-tasks',
+        path.join(RALPH_TASKS_DIR_REL, entry.name)
+      );
     }
   }
   return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
@@ -741,13 +802,15 @@ export function setRunStatus(runId, { status, reason, cwd = process.cwd() } = {}
   return { run, from, status, reason: reason.trim() };
 }
 
-/** Mark half-done discarded work as ABANDONED (soft; resumeRun can recover). */
+/** Soft-close half-done work as ABANDONED, then park under completed/ (same as COMPLETED). */
 export function abandonRun(runId, { reason, cwd = process.cwd() } = {}) {
   if (!reason || typeof reason !== 'string' || !reason.trim()) {
     throw new Error('reason is required for abandonRun');
   }
   const result = setRunStatus(runId, { status: 'ABANDONED', reason: reason.trim(), cwd });
-  return { ...result, action: 'abandon' };
+  const moved = moveRunToCompleted(runId, cwd);
+  writeRalphIndex(cwd);
+  return { ...result, action: 'abandon', moved };
 }
 
 /**
@@ -769,12 +832,174 @@ export function suggestReopenAsNew(oldRun, { newRunId } = {}) {
   };
 }
 
+/** Append one JSONL machine event under .state/events.jsonl (append-only). */
+export function appendEvent(runId, cwd, event) {
+  const filePath = eventsJsonlPath(runId, cwd);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const payload = {
+    ts: event?.ts || nowIso(),
+    type: event?.type || 'note',
+    ...(event && typeof event === 'object' ? event : {})
+  };
+  if (!payload.ts) payload.ts = nowIso();
+  if (!payload.type) payload.type = 'note';
+  fs.appendFileSync(filePath, JSON.stringify(payload) + '\n', 'utf8');
+  return payload;
+}
+
+function inferEventFromProgressLine(line) {
+  const text = String(line || '').replace(/^\s*-\s*/, '').trim();
+  const tsMatch = text.match(/^(\d{4}-\d{2}-\d{2}T[^\s]+)\s+(.*)$/);
+  const ts = tsMatch ? tsMatch[1] : nowIso();
+  const rest = tsMatch ? tsMatch[2] : text;
+  let type = 'note';
+  if (/^gate\b/i.test(rest) || /\bgate\s+\w+=/.test(rest)) type = 'gate';
+  else if (/^promoted\b/i.test(rest)) type = 'promoted';
+  else if (/^scope\b/i.test(rest)) type = 'scope';
+  else if (/^archive\b/i.test(rest)) type = 'archive';
+  else if (/^finding\b/i.test(rest)) type = 'finding';
+  else if (/^rollbackPhase\b/i.test(rest)) type = 'rollback';
+  else if (/^setRunStatus\b/i.test(rest) || /^status\b/i.test(rest)) type = 'status';
+  else if (/deliver-attempt|deliver_attempt/i.test(rest)) type = 'deliver_attempt';
+  else if (/instruction-correction|instruction_correction/i.test(rest)) type = 'instruction_correction';
+  else if (/hot_memory|hot-memory/i.test(rest)) type = 'hot_memory';
+  else if (/^init\b/i.test(rest)) type = 'init';
+  else if (/^resume\b/i.test(rest)) type = 'resume';
+  return { ts, type, message: rest, line: String(line || '').trim() };
+}
+
+/**
+ * Machine-track writer. Prefer appendEvent for structured fields.
+ * Still mirrors a markdown bullet into progress.md so older contracts/readers keep working
+ * until call sites move to narrative appendProgressRound; events.jsonl is the SSOT for parsers.
+ */
 export function appendProgressLine(runId, cwd, line) {
   const nl = '\n';
+  const event = inferEventFromProgressLine(line);
+  appendEvent(runId, cwd, event);
   const progressPath = path.join(runDir(runId, cwd), 'progress.md');
   const text = String(line || '').endsWith(nl) ? String(line) : String(line) + nl;
   if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, text, 'utf8');
-  else fs.writeFileSync(progressPath, '# Progress' + nl + nl + text, 'utf8');
+  else {
+    fs.writeFileSync(
+      progressPath,
+      '# Progress' + nl + nl
+        + '> 人读轨：按「## 轮次 N」追加。机器事件见 .state/events.jsonl。' + nl + nl
+        + '## 轮次 1 · ' + nowIso().slice(0, 10) + ' · init' + nl + nl
+        + text,
+      'utf8'
+    );
+  }
+}
+
+/** Human-track only: append a new round section (never rewrites prior rounds). */
+export function appendProgressRound(runId, cwd, { title, goal, result = null, findingHint = null } = {}) {
+  const progressPath = path.join(runDir(runId, cwd), 'progress.md');
+  const nl = '\n';
+  let next = 1;
+  if (fs.existsSync(progressPath)) {
+    const cur = fs.readFileSync(progressPath, 'utf8');
+    const matches = cur.match(/^## 轮次\s+(\d+)/gm) || [];
+    for (const m of matches) {
+      const n = Number(m.replace(/\D+/g, ''));
+      if (Number.isInteger(n) && n >= next) next = n + 1;
+    }
+  }
+  const at = nowIso();
+  const block = [
+    '',
+    '## 轮次 ' + next + ' · ' + at.slice(0, 10) + ' · ' + (title || 'resume'),
+    '',
+    '### 本轮目标',
+    '',
+    '- ' + (goal || title || '(未填写)'),
+    '',
+    '### 本轮结果',
+    '',
+    '- ' + (result || '进行中'),
+    findingHint ? ('', '> finding 软提示：' + findingHint, '') : '',
+    ''
+  ].flat().join(nl);
+  if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, block, 'utf8');
+  else fs.writeFileSync(progressPath, '# Progress' + nl + block, 'utf8');
+  appendEvent(runId, cwd, { ts: at, type: 'round', round: next, title: title || 'resume', goal: goal || null });
+  return { round: next, path: progressPath };
+}
+
+export function readEvents(runId, cwd = process.cwd()) {
+  const filePath = eventsJsonlPath(runId, cwd);
+  if (!fs.existsSync(filePath)) return [];
+  return fs.readFileSync(filePath, 'utf8').split(/\r?\n/).filter(Boolean).map((line) => {
+    try { return JSON.parse(line); } catch { return { ts: null, type: 'parse_error', line }; }
+  });
+}
+
+export function moveRunToCompleted(runId, cwd = process.cwd()) {
+  const from = runDir(runId, cwd);
+  const to = completedRunDir(runId, cwd);
+  if (path.resolve(from) === path.resolve(to)) return { moved: false, path: to };
+  if (!fs.existsSync(from)) throw new Error('run dir not found: ' + runId);
+  if (fs.existsSync(to)) throw new Error('completed run already exists: ' + runId);
+  fs.mkdirSync(path.dirname(to), { recursive: true });
+  fs.renameSync(from, to);
+  return { moved: true, from, path: to };
+}
+
+export function moveRunToActive(runId, cwd = process.cwd()) {
+  const from = runDir(runId, cwd);
+  const to = activeRunDir(runId, cwd);
+  if (path.resolve(from) === path.resolve(to)) return { moved: false, path: to };
+  if (!fs.existsSync(from)) throw new Error('run dir not found: ' + runId);
+  if (fs.existsSync(to)) throw new Error('active run already exists: ' + runId);
+  fs.mkdirSync(path.dirname(to), { recursive: true });
+  fs.renameSync(from, to);
+  return { moved: true, from, path: to };
+}
+
+export function writeRalphIndex(cwd = process.cwd()) {
+  const rows = listRuns(cwd);
+  const active = rows.filter((r) => r.layout === 'active' || r.layout === 'legacy-tasks');
+  const completed = rows.filter((r) => r.layout === 'completed');
+  const legacy = rows.filter((r) => r.needs_migrate);
+  let migratedCount = 0;
+  const mig = migratedDir(cwd);
+  if (fs.existsSync(mig)) {
+    migratedCount = fs.readdirSync(mig, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
+  }
+  let archiveCount = 0;
+  const arch = archiveDir(cwd);
+  if (fs.existsSync(arch)) {
+    archiveCount = fs.readdirSync(arch, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
+  }
+  const nl = '\n';
+  const line = (row) => '| `' + row.run_id + '` | ' + (row.status || '?') + ' | ' + (row.phase || '?') + ' | ' + (row.title || '') + ' |';
+  const md = [
+    '# Ralph 工作区索引',
+    '',
+    '> CLI 派生视图；以各 run 的 `.state/run.json` 为准。',
+    '',
+    '## 活跃（根目录 `task-*`）',
+    '',
+    '| 任务 | 状态 | 阶段 | 标题 |',
+    '| --- | --- | --- | --- |',
+    ...(active.length ? active.map(line) : ['| （无） | | | |']),
+    '',
+    '## 已完成（`completed/`，含 ABANDONED）',
+    '',
+    '| 任务 | 状态 | 阶段 | 标题 |',
+    '| --- | --- | --- | --- |',
+    ...(completed.length ? completed.map(line) : ['| （无） | | | |']),
+    '',
+    '## 指针',
+    '',
+    '- 待迁移 RALPH-*：' + legacy.length,
+    '- migrated/ 残骸目录：' + migratedCount,
+    '- archive/ 1.0 快照目录：' + archiveCount + '（`jj ralph migrate --prune-archive` 可清理）',
+    ''
+  ].join(nl);
+  fs.mkdirSync(ralphRoot(cwd), { recursive: true });
+  fs.writeFileSync(indexMdPath(cwd), md, 'utf8');
+  return { path: indexMdPath(cwd), active: active.length, completed: completed.length, migrated: migratedCount, archive: archiveCount };
 }
 
 /** Legacy runs without gate_set behave as full. */

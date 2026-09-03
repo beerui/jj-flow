@@ -15,6 +15,10 @@ export {
   RALPHS_DIR_REL,
   RALPH_ARCHIVE_DIR_REL,
   RALPH_TASKS_DIR_REL,
+  RALPH_COMPLETED_DIR_REL,
+  RALPH_MIGRATED_DIR_REL,
+  EVENTS_JSONL_REL,
+  INDEX_MD_REL,
   STATE_REL,
   RALPH_HANDOFF_SCHEMA_VERSION,
   RALPH_INTENSITIES,
@@ -56,6 +60,13 @@ export {
   REVIEW_SOURCES,
   RUN_STATUSES,
   abandonRun,
+  appendEvent,
+  appendProgressLine,
+  appendProgressRound,
+  moveRunToCompleted,
+  moveRunToActive,
+  readEvents,
+  writeRalphIndex,
   applyLiteBudget,
   archiveDir,
   buildBudgetForIntensity,
@@ -167,4 +178,4 @@ export {
 } from './ralph/archive.mjs';
 
 export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';
-export { adoptRun, migrateOneRun, migrateRuns, proposeTaskIdFromLegacy } from './ralph/migrate.mjs';
+export { adoptRun, migrateOneRun, migrateRuns, proposeTaskIdFromLegacy, pruneArchive, liftLegacyTasksLayout, shelterDotMigrated } from './ralph/migrate.mjs';
