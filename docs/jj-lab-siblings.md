@@ -67,6 +67,19 @@ $env:JJ_LAB_ROOTS_FILE = Join-Path (Get-Location) "lab-roots.json"
 
 CI（ubuntu `verify` 与 windows-latest `lab:check`）在跑套件前用 `.github/actions/prepare-lab-roots` clone `beerui/jj-lab-loop` / `beerui/jj-lab-family` 到不落在 `$HOME` 下的绝对路径，seed，再注入 `JJ_LAB_*_ROOT` + `JJ_FLOW_ROOT`。默认 `$RUNNER_TEMP`；GitHub-hosted Ubuntu 上 `$RUNNER_TEMP` 位于 `/home/runner/work/_temp`，gym `env-print` 会判 `control_root under homedir`，因此改用 `/tmp/jj-flow-labs`。本地跑 `verify` 同样必须先设绝对根（或已存在的 `lab-roots.json`）。不要从产品 toplevel 猜 `../jj-lab-*`。
 
+### gym pin 维护
+
+CI 不跟 gym 的 `main`，而是钉在 `.github/actions/prepare-lab-roots/action.yml` 的 `loop_ref` / `family_ref` 两个 SHA 上。gym 的机械 oracle 直接读写 ralph 产物（`tasks/<task-*>/task_plan.md`、`.state/run.json` 等），所以 **ralph 布局、`run_id` 形态或 gate 契约一变，就要同步升 pin**；否则 CI 只在 `verify` 最后一步 `lab:check` 报 `LAB-ORACLE-FAIL`，且症状在 gym 侧（例如 `acceptance.md` ENOENT、`legacy RALPH run layout for RALPH-*`），不是产品缺陷。
+
+升 pin 步骤：
+
+1. 先把修复合进 gym 仓 `main`（gym 是独立仓，产品仓的 token 未必能推）。
+2. 把两个 gym checkout 到目标 SHA，seed 后在产品仓跑 `npm run lab:check`，确认 PASS。
+3. 改 `action.yml` 两个 `default:`，再跑一遍 `npm run verify`。
+4. 在 CHANGELOG 记一句「gym pin → `<loop sha>` / `<family sha>`」。
+
+注意区分：`action.yml` 里的 pin 是 **gym 仓的 commit**；gym 自己 `lab-manifest.json` 的 `jj_flow_commit` 是 gym **声明兼容的产品 commit**。CI 红的原因是前者过旧。
+
 ## 各仓里有什么
 
 每个 lab 仓含：

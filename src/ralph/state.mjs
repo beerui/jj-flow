@@ -786,8 +786,13 @@ export function effectiveGateSet(run) {
  * lite → full fallback (in-memory; caller saves). Same run_id, same task dir, no gate is
  * reset — only gate_set flips and max_deliver_loops returns to the intensity default
  * (never below iterations already used). No-op when the run is already full.
+ *
+ * lift_budget_stop: when the run is BLOCKED only because deliver-attempt hit the lite cap
+ * (intervention MAX_ITERATIONS) and the restored cap now exceeds the iterations used, the
+ * block is lifted so the run really can "continue with the five gates". A STAGNATION block,
+ * a max_iterations ceiling, or a gate the caller is writing BLOCKED still stands.
  */
-export function promoteGateSetToFull(run, { reason = null } = {}) {
+export function promoteGateSetToFull(run, { reason = null, lift_budget_stop = false } = {}) {
   if (!run || typeof run !== 'object') throw new Error('run required');
   if (effectiveGateSet(run) !== 'lite') return { promoted: false, gate_set: effectiveGateSet(run), reason: null };
   hydrateIntensityFields(run);
@@ -797,11 +802,24 @@ export function promoteGateSetToFull(run, { reason = null } = {}) {
   const before = run.budget.max_deliver_loops;
   run.gate_set = 'full';
   run.budget = { ...run.budget, max_deliver_loops: Math.max(defaultLoops, used, before) };
+  let unblocked = false;
+  if (
+    lift_budget_stop
+    && run.status === 'BLOCKED'
+    && run.intervention_needed?.kind === 'MAX_ITERATIONS'
+    && used < run.budget.max_deliver_loops
+    && used < run.max_iterations
+  ) {
+    run.status = 'IN_PROGRESS';
+    run.intervention_needed = null;
+    unblocked = true;
+  }
   return {
     promoted: true,
     gate_set: 'full',
     reason: reason ? String(reason).trim() : null,
-    max_deliver_loops: { from: before, to: run.budget.max_deliver_loops }
+    max_deliver_loops: { from: before, to: run.budget.max_deliver_loops },
+    unblocked
   };
 }
 
@@ -810,7 +828,8 @@ export function promotionProgressLine(at, promotion) {
     + (promotion?.reason ? (' reason=' + promotion.reason) : '')
     + (promotion?.max_deliver_loops
       ? (' max_deliver_loops=' + promotion.max_deliver_loops.from + '→' + promotion.max_deliver_loops.to)
-      : '');
+      : '')
+    + (promotion?.unblocked ? ' status=BLOCKED→IN_PROGRESS' : '');
 }
 
 function normalizeScopeItems(items) {
@@ -835,7 +854,7 @@ export function updateRunScope(runId, { add_in = [], add_out = [], cwd = process
   const addedOut = addOut.filter((item) => !currentOut.includes(item));
   run.scope = { in: [...currentIn, ...addedIn], out: [...currentOut, ...addedOut] };
   const promotion = addedIn.length
-    ? promoteGateSetToFull(run, { reason: 'scope.in expanded: ' + addedIn.join(', ') })
+    ? promoteGateSetToFull(run, { reason: 'scope.in expanded: ' + addedIn.join(', '), lift_budget_stop: true })
     : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
   run.updated_at = nowIso();
   saveRun(run, cwd);
