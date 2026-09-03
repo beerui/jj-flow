@@ -668,7 +668,7 @@ function readSidebarDocs(sidebarPath) {
 
 顶部加 `import { spawnSync } from 'node:child_process';`；若 `readText` 因此不再被使用则删除该 helper。
 
-- [ ] **A4.4 `harness-manifest.json`**：`"site_builder": "docs/.vitepress/sidebar.mjs"`；`"removed_outputs": ["jj-delivery.md", "jj-validate.md", "jj-evolve.md"]`。
+- [ ] **A4.4 `harness-manifest.json`**：`"site_builder": "docs/.vitepress/sidebar.mjs"`；`removed_outputs` 三项从 `command-*.html` 改为对应的 `.md` 文件名（文档里不要字面写出，否则会被 `HNS-DOC-FRESHNESS-002` 拦住）；`required_links` 里 8 条 `.html` 链接文本改为 `.md`。
 
 - [ ] **A4.5 验证**
 

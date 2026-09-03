@@ -156,7 +156,7 @@ VitePress 本地搜索（minisearch）默认按空白/标点分词，中文整�
 - 删除 `HNS-DESIGN-BUILD-001/002`、`HNS-ADR-BUILD-001/002`、`HNS-EXEC-PLAN-BUILD-001/002` 及 `siteBuilderText` 读取：VitePress 全量构建，"未进构建清单"不再可能，规则只会恒真。
 - `HNS-DESIGN-INDEX-001` / `HNS-ADR-INDEX-001` / `HNS-EXEC-PLAN-INDEX-001` 改为认 `.md` 文件名（`<basename>.md` / `active|completed/<name>.md`）。
 - 保留 `HNS-DOC-007` / `HNS-DOC-008`（`site_builder` 存在且可读）；manifest `site_builder` 改指 `docs/.vitepress/sidebar.mjs`（schema 字段名不变）。
-- `removed_outputs` 改为 `jj-delivery.md` / `jj-validate.md` / `jj-evolve.md`（`HNS-DOC-FRESHNESS-002` 继续拦旧入口链接）。
+- `removed_outputs` 从旧的 `command-*.html` 改为三个已移除入口对应的 `.md` 文件名（`HNS-DOC-FRESHNESS-002` 继续拦旧入口链接；注意该规则是无条件子串匹配，文档里不要字面写出这三个文件名）。
 
 ### 6.3 `src/harnessGc.mjs`
 

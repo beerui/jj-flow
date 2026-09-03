@@ -158,7 +158,7 @@ test('Harness check rejects a removed entrypoint presented as current', () => {
   });
 });
 
-test('Harness check requires every design doc to be indexed and built', () => {
+test('Harness check requires every design doc to be indexed', () => {
   withTemporaryManifest((manifest, tempDir) => {
     const designDir = path.join(tempDir, 'design-docs');
     fs.mkdirSync(designDir);
@@ -170,7 +170,6 @@ test('Harness check requires every design doc to be indexed and built', () => {
     const result = checkHarnessRepository({ manifestPath });
     assert.equal(result.ok, false);
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-DESIGN-INDEX-001'));
-    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-DESIGN-BUILD-001'));
   });
 });
 
@@ -179,14 +178,11 @@ test('Harness check requires Implemented design evidence', () => {
     const designDir = path.join(tempDir, 'implemented-design');
     const designPath = path.join(designDir, 'finished.md');
     const indexPath = path.join(designDir, 'index.md');
-    const builderPath = path.join(tempDir, 'build-docs.mjs');
     fs.mkdirSync(designDir);
-    fs.writeFileSync(indexPath, '# 设计文档\n\n- [完成设计](finished.html)\n', 'utf8');
+    fs.writeFileSync(indexPath, '# 设计文档\n\n- [完成设计](finished.md)\n', 'utf8');
     fs.writeFileSync(designPath, '# 完成设计\n\n> 状态：Implemented\n', 'utf8');
-    fs.writeFileSync(builderPath, `source: '${repositoryRelative(indexPath)}'\nsource: '${repositoryRelative(designPath)}'\n`, 'utf8');
     manifest.documentation_policy.design_docs.directory = repositoryRelative(designDir);
     manifest.documentation_policy.design_docs.index = repositoryRelative(indexPath);
-    manifest.documentation_policy.site_builder = repositoryRelative(builderPath);
   }, (manifestPath) => {
     const result = checkHarnessRepository({ manifestPath });
     assert.equal(result.ok, false);
@@ -194,19 +190,17 @@ test('Harness check requires Implemented design evidence', () => {
   });
 });
 
-test('Harness check requires every exec plan to be indexed, built, and stored under the matching status directory', () => {
+test('Harness check requires every exec plan to be indexed and stored under the matching status directory', () => {
   withTemporaryManifest((manifest, tempDir) => {
     const planDir = path.join(tempDir, 'exec-plans');
     const activeDir = path.join(planDir, 'active');
     const completedDir = path.join(planDir, 'completed');
     const indexPath = path.join(planDir, 'index.md');
     const planPath = path.join(activeDir, 'unindexed.md');
-    const builderPath = path.join(tempDir, 'build-docs.mjs');
     fs.mkdirSync(activeDir, { recursive: true });
     fs.mkdirSync(completedDir, { recursive: true });
     fs.writeFileSync(indexPath, '# 执行计划\n', 'utf8');
     fs.writeFileSync(planPath, '# 未索引计划\n\n> 状态：completed\n', 'utf8');
-    fs.writeFileSync(builderPath, `source: '${repositoryRelative(indexPath)}'\n`, 'utf8');
     manifest.documentation_policy.exec_plans = {
       ...manifest.documentation_policy.exec_plans,
       directory: repositoryRelative(planDir),
@@ -214,12 +208,10 @@ test('Harness check requires every exec plan to be indexed, built, and stored un
       active_directory: repositoryRelative(activeDir),
       completed_directory: repositoryRelative(completedDir)
     };
-    manifest.documentation_policy.site_builder = repositoryRelative(builderPath);
   }, (manifestPath) => {
     const result = checkHarnessRepository({ manifestPath });
     assert.equal(result.ok, false);
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-INDEX-001'));
-    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-BUILD-001'));
     assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-EXEC-PLAN-STATUS-002'));
   });
 });

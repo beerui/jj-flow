@@ -20,8 +20,8 @@ const currentDocs = listMarkdown(path.join(ROOT, 'docs'))
   .map((file) => path.relative(ROOT, file).replaceAll('\\', '/'))
   .filter((doc) => !doc.startsWith('docs/.vitepress/') && !excluded.some((entry) => doc === entry || doc.startsWith(`${entry}/`)));
 const orphans = currentDocs.filter((doc) => !linked.has(doc));
-if (missingSources.length) fail(`侧栏指向不存在的文件：\n  ${missingSources.join('\n  ')}`);
-if (orphans.length) fail(`文档未进入侧栏（docs/.vitepress/sidebar.mjs）：\n  ${orphans.join('\n  ')}`);
+if (missingSources.length) failCheck(`侧栏指向不存在的文件：\n  ${missingSources.join('\n  ')}`);
+if (orphans.length) failCheck(`文档未进入侧栏（docs/.vitepress/sidebar.mjs）：\n  ${orphans.join('\n  ')}`);
 
 // 2. 构建到临时目录（dead link 在这里暴露）
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
@@ -30,15 +30,15 @@ const build = spawnSync(
   [path.join(ROOT, 'node_modules/vitepress/bin/vitepress.js'), 'build', 'docs', '--outDir', OUT_DIR],
   { cwd: ROOT, stdio: 'inherit' }
 );
-if (build.status !== 0) fail(`vitepress build 退出码 ${build.status}`);
+if (build.status !== 0) failCheck(`vitepress build 退出码 ${build.status}`);
 
 // 3. 产物断言
 for (const file of ['index.html', 'commands/jj-ralph.html', 'changelog.html', 'sitemap.xml', 'design-docs/index.html']) mustExist(file);
-if (!read('changelog.html').includes('Changelog')) fail('changelog.html 未包含 CHANGELOG 内容');
+if (!read('changelog.html').includes('Changelog')) failCheck('changelog.html 未包含 CHANGELOG 内容');
 for (const [from, to] of Object.entries(redirects)) {
   mustExist(to);
   const html = read(from);
-  if (!/http-equiv="refresh"/i.test(html) || !html.includes(path.posix.basename(to))) fail(`跳转页 ${from} → ${to} 不完整`);
+  if (!/http-equiv="refresh"/i.test(html) || !html.includes(path.posix.basename(to))) failCheck(`跳转页 ${from} → ${to} 不完整`);
 }
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
 console.log('docs site check passed');
@@ -56,10 +56,10 @@ function read(file) {
 }
 
 function mustExist(file) {
-  if (!fs.existsSync(path.join(OUT_DIR, file))) fail(`缺少产物 ${file}`);
+  if (!fs.existsSync(path.join(OUT_DIR, file))) failCheck(`缺少产物 ${file}`);
 }
 
-function fail(message) {
+function failCheck(message) {
   console.error(`docs:check failed — ${message}`);
   fs.rmSync(OUT_DIR, { recursive: true, force: true });
   process.exit(1);
