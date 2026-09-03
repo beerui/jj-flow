@@ -93,7 +93,7 @@ jj ralph host-record --run-id RALPH-… [--host-id …] [--thread-id …] [--ses
 说明：
 
 - `intensity`：`tiny` / `standard`（默认）/ `strict` — 预算与 accept 判断层；对话入口见 [ralph 命令](command-jj-ralph.html)  
-- `gate_set`：默认 `full`（五 gate）；`--lite` 走 `brief`→`deliver`→`close`（别名仍写 analyze/plan/accept/archive 五键，`close` 照走 accept/archive 证据门），`budget.max_deliver_loops ≤ 3`；任一 gate FAIL/BLOCKED 或 `scope --in` 新增路径 → 自动升 full，同目录不换 run_id。与 `intensity` 正交（tiny ≠ lite）  
+- `gate_set`：默认 `full`（五 gate）；`--lite` 走 `brief`→`deliver`→`close`（别名仍写 analyze/plan/accept/archive 五键，`close` 照走 accept/archive 证据门），`budget.max_deliver_loops ≤ 3`；任一 gate FAIL/BLOCKED 或 `scope --in` 新增路径 → 自动升 full，同目录不换 run_id。与 `intensity` 正交（tiny ≠ lite）
 - `deliver-attempt`：DELIVER 循环记是否改进；可省略 `--improved`（按工作区指纹自动判定）；连续无改进 → `BLOCKED` + `STAGNATION`  
 - `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`  
 - `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）  
