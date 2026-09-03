@@ -169,7 +169,9 @@ jj harness-gc [--json]
 ```bash
 npm run verify
 npm run lab:check
+npm run docs:dev
 npm run docs:build
+npm run docs:preview
 npm run docs:check
 npm run harness:check
 npm run harness:gc

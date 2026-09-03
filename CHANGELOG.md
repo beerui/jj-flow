@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **文档站迁移 VitePress**：删除 `scripts/build-docs.mjs` 与自制搜索 / SPA，站点声明移到 `docs/.vitepress/`（侧栏顶层手工、`design-docs` / `exec-plans` / `adr` 自动生成）；内链改为源文件相对路径；旧 `command-*.html` / `adr-*.html` / 演示页地址由构建期跳转页承接；交互演示（ralph / dispatch / end）下线；`docs:check` 改为侧栏覆盖 + 临时构建校验（dead link 即失败）；harness 孤儿文档规则改读侧栏清单，索引规则认 `.md`。合约：`tests/docs-site.test.mjs`、`tests/harness-check.test.mjs`。
+
 - **Ralph 工作区目录对齐 exec-plans 与 progress 双轨（规划草案，Proposed）**：`docs/design-docs/ralph-workspace-layout.md`。推荐保留 `tasks/` 作活跃层（≡ exec-plans `active/`），根上加 CLI 生成的 `index.md`，`finalize` / `abandon` 把任务目录 rename 进 `completed/`、`resume` 搬回；`.migrated-RALPH-*` 收进 `migrated/` 并由 `migrate --prune --yes` 人工删。progress 分轨：机器事件改写 `.state/events.log`，`progress.md` 只留按轮次追加的人读叙事，`resume` 自动开新轮。附二次纠正场景的改写样本、Phase 0–2 方案与验收要点。本轮不改 `src/ralph/`，schema 仍 1.2。
 - **Ralph P0 热层知识闭环**：`findings.md` 作为现有布局附加文件；archive 从 `## 可复用结论` 晋升 `~/.jj-flow/memory/<project_key>.md`；init / resume / dispatch 词法注入（cap 5，confirmed 置顶）。`jj ralph finding` + DELIVER 软提示；省略 `--rule` 时用对策（适用范围）写入可复用结论。不改 `run.json` schema。合约：`tests/memory-hot-layer.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`tests/jj-dispatch-contract.test.mjs`。
 - **Ralph 工作区 P2 身份稳定化**：`run_id` ≡ `task_key` ≡ `task-<slug>`；新 run 写 `.workflow/ralph/tasks/<id>/{task_plan,progress,findings}.md` + `.state/{run.json,reviews/,handoff.json}`（schema 1.2）。活跃 `RALPH-*` load/gate/save 报错并提示 `jj ralph migrate`；`listRuns` 标 `needs_migrate`。`jj ralph adopt --task` 绑定；`--absorb` 拒绝自动合并。主动路径不再认 `## Current`/`## Tasks`。sample-run.json 保持 1.0。不做 lite 档。
