@@ -1,0 +1,26 @@
+docs/commands/jj-ralph.md
+  s_6f4d0bf2ef73fa::t_c644de0bfb57d3 3,5,7-12,16-17,19,21-26,28,30-32,34,36,39,42,44-48,50,52,54-58,60,62,64,66,69-70,73-75,77-79,81,83-86,88,91,94,97,100,102,104-114,116,118,120,122-126,128,130,133-135,138,140,142-148,150,154-155,158,162
+docs/usage.md
+  s_6f4d0bf2ef73fa::t_994c804da61dec 1,3,5,7,9,11,13-14,16,19,22-23,25,28,30,32-38,40,42,44,46-48,50,52,54-58,60-64,67,70-73,75,78,80,82,84-87,91-93,95
+docs/design-docs/jj-ralph.md
+  s_6f4d0bf2ef73fa::t_243eb7aeec9d10 57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3422bc5b27e8b46ff283db65c680300bba1c7d87",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰-Linux <beerui2021@gmail.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
