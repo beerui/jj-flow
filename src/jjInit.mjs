@@ -275,8 +275,13 @@ export function joinInit({
 function resolveContributionFile({ cwd, runId, file }) {
   if (file) return path.resolve(file);
   if (!runId) return null;
-  const live = path.join(cwd, '.workflow', 'ralph', runId, 'knowledge-contribution.json');
-  if (fs.existsSync(live)) return live;
+  const candidates = [
+    path.join(cwd, '.workflow', 'ralph', 'tasks', runId, 'knowledge-contribution.json'),
+    path.join(cwd, '.workflow', 'ralph', runId, 'knowledge-contribution.json')
+  ];
+  for (const live of candidates) {
+    if (fs.existsSync(live)) return live;
+  }
   return listKnowledgePackages(cwd).find((pkg) => readJson(pkg)?.run_id === runId) || null;
 }
 

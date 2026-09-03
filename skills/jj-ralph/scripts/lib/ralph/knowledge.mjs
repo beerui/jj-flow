@@ -291,17 +291,24 @@ export function initRun(options, cwd = process.cwd()) {
   }
   const reuse_suggestions = [];
   const seen = new Set([run.run_id]);
+  const title = String(run.title || '').trim();
+  const goal = String(run.goal || '').trim();
   for (const row of listRuns(cwd)) {
     if (row.run_id === run.run_id) continue;
-    if (row.needs_migrate || (row.title && row.title === run.title)) {
-      reuse_suggestions.push({
-        run_id: row.run_id,
-        title: row.title,
-        needs_migrate: Boolean(row.needs_migrate),
-        source: 'list'
-      });
-      seen.add(row.run_id);
-    }
+    const rowTitle = String(row.title || '').trim();
+    const overlap = rowTitle && (
+      rowTitle === title
+      || (title && (rowTitle.includes(title) || title.includes(rowTitle)))
+      || (goal && goal.includes(rowTitle))
+    );
+    if (!overlap) continue;
+    reuse_suggestions.push({
+      run_id: row.run_id,
+      title: row.title,
+      needs_migrate: Boolean(row.needs_migrate),
+      source: 'list'
+    });
+    seen.add(row.run_id);
   }
   try {
     const hits = mapFind(run.title || run.goal || '', { cwd, limit: 5 });

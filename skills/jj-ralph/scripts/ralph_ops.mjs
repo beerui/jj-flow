@@ -249,6 +249,7 @@ async function main() {
         intensity: run.intensity || 'standard',
         max_iterations: run.max_iterations,
         path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', 'tasks', run.run_id)).replaceAll('\\', '/'),
+        reuse_suggestions: run.reuse_suggestions || [],
         resolved,
       });
       return;

@@ -138,6 +138,9 @@ export function migrateOneRun(legacyId, { cwd = process.cwd(), taken = new Set()
   if (!fs.existsSync(srcDir)) throw new Error('legacy run directory not found: ' + legacyId);
   const destId = taskId || proposeTaskIdFromLegacy(legacyId, cwd, taken);
   if (!isTaskRunId(destId)) throw new Error('invalid task id: ' + destId);
+  if (fs.existsSync(runJsonPath(destId, cwd))) {
+    throw new Error('destination already has a live run: ' + destId + '; pick another --task or omit --task to get -2');
+  }
   const destDir = runDir(destId, cwd);
   const stateDir = runStateDir(destId, cwd);
   fs.mkdirSync(stateDir, { recursive: true });
@@ -237,10 +240,21 @@ export function adoptRun({ cwd = process.cwd(), task, from = null, absorb = null
   const pending = listRuns(cwd).filter((row) => row.needs_migrate);
   const sourceId = from || (pending.length === 1 ? pending[0].run_id : null);
   if (sourceId && pending.some((row) => row.run_id === sourceId)) {
+    if (fs.existsSync(runJsonPath(task, cwd))) {
+      return {
+        ok: false,
+        action: 'adopt',
+        status: 'refused',
+        reason: 'destination already has a live run; adopt --absorb is not automatic',
+        dest: task,
+        from: sourceId,
+        example: 'jj ralph adopt --task ' + task + ' --absorb ' + sourceId
+      };
+    }
     const taken = new Set(listRuns(cwd).filter((row) => !row.needs_migrate).map((row) => row.run_id));
     return { ok: true, action: 'adopt', ...migrateOneRun(sourceId, { cwd, taken, taskId: task }) };
   }
-  if (fs.existsSync(runDir(task, cwd))) {
+  if (fs.existsSync(runJsonPath(task, cwd)) || fs.existsSync(runDir(task, cwd))) {
     return { ok: true, action: 'adopt', to: task, path: path.join(RALPH_ROOT_REL, 'tasks', task).replaceAll('\\', '/'), note: 'already on canonical task dir' };
   }
   throw new Error('adopt could not find a legacy run to bind; pass --from RALPH-…');

@@ -827,7 +827,12 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     const options = parseRalphInitArgs(args);
     const run = initRun(options, cwd);
     if (json) stdout.write(`${JSON.stringify({ run }, null, 2)}\n`);
-    else stdout.write(`initialized ${run.run_id}\n`);
+    else {
+      stdout.write(`initialized ${run.run_id}\n`);
+      for (const item of run.reuse_suggestions || []) {
+        stdout.write(`reuse? ${item.run_id}${item.needs_migrate ? ' (needs_migrate)' : ''}${item.title ? (' · ' + item.title) : ''}\n`);
+      }
+    }
     return 0;
   }
 

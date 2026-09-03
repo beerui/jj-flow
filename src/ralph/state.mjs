@@ -192,10 +192,24 @@ export function runJsonPath(runId, cwd = process.cwd()) { return path.join(runSt
 export function legacyActiveRunJsonPath(runId, cwd = process.cwd()) {
   return path.join(ralphRoot(cwd), runId, 'run.json');
 }
+/** Live tasks dir, or leftover archive snapshot dir when `_readonly_archive_path` is set. */
+export function runWorkspaceDir(run, cwd = process.cwd()) {
+  if (run?._readonly_archive_path) return path.dirname(run._readonly_archive_path);
+  return runDir(run.run_id, cwd);
+}
+export function assertWritableRun(run) {
+  if (run?._readonly_archive_path) throw new Error('refusing to mutate read-only archive snapshot ' + run.run_id);
+}
 export function runMachineFile(runId, rel, cwd = process.cwd()) {
   const underState = path.join(runStateDir(runId, cwd), rel);
   if (fs.existsSync(underState)) return underState;
   return path.join(runDir(runId, cwd), rel);
+}
+export function runMachineFileFor(run, rel, cwd = process.cwd()) {
+  const root = runWorkspaceDir(run, cwd);
+  const underState = path.join(root, STATE_REL, rel);
+  if (fs.existsSync(underState)) return underState;
+  return path.join(root, rel);
 }
 export function nowIso() { return new Date().toISOString(); }
 export function createEmptyMap() { return { schema_version: RALPH_MAP_SCHEMA_VERSION, updated_at: nowIso(), capabilities: [] }; }
@@ -535,7 +549,7 @@ export function loadRun(runId, cwd = process.cwd()) {
 }
 
 export function saveRun(run, cwd = process.cwd()) {
-  if (run._readonly_archive_path) throw new Error('refusing to save read-only archive snapshot ' + run.run_id);
+  assertWritableRun(run);
   if (isLegacyRalphRunId(run.run_id)) throw new Error(migrateHint(run.run_id));
   const errors = validateRun(run);
   if (errors.length) throw new Error('invalid run: ' + errors.join('; '));
@@ -805,7 +819,7 @@ export function renderRalphStatusText(payload) {
     ].join(nl);
   }
   const nl = String.fromCharCode(10);
-  const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.title ? (' · ' + item.title) : ''))];
+  const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.needs_migrate ? ' · needs_migrate' : '') + (item.title ? (' · ' + item.title) : ''))];
   if (payload.map_path) lines.push('business-map: ' + payload.map_path);
   if (payload.map_capabilities != null) lines.push('capabilities: ' + payload.map_capabilities);
   return lines.join(nl);

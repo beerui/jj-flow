@@ -796,7 +796,7 @@ test('lead outside targets may omit lead_responsibilities when reference_impleme
     snapshot_ref: 'ralph:task-telemetry-image/.state/handoff.json',
     snapshot_hash: 'sha256:0de7e506407707aac9d8f2007913b5f36ba20502',
     source_head: 'c2fc7d7ef522e63fb17dc84184d18e64bc7ac087',
-    handoff_ref: 'ralph:RALPH-telemetry-image/handoff.json',
+    handoff_ref: 'ralph:task-telemetry-image/.state/handoff.json',
     freshness: 'FRESH',
     verified_at: '2026-07-31T02:03:09.325Z',
     verification_ref: 'ralph:task-telemetry-failure-isolation/task_plan.md'

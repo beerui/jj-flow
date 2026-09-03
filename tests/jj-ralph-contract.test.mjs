@@ -56,7 +56,10 @@ import {
   listRuns,
   locateRalphRuns,
   migrateRuns,
-  adoptRun
+  adoptRun,
+  getStatus,
+  writeHandoffPackage,
+  renderRalphStatusText
 } from '../src/ralph.mjs';
 import * as ralphApi from '../src/ralph.mjs';
 
@@ -2123,6 +2126,15 @@ test('locateRalphRuns finds new layout and leftover archive each once', () => {
     const leftover = loadRun('RALPH-login-reminder-20260722', cwd);
     assert.ok(leftover._readonly_archive_path);
     assert.throws(() => saveRun(leftover, cwd), /read-only archive/);
+    fs.writeFileSync(path.join(leftoverDir, 'progress.md'), '- init leftover\n');
+    fs.writeFileSync(path.join(leftoverDir, 'plan.md'), '## 计划\n\n### 当前\n- `src/a.js`\n');
+    fs.writeFileSync(path.join(leftoverDir, 'analyze.md'), '## 分析\n');
+    fs.writeFileSync(path.join(leftoverDir, 'acceptance.md'), '## 验收\n');
+    assert.match(readRunArtifactText(leftover, 'progress', cwd), /init leftover/);
+    const status = getStatus({ runId: leftover.run_id, cwd });
+    assert.match(String(status.path || '').replaceAll('\\', '/'), /archive\//);
+    assert.throws(() => writeHandoffPackage(leftover.run_id, { cwd }), /read-only archive/);
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', leftover.run_id)), false);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2171,6 +2183,26 @@ test('init same task_key resumes; adopt --absorb is refused', () => {
     assert.equal(adopted.ok, true);
     assert.equal(adopted.to, 'task-enter-form-legacy');
     assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-enter-form-legacy', '.state', 'run.json')));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('adopt --task refuses to clobber a live dest; leftover archive status is readonly', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-adopt-guard-'));
+  try {
+    initRun({ run_id: 'task-enter-form-dynamic', title: 'form', goal: 'schema', attach_knowledge: false }, cwd);
+    const livePath = path.join(cwd, '.workflow', 'ralph', 'tasks', 'task-enter-form-dynamic', '.state', 'run.json');
+    const before = fs.readFileSync(livePath, 'utf8');
+    writeLegacyActive(cwd, 'RALPH-enter-form-20260901', { title: 'legacy form' });
+    const clobber = adoptRun({ cwd, task: 'task-enter-form-dynamic', from: 'RALPH-enter-form-20260901' });
+    assert.equal(clobber.ok, false);
+    assert.equal(clobber.status, 'refused');
+    assert.equal(clobber.dest, 'task-enter-form-dynamic');
+    assert.equal(fs.readFileSync(livePath, 'utf8'), before);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'RALPH-enter-form-20260901', 'run.json')));
+    const listed = getStatus({ cwd });
+    assert.match(renderRalphStatusText(listed), /needs_migrate/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

@@ -34,7 +34,9 @@ import {
   nowIso,
   readJson,
   runDir,
-  runMachineFile,
+  runMachineFileFor,
+  runWorkspaceDir,
+  assertWritableRun,
   saveRun,
   unique,
   writeJson
@@ -83,6 +85,7 @@ export function shouldMaintainHandoff(run, { force = false, targets_hint = [] } 
 }
 
 export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [], thread_id = null, must = null, do_not_port = null, mode = null, write_file = true } = {}) {
+  if (write_file) assertWritableRun(run);
   const git = readGitSourceFacts(cwd);
   const acceptPass = run.gates?.accept === 'PASS';
   const targets = normalizeHandoffTargets(targets_hint, run.family);
@@ -133,6 +136,7 @@ export function applyHandoffState(run, { cwd = process.cwd(), targets_hint = [],
 
 export function writeHandoffPackage(runId, { cwd = process.cwd(), handoff_id, targets_hint = [], thread_id = null, parent_handoff_id = null, port_mode = 'LITE', requirement_ledger = null, source_change_map = null, must = null, do_not_port = null } = {}) {
   const run = loadRun(runId, cwd);
+  assertWritableRun(run);
   if (handoff_id) run.handoff = { ...(run.handoff || {}), handoff_id };
   const mustFromLedger = Array.isArray(requirement_ledger?.must) ? requirement_ledger.must.map((item) => item.summary || item.id || String(item)).filter(Boolean) : must;
   const dnpFromLedger = Array.isArray(requirement_ledger?.do_not_port) ? requirement_ledger.do_not_port.map((item) => item.summary || item.id || String(item)).filter(Boolean) : do_not_port;
@@ -144,6 +148,7 @@ export function writeHandoffPackage(runId, { cwd = process.cwd(), handoff_id, ta
 
 export function writeDispatchSnapshot(runId, { cwd = process.cwd(), targets_hint = [] } = {}) {
   const run = loadRun(runId, cwd);
+  assertWritableRun(run);
   const snapId = 'SNAP-' + stripRunIdPrefix(run.run_id);
   const rel = path.join('.workflow', 'dispatch', 'recommendations', snapId);
   const abs = path.join(cwd, rel);
@@ -274,7 +279,7 @@ function firstPresentHeading(text, heading, levels) {
 
 /**
  * Current plan contract: `## 计划` → `### 当前`. Empty `### 当前` stays empty
- * (does not leak 已落地 / 已取代). P2c dropped Current/Tasks/full-file fallback.
+ * (does not leak 已落地 / 已取代).
  */
 export function extractPlanCurrentSection(text) {
   if (!text || typeof text !== 'string') return '';
@@ -367,11 +372,12 @@ export function readRunArtifactText(run, key, cwd) {
   if (normalized.includes('#')) {
     throw new Error('artifact_refs.' + key + ' must be a bare filename (no fragment): ' + rel);
   }
-  const abs = path.join(runDir(run.run_id, cwd), normalized);
-  if (!fs.existsSync(abs)) {
-    throw new Error('artifact_refs.' + key + ' missing file: ' + normalized);
-  }
-  return fs.readFileSync(abs, 'utf8');
+  const root = runWorkspaceDir(run, cwd);
+  const abs = path.join(root, normalized);
+  if (fs.existsSync(abs)) return fs.readFileSync(abs, 'utf8');
+  const nested = path.join(root, STATE_REL, normalized);
+  if (fs.existsSync(nested)) return fs.readFileSync(nested, 'utf8');
+  throw new Error('artifact_refs.' + key + ' missing file: ' + normalized);
 }
 
 export function collectClaimedImplementationPaths(run, cwd = process.cwd()) {
@@ -506,7 +512,7 @@ export function getLatestReviewRecord(run, cwd = process.cwd()) {
     : null;
   if (!entry) return null;
   if (entry.path) {
-    const abs = runMachineFile(run.run_id, entry.path, cwd);
+    const abs = runMachineFileFor(run, entry.path, cwd);
     if (fs.existsSync(abs)) {
       try {
         return readJson(abs);
@@ -1126,6 +1132,7 @@ export function computeRunMetrics(run, cwd = process.cwd()) {
 
 export function persistRunMetrics(runId, cwd = process.cwd()) {
   const run = loadRun(runId, cwd);
+  assertWritableRun(run);
   run.metrics = computeRunMetrics(run, cwd);
   run.updated_at = nowIso();
   saveRun(run, cwd);
@@ -1136,7 +1143,7 @@ export function getStatus({ runId, cwd = process.cwd() } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
     const metrics = computeRunMetrics(run, cwd);
-    return { run, metrics, path: path.relative(cwd, runDir(runId, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
+    return { run, metrics, path: path.relative(cwd, runWorkspaceDir(run, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
   }
   const runs = listRuns(cwd);
   const mapExists = fs.existsSync(mapPath(cwd));
