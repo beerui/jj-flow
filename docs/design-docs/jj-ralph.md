@@ -54,7 +54,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 | 真新需求 | 才新 run |
 | Git | `$jj-end`（与 run 是否还能改无关） |
 
-用户向：[ralph 命令](../commands/jj-ralph.md#做完了还要改)。
+用户向：[ralph 命令](../commands/jj-ralph.md#做完之后)。
 
 ## 5. 产物
 
