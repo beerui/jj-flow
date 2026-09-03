@@ -109,6 +109,8 @@ const DEEP_PAGES = [
   { title: 'jj-team-swarm 设计', source: 'docs/design-docs/jj-team-swarm.md', output: 'design-docs/jj-team-swarm.html', group: '设计文档' },
   { title: 'AI-native SDLC 对齐', source: 'docs/design-docs/ai-native-sdlc.md', output: 'design-docs/ai-native-sdlc.html', group: '设计文档' },
   { title: '实验场 Loop gym / Family gym', source: 'docs/design-docs/jj-flow-labs.md', output: 'design-docs/jj-flow-labs.html', group: '设计文档' },
+  { title: '文档站迁移 VitePress', source: 'docs/design-docs/docs-site-vitepress.md', output: 'design-docs/docs-site-vitepress.html', group: '设计文档' },
+  { title: '文档站 VitePress 迁移执行', source: 'docs/exec-plans/active/2026-09-03-docs-site-vitepress.md', output: 'exec-plans/active/2026-09-03-docs-site-vitepress.html', group: '执行计划' },
   { title: '实验场 sibling 仓', source: 'docs/jj-lab-siblings.md', output: 'jj-lab-siblings.html', group: '维护者' },
   { title: 'Ralph 工作区 P2+ lite 执行', source: 'docs/exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md', output: 'exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.html', group: '执行计划' },
   { title: 'Ralph 工作区 P2 执行', source: 'docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md', output: 'exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.html', group: '执行计划' },
