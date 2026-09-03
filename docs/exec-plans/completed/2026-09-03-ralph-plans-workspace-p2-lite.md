@@ -1,6 +1,6 @@
 # Exec plan — Ralph 任务工作区 P2+（lite 档）
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
@@ -47,7 +47,7 @@
 
 ### 切片 0 — 本计划入库
 
-- [x] `docs/exec-plans/active/2026-09-03-ralph-plans-workspace-p2-lite.md`
+- [x] `docs/exec-plans/active/2026-09-03-ralph-plans-workspace-p2-lite.md`（关闭时移入 `completed/`）
 - [x] 执行索引 + 站点构建清单
 - [x] 设计文档加执行指针；索引注明 P2 已落地、P2+ 进行中
 - [x] CHANGELOG Unreleased 指针
@@ -69,13 +69,15 @@
 
 ### P2+b — 启发式判档 + skill 文案
 
-- [ ] init 无 flag 时按规模建议 lite（保守：拿不准则 full）
-- [ ] skill / `docs/commands/jj-ralph.md`：口语「小改 / 顺手修」可走 lite；用户说「完整走一遍」走 full
-- [ ] 合约：启发式只建议不强制（无 flag 默认 full，除非命中明确规则）
+- [x] init 无 flag 时按规模建议 lite（保守：拿不准则 full）——`suggestGateSet` / `GATE_SET_HEURISTIC`（`src/ralph/gates.mjs`）：改动面小（`scope.in` ≤ 2 个具体文件，或标题/目标含小改口语）∧ 无架构词 ∧ 单一验收项才建议 lite；不读 intensity。`initRun` 无 `--lite/--full` 时把建议挂在返回对象 `run.gate_set_suggestion`（`applied=false`）并在 progress 追一行；**`run.json.gate_set` 仍写 full**，schema 不升 1.3。CLI 文本打 `gate_set? lite …`，`--json` / `ralph_ops init` 透出字段；显式 flag 时不建议
+- [x] skill / `docs/commands/jj-ralph.md`：口语「小改 / 顺手修」可走 lite；用户说「完整走一遍」走 full——`skills/jj-ralph/SKILL.md`（gate_set 口径、lite happy path、failure modes、反例 19/20）、`references/phases.md` 新增「Gate set (full / lite)」、`references/tiny-example.md`（tiny ≠ lite）、`docs/commands/jj-ralph.md` 新增「轻量档（lite）」、`claude-commands/jj-ralph.md` 一行口径
+- [x] 合约：启发式只建议不强制（无 flag 默认 full，除非命中明确规则）——设计未定义任何强制规则，故**永不因启发式改 `gate_set`**；`tests/jj-ralph-contract.test.mjs` 新增 2 个 `P2+b` 用例（`suggestGateSet` 信号表；`initRun` / CLI / `ralph_ops` 无 flag 仍 full、磁盘 `run.json` 无 `gate_set_suggestion` 键、tiny/strict 同一建议、显式 flag 无建议、别名仍拒绝、`--lite --force` 重 init 才切 lite）+ 资产文案标记
+
+> P2+b 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 51/51；`npm run ralph:sync` + `ralph:check` in_sync（15 files）；Node 20.19.0 下 `npm run verify` 除 `lab:check` 外全绿（`npm test` 375/375、`check` / `harness:check` / `harness:gc` / `scenario:check` / `host:trial` / `docs:check` / `evaluated:check` 通过）；`git diff --check` 干净。`lab:check` 失败与本计划无关：CI 上 `main`（`c051f0b`）与本分支签名相同（sibling gym pin `8e51498` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），本地为 `LAB-ROOT-MISSING`（无 sibling gym）。需另行更新 gym pin，不在本计划范围。
 
 ## 下一刀
 
-P2+a（`--lite` + 升档）已落地。下一刀 P2+b：启发式判档（只建议不强制，默认仍 full）+ skill / `docs/commands/jj-ralph.md` 口语文案。
+P2+ 关闭（P2+a `7fcd43c` + `38a9f4c`；P2+b `5cc314a` + `c3f0550`）。整体设计 [Ralph 任务工作区 `.plans` 化改造](../../design-docs/ralph-plans-workspace.md) 标 Implemented。后续独立事项（不属本计划）：更新 sibling gym pin 让 `lab:check` 回绿；启发式词表按真实误判样本收敛（仍只建议）。
 
 ## 完成定义
 
