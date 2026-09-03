@@ -37,25 +37,25 @@ const SIDEBAR_GROUPS = [
     title: '工作流',
     pages: [
       { title: '命令总览', source: 'docs/commands.md', output: 'commands.html' },
-      { title: 'init 接入地图', source: 'docs/commands/jj-init.md', output: 'command-jj-init.html' },
-      { title: 'ralph 单仓闭环', source: 'docs/commands/jj-ralph.md', output: 'command-jj-ralph.html' },
-      { title: 'same 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
-      { title: 'dispatch 调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' },
-      { title: 'review 审查', source: 'docs/commands/jj-review.md', output: 'command-jj-review.html' },
-      { title: 'end 收工', source: 'docs/commands/jj-end.md', output: 'command-jj-end.html' },
-      { title: 'evaluated 评估', source: 'docs/commands/jj-evaluated.md', output: 'command-jj-evaluated.html' },
-      { title: 'team-coordinate 多角色', source: 'docs/commands/jj-team-coordinate.md', output: 'command-jj-team-coordinate.html' },
-      { title: 'team-lifecycle SDLC', source: 'docs/commands/jj-team-lifecycle.md', output: 'command-jj-team-lifecycle.html' },
-      { title: 'team-swarm 搜索', source: 'docs/commands/jj-team-swarm.md', output: 'command-jj-team-swarm.html' },
-      { title: 'jj 路由', source: 'docs/commands/jj.md', output: 'command-jj.html' }
+      { title: 'init · 接入地图', source: 'docs/commands/jj-init.md', output: 'command-jj-init.html' },
+      { title: 'ralph · 单仓闭环', source: 'docs/commands/jj-ralph.md', output: 'command-jj-ralph.html' },
+      { title: 'same · 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
+      { title: 'dispatch · 多仓调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' },
+      { title: 'review · 审查落盘', source: 'docs/commands/jj-review.md', output: 'command-jj-review.html' },
+      { title: 'end · 收工合支', source: 'docs/commands/jj-end.md', output: 'command-jj-end.html' },
+      { title: 'evaluated · 复盘', source: 'docs/commands/jj-evaluated.md', output: 'command-jj-evaluated.html' },
+      { title: 'team · 多角色（可选）', source: 'docs/commands/jj-team-coordinate.md', output: 'command-jj-team-coordinate.html' },
+      { title: 'team · SDLC（可选）', source: 'docs/commands/jj-team-lifecycle.md', output: 'command-jj-team-lifecycle.html' },
+      { title: 'team · 搜索（可选）', source: 'docs/commands/jj-team-swarm.md', output: 'command-jj-team-swarm.html' },
+      { title: 'jj · 帮你选路', source: 'docs/commands/jj.md', output: 'command-jj.html' }
     ]
   },
   {
     title: '概念',
     pages: [
-      { title: '术语', source: 'docs/glossary.md', output: 'glossary.html' },
-      { title: '证据与事实源', source: 'docs/concepts-evidence.md', output: 'concepts-evidence.html' },
-      { title: '目录与命名', source: 'docs/concepts-paths.md', output: 'concepts-paths.html' },
+      { title: '术语表', source: 'docs/glossary.md', output: 'glossary.html' },
+      { title: '证据怎么算数', source: 'docs/concepts-evidence.md', output: 'concepts-evidence.html' },
+      { title: '目录怎么放', source: 'docs/concepts-paths.md', output: 'concepts-paths.html' },
       { title: '宿主与 Mode S', source: 'docs/concepts-hosts.md', output: 'concepts-hosts.html' },
       { title: '知识库', source: 'docs/concepts-knowledge.md', output: 'concepts-knowledge.html' },
       { title: 'Loop 与 Graph', source: 'docs/loop-graph-guide.md', output: 'loop-graph-guide.html' },
@@ -69,7 +69,7 @@ const SIDEBAR_GROUPS = [
       { title: '维护说明', source: 'docs/maintenance.md', output: 'maintenance.html' },
       { title: 'CLI 参考', source: 'docs/commands/cli.md', output: 'command-cli.html' },
       { title: '部署', source: 'docs/deployment.md', output: 'deployment.html' },
-      { title: 'Changelog', source: 'CHANGELOG.md', output: 'changelog.html' }
+      { title: '更新日志', source: 'CHANGELOG.md', output: 'changelog.html' }
     ]
   },
   {
@@ -102,7 +102,6 @@ const DEEP_PAGES = [
   { title: 'Ralph 任务工作区 .plans 化改造', source: 'docs/design-docs/ralph-plans-workspace.md', output: 'design-docs/ralph-plans-workspace.html', group: '设计文档' },
   { title: 'Ralph 工作区布局（方案 A）', source: 'docs/design-docs/ralph-workspace-layout.md', output: 'design-docs/ralph-workspace-layout.html', group: '设计文档' },
   { title: 'Ralph 多轮任务内容预览', source: 'docs/design-docs/ralph-plans-workspace.preview.md', output: 'design-docs/ralph-plans-workspace.preview.html', group: '设计文档' },
-  { title: 'Ralph 工作区目录对齐 exec-plans 与 progress 双轨', source: 'docs/design-docs/ralph-workspace-layout.md', output: 'design-docs/ralph-workspace-layout.html', group: '设计文档' },
   { title: 'jj-evaluated 设计', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html', group: '设计文档' },
   { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html', group: '设计文档' },
   { title: 'jj-team-coordinate 设计', source: 'docs/design-docs/jj-team-coordinate.md', output: 'design-docs/jj-team-coordinate.html', group: '设计文档' },
@@ -247,7 +246,7 @@ function renderPage(page, body) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="jj-flow：项目族编排工作流">
+  <meta name="description" content="jj-flow：用对话在多个项目里改功能、迁功能、一起派任务">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f8fafc">
   <title>${escapeHtml(page.title)} · jj-flow</title>
@@ -261,14 +260,14 @@ function renderPage(page, body) {
       <a class="brand" href="${escapeAttribute(root('index.html'))}" data-nav-page="index.html">
         ${icon('workflow', 'brand-ico')}<span>jj-flow</span>
       </a>
-      <p class="tagline">项目族编排工作流</p>
+      <p class="tagline">用对话做项目族编排工作流</p>
       <nav class="header-quick" aria-label="快速入口">
         <button type="button" class="search-trigger" data-search-open title="搜索 (Ctrl+K)">
           ${icon('search')}<span>搜索</span><kbd>Ctrl</kbd><kbd>K</kbd>
         </button>
         <a href="${escapeAttribute(root('installation.html'))}" data-nav-page="installation.html">${icon('download')}<span>安装</span></a>
-        <a href="${escapeAttribute(root('usage.html'))}" data-nav-page="usage.html">${icon('play')}<span>使用</span></a>
-        <a href="${escapeAttribute(root('changelog.html'))}" data-nav-page="changelog.html">${icon('scroll-text')}<span>Changelog</span></a>
+        <a href="${escapeAttribute(root('usage.html'))}" data-nav-page="usage.html">${icon('play')}<span>上手</span></a>
+        <a href="${escapeAttribute(root('changelog.html'))}" data-nav-page="changelog.html">${icon('scroll-text')}<span>更新日志</span></a>
         <a class="header-external" href="${escapeAttribute(GITHUB_URL)}" target="_blank" rel="noopener noreferrer">${icon('github')}<span>GitHub</span></a>
       </nav>
     </div>
@@ -279,7 +278,7 @@ function renderPage(page, body) {
       <div class="doc-search" role="search">
         <div class="search-field">
           ${icon('search', 'search-ico')}
-          <input id="doc-search" type="search" placeholder="搜索文档…" autocomplete="off" data-doc-search>
+          <input id="doc-search" type="search" placeholder="搜命令或场景，例如 单仓 / 迁仓 / 派发…" autocomplete="off" data-doc-search>
           <kbd data-search-close-hint>Esc</kbd>
         </div>
         <p class="search-status" data-search-status aria-live="polite"></p>
@@ -301,7 +300,7 @@ ${body}
   </main>
   <footer class="site-footer">
     <div class="footer-inner">
-      <p>源码 <code>docs/</code> · <code>npm run docs:build</code> · <code>npm run docs:check</code></p>
+      <p>文档源码在 <code>docs/</code>。维护构建：<code>npm run docs:build</code> · <code>npm run docs:check</code></p>
       <p>
         <a href="${escapeAttribute(root('maintenance.html'))}" data-nav-page="maintenance.html">维护</a>
         · <a href="${escapeAttribute(root('commands.html'))}" data-nav-page="commands.html">命令</a>
@@ -678,7 +677,7 @@ function buildClientScript(searchIndex) {
     document.body.classList.add('search-open');
     input.value = '';
     clearResults();
-    statusElement.textContent = '输入关键词搜索文档';
+    statusElement.textContent = '输入命令名或场景，例如 ralph、迁仓、派发';
     requestAnimationFrame(() => input.focus());
     loadIndex().catch(() => {});
   };
@@ -699,7 +698,7 @@ function buildClientScript(searchIndex) {
     activeIndex = -1;
     if (!query) {
       clearResults();
-      statusElement.textContent = '输入关键词搜索文档';
+      statusElement.textContent = '输入命令名或场景，例如 ralph、迁仓、派发';
       return;
     }
     statusElement.textContent = '搜索中…';
@@ -735,9 +734,9 @@ function buildClientScript(searchIndex) {
         resultsElement.append(li);
       }
       resultsElement.hidden = matches.length === 0;
-      statusElement.textContent = matches.length ? '找到 ' + matches.length + ' 条 · Enter 打开' : '无匹配';
+      statusElement.textContent = matches.length ? ('找到 ' + matches.length + ' 条，Enter 打开') : '没有找到。试试 ralph、same、dispatch、踩坑';
     } catch {
-      statusElement.textContent = '搜索暂不可用';
+      statusElement.textContent = '搜索暂时不可用，请刷新后再试';
     }
   };
 

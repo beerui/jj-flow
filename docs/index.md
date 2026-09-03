@@ -7,6 +7,14 @@
 > 聊天里说「做完了」不算数。  
 > 算数的是：仓库里的记录、Git 提交、审查结果。
 
+## 三步开始
+
+1. [安装](installation.html) skill（约一分钟）  
+2. 打开业务仓库的对话，按下面表格选入口  
+3. 用日常中文说要做什么  
+
+卡住了？看 [五分钟上手](usage.html) 或 [常见踩坑](pitfalls.html)。
+
 ## 我该用哪个？
 
 | 你想… | 用这个 | 说明 |
@@ -17,21 +25,15 @@
 | **多个项目一起派、一起盯** | [dispatch](command-jj-dispatch.html) | 多项目调度 |
 | 把审查结论记下来 | [review](command-jj-review.html) | 审查落盘 |
 | 提交并合进 dev/main | [end](command-jj-end.html) | 收工 |
-| 会话内**动态多角色**协作（可选） | [team-coordinate](command-jj-team-coordinate.html) | 不推进验收门 |
-| **固定 SDLC** 规格/实现流水线（可选） | [team-lifecycle](command-jj-team-lifecycle.html) | 不推进验收门 |
-| **对抗搜索** 多方案（可选） | [team-swarm](command-jj-team-swarm.html) | 不推进验收门 |
 
-还没装？→ [安装](installation.html)  
-装好了？→ [五分钟上手](usage.html)  
-容易踩坑？→ [常见踩坑](pitfalls.html)
+拿不准时：一个仓 → **ralph**；要搬家 → **same**；好几个仓一起协调 → **dispatch**。  
+说不清选哪个 → [jj](command-jj.html) 帮你指路。
 
-## 怎么用（一句话）
+可选（**不算**验收通过）：[team-coordinate](command-jj-team-coordinate.html) 多角色 · [team-lifecycle](command-jj-team-lifecycle.html) 固定 SDLC · [team-swarm](command-jj-team-swarm.html) 多方案搜索。
 
-1. 装好 skill  
-2. 在 **业务项目** 的对话里打 `$jj-…`（Codex）或 `/jj-…`（Claude / Grok / Qoder）  
-3. 用日常说话描述要做什么  
+## 怎么喊
 
-**不要**靠手敲命令行做业务（命令行只给维护用，见侧栏「维护者」）。
+在 **业务项目** 的对话里打前缀，不要靠手敲业务命令行（命令行只给维护用）。
 
 | 你用的工具 | 怎么喊 |
 |------------|--------|
@@ -39,7 +41,7 @@
 | Claude | `/jj-ralph`、`/jj-same`…（**没有** `/jj-dispatch`） |
 | Grok / Qoder | `/jj-ralph`、`/jj-dispatch`… |
 
-## 它们怎么配合（知道即可）
+## 它们怎么配合
 
 ```text
 一个仓库做完 ──ralph──► 可以说「交接到…」
@@ -52,8 +54,7 @@
                          end 提交 / 合分支
 ```
 
-想看全部入口：[命令总览](commands.html)  
-名词不懂：[术语](glossary.html)
+全部入口：[命令总览](commands.html) · 名词：[术语](glossary.html)
 
 ## 维护与深入（可后看）
 
@@ -63,6 +64,5 @@
 | 设计 | [设计文档](design-docs/index.html) · [Agent Harness](design-docs/harness-engineering.html) |
 | 执行计划 | [执行计划](exec-plans/index.html) |
 | ADR | [ADR](adr/index.html) |
-| M7 / H5 | [M7](milestones/m7-acceptance.html) · [H5](milestones/h5-acceptance.html) |
-| 真实 Host（Grok 路径 completed / A2） | [验收页](milestones/real-host-acceptance.html) |
+| 里程碑验收 | [真实 Host](milestones/real-host-acceptance.html) · [M7](milestones/m7-acceptance.html) · [H5](milestones/h5-acceptance.html) |
 | 改本仓库文档 | [维护说明](maintenance.html) |

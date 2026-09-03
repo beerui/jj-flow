@@ -1,7 +1,7 @@
 # 常见踩坑
 
-来自真实交付复盘（`docs/evaluations/`）。  
-每条：**出什么事 → 怎么做才对**。
+来自真实交付复盘。每条先写 **会出什么事**，再写 **怎么做才对**。  
+派发前可用文末清单快速自检。
 
 ## 1. 迁到错误分支
 
@@ -31,7 +31,7 @@
 
 ---
 
-## 3. 「调度通过」当成「已经上线」
+## 3. 把「调度通过」当成「已经上线」
 
 **出什么事：** 调度显示验收通过，但代码还没 push，也没合进 dev。
 
@@ -44,7 +44,7 @@
 
 ---
 
-## 4. 搞混 Grok 和 Codex 的用法
+## 4. 把 Grok 和 Codex 的用法抄反
 
 **出什么事：** 以为一定要开很多会话，或把两种工具的做法抄反。
 
@@ -71,7 +71,7 @@
 
 ---
 
-## 6. 只靠聊天当「做完了」
+## 6. 只靠聊天就当「做完了」
 
 **出什么事：** 任务显示归档通过，但审查还开着问题；或任务说明还是旧状态。
 
@@ -85,26 +85,26 @@
 
 ---
 
-## 7. team 流水线跑完当成验收通过
+## 7. team 跑完就当成验收通过
 
 **出什么事：** `/jj-team-coordinate` / lifecycle / swarm 提示 complete，就以为 ralph ACCEPT 或 dispatch VERIFIED 过了。
 
 **怎么做：**
 
-| 引擎 | 会话 | 算不算验收 |
-|------|------|------------|
-| coordinate | `TC-*` | **不算**；只产 artifacts |
-| lifecycle | `TLV4-*` | **不算**；只产 spec/plan/artifacts |
-| swarm | `TAS-*` | **不算**；只产 best-solution 等 |
+| 引擎 | 会话前缀 | 算不算验收 |
+|------|----------|------------|
+| team-coordinate | `TC-*` | **不算**；只产出协作产物 |
+| team-lifecycle | `TLV4-*` | **不算**；只产出规格/计划等 |
+| team-swarm | `TAS-*` | **不算**；只产出候选方案等 |
 
-验收仍只认：ralph `run.json` 门禁 + 证据、或 dispatch receipt / VERIFIED。  
-team 产物可以**引用进** evidence，不会自动翻 gate。
+验收仍只认：ralph 的门禁与证据，或 dispatch 的验收记录。  
+team 产物可以**写进证据里引用**，不会自动把验收门打开。
 
 → [team-coordinate](command-jj-team-coordinate.html) · [证据](concepts-evidence.html)
 
 ---
 
-## 7. 默认以为必须独占目录
+## 8. 默认以为必须独占目录 / worktree
 
 **出什么事：** 每次都开单独 worktree，或在脏的主分支上直接写。
 
@@ -112,7 +112,7 @@ team 产物可以**引用进** evidence，不会自动翻 gate。
 
 ---
 
-## 8. 把项目族角色名随便改成 source/target
+## 9. 把项目族角色名随便改成 source/target
 
 **出什么事：** 叫成 source/target 后对错仓库。
 
@@ -120,7 +120,7 @@ team 产物可以**引用进** evidence，不会自动翻 gate。
 
 ---
 
-## 9. 收工时把 staging 当成 dev
+## 10. 收工时把 staging 当成 dev
 
 **出什么事：** `/jj-end` 没写合入分支。仓库里既有 `dev` 又有 `staging`。Agent 看到历史都是 `Merge #N into staging`，就把功能合进预发。
 
@@ -136,7 +136,7 @@ team 产物可以**引用进** evidence，不会自动翻 gate。
 
 ---
 
-## 10. 收工遇到冲突就整段放弃，或只解一半
+## 11. 收工遇到冲突就整段放弃，或只解一半
 
 **出什么事：** `$jj-end` 一有冲突就停；或者只把 import 冲突解了、业务函数冲突还留着，半成品 merge。
 
@@ -153,9 +153,9 @@ team 产物可以**引用进** evidence，不会自动翻 gate。
 
 ## 派发前 10 秒自检
 
-- [ ] 源已经 commit  
-- [ ] 每个目标分支对得上任务  
-- [ ] 分支/目录拿不准已经问过人  
-- [ ] 说清楚要不要 push / 合 dev  
+- [ ] 源仓库已经 commit  
+- [ ] 每个目标仓的分支对得上这次任务  
+- [ ] 分支或目录拿不准时，已经问过人  
+- [ ] 说清楚要不要 push、要不要合进 dev  
 
-完整复盘材料在 `docs/evaluations/`（偏内部，日常上手不必读）。
+更细的复盘在仓库 `docs/evaluations/`（偏内部，日常上手不用读）。
