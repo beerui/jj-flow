@@ -4,8 +4,7 @@
 
 ## Unreleased
 
-- **Ralph 工作区布局方案 A**：活跃 run 扁平落在 `.workflow/ralph/<task_key>/`；`archive` / `abandon` 迁入 `completed/`；机器事件写入 `.state/events.jsonl`，`progress.md` 按「轮次」追加；finding 仍走软提示。`jj ralph migrate --prune-archive` 默认 dry-run，`--yes` 清理 1.0 `archive/`；`.migrated-RALPH-*` 收容进 `migrated/`。schema 仍 1.2。合约：`tests/jj-ralph-contract.test.mjs`。
-
+- **Ralph 工作区目录对齐 exec-plans 与 progress 双轨（规划草案，Proposed）**：`docs/design-docs/ralph-workspace-layout.md`。推荐保留 `tasks/` 作活跃层（≡ exec-plans `active/`），根上加 CLI 生成的 `index.md`，`finalize` / `abandon` 把任务目录 rename 进 `completed/`、`resume` 搬回；`.migrated-RALPH-*` 收进 `migrated/` 并由 `migrate --prune --yes` 人工删。progress 分轨：机器事件改写 `.state/events.log`，`progress.md` 只留按轮次追加的人读叙事，`resume` 自动开新轮。附二次纠正场景的改写样本、Phase 0–2 方案与验收要点。本轮不改 `src/ralph/`，schema 仍 1.2。
 - **Ralph P0 热层知识闭环**：`findings.md` 作为现有布局附加文件；archive 从 `## 可复用结论` 晋升 `~/.jj-flow/memory/<project_key>.md`；init / resume / dispatch 词法注入（cap 5，confirmed 置顶）。`jj ralph finding` + DELIVER 软提示；省略 `--rule` 时用对策（适用范围）写入可复用结论。不改 `run.json` schema。合约：`tests/memory-hot-layer.test.mjs`、`tests/jj-ralph-contract.test.mjs`、`tests/jj-dispatch-contract.test.mjs`。
 - **Ralph 工作区 P2 身份稳定化**：`run_id` ≡ `task_key` ≡ `task-<slug>`；新 run 写 `.workflow/ralph/tasks/<id>/{task_plan,progress,findings}.md` + `.state/{run.json,reviews/,handoff.json}`（schema 1.2）。活跃 `RALPH-*` load/gate/save 报错并提示 `jj ralph migrate`；`listRuns` 标 `needs_migrate`。`jj ralph adopt --task` 绑定；`--absorb` 拒绝自动合并。主动路径不再认 `## Current`/`## Tasks`。sample-run.json 保持 1.0。不做 lite 档。
 - **Ralph P2 review-fix**：`adopt --task` 遇已有 live dest 拒绝覆盖；leftover `archive/` 产物从快照目录读；`status` 列表标 `needs_migrate`；init 打印 reuse 候选。合约：`tests/jj-ralph-contract.test.mjs`。
