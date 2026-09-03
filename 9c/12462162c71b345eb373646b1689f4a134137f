@@ -1,0 +1,105 @@
+docs/design-docs/grok-host-adapter.md
+  s_6f4d0bf2ef73fa::t_9ac438f9b2fbfa 10
+  s_6f4d0bf2ef73fa::t_b4b88c1d809d6a 13,17-18
+docs/adr/0001-external-tool-boundary.md
+  s_6f4d0bf2ef73fa::t_c3ac224f4c176b 28
+docs/adr/index.md
+  s_6f4d0bf2ef73fa::t_23e565ac272612 7-8
+docs/architecture.md
+  s_6f4d0bf2ef73fa::t_a31cef44c3df07 54,58
+docs/commands.md
+  s_6f4d0bf2ef73fa::t_15549e6d4983b9 9-15,25-28,52
+docs/commands/cli.md
+  s_6f4d0bf2ef73fa::t_aab6ed9d50989c 38,105,143,188-189
+docs/commands/jj-dispatch.md
+  s_6f4d0bf2ef73fa::t_325f4099b27992 18,56,58,71
+docs/commands/jj-evaluated.md
+  s_6f4d0bf2ef73fa::t_7efe99ea1081a3 16,20
+docs/commands/jj-init.md
+  s_6f4d0bf2ef73fa::t_ce1a8e0813b701 18,33
+docs/commands/jj-review.md
+  s_6f4d0bf2ef73fa::t_91390a12f5daff 36
+docs/commands/jj-same.md
+  s_6f4d0bf2ef73fa::t_d8ebc1609b7ecb 4,17,68,72
+docs/commands/jj-team-coordinate.md
+  s_6f4d0bf2ef73fa::t_fbb004c38d6413 17,50
+docs/commands/jj-team-lifecycle.md
+  s_6f4d0bf2ef73fa::t_6cfa4f09f02e1c 20,52
+docs/commands/jj-team-swarm.md
+  s_6f4d0bf2ef73fa::t_0603301193e606 18,50
+docs/commands/jj.md
+  s_6f4d0bf2ef73fa::t_581ecd3146a2d7 12-18,25
+docs/concepts-evidence.md
+  s_6f4d0bf2ef73fa::t_75c769d81fcbdd 28
+docs/concepts-hosts.md
+  s_6f4d0bf2ef73fa::t_d9d8b31ae34daa 27,36
+docs/concepts-knowledge.md
+  s_6f4d0bf2ef73fa::t_9236e53ee0cccf 15
+docs/concepts-paths.md
+  s_6f4d0bf2ef73fa::t_18ecfd78e6ac3c 29
+docs/deployment.md
+  s_6f4d0bf2ef73fa::t_10f6524bb6956c 13
+docs/design-docs/docs-site-vitepress.md
+  s_6f4d0bf2ef73fa::t_05b8e3c13767ee 7
+docs/design-docs/harness-engineering.md
+  s_6f4d0bf2ef73fa::t_4140e0d4e8099c 9,15
+docs/design-docs/index.md
+  s_6f4d0bf2ef73fa::t_033dc6bbb6fa76 18-35,37
+docs/design-docs/jj-ralph.md
+  s_6f4d0bf2ef73fa::t_995e3d78247f54 57
+docs/design-docs/portfolio-knowledge.md
+  s_6f4d0bf2ef73fa::t_564c4d37112917 76,86
+docs/design-docs/ralph-plans-workspace.md
+  s_6f4d0bf2ef73fa::t_a6db2afa71b684 9,13,393
+docs/design-docs/ralph-plans-workspace.preview.md
+  s_6f4d0bf2ef73fa::t_e8297e88324ab0 5
+docs/design-docs/ralph-workspace-layout.md
+  s_6f4d0bf2ef73fa::t_47677eace5de08 7
+docs/exec-plans/index.md
+  s_6f4d0bf2ef73fa::t_74757f093289eb 16-18,26-34
+docs/glossary.md
+  s_6f4d0bf2ef73fa::t_ea29bff4206282 31
+docs/index.md
+  s_6f4d0bf2ef73fa::t_cf8b4b0bff7408 12,16,22-27,30,32,57,63-68
+docs/installation.md
+  s_6f4d0bf2ef73fa::t_09ad1bdd75844b 54,68
+docs/jj-lab-siblings.md
+  s_6f4d0bf2ef73fa::t_642158f53294cd 4
+docs/loop-graph-guide.md
+  s_6f4d0bf2ef73fa::t_570a6fb8591de7 3-4,6
+docs/maintenance.md
+  s_6f4d0bf2ef73fa::t_c0d222a66e3601 42
+docs/memory-knowledge-guide.md
+  s_6f4d0bf2ef73fa::t_1e71fdb90b7ccf 11
+docs/milestones/real-host-acceptance.md
+  s_6f4d0bf2ef73fa::t_2ecf95e7b163de 9
+docs/pitfalls.md
+  s_6f4d0bf2ef73fa::t_287bb11a79468b 16,30,43,70,84,103,134,150
+docs/project-plan.md
+  s_6f4d0bf2ef73fa::t_cd1dd7988a8a07 3,20
+docs/usage.md
+  s_6f4d0bf2ef73fa::t_4b645c9b4471d7 3,15,41,53,55,70,72,91,98
+docs/commands/jj-end.md
+  s_6f4d0bf2ef73fa::t_93183722a3dae1 20-21,32,59
+docs/commands/jj-ralph.md
+  s_6f4d0bf2ef73fa::t_271ff3494d86aa 17,76,180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "9c12462162c71b345eb373646b1689f4a134137f",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "刘勇杰-Linux <beerui2021@gmail.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
