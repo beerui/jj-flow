@@ -3,6 +3,8 @@
 Use when the user already gave `@file:line` or a clear single-field / single-interaction change.  
 Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”).
 
+`tiny` is the intensity tier only; it does **not** switch the gate path. Add `--lite` explicitly when the user says 「小改 / 顺手修」 (BRIEF→DELIVER→CLOSE, see [phases.md](phases.md) § Gate set); otherwise a tiny run still walks the five gates.
+
 ## Scope
 
 - Change exactly 1 business file (plus at most 1 reference implementation file, read-only)
