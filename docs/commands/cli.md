@@ -63,45 +63,56 @@ jj doctor [--json]
 
 ## ralph 子命令
 
-对话入口仍是 `$jj-ralph` / `/jj-ralph`。下列命令供 skill 脚本 / 维护脚本调用。
+对话入口仍是 `$jj-ralph` / `/jj-ralph`。下列命令供 skill 脚本 / 维护脚本调用。`run_id` 即任务目录名，形如 `task-<slug>`（P2 起；旧 `RALPH-*` 目录先 `migrate` / `adopt`）。
 
 ```bash
-jj ralph init --run-id RALPH-… --title "…" --goal "…" \
+jj ralph init --run-id task-… --title "…" --goal "…" \
   [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] \
-  [--capability CAP-…] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] \
-  [--host-id …] [--thread-id …] [--model-id …] [--session-export path] [--force] [--json]
+  [--capability CAP-…] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] \
+  [--intent|--no-intent] [--host-id …] [--thread-id …] [--model-id …] [--session-export path] [--force] [--json]
 
-jj ralph status [--run-id RALPH-…] [--json]
-jj ralph archive --run-id RALPH-… [--slug name] [--json]
-jj ralph finalize --run-id RALPH-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]
-jj ralph map-merge --run-id RALPH-… [--modules …] [--keywords …] [--lessons …] [--force] [--json]
-jj ralph map-find --query "关键词" [--limit N] [--json]
-jj ralph handoff --run-id RALPH-… [--handoff-id HOF-…] [--target name] [--json]
-jj ralph dispatch-snapshot --run-id RALPH-… [--target name] [--json]
-jj ralph gate --run-id RALPH-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]
-jj ralph scope --run-id RALPH-… [--in path]… [--out path]… [--json]
-jj ralph deliver-attempt --run-id RALPH-… [--improved true|false|auto] [--signal text] [--json]
-jj ralph accept-layer --run-id RALPH-… --layer mechanical|judgment \
+jj ralph status [--run-id task-…] [--json]
+jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]
+jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]
+jj ralph deliver-attempt --run-id task-… [--improved true|false] [--signal text] [--json]
+jj ralph accept-layer --run-id task-… --layer mechanical|judgment \
   --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]
-jj ralph rollback-phase --run-id RALPH-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]
-jj ralph set-status --run-id RALPH-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]
-jj ralph commit-prep --run-id RALPH-… [--json]
-jj ralph review-record --run-id RALPH-… --outcome PASS|NEEDS_CHANGES|BLOCKED [审查溯源选项…] [--json]
-jj ralph host-record --run-id RALPH-… [--host-id …] [--thread-id …] [--session-handle …] [--model-id …] [--export-path …] [--json]
+jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]
+jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]
+jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]
+jj ralph metrics --run-id task-… [--persist] [--json]
+
+jj ralph archive --run-id task-… [--slug name] [--json]
+jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]
+jj ralph map-merge --run-id task-… [--modules …] [--keywords …] [--lessons …] [--force] [--json]
+jj ralph map-find --query "关键词" [--limit N] [--json]
+jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]
+jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]
+jj ralph knowledge-prune [--project KEY] [--json]
+
+jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]
+jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]
+jj ralph commit-prep --run-id task-… [--json]
+jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [审查溯源选项…] [--json]
+jj ralph host-record --run-id task-… [--host-id …] [--thread-id …] [--session-handle …] [--model-id …] [--export-path …] [--json]
+
+jj ralph migrate [--all-projects] [--json]
+jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
 ```
 
 说明：
 
-- `intensity`：`tiny` / `standard`（默认）/ `strict` — 预算与 accept 判断层；对话入口见 [ralph 命令](command-jj-ralph.html)  
-- `gate_set`：默认 `full`（五 gate）；`--lite` 走 `brief`→`deliver`→`close`（别名仍写 analyze/plan/accept/archive 五键，`close` 照走 accept/archive 证据门），`budget.max_deliver_loops ≤ 3`；任一 gate FAIL/BLOCKED 或 `scope --in` 新增路径 → 自动升 full，同目录不换 run_id。与 `intensity` 正交（tiny ≠ lite）
-- 无 `--lite` / `--full` 时 init 按规模**只建议**：改动面小（`--in` ≤ 2 个具体文件，或标题/目标含「小改 / 顺手 / typo / px」类口语）、无架构词（重构 / 协议 / 鉴权 / 迁移 / schema / api …）、单一验收项三者同时成立才建议 `lite`，拿不准即 `full`。文本模式打印 `gate_set? lite …` 行，`--json` 带 `run.gate_set_suggestion`（`applied=false`）；`run.json` 仍写 `full`，要走 lite 须显式 `--lite`（gate 前可 `--lite --force` 重 init）
-- `deliver-attempt`：DELIVER 循环记是否改进；可省略 `--improved`（按工作区指纹自动判定）；连续无改进 → `BLOCKED` + `STAGNATION`  
-- `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`  
-- `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）  
-- `finalize` = map-merge + archive  
-- `handoff` 写到 `.workflow/handoffs/`（迁移实现不在 ralph 目录内）  
-- `commit-prep` 只出清单与 message，**不** git commit/push  
-- 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`）
+- `intensity`：`tiny` / `standard`（默认）/ `strict`，决定预算与 accept 判断层；对话入口见 [ralph 命令](command-jj-ralph.html)
+- `gate_set`：默认 `full`（五 gate）。`--lite` 走 `brief` → `deliver` → `close`：`brief` = analyze + plan，`close` = accept + archive，账本仍写五键，`close` 照走 accept / archive 证据门；`budget.max_deliver_loops ≤ 3`。任一 gate FAIL / BLOCKED，或 `scope --in` 新增路径，自动升 full（恢复 intensity 预算），同目录、不换 `run_id`。lite 预算到顶时只停（`BLOCKED`，`unblock` 指明出口），不自动升档；`gate deliver FAIL` 即出口，升 full 并解除该 BLOCKED。`gate_set` 与 `intensity` 正交：tiny 不等于 lite
+- 无 `--lite` / `--full` 时，init 按规模**只给建议**：改动面小（`--in` ≤ 2 个具体文件，或标题 / 目标含「小改 / 顺手 / typo / px」这类口语）、无架构词（重构 / 协议 / 鉴权 / 迁移 / schema / api …）、单一验收项，三者同时成立才建议 `lite`，拿不准即 `full`。文本模式多打一行 `gate_set? lite …`，`--json` 带 `run.gate_set_suggestion`（`applied=false`）；`run.json` 仍写 `full`。要走 lite 必须显式 `--lite`（尚未过任何 gate 时可 `--lite --force` 重 init）
+- `deliver-attempt`：DELIVER 每轮记一次是否改进；省略 `--improved` 时按工作区指纹自动判定；连续无改进 → `BLOCKED` + `STAGNATION`
+- `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`
+- `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）；`finalize` = map-merge + archive；归档原地翻转，不再复制到 `archive/`
+- `finding`：按五要素（现象 / 原因 / 对策 / 适用范围 / 证据）追写 `findings.md`，并在 progress 留一行索引
+- `migrate`：把活跃的旧 `RALPH-*` 目录 1:1 迁到 `tasks/task-<slug>/`（原目录改名 `.migrated-*` 保留）；`adopt --task` 把已有 run 绑定到规范目录，`--absorb` 只提示、不自动合并
+- `handoff` 写 `tasks/<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
+- `commit-prep` 只出清单与 message，**不** git commit / push
+- 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`，`npm run ralph:sync` 同步）
 
 ---
 
