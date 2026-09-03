@@ -22,7 +22,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
-| [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.html) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；`lab:check` gym pin 另行处理 |
+| [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.html) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；收口批已升 gym pin（`lab:check` 回绿）并修复 lite 预算出口残留 BLOCKED |
 | [Ralph 工作区 P2](completed/2026-09-02-ralph-plans-workspace-p2.html) | P2a `task-*` + `.state/` + schema 1.2；P2b same/review 定位；P2c migrate/adopt + 去掉 1.0 标题回退。lite 未开 |
 | [Ralph 工作区 P1](completed/2026-09-02-ralph-plans-workspace-p1.html) | P1a 五模块拆分、P1b 布局 8→4 + schema 1.1、P1c 归档原地翻转；P2 另开 |
 | [Grok Host Adapter Phase 2 / Wave 2](completed/2026-09-01-grok-host-adapter-phase2.html) | 真 Grok 试跑 + 人工审查升 A2；JSON 不得自关 |
