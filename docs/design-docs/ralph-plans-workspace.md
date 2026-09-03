@@ -2,7 +2,7 @@
 
 > 状态：Implemented
 >
-> 验收证据：`tests/jj-ralph-contract.test.mjs`（P1b 布局 / P1c 归档 / P2 `task-*` 身份与 migrate·adopt / P2+a lite 别名·升 full / P2+b 启发式只建议）、`tests/memory-hot-layer.test.mjs`（P0 热层）、`tests/jj-dispatch-contract.test.mjs`（派单简报热层）、`npm run ralph:check`、`npm run verify`（`lab:check` 由 sibling gym pin 另行更新，见 P2+ 执行计划验收证据）
+> 验收证据：`tests/jj-ralph-contract.test.mjs`（P1b 布局 / P1c 归档 / P2 `task-*` 身份与 migrate·adopt / P2+a lite 别名·升 full / P2+b 启发式只建议）、`tests/memory-hot-layer.test.mjs`（P0 热层）、`tests/jj-dispatch-contract.test.mjs`（派单简报热层）、`npm run ralph:check`、`npm run verify`（含 `lab:check`；sibling gym pin 已升到 P2 布局，见 `docs/jj-lab-siblings.md`「gym pin 维护」）
 >
 > 参考模型：`daji-customer-service` 仓库 `.plans/<project>/<role>/task-*` 工作区（任务 / 进度 / 文档三套规范）
 >

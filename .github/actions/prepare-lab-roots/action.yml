@@ -3,13 +3,13 @@ description: Clone sibling gyms to an absolute path outside $HOME, seed, export 
 
 inputs:
   loop_ref:
-    description: Pin SHA for beerui/jj-lab-loop
+    description: Pin SHA for beerui/jj-lab-loop (must understand the P2 tasks/<task-*>/.state layout)
     required: false
-    default: '1dc1493daf7189afa2438d3c3f8f8e4af9940a2b'
+    default: 'ed72b08499b3c50c6949c702b3be60aa1ac4b52f'
   family_ref:
-    description: Pin SHA for beerui/jj-lab-family
+    description: Pin SHA for beerui/jj-lab-family (must understand the P2 tasks/<task-*>/.state layout)
     required: false
-    default: '9c2eb5b0b191382ef8980a92b6761f87dd511117'
+    default: '0b8ec50be82301173cb7cd63e4989e72d428f215'
 
 runs:
   using: composite
