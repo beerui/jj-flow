@@ -138,7 +138,7 @@ VitePress 本地搜索（minisearch）默认按空白/标点分词，中文整�
 
 ### 5.2 Markdown 兼容
 
-正文里没有 `{{`、没有裸尖括号标签、全部以 H1 开头、没有 frontmatter；`docs/pitfalls.md` / `commands/cli.md` 中的 `---` 是分隔线而非 frontmatter（不在首行）。markdown-it 能力严格超过旧解析器，不需要逐页改语法。
+正文里没有双花括号（会被 Vue 当插值；行内代码也不豁免，只有围栏代码块安全）、没有裸尖括号标签、全部以 H1 开头、没有 frontmatter；`docs/pitfalls.md` / `commands/cli.md` 中的 `---` 是分隔线而非 frontmatter（不在首行）。markdown-it 能力严格超过旧解析器，不需要逐页改语法。
 
 ## 6. Harness 与校验
 
