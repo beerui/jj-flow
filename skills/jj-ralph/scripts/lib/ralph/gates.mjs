@@ -951,6 +951,110 @@ export function resolveGateKeys(gate, run) {
   );
 }
 
+/**
+ * P2+b tier heuristic knobs (advisory only). A lite suggestion needs every signal to read
+ * small: 改动面小 (scope.in ≤ max_scope_in concrete files, or the user's own small-change
+ * wording when scope.in is empty), 无架构词, 单一验收项. Anything uncertain reads full.
+ */
+export const GATE_SET_HEURISTIC = Object.freeze({
+  max_scope_in: 2,
+  small_change_terms: /小改|顺手|微调|改个|挪一?[点下]|调一下|一行|错字|typo|文案|像素|\d+\s*px\b|hotfix|小修|one-?liner|tweak/i,
+  architecture_terms: /架构|重构|重写|重做|协议|鉴权|认证|授权|权限|迁移|数据库|表结构|接口|中间件|事务|并发|缓存|队列|部署|发布|升级|跨仓|多仓|跨模块|跨项目|全局|框架|安全|加密|支付|schema|architect|refactor|rewrite|redesign|protocol|\bauth\b|authenticat|authoriz|oauth|\bjwt\b|\bsso\b|rbac|migrat|database|\bapi\b|middleware|transaction|concurren|cache|queue|deploy|release|upgrade|framework|security|encrypt|payment|infra|pipeline/i,
+  acceptance_conjunctions: /并且|以及|同时|然后|另外|还要|还需|再加|再把|\band also\b|\bas well as\b|\balso\b/i,
+  acceptance_leading_marker: /^\s*(?:[-*•]|\d+[.)、]|[①②③④⑤⑥⑦⑧⑨])\s*/,
+  acceptance_inline_marker: /\s(?:\d+[.)、]\s+|[①②③④⑤⑥⑦⑧⑨]\s*)/
+});
+
+function classifyScopeEntry(entry) {
+  const text = String(entry == null ? '' : entry).trim().replaceAll('\\', '/');
+  if (!text) return 'empty';
+  if (/[*?[\]{}]/.test(text)) return 'glob';
+  if (text.endsWith('/')) return 'dir';
+  const base = text.split('/').pop();
+  return /\.[A-Za-z0-9]+$/.test(base) ? 'file' : 'dir';
+}
+
+/** Rough count of independently acceptable deliverables named in the goal (1 = single item). */
+function countAcceptanceItems(goal) {
+  const text = String(goal == null ? '' : goal).trim();
+  if (!text) return 1;
+  const inlineMarker = new RegExp(GATE_SET_HEURISTIC.acceptance_inline_marker.source, 'g');
+  let items = 0;
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const hasLeadingMarker = GATE_SET_HEURISTIC.acceptance_leading_marker.test(line);
+    const body = line.replace(GATE_SET_HEURISTIC.acceptance_leading_marker, '');
+    const clauses = body.split(/[;；]/).map((part) => part.trim()).filter(Boolean).length;
+    const markers = (hasLeadingMarker ? 1 : 0) + (body.match(inlineMarker) || []).length;
+    items += Math.max(clauses, markers, 1);
+  }
+  const conjunctions = text.match(new RegExp(GATE_SET_HEURISTIC.acceptance_conjunctions.source, 'gi')) || [];
+  return Math.max(1, items + conjunctions.length);
+}
+
+/**
+ * Suggest a gate_set from what init knows (title / goal / scope.in / capability_ids).
+ * Advisory only: never writes run.gate_set (only an explicit --lite/--full does), never
+ * reads intensity (tiny ⟂ lite). Uncertain → full.
+ */
+export function suggestGateSet({ title = '', goal = '', scope = null, capability_ids = [] } = {}) {
+  const wording = [title, goal].map((part) => String(part == null ? '' : part)).join(' ').trim();
+  const scopeIn = (Array.isArray(scope?.in) ? scope.in : [])
+    .map((entry) => String(entry == null ? '' : entry).trim())
+    .filter(Boolean);
+  const reasons = [];
+
+  let surface;
+  if (!scopeIn.length) {
+    const smallWording = GATE_SET_HEURISTIC.small_change_terms.test(wording);
+    surface = smallWording ? 'small' : 'unknown';
+    reasons.push(smallWording
+      ? 'surface:small (no scope.in; small-change wording)'
+      : 'surface:unknown (no scope.in, no small-change wording)');
+  } else {
+    const kinds = scopeIn.map(classifyScopeEntry);
+    const allFiles = kinds.every((kind) => kind === 'file');
+    if (scopeIn.length <= GATE_SET_HEURISTIC.max_scope_in && allFiles) {
+      surface = 'small';
+      reasons.push('surface:small (scope.in=' + scopeIn.length + ' concrete file' + (scopeIn.length > 1 ? 's' : '') + ')');
+    } else {
+      surface = 'wide';
+      reasons.push('surface:wide (scope.in=' + scopeIn.length + (allFiles ? '' : ', dir/glob/extension-less entries') + ')');
+    }
+  }
+
+  const archMatches = unique(
+    (wording + ' ' + scopeIn.join(' ')).match(new RegExp(GATE_SET_HEURISTIC.architecture_terms.source, 'gi')) || []
+  ).map((term) => term.toLowerCase());
+  reasons.push(archMatches.length ? 'architecture:' + archMatches.join(',') : 'architecture:none');
+
+  const clauseCount = countAcceptanceItems(goal);
+  const capabilityCount = Array.isArray(capability_ids) ? capability_ids.filter(Boolean).length : 0;
+  const acceptanceItems = Math.max(clauseCount, capabilityCount);
+  if (acceptanceItems > 1) {
+    reasons.push('acceptance:multiple (' + (clauseCount > 1 ? clauseCount + ' clauses' : 'capability_ids=' + capabilityCount) + ')');
+  } else {
+    reasons.push('acceptance:single');
+  }
+
+  const lite = surface === 'small' && archMatches.length === 0 && acceptanceItems === 1;
+  return {
+    gate_set: lite ? 'lite' : 'full',
+    applied: false,
+    reasons,
+    signals: {
+      surface,
+      scope_in: scopeIn.length,
+      architecture_terms: archMatches,
+      acceptance_items: acceptanceItems
+    },
+    hint: lite
+      ? 'advisory only: run.json keeps gate_set=full; re-run init with --lite --force before any gate to take lite, or stay full'
+      : null
+  };
+}
+
 /** One ledger key, in memory. close PASS reuses this for accept then archive, so no evidence gate is skipped. */
 function applyGateKey(run, gate, status, { cwd, advance, force, diff_paths, deleted_paths }) {
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {

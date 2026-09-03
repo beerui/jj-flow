@@ -61,9 +61,11 @@ import {
   writeHandoffPackage,
   renderRalphStatusText,
   GATE_ALIASES,
+  GATE_SET_HEURISTIC,
   LITE_MAX_DELIVER_LOOPS,
   createRunSkeleton,
   promoteGateSetToFull,
+  suggestGateSet,
   updateRunScope
 } from '../src/ralph.mjs';
 import * as ralphApi from '../src/ralph.mjs';
@@ -79,6 +81,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'GATE_ALIASES',
   'GATE_ISSUE_CLASSES',
   'GATE_SETS',
+  'GATE_SET_HEURISTIC',
   'HANDOFF_ROOT_REL',
   'HOST_IDS',
   'HOST_REVIEW_METHODS',
@@ -218,6 +221,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'setRunStatus',
   'suggestReopenAsNew',
   'stripRunIdPrefix',
+  'suggestGateSet',
   'tokenize',
   'updateRunScope',
   'validateMap',
@@ -2585,6 +2589,178 @@ test('P2+a lite FAIL/BLOCKED or scope.in growth promotes to full in place (same 
     const both = spawnSync(process.execPath, [ops, 'init', '--run-id', 'task-lite-ops-both', '--title', 't', '--goal', 'g', '--lite', '--full', '--cwd', cwd], { encoding: 'utf8' });
     assert.notEqual(both.status, 0);
     assert.match(both.stderr, /--lite or --full, not both/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// P2+b tier heuristic: advisory only (no flag → gate_set stays full)
+// ---------------------------------------------------------------------------
+
+test('P2+b suggestGateSet reads title/goal/scope/capability_ids only; lite needs every signal small, else full', () => {
+  assert.equal(GATE_SET_HEURISTIC.max_scope_in, 2);
+  const lite = suggestGateSet({ title: 'tip 位置', goal: 'tip bottom 4px 改成 6px', scope: { in: ['src/tip.css'], out: [] } });
+  assert.equal(lite.gate_set, 'lite');
+  assert.equal(lite.applied, false);
+  assert.deepEqual(lite.signals, { surface: 'small', scope_in: 1, architecture_terms: [], acceptance_items: 1 });
+  assert.deepEqual(lite.reasons, ['surface:small (scope.in=1 concrete file)', 'architecture:none', 'acceptance:single']);
+  assert.match(lite.hint, /advisory only.*--lite --force/);
+
+  // 改动面小 via the user's own wording when scope.in is empty
+  const wording = suggestGateSet({ title: '顺手修', goal: '顺手把登录页 typo 改了' });
+  assert.equal(wording.gate_set, 'lite');
+  assert.equal(wording.signals.surface, 'small');
+  assert.match(wording.reasons[0], /small-change wording/);
+
+  // 拿不准 → full: no scope, no small-change wording
+  const unknown = suggestGateSet({ title: '登录提醒', goal: '登录后密码过期要提示' });
+  assert.equal(unknown.gate_set, 'full');
+  assert.equal(unknown.signals.surface, 'unknown');
+  assert.equal(unknown.hint, null);
+
+  // 改动面宽: >2 files, or dir / glob / extension-less entries
+  assert.equal(suggestGateSet({ goal: 'small fix', scope: { in: ['src/a.js', 'src/b.js', 'src/c.js'] } }).signals.surface, 'wide');
+  assert.equal(suggestGateSet({ goal: 'small fix', scope: { in: ['src/a.js', 'src/b.js'] } }).gate_set, 'lite');
+  for (const entry of ['src/', 'src/**/*.js', 'src/lib', 'Dockerfile']) {
+    const wide = suggestGateSet({ goal: 'small fix', scope: { in: [entry] } });
+    assert.equal(wide.gate_set, 'full', entry);
+    assert.match(wide.reasons[0], /surface:wide/);
+  }
+
+  // 架构词 anywhere in title / goal / scope.in → full even with one file and small wording
+  const arch = suggestGateSet({ title: '顺手重构', goal: '顺手重构鉴权协议', scope: { in: ['src/auth.js'] } });
+  assert.equal(arch.gate_set, 'full');
+  assert.deepEqual(arch.signals.architecture_terms, ['重构', '鉴权', '协议', 'auth']);
+  assert.equal(suggestGateSet({ goal: 'add api field', scope: { in: ['src/a.js'] } }).gate_set, 'full');
+  assert.equal(suggestGateSet({ goal: 'bump schema description', scope: { in: ['schemas/x.json'] } }).gate_set, 'full');
+  // \bauth\b does not catch "author"
+  assert.equal(suggestGateSet({ goal: 'show author name', scope: { in: ['src/a.js'] } }).gate_set, 'lite');
+
+  // 多验收项: separators / list markers / conjunctions / capability_ids
+  for (const goal of ['改 tip 文案；把 close 挪一点', '1. 改 A\n2. 改 B', '① 改 A ② 改 B', '- 改 A\n- 改 B', '改 A 并且改 B', 'fix A and also B']) {
+    const multi = suggestGateSet({ goal, scope: { in: ['src/a.js'] } });
+    assert.equal(multi.gate_set, 'full', goal);
+    assert.ok(multi.signals.acceptance_items > 1, goal);
+    assert.match(multi.reasons[2], /acceptance:multiple/);
+  }
+  assert.equal(suggestGateSet({ goal: 'small fix 3.5px', scope: { in: ['src/a.css'] } }).signals.acceptance_items, 1);
+  const caps = suggestGateSet({ goal: 'small fix', scope: { in: ['src/a.js'] }, capability_ids: ['CAP-a', 'CAP-b'] });
+  assert.equal(caps.gate_set, 'full');
+  assert.match(caps.reasons[2], /capability_ids=2/);
+
+  // intensity is not an input: the same wording yields the same suggestion regardless of tier
+  const asTiny = suggestGateSet({ goal: 'small fix', scope: { in: ['src/a.js'] }, intensity: 'tiny' });
+  const asStrict = suggestGateSet({ goal: 'small fix', scope: { in: ['src/a.js'] }, intensity: 'strict' });
+  assert.deepEqual(asTiny, asStrict);
+  assert.equal(suggestGateSet().gate_set, 'full');
+});
+
+test('P2+b init without --lite/--full stays full; heuristic only advises (returned object + progress), never the ledger', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-lite-hint-'));
+  try {
+    const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', 'tasks', id);
+    const progressOf = (id) => fs.readFileSync(path.join(dirOf(id), 'progress.md'), 'utf8');
+    const diskOf = (id) => JSON.parse(fs.readFileSync(path.join(dirOf(id), '.state', 'run.json'), 'utf8'));
+
+    // (a) small change, no flag → run.json full + standard budget; suggestion lite only on the returned object
+    const smallId = 'task-hint-small';
+    const small = initRun({ run_id: smallId, title: 'tip 位置', goal: 'tip bottom 4px 改成 6px', attach_knowledge: false, scope: { in: ['src/tip.css'], out: [] } }, cwd);
+    assert.equal(small.gate_set, 'full');
+    assert.equal(small.budget.max_deliver_loops, INTENSITY_DEFAULTS.standard.budget.max_deliver_loops);
+    assert.equal(small.gate_set_suggestion.gate_set, 'lite');
+    assert.equal(small.gate_set_suggestion.applied, false);
+    assert.match(small.gate_set_suggestion.hint, /run\.json keeps gate_set=full/);
+    const disk = diskOf(smallId);
+    assert.equal(disk.gate_set, 'full');
+    assert.equal(Object.hasOwn(disk, 'gate_set_suggestion'), false);
+    assert.equal(Object.hasOwn(disk, 'reuse_suggestions'), false);
+    assert.deepEqual(validateRun(loadRun(smallId, cwd)), []);
+    assert.equal(loadRun(smallId, cwd).gate_set_suggestion, undefined);
+    assert.match(progressOf(smallId), /^- gate_set: full\n- gate_set_suggestion: lite \(advisory; run\.json stays full — explicit --lite only\) reasons=surface:small \(scope\.in=1 concrete file\); architecture:none; acceptance:single$/m);
+    // aliases still refused: the suggestion changed nothing in the ledger
+    assert.throws(() => setGate(smallId, { gate: 'brief', status: 'PASS', cwd }), /requires gate_set=lite \(current=full\)/);
+    // taking the hint = explicit --lite (re-init --force before any gate); no other path flips gate_set
+    const taken = initRun({ run_id: smallId, title: 'tip 位置', goal: 'tip bottom 4px 改成 6px', attach_knowledge: false, scope: { in: ['src/tip.css'], out: [] }, gate_set: 'lite', force: true }, cwd);
+    assert.equal(taken.gate_set, 'lite');
+    assert.equal(taken.budget.max_deliver_loops, LITE_MAX_DELIVER_LOOPS);
+    assert.equal(taken.gate_set_suggestion, undefined);
+    assert.equal(diskOf(smallId).gate_set, 'lite');
+    assert.match(progressOf(smallId), /gate_set: lite \(brief→deliver→close; max_deliver_loops=3\)/);
+    assert.doesNotMatch(progressOf(smallId), /gate_set_suggestion/);
+
+    // (b) intensity ⟂ gate_set: tiny never flips gate_set and never feeds the heuristic
+    const tinyArch = initRun({ run_id: 'task-hint-tiny-arch', title: '重构鉴权', goal: '重构鉴权协议', attach_knowledge: false, intensity: 'tiny' }, cwd);
+    assert.equal(tinyArch.gate_set, 'full');
+    assert.equal(tinyArch.gate_set_suggestion.gate_set, 'full');
+    assert.match(tinyArch.gate_set_suggestion.reasons.join(';'), /architecture:重构,鉴权,协议/);
+    assert.doesNotMatch(progressOf('task-hint-tiny-arch'), /gate_set_suggestion/);
+    const tinySmall = initRun({ run_id: 'task-hint-tiny-small', title: 'tiny', goal: 'small fix', attach_knowledge: false, intensity: 'tiny', scope: { in: ['src/a.js'], out: [] } }, cwd);
+    assert.equal(tinySmall.gate_set, 'full');
+    assert.equal(tinySmall.intensity, 'tiny');
+    assert.equal(tinySmall.budget.max_deliver_loops, INTENSITY_DEFAULTS.tiny.budget.max_deliver_loops);
+    assert.equal(tinySmall.gate_set_suggestion.gate_set, 'lite');
+    assert.equal(diskOf('task-hint-tiny-small').gate_set, 'full');
+    const strictSmall = initRun({ run_id: 'task-hint-strict-small', title: 'strict', goal: 'small fix', attach_knowledge: false, intensity: 'strict', scope: { in: ['src/a.js'], out: [] } }, cwd);
+    assert.deepEqual(strictSmall.gate_set_suggestion.signals, tinySmall.gate_set_suggestion.signals);
+    assert.equal(strictSmall.gate_set, 'full');
+
+    // (c) 拿不准 → full suggestion, no progress line
+    const unknown = initRun({ run_id: 'task-hint-unknown', title: '登录提醒', goal: '登录后密码过期要提示', attach_knowledge: false }, cwd);
+    assert.equal(unknown.gate_set, 'full');
+    assert.equal(unknown.gate_set_suggestion.gate_set, 'full');
+    assert.equal(unknown.gate_set_suggestion.signals.surface, 'unknown');
+    assert.doesNotMatch(progressOf('task-hint-unknown'), /gate_set_suggestion/);
+
+    // (d) explicit flag = user decided: no suggestion at all
+    const explicitFull = initRun({ run_id: 'task-hint-full', title: 'tip 位置', goal: 'tip bottom 4px 改成 6px', attach_knowledge: false, scope: { in: ['src/tip.css'], out: [] }, gate_set: 'full' }, cwd);
+    assert.equal(explicitFull.gate_set, 'full');
+    assert.equal(explicitFull.gate_set_suggestion, undefined);
+    assert.doesNotMatch(progressOf('task-hint-full'), /gate_set_suggestion/);
+    const explicitLite = initRun({ run_id: 'task-hint-lite', title: '大改', goal: '重构鉴权协议', attach_knowledge: false, gate_set: 'lite' }, cwd);
+    assert.equal(explicitLite.gate_set, 'lite');
+    assert.equal(explicitLite.gate_set_suggestion, undefined);
+
+    // (e) CLI text / --json / --full
+    const chunks = [];
+    const stdout = { write: (text) => chunks.push(text) };
+    assert.equal(runCli(['ralph', 'init', '--run-id', 'task-hint-cli', '--title', 'cli tip', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--no-knowledge-refs'], { cwd, stdout }), 0);
+    assert.match(chunks.join(''), /^initialized task-hint-cli\n/);
+    assert.match(chunks.join(''), /^gate_set\? lite \(advisory; gate_set stays full — pass --lite explicitly to take it\) · surface:small \(scope\.in=1 concrete file\); architecture:none; acceptance:single$/m);
+    assert.equal(loadRun('task-hint-cli', cwd).gate_set, 'full');
+    chunks.length = 0;
+    assert.equal(runCli(['ralph', 'init', '--run-id', 'task-hint-cli-json', '--title', 'cli tip json', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--no-knowledge-refs', '--json'], { cwd, stdout }), 0);
+    const jsonRun = JSON.parse(chunks.join('')).run;
+    assert.equal(jsonRun.gate_set, 'full');
+    assert.equal(jsonRun.gate_set_suggestion.gate_set, 'lite');
+    assert.equal(jsonRun.gate_set_suggestion.applied, false);
+    assert.equal(diskOf('task-hint-cli-json').gate_set, 'full');
+    chunks.length = 0;
+    assert.equal(runCli(['ralph', 'init', '--run-id', 'task-hint-cli-full', '--title', 'cli tip full', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--no-knowledge-refs', '--full'], { cwd, stdout }), 0);
+    assert.match(chunks.join(''), /^initialized task-hint-cli-full\n/);
+    assert.doesNotMatch(chunks.join(''), /gate_set\?/);
+    chunks.length = 0;
+    assert.equal(runCli(['ralph', 'init', '--run-id', 'task-hint-cli-unknown', '--title', 'cli 登录提醒', '--goal', '登录后密码过期要提示', '--no-knowledge-refs'], { cwd, stdout }), 0);
+    assert.match(chunks.join(''), /^initialized task-hint-cli-unknown\n/);
+    assert.doesNotMatch(chunks.join(''), /gate_set\?/);
+    assert.equal(loadRun('task-hint-cli-unknown', cwd).gate_set, 'full');
+
+    // (f) ralph_ops passes the advisory through; run.json stays full
+    const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
+    const runNode = (args) => {
+      const result = spawnSync(process.execPath, [ops, ...args, '--cwd', cwd], { encoding: 'utf8' });
+      assert.equal(result.status, 0, result.stderr || result.stdout);
+      return JSON.parse(result.stdout);
+    };
+    const opsHint = runNode(['init', '--run-id', 'task-hint-ops', '--title', 'tip 位置', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--project', 'ops-hint-proj']);
+    assert.equal(opsHint.gate_set, 'full');
+    assert.equal(opsHint.max_deliver_loops, INTENSITY_DEFAULTS.standard.budget.max_deliver_loops);
+    assert.equal(opsHint.gate_set_suggestion.gate_set, 'lite');
+    assert.equal(opsHint.gate_set_suggestion.applied, false);
+    assert.equal(diskOf('task-hint-ops').gate_set, 'full');
+    const opsFull = runNode(['init', '--run-id', 'task-hint-ops-full', '--title', 'tip 位置', '--goal', 'tip bottom 4px 改成 6px', '--in', 'src/tip.css', '--full', '--project', 'ops-hint-proj']);
+    assert.equal(opsFull.gate_set, 'full');
+    assert.equal(opsFull.gate_set_suggestion, null);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
