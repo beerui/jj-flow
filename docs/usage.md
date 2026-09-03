@@ -7,7 +7,7 @@
 
 ```text
 $jj-init
-$jj-init 当前仓加入全局地图，中文名称姐姐
+$jj-init 当前仓加入全局地图，中文名「姐姐」
 ```
 
 Agent 先给提案（名称 / 家族 / 要不要补知识），**你点头才写入**。ralph 不会自动加地图。
@@ -38,7 +38,7 @@ $jj-ralph
 Agent 会在对话里：建任务 → 分析 → 改代码 → 验收 → 归档。  
 做完看仓库里的任务记录，不要只听聊天总结。
 
-→ [ralph 说明](command-jj-ralph.html)
+小改可以说「顺手修一下」（走 lite 三步）；没说默认走完整五步。详见 [ralph](command-jj-ralph.html)。
 
 ## B. 搬到别的同源项目 → same
 
@@ -50,7 +50,7 @@ $jj-same 交接到 项目B 项目C
 $jj-same 开始迁移项目D
 ```
 
-**注意：** 「开始迁移」前要确认 **分支是不是这个任务的分支**，别在发布分支上乱改。详见 [踩坑](pitfalls.html)。
+**注意：** 「开始迁移」前确认 **分支是不是这个任务的分支**，别在发布分支上改。详见 [踩坑](pitfalls.html)。
 
 → [same 说明](command-jj-same.html)
 
@@ -69,7 +69,7 @@ $jj-dispatch 把 README 装依赖改成 pnpm，预览分发到项目A项目B项�
 你会先看到预览，**你点同意** 后才会真正派出去。  
 调度「验收通过」**不等于** 已经推到远端——要推/合分支用 [收工 end](command-jj-end.html)。
 
-→ [dispatch 说明](command-jj-dispatch.html)
+→ [dispatch 说明](command-jj-dispatch.html)（Claude **没有** 这个入口）
 
 ## 怎样算做完？
 
@@ -95,4 +95,4 @@ $jj-dispatch 把 README 装依赖改成 pnpm，预览分发到项目A项目B项�
 - **调度（外层）**：谁做、批没批、任务号在哪 → 主要是 dispatch  
 - **做事（内层）**：分析 → 改 → 验 → 不过再改 → 主要是 ralph / same  
 
-名词表：[术语](glossary.html)
+名词表：[术语](glossary.html) · 全部入口：[命令总览](commands.html)

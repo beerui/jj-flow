@@ -14,10 +14,16 @@
 ## 业务仓库里常见目录
 
 ```text
-.workflow/ralph/…      # 单仓任务记录
+.workflow/ralph/
+  <task-…>/            # 进行中的任务（人读 md + .state/）
+  completed/<task-…>/  # 已归档 / 已放弃
+  migrated/            # 旧版迁移残骸
+  archive/…            # 1.0 快照（只读；可 prune）
 .workflow/handoffs/…   # 交接导出
 ```
 
+任务目录里：人看 `task_plan.md` / `progress.md` / `findings.md`；机器事件在 `.state/events.jsonl`。
+
 ## 相关
 
-[安装](installation.html) · [知识库](concepts-knowledge.html)
+[安装](installation.html) · [知识库](concepts-knowledge.html) · [ralph](command-jj-ralph.html)
