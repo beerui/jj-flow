@@ -65,7 +65,7 @@
 - [x] 合约：`--lite` init 的 gate_set/budget；brief PASS 推进 DELIVER；close 弱证据仍挡；升档不换 `run_id`（`tests/jj-ralph-contract.test.mjs` 新增 4 个 `P2+a` 用例）
 - [x] `npm run ralph:sync` + `ralph:check` + `tests/jj-ralph-contract.test.mjs`（49 pass）
 
-> P2+a 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 49/49；`npm run ralph:check` in_sync；`npm run verify` 除 `lab:check` 外全绿——`lab:check` 在 `main`（`c051f0b`）上同样失败（sibling gym pin `8e51498` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），与本切片无关，需另行更新 gym pin。
+> P2+a 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 49/49；`npm run ralph:check` in_sync；`npm run verify` 除 `lab:check` 外全绿——`lab:check` 在 `main`（`c051f0b`）上同样失败（CI 钉住的 sibling gym commit `1dc1493` / `9c2eb5b` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），与本切片无关，需另行更新 gym pin。
 
 ### P2+b — 启发式判档 + skill 文案
 
@@ -73,11 +73,11 @@
 - [x] skill / `docs/commands/jj-ralph.md`：口语「小改 / 顺手修」可走 lite；用户说「完整走一遍」走 full——`skills/jj-ralph/SKILL.md`（gate_set 口径、lite happy path、failure modes、反例 19/20）、`references/phases.md` 新增「Gate set (full / lite)」、`references/tiny-example.md`（tiny ≠ lite）、`docs/commands/jj-ralph.md` 新增「轻量档（lite）」、`claude-commands/jj-ralph.md` 一行口径
 - [x] 合约：启发式只建议不强制（无 flag 默认 full，除非命中明确规则）——设计未定义任何强制规则，故**永不因启发式改 `gate_set`**；`tests/jj-ralph-contract.test.mjs` 新增 2 个 `P2+b` 用例（`suggestGateSet` 信号表；`initRun` / CLI / `ralph_ops` 无 flag 仍 full、磁盘 `run.json` 无 `gate_set_suggestion` 键、tiny/strict 同一建议、显式 flag 无建议、别名仍拒绝、`--lite --force` 重 init 才切 lite）+ 资产文案标记
 
-> P2+b 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 51/51；`npm run ralph:sync` + `ralph:check` in_sync（15 files）；Node 20.19.0 下 `npm run verify` 除 `lab:check` 外全绿（`npm test` 375/375、`check` / `harness:check` / `harness:gc` / `scenario:check` / `host:trial` / `docs:check` / `evaluated:check` 通过）；`git diff --check` 干净。`lab:check` 失败与本计划无关：CI 上 `main`（`c051f0b`）与本分支签名相同（sibling gym pin `8e51498` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），本地为 `LAB-ROOT-MISSING`（无 sibling gym）。需另行更新 gym pin，不在本计划范围。
+> P2+b 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 51/51；`npm run ralph:sync` + `ralph:check` in_sync（15 files）；Node 20.19.0 下 `npm run verify` 除 `lab:check` 外全绿（`npm test` 375/375、`check` / `harness:check` / `harness:gc` / `scenario:check` / `host:trial` / `docs:check` / `evaluated:check` 通过）；`git diff --check` 干净。`lab:check` 失败与本计划无关：CI 上 `main`（`c051f0b`）与本分支签名相同（CI 钉住的 sibling gym commit `1dc1493` / `9c2eb5b` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），本地为 `LAB-ROOT-MISSING`（无 sibling gym）。需另行更新 gym pin，不在本计划范围。
 
 ## 下一刀
 
-P2+ 关闭（P2+a `7fcd43c` + `38a9f4c`；P2+b `5cc314a` + `c3f0550`）。整体设计 [Ralph 任务工作区 `.plans` 化改造](../../design-docs/ralph-plans-workspace.md) 标 Implemented。后续独立事项（不属本计划）：更新 sibling gym pin 让 `lab:check` 回绿；启发式词表按真实误判样本收敛（仍只建议）。
+P2+ 关闭（P2+a `7fcd43c` + `38a9f4c`；P2+b `5cc314a` + `c3f0550`）。整体设计 [Ralph 任务工作区 `.plans` 化改造](../../design-docs/ralph-plans-workspace.md) 标 Implemented。后续独立事项（不属本计划）：更新 sibling gym pin 让 `lab:check` 回绿（已在审查收口批完成：loop `ed72b08` / family `0b8ec50`，`npm run verify` 全绿）；启发式词表按真实误判样本收敛（仍只建议）。
 
 ## 完成定义
 
