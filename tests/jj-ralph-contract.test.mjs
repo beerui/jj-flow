@@ -326,10 +326,20 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'Idle offer',
     'jj-init',
     'knowledge-confirm',
-    'hot_memory'
+    'hot_memory',
+    // P2+b: lite path wording (explicit --lite; advisory never flips gate_set; tiny ≠ lite)
+    '--lite',
+    'gate brief',
+    'gate close',
+    '小改',
+    '顺手修',
+    '完整走一遍',
+    'promoted lite→full',
+    'gate_set\\?'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
+  assert.match(skill, /`tiny` never implies `lite`/);
 
   const userCmd = read('docs/commands/jj-ralph.md');
   for (const marker of [
@@ -342,7 +352,12 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'CAP-login-reminder',
     'intensity',
     'tiny',
-    'strict'
+    'strict',
+    '轻量档（lite）',
+    '顺手修',
+    '完整走一遍',
+    '不会自作主张切换',
+    '自动升回 full'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -353,6 +368,11 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /deliver-attempt/);
   assert.match(phases, /accept-layer|accept_layers/);
   assert.match(phases, /archive_history/);
+  assert.match(phases, /## Gate set \(full \/ lite\)/);
+  assert.match(phases, /explicit `init --lite` only/);
+  assert.match(phases, /Advisory only\*\*: `run\.json` keeps `gate_set=full`/);
+  assert.match(read('claude-commands/jj-ralph.md'), /--lite/);
+  assert.match(read('skills/jj-ralph/references/tiny-example.md'), /does \*\*not\*\* switch the gate path/);
 
   const schema = read('schemas/ralph-run.schema.json');
   assert.match(schema, /"intensity"/);

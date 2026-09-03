@@ -24,6 +24,7 @@ allowed-tools:
 1. 解析脚本：repo skill → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
 2. **用户口语优先**（「再改 tip」「刚才那个」「先不做了」）；**禁止**要求用户先报 `task-…`。同需求 → resume/继续，勿默认 init。活跃 `RALPH-*` 先 `jj ralph migrate`。
 3. map-find；单点跟 tiny-example。
+   档位听用户：「小改 / 顺手修」→ `init --lite`（BRIEF→DELIVER→CLOSE，判错自动升 full）；「完整走一遍」→ `--full`；没说 = full。init 打的 `gate_set?` 只是建议，不自动改档；tiny ≠ lite。
 4. 聊天不推进检查点；更新 run.json 与阶段文档。报告里可写 run_id 供核对。
 5. 同操作失败最多 2 次后换策略；校正写 `instruction-correction.md`，审查者只读、不写 `AGENTS.md`。
    tiny 默认不写 `task_plan.md` `## 目标` 意图块；ANALYZE 要回应 intent 未决问题。
