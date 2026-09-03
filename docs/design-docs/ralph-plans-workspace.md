@@ -9,6 +9,8 @@
 > 关联设计：[jj-ralph](jj-ralph.html)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.html)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed，本方案 P0 即其落地路径）
 >
 > 执行：[P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；review-fix `b11d670`）· [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md)（已关闭：P2+a `7fcd43c`、P2+b `5cc314a`）。P0–P2+ 全部落地，整体标 Implemented。
+>
+> 后续修订草案：[Ralph 工作区目录对齐 exec-plans 与 progress 双轨](ralph-workspace-layout.html)（Proposed）——`index.md` / `completed/` / `migrated/` 目录归位与 progress 双轨；与本文 §3.2 / §3.4 / §3.5 / §3.12 步 7 的冲突登记在其 §3.5，采纳后回改本文。
 
 ## 1. 背景与问题
 
