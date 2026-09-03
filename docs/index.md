@@ -29,7 +29,7 @@
 拿不准时：一个仓 → **ralph**；要搬家 → **same**；好几个仓一起协调 → **dispatch**。  
 说不清选哪个 → [jj](command-jj.html) 帮你指路。
 
-可选（**不算**验收通过）：[team-coordinate](command-jj-team-coordinate.html) 多角色 · [team-lifecycle](command-jj-team-lifecycle.html) 固定 SDLC · [team-swarm](command-jj-team-swarm.html) 多方案搜索。
+可选（**不算**验收通过）：[team-coordinate](command-jj-team-coordinate.html) 多角色 · [team-lifecycle](command-jj-team-lifecycle.html) 固定 SDLC · [team-swarm](command-jj-team-swarm.html) 多方案搜索 · [evaluated](command-jj-evaluated.html) 复盘。
 
 ## 怎么喊
 

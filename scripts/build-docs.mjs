@@ -42,12 +42,12 @@ const SIDEBAR_GROUPS = [
       { title: 'same · 同源迁移', source: 'docs/commands/jj-same.md', output: 'command-jj-same.html' },
       { title: 'dispatch · 多仓调度', source: 'docs/commands/jj-dispatch.md', output: 'command-jj-dispatch.html' },
       { title: 'review · 审查落盘', source: 'docs/commands/jj-review.md', output: 'command-jj-review.html' },
-      { title: 'end · 收工合支', source: 'docs/commands/jj-end.md', output: 'command-jj-end.html' },
-      { title: 'evaluated · 复盘', source: 'docs/commands/jj-evaluated.md', output: 'command-jj-evaluated.html' },
-      { title: 'team · 多角色（可选）', source: 'docs/commands/jj-team-coordinate.md', output: 'command-jj-team-coordinate.html' },
-      { title: 'team · SDLC（可选）', source: 'docs/commands/jj-team-lifecycle.md', output: 'command-jj-team-lifecycle.html' },
-      { title: 'team · 搜索（可选）', source: 'docs/commands/jj-team-swarm.md', output: 'command-jj-team-swarm.html' },
-      { title: 'jj · 帮你选路', source: 'docs/commands/jj.md', output: 'command-jj.html' }
+      { title: 'end · 收工合分支', source: 'docs/commands/jj-end.md', output: 'command-jj-end.html' },
+      { title: 'jj · 帮你选路', source: 'docs/commands/jj.md', output: 'command-jj.html' },
+      { title: 'evaluated · 复盘（可选）', source: 'docs/commands/jj-evaluated.md', output: 'command-jj-evaluated.html' },
+      { title: 'coordinate · 多角色（可选）', source: 'docs/commands/jj-team-coordinate.md', output: 'command-jj-team-coordinate.html' },
+      { title: 'lifecycle · SDLC（可选）', source: 'docs/commands/jj-team-lifecycle.md', output: 'command-jj-team-lifecycle.html' },
+      { title: 'swarm · 搜索（可选）', source: 'docs/commands/jj-team-swarm.md', output: 'command-jj-team-swarm.html' }
     ]
   },
   {
