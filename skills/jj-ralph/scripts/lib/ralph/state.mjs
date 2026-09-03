@@ -18,7 +18,10 @@ export const LEGACY_RUN_ID_RE = /^RALPH-[A-Za-z0-9][A-Za-z0-9_-]{1,80}$/;
 export const TASK_PLAN_REL = 'task_plan.md';
 export const FINDINGS_REL = 'findings.md';
 export const PROGRESS_REL = 'progress.md';
+/** full = analyze/plan/deliver/accept/archive; lite = brief/deliver/close over the same five ledger keys (P2+). */
 export const GATE_SETS = Object.freeze(['full', 'lite']);
+/** lite budget: max_deliver_loops = min(intensity default or override, 3). */
+export const LITE_MAX_DELIVER_LOOPS = 3;
 export const SECTION_GOAL = '目标';
 export const SECTION_ANALYZE = '分析';
 export const SECTION_PLAN = '计划';
@@ -101,6 +104,19 @@ export function normalizeIntensity(intensity) {
     throw new Error('intensity must be one of ' + RALPH_INTENSITIES.join('|'));
   }
   return value;
+}
+
+/** Default full; only an explicit flag selects lite. Orthogonal to intensity (tiny never implies lite). */
+export function normalizeGateSet(gateSet) {
+  const value = String(gateSet == null || gateSet === '' ? 'full' : gateSet).toLowerCase();
+  if (!GATE_SETS.includes(value)) {
+    throw new Error('gate_set must be one of ' + GATE_SETS.join('|'));
+  }
+  return value;
+}
+
+export function applyLiteBudget(budget) {
+  return { ...budget, max_deliver_loops: Math.min(budget.max_deliver_loops, LITE_MAX_DELIVER_LOOPS) };
 }
 
 export function buildBudgetForIntensity(intensity, overrides = null) {
@@ -227,6 +243,7 @@ export function createRunSkeleton({
   max_iterations = null,
   intensity = 'standard',
   budget = null,
+  gate_set = 'full',
   host = null,
   created_at = nowIso()
 } = {}) {
@@ -234,9 +251,11 @@ export function createRunSkeleton({
   if (!title) throw new Error('title is required');
   if (!goal) throw new Error('goal is required');
   const intensityNorm = normalizeIntensity(intensity);
+  const gateSetNorm = normalizeGateSet(gate_set);
   const defaults = INTENSITY_DEFAULTS[intensityNorm];
   const maxIter = max_iterations != null ? max_iterations : defaults.max_iterations;
   if (!Number.isInteger(maxIter) || maxIter < 1) throw new Error('max_iterations must be >= 1');
+  const budgetForIntensity = buildBudgetForIntensity(intensityNorm, budget);
   return {
     schema_version: RALPH_RUN_SCHEMA_VERSION,
     run_id,
@@ -249,7 +268,7 @@ export function createRunSkeleton({
     iteration: 0,
     max_iterations: maxIter,
     intensity: intensityNorm,
-    budget: buildBudgetForIntensity(intensityNorm, budget),
+    budget: gateSetNorm === 'lite' ? applyLiteBudget(budgetForIntensity) : budgetForIntensity,
     stagnation: createEmptyStagnation(intensityNorm),
     accept_layers: createEmptyAcceptLayers(intensityNorm),
     gate_issues: [],
@@ -262,7 +281,7 @@ export function createRunSkeleton({
     knowledge_refs: unique(knowledge_refs),
     knowledge_summary: [...(knowledge_summary || [])],
     knowledge: { memory_refs: [] },
-    gate_set: 'full',
+    gate_set: gateSetNorm,
     artifact_refs: {
       analyze: TASK_PLAN_REL,
       plan: TASK_PLAN_REL,
@@ -758,6 +777,77 @@ export function appendProgressLine(runId, cwd, line) {
   else fs.writeFileSync(progressPath, '# Progress' + nl + nl + text, 'utf8');
 }
 
+/** Legacy runs without gate_set behave as full. */
+export function effectiveGateSet(run) {
+  return run?.gate_set == null ? 'full' : normalizeGateSet(run.gate_set);
+}
+
+/**
+ * lite → full fallback (in-memory; caller saves). Same run_id, same task dir, no gate is
+ * reset — only gate_set flips and max_deliver_loops returns to the intensity default
+ * (never below iterations already used). No-op when the run is already full.
+ */
+export function promoteGateSetToFull(run, { reason = null } = {}) {
+  if (!run || typeof run !== 'object') throw new Error('run required');
+  if (effectiveGateSet(run) !== 'lite') return { promoted: false, gate_set: effectiveGateSet(run), reason: null };
+  hydrateIntensityFields(run);
+  const intensity = normalizeIntensity(run.intensity);
+  const defaultLoops = INTENSITY_DEFAULTS[intensity].budget.max_deliver_loops;
+  const used = Number.isInteger(run.iteration) ? run.iteration : 0;
+  const before = run.budget.max_deliver_loops;
+  run.gate_set = 'full';
+  run.budget = { ...run.budget, max_deliver_loops: Math.max(defaultLoops, used, before) };
+  return {
+    promoted: true,
+    gate_set: 'full',
+    reason: reason ? String(reason).trim() : null,
+    max_deliver_loops: { from: before, to: run.budget.max_deliver_loops }
+  };
+}
+
+export function promotionProgressLine(at, promotion) {
+  return '- ' + at + ' promoted lite→full'
+    + (promotion?.reason ? (' reason=' + promotion.reason) : '')
+    + (promotion?.max_deliver_loops
+      ? (' max_deliver_loops=' + promotion.max_deliver_loops.from + '→' + promotion.max_deliver_loops.to)
+      : '');
+}
+
+function normalizeScopeItems(items) {
+  if (items == null) return [];
+  const list = Array.isArray(items) ? items : [items];
+  return unique(list.map((item) => String(item == null ? '' : item).trim()));
+}
+
+/**
+ * Append scope entries (the only sanctioned scope.in writer after init).
+ * On a lite run, any new scope.in entry counts as scope growth → promote to full.
+ */
+export function updateRunScope(runId, { add_in = [], add_out = [], cwd = process.cwd() } = {}) {
+  const addIn = normalizeScopeItems(add_in);
+  const addOut = normalizeScopeItems(add_out);
+  if (!addIn.length && !addOut.length) throw new Error('updateRunScope needs add_in and/or add_out');
+  const run = loadRun(runId, cwd);
+  assertWritableRun(run);
+  const currentIn = Array.isArray(run.scope?.in) ? run.scope.in : [];
+  const currentOut = Array.isArray(run.scope?.out) ? run.scope.out : [];
+  const addedIn = addIn.filter((item) => !currentIn.includes(item));
+  const addedOut = addOut.filter((item) => !currentOut.includes(item));
+  run.scope = { in: [...currentIn, ...addedIn], out: [...currentOut, ...addedOut] };
+  const promotion = addedIn.length
+    ? promoteGateSetToFull(run, { reason: 'scope.in expanded: ' + addedIn.join(', ') })
+    : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
+  run.updated_at = nowIso();
+  saveRun(run, cwd);
+  appendProgressLine(
+    runId,
+    cwd,
+    '- ' + run.updated_at + ' scope in+=[' + addedIn.join(', ') + '] out+=[' + addedOut.join(', ') + '] gate_set=' + run.gate_set
+  );
+  if (promotion.promoted) appendProgressLine(runId, cwd, promotionProgressLine(run.updated_at, promotion));
+  return { run, added_in: addedIn, added_out: addedOut, promotion, gate_set: run.gate_set };
+}
+
 export function commitPrep(runId, cwd = process.cwd()) {
   const run = loadRun(runId, cwd);
   const base = path.join(RALPHS_DIR_REL, runId).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
@@ -802,6 +892,7 @@ export function renderRalphStatusText(payload) {
       'phase: ' + run.phase,
       'status: ' + run.status,
       'intensity: ' + (run.intensity || 'standard'),
+      'gate_set: ' + (run.gate_set || 'full'),
       'iteration: ' + run.iteration + '/' + run.max_iterations,
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
       run.accept_layers

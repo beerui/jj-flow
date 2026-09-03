@@ -57,13 +57,15 @@
 
 设计 §3.8。本切片让 lite 能跑通，且判错可恢复。
 
-- [ ] CLI / `ralph_ops`：`--lite` / `--full`；`initRun` 写 `gate_set`
-- [ ] lite budget 收紧 `max_deliver_loops ≤ 3`；stagnation fingerprint 仍跑
-- [ ] `setGate('brief'|'close')` 别名；内部仍写五键
-- [ ] CLOSE 复用 `evaluateAcceptArchiveGate` + judgment，不得跳过弱证据门
-- [ ] 升 full：FAIL/BLOCKED 或 scope 膨胀 → `gate_set=full` + progress 行；目录不变
-- [ ] 合约：`--lite` init 的 gate_set/budget；brief PASS 推进 DELIVER；close 弱证据仍挡；升档不换 `run_id`
-- [ ] `npm run ralph:sync` + `ralph:check` + `tests/jj-ralph-contract.test.mjs`
+- [x] CLI / `ralph_ops`：`--lite` / `--full`；`initRun` 写 `gate_set`（`createRunSkeleton.gate_set`，`normalizeGateSet`；无 flag 仍 full，tiny 不改 `gate_set`）
+- [x] lite budget 收紧 `max_deliver_loops ≤ 3`（`LITE_MAX_DELIVER_LOOPS` / `applyLiteBudget`）；stagnation fingerprint 仍跑；预算耗尽 BLOCKED 的 `unblock` 提示升 full 出口
+- [x] `setGate('brief'|'close')` 别名（`GATE_ALIASES`，仅 `gate_set=lite` 生效）；内部仍写五键，progress 仍按五键写 gate 行（`via=brief|close`）
+- [x] CLOSE 复用 `evaluateAcceptArchiveGate`（accept → archive 两跳）+ `evaluateAcceptJudgment`，弱证据 / strict judgment 仍挡；可接现有 finalize
+- [x] 升 full：`setGate` / `rollbackPhase` 写出 FAIL/BLOCKED，或 `updateRunScope`（`jj ralph scope --in`）新增 `scope.in` → `promoteGateSetToFull`：`gate_set=full`，`max_deliver_loops` 按 intensity 默认恢复（不小于已用次数），progress 追 `promoted lite→full`；目录 / `run_id` 不变
+- [x] 合约：`--lite` init 的 gate_set/budget；brief PASS 推进 DELIVER；close 弱证据仍挡；升档不换 `run_id`（`tests/jj-ralph-contract.test.mjs` 新增 4 个 `P2+a` 用例）
+- [x] `npm run ralph:sync` + `ralph:check` + `tests/jj-ralph-contract.test.mjs`（49 pass）
+
+> P2+a 验收证据：`node --test tests/jj-ralph-contract.test.mjs` 49/49；`npm run ralph:check` in_sync；`npm run verify` 除 `lab:check` 外全绿——`lab:check` 在 `main`（`c051f0b`）上同样失败（sibling gym pin `8e51498` 早于 P2 `task-*` 布局：`RALPH-alphahand-*` legacy 报错、`acceptance.md` ENOENT），与本切片无关，需另行更新 gym pin。
 
 ### P2+b — 启发式判档 + skill 文案
 
@@ -73,7 +75,7 @@
 
 ## 下一刀
 
-切片 0 入库后做 P2+a（`--lite` + 升档）。P2+b 启发式与文案后置。
+P2+a（`--lite` + 升档）已落地。下一刀 P2+b：启发式判档（只建议不强制，默认仍 full）+ skill / `docs/commands/jj-ralph.md` 口语文案。
 
 ## 完成定义
 

@@ -25,6 +25,7 @@ import {
   appendProgressLine,
   createEmptyAcceptLayers,
   createEmptyMap,
+  effectiveGateSet,
   hydrateIntensityFields,
   listRuns,
   loadMap,
@@ -32,6 +33,8 @@ import {
   mapPath,
   normalizeIntensity,
   nowIso,
+  promoteGateSetToFull,
+  promotionProgressLine,
   readJson,
   runDir,
   runMachineFileFor,
@@ -647,7 +650,8 @@ export function recordDeliverAttempt(runId, {
     intervention = {
       kind: 'MAX_ITERATIONS',
       reason: 'iteration ' + run.iteration + ' reached budget.max_deliver_loops ' + maxLoops,
-      unblock: 'Raise budget.max_deliver_loops or change approach',
+      unblock: 'Raise budget.max_deliver_loops or change approach'
+        + (effectiveGateSet(run) === 'lite' ? '; lite run: gate deliver FAIL (or scope growth) promotes to full and restores the intensity budget' : ''),
       at: nowIso()
     };
   } else if (!resolvedImproved && stag.unchanged_count >= sameCap) {
@@ -919,11 +923,36 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
   return { ok: reasons.length === 0, forced: false, reasons, details };
 }
 
-/** Update one gate; on PASS optionally advance phase (default true). */
-export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null, deleted_paths = null } = {}) {
-  if (!GATE_KEYS.includes(gate)) throw new Error('invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|') + ')');
-  if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
-  const run = hydrateIntensityFields(loadRun(runId, cwd));
+/**
+ * lite aliases over the same five ledger keys (not schema keys):
+ * brief = analyze+plan, close = accept+archive. deliver is shared.
+ */
+export const GATE_ALIASES = Object.freeze({
+  brief: Object.freeze(['analyze', 'plan']),
+  close: Object.freeze(['accept', 'archive'])
+});
+
+/** Aliases are only honoured on gate_set=lite; a promoted (full) run must walk the five gates. */
+export function resolveGateKeys(gate, run) {
+  if (GATE_KEYS.includes(gate)) return { alias: null, keys: [gate] };
+  if (Object.hasOwn(GATE_ALIASES, gate)) {
+    const gateSet = effectiveGateSet(run);
+    if (gateSet !== 'lite') {
+      throw new Error(
+        'gate alias ' + gate + ' requires gate_set=lite (current=' + gateSet + '); use '
+        + GATE_ALIASES[gate].join(' then ')
+      );
+    }
+    return { alias: gate, keys: [...GATE_ALIASES[gate]] };
+  }
+  throw new Error(
+    'invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|')
+    + '; lite aliases ' + Object.keys(GATE_ALIASES).join('|') + ')'
+  );
+}
+
+/** One ledger key, in memory. close PASS reuses this for accept then archive, so no evidence gate is skipped. */
+function applyGateKey(run, gate, status, { cwd, advance, force, diff_paths, deleted_paths }) {
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
     const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, deleted_paths, gate });
     if (!consistency.ok) throw new Error('product-consistency gate blocked ' + gate + ' PASS: ' + consistency.reasons.join('; '));
@@ -954,13 +983,50 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
       run.phase = 'ARCHIVE';
     }
   }
-  if ((gate === 'accept' || gate === 'archive') && shouldMaintainHandoff(run)) {
+}
+
+/**
+ * Update one gate (or a lite alias); on PASS optionally advance phase (default true).
+ * On a lite run any FAIL/BLOCKED promotes gate_set to full in the same task dir.
+ */
+export function setGate(runId, { gate, status, cwd = process.cwd(), advance = true, force = false, diff_paths = null, deleted_paths = null } = {}) {
+  if (!GATE_KEYS.includes(gate) && !Object.hasOwn(GATE_ALIASES, gate)) {
+    throw new Error('invalid gate: ' + gate + ' (expected ' + GATE_KEYS.join('|') + '; lite aliases ' + Object.keys(GATE_ALIASES).join('|') + ')');
+  }
+  if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
+  const { alias, keys } = resolveGateKeys(gate, run);
+  for (const key of keys) {
+    applyGateKey(run, key, status, { cwd, advance, force, diff_paths, deleted_paths });
+  }
+  const promotion = (status === 'FAIL' || status === 'BLOCKED') && effectiveGateSet(run) === 'lite'
+    ? promoteGateSetToFull(run, { reason: 'gate ' + gate + '=' + status })
+    : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
+  if (keys.some((key) => key === 'accept' || key === 'archive') && shouldMaintainHandoff(run)) {
     applyHandoffState(run, { cwd, write_file: true });
   }
   run.updated_at = nowIso();
   saveRun(run, cwd);
-  appendProgressLine(runId, cwd, '- ' + run.updated_at + ' gate ' + gate + '=' + status + ' phase=' + run.phase + ' status=' + run.status);
-  return { run, gate, status, phase: run.phase, handoff: run.handoff || null };
+  for (const key of keys) {
+    appendProgressLine(
+      runId,
+      cwd,
+      '- ' + run.updated_at + ' gate ' + key + '=' + status + ' phase=' + run.phase + ' status=' + run.status
+        + (alias ? (' via=' + alias) : '')
+    );
+  }
+  if (promotion.promoted) appendProgressLine(runId, cwd, promotionProgressLine(run.updated_at, promotion));
+  return {
+    run,
+    gate,
+    status,
+    phase: run.phase,
+    handoff: run.handoff || null,
+    alias,
+    gates_written: keys,
+    gate_set: run.gate_set || 'full',
+    promotion
+  };
 }
 
 /** Apbacent phase rollback edges (ARCHIVE → ACCEPT allowed for same-run resume after soft archive). */
@@ -1045,6 +1111,11 @@ export function rollbackPhase(runId, {
     run.status = 'IN_PROGRESS';
     run.intervention_needed = null;
   }
+  // Rolling back writes a lite gate FAIL/BLOCKED → same fallback as setGate.
+  const leaveGate = leaveGateStatus ? PHASE_TO_GATE[toPhase] : null;
+  const promotion = leaveGate && (leaveGateStatus === 'FAIL' || leaveGateStatus === 'BLOCKED') && effectiveGateSet(run) === 'lite'
+    ? promoteGateSetToFull(run, { reason: 'rollbackPhase ' + fromPhase + '→' + toPhase + ' ' + leaveGate + '=' + leaveGateStatus })
+    : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
   run.updated_at = nowIso();
   saveRun(run, cwd);
   appendProgressLine(
@@ -1054,12 +1125,14 @@ export function rollbackPhase(runId, {
       + (fromStatus !== run.status ? ' status=' + fromStatus + '→' + run.status : '')
       + ' reason=' + reason.trim()
   );
+  if (promotion.promoted) appendProgressLine(runId, cwd, promotionProgressLine(run.updated_at, promotion));
   return {
     run,
     fromPhase,
     toPhase,
     status: run.status,
     reason: reason.trim(),
+    promotion,
     finding_hint: maybeFindingHint(runId, cwd)
   };
 }

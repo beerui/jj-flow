@@ -279,6 +279,8 @@ export function initRun(options, cwd = process.cwd()) {
       + '> **追加式，时间正序**。' + nl + nl
       + '- ' + nowIso() + ' init ' + run.run_id + nl
       + '- intensity: ' + (run.intensity || 'standard') + nl
+      + '- gate_set: ' + (run.gate_set || 'full')
+      + (run.gate_set === 'lite' ? (' (brief→deliver→close; max_deliver_loops=' + run.budget.max_deliver_loops + ')') : '') + nl
       + '- max_iterations: ' + run.max_iterations + nl
       + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
       + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl
