@@ -1,7 +1,7 @@
 # same — 迁到别的同源仓库
 
 把已经在 A 仓做好的能力，迁到 B/C 等同产品族仓库。  
-多个仓要统一批准、一起派工 → 用 [dispatch](command-jj-dispatch.html)，不要用 same。
+多个仓要统一批准、一起派工 → 用 [dispatch](jj-dispatch.md)，不要用 same。
 
 | 工具 | 怎么喊 |
 |------|--------|
@@ -14,7 +14,7 @@
 - 已有交接信息、会话或提交可当证据  
 - 你说「交接到… / 开始迁移… / 准备交接 / 更新交接」  
 
-**别用 same：** 只在当前仓做完 → [ralph](command-jj-ralph.html)；多仓统一调度 → [dispatch](command-jj-dispatch.html)
+**别用 same：** 只在当前仓做完 → [ralph](jj-ralph.md)；多仓统一调度 → [dispatch](jj-dispatch.md)
 
 ## 怎么说
 
@@ -65,8 +65,8 @@ $jj-same
 3. 看差异，按目标仓自己的写法改（不硬抄）  
 4. 验证；缺证据就标「还不行」，不装成已完成  
 
-> 真翻过车：在发布分支上直接迁，后来又 cherry-pick / 回滚。见 [踩坑](pitfalls.html)。
+> 真翻过车：在发布分支上直接迁，后来又 cherry-pick / 回滚。见 [踩坑](../pitfalls.md)。
 
 ## 相关
 
-[证据](concepts-evidence.html) · [上手](usage.html) · [踩坑](pitfalls.html)
+[证据](../concepts-evidence.md) · [上手](../usage.md) · [踩坑](../pitfalls.md)

@@ -9,27 +9,27 @@
 
 ## 三步开始
 
-1. [安装](installation.html) skill（约一分钟）  
+1. [安装](installation.md) skill（约一分钟）  
 2. 打开业务仓库的对话，按下面表格选入口  
 3. 用日常中文说要做什么  
 
-卡住了？看 [五分钟上手](usage.html) 或 [常见踩坑](pitfalls.html)。
+卡住了？看 [五分钟上手](usage.md) 或 [常见踩坑](pitfalls.md)。
 
 ## 我该用哪个？
 
 | 你想… | 用这个 | 说明 |
 |--------|--------|------|
-| **把当前仓接入全局地图** / 梳理项目 / 补知识库 | [init](command-jj-init.html) | 须你点头才写入 |
-| **只改当前这一个仓库**，从做到验收 | [ralph](command-jj-ralph.html) | 单仓闭环 |
-| **把 A 仓的能力搬到 B/C 仓** | [same](command-jj-same.html) | 同源迁移 |
-| **多个项目一起派、一起盯** | [dispatch](command-jj-dispatch.html) | 多项目调度 |
-| 把审查结论记下来 | [review](command-jj-review.html) | 审查落盘 |
-| 提交并合进 dev/main | [end](command-jj-end.html) | 收工 |
+| **把当前仓接入全局地图** / 梳理项目 / 补知识库 | [init](commands/jj-init.md) | 须你点头才写入 |
+| **只改当前这一个仓库**，从做到验收 | [ralph](commands/jj-ralph.md) | 单仓闭环 |
+| **把 A 仓的能力搬到 B/C 仓** | [same](commands/jj-same.md) | 同源迁移 |
+| **多个项目一起派、一起盯** | [dispatch](commands/jj-dispatch.md) | 多项目调度 |
+| 把审查结论记下来 | [review](commands/jj-review.md) | 审查落盘 |
+| 提交并合进 dev/main | [end](commands/jj-end.md) | 收工 |
 
 拿不准时：一个仓 → **ralph**；要搬家 → **same**；好几个仓一起协调 → **dispatch**。  
-说不清选哪个 → [jj](command-jj.html) 帮你指路。
+说不清选哪个 → [jj](commands/jj.md) 帮你指路。
 
-可选（**不算**验收通过）：[team-coordinate](command-jj-team-coordinate.html) 多角色 · [team-lifecycle](command-jj-team-lifecycle.html) 固定 SDLC · [team-swarm](command-jj-team-swarm.html) 多方案搜索 · [evaluated](command-jj-evaluated.html) 复盘。
+可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色 · [team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC · [team-swarm](commands/jj-team-swarm.md) 多方案搜索 · [evaluated](commands/jj-evaluated.md) 复盘。
 
 ## 怎么喊
 
@@ -54,15 +54,15 @@
                          end 提交 / 合分支
 ```
 
-全部入口：[命令总览](commands.html) · 名词：[术语](glossary.html)
+全部入口：[命令总览](commands.md) · 名词：[术语](glossary.md)
 
 ## 维护与深入（可后看）
 
 | 主题 | 链接 |
 |------|------|
-| 架构 | [架构](architecture.html) |
-| 设计 | [设计文档](design-docs/index.html) · [Agent Harness](design-docs/harness-engineering.html) |
-| 执行计划 | [执行计划](exec-plans/index.html) |
-| ADR | [ADR](adr/index.html) |
-| 里程碑验收 | [真实 Host](milestones/real-host-acceptance.html) · [M7](milestones/m7-acceptance.html) · [H5](milestones/h5-acceptance.html) |
-| 改本仓库文档 | [维护说明](maintenance.html) |
+| 架构 | [架构](architecture.md) |
+| 设计 | [设计文档](design-docs/index.md) · [Agent Harness](design-docs/harness-engineering.md) |
+| 执行计划 | [执行计划](exec-plans/index.md) |
+| ADR | [ADR](adr/index.md) |
+| 里程碑验收 | [真实 Host](milestones/real-host-acceptance.md) · [M7](milestones/m7-acceptance.md) · [H5](milestones/h5-acceptance.md) |
+| 改本仓库文档 | [维护说明](maintenance.md) |

@@ -13,8 +13,8 @@
 ## 状态
 
 设计整体仍为 **Proposed**（完整 holdout/regression 闭环未关）。skill MVP 可用。  
-见 [设计](design-docs/jj-evaluated.html)。
+见 [设计](../design-docs/jj-evaluated.md)。
 
 ## 相关
 
-[命令总览](commands.html) · [Harness 设计](design-docs/harness-engineering.html)
+[命令总览](../commands.md) · [Harness 设计](../design-docs/harness-engineering.md)

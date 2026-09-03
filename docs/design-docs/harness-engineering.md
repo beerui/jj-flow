@@ -6,13 +6,13 @@
 >
 > 验收证据：`docs/milestones/h5-acceptance.md`、`docs/milestones/h5-gc-baseline.json`、`docs/milestones/m7-acceptance.md`、`tests/harness-gc.test.mjs`、`tests/scenario-runner.test.mjs`、`npm run verify`
 >
-> 实施边界：Repository Harness 已实现；Grok 真宿主验收见 [真实 Host 验收](../milestones/real-host-acceptance.html)（completed / A2）。自动修复 Gardener、A3 自动返工和 A4 集成 **不包含** 在本状态内。
+> 实施边界：Repository Harness 已实现；Grok 真宿主验收见 [真实 Host 验收](../milestones/real-host-acceptance.md)（completed / A2）。自动修复 Gardener、A3 自动返工和 A4 集成 **不包含** 在本状态内。
 >
 > 适用范围：`jj-flow` 仓库自身的开发、验证、审查和长期维护
 >
 > 核心目标：让 Agent 能从仓库中理解系统、执行工作、验证结果并纠正偏差，只把真正需要判断的事项交给人
 >
-> **活地图**：当前模块与产品面以根目录 `ARCHITECTURE.md` 与 [架构](../architecture.html) 为准；本文保留目标原则与 H0–H5 验收记录，§3/§4 已按 2026-07 产品面回写。
+> **活地图**：当前模块与产品面以根目录 `ARCHITECTURE.md` 与 [架构](../architecture.md) 为准；本文保留目标原则与 H0–H5 验收记录，§3/§4 已按 2026-07 产品面回写。
 
 ## 1. 原始问题
 

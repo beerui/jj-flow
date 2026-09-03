@@ -33,4 +33,4 @@ $jj-review 审一下刚才的改动
 
 ## 相关
 
-[ralph](command-jj-ralph.html)
+[ralph](jj-ralph.md)

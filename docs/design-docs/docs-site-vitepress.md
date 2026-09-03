@@ -4,7 +4,7 @@
 >
 > 日期：2026-09-03
 >
-> 关联执行计划：[文档站 VitePress 迁移与文案改版](../exec-plans/active/2026-09-03-docs-site-vitepress.html)
+> 关联执行计划：[文档站 VitePress 迁移与文案改版](../exec-plans/active/2026-09-03-docs-site-vitepress.md)
 >
 > 边界：只动文档站（`docs/**`、站点配置、构建/校验脚本、harness 中与站点构建绑定的规则）和用户可见文案；不改 `skills/`（行为真源）、不改 `src/` 业务逻辑；文案改写不得引入 skill 里没有的行为。
 

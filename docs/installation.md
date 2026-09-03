@@ -51,7 +51,7 @@ npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 | Claude | `/jj-…` | `/jj-same 交接到项目B`（**没有** dispatch） |
 | Grok / Qoder | `/jj-…` | `/jj-dispatch 分发到项目A和项目C` |
 
-下一步 → [五分钟上手](usage.html)
+下一步 → [五分钟上手](usage.md)
 
 ## 本机目录（可选）
 
@@ -65,7 +65,7 @@ npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 | 知识库目录 | `~/.jj-flow/knowledge` | 跨项目知识（须你同意才投喂） |
 | 项目族根目录 | 可选 | 本机多个仓库的根；公司另有路径可在 `naming.json` 改 |
 
-维护者改 skill 源码：见 [维护说明](maintenance.html)。
+维护者改 skill 源码：见 [维护说明](maintenance.md)。
 
 ## 旧名字（已不用）
 

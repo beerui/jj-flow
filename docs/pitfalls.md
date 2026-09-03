@@ -13,7 +13,7 @@
 2. 不对就先切到正确功能分支，再改  
 3. 禁止「人在哪就改哪」
 
-→ [same](command-jj-same.html)
+→ [same](commands/jj-same.md)
 
 ---
 
@@ -27,7 +27,7 @@
 2. 再预览 → 你批准 → 再派发  
 3. 被拦住时先补提交，不要硬派  
 
-→ [dispatch](command-jj-dispatch.html)
+→ [dispatch](commands/jj-dispatch.md)
 
 ---
 
@@ -40,7 +40,7 @@
 | 阶段 | 意思 |
 |------|------|
 | 调度验收通过 | 证据和记录齐了 |
-| 远端落地 | 还要 push，需要时用 [end](command-jj-end.html) 合分支 |
+| 远端落地 | 还要 push，需要时用 [end](commands/jj-end.md) 合分支 |
 
 ---
 
@@ -67,7 +67,7 @@
 2. Git：先探测「推没推、合没合」→ **列表给你选** → 你点了再执行  
 3. 本地干净未推：常适合 reset；已推/已合：常适合 revert（且不要乱 force）  
 
-→ [dispatch](command-jj-dispatch.html)
+→ [dispatch](commands/jj-dispatch.md)
 
 ---
 
@@ -81,7 +81,7 @@
 - 还有未解决的中等问题，不要当验收通过  
 - 调度通过后，任务说明要和最新状态一致  
 
-→ [证据](concepts-evidence.html)
+→ [证据](concepts-evidence.md)
 
 ---
 
@@ -100,7 +100,7 @@
 验收仍只认：ralph 的门禁与证据，或 dispatch 的验收记录。  
 team 产物可以**写进证据里引用**，不会自动把验收门打开。
 
-→ [team-coordinate](command-jj-team-coordinate.html) · [证据](concepts-evidence.html)
+→ [team-coordinate](commands/jj-team-coordinate.md) · [证据](concepts-evidence.md)
 
 ---
 
@@ -131,7 +131,7 @@ team 产物可以**写进证据里引用**，不会自动把验收门打开。
 3. 要合预发必须写 `integration=staging`，或文档明确点名合入分支（不是脚本名里碰巧出现 staging）
 4. 执行前那一行 `work→integration` 要看得出是 user / docs / heuristic，方便当场拦住
 
-→ [end](command-jj-end.html)
+→ [end](commands/jj-end.md)
 复盘（仓库内，站点不收录）：`docs/evaluations/EP-20260828-jj-end-staging-not-dev.md`
 
 ---
@@ -147,7 +147,7 @@ team 产物可以**写进证据里引用**，不会自动把验收门打开。
 3. **有一条 complex** → `merge --abort`，回到工作分支，把表给你；不要只解子集
 4. 解完不能留下 `<<<<<<<`
 
-→ [end](command-jj-end.html)
+→ [end](commands/jj-end.md)
 
 ---
 

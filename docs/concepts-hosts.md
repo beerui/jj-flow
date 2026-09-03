@@ -24,7 +24,7 @@
 | | 本机试跑 | 真宿主验收 |
 |--|----------|------------|
 | 干什么 | 测流程、测恢复 | 证明真会话 / 真沙箱 |
-| 能不能当「高级无人值守」依据 | **不能**（半真实） | Grok 真试跑已关闭 Wave 2 并升 A2；见 [真实 Host 验收](milestones/real-host-acceptance.html) |
+| 能不能当「高级无人值守」依据 | **不能**（半真实） | Grok 真试跑已关闭 Wave 2 并升 A2；见 [真实 Host 验收](milestones/real-host-acceptance.md) |
 
 ## 代码写在哪
 
@@ -33,4 +33,4 @@
 
 ## 相关
 
-[dispatch](command-jj-dispatch.html)
+[dispatch](commands/jj-dispatch.md)

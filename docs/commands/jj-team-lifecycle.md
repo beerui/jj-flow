@@ -17,7 +17,7 @@
 | 规格已有，要计划→实现→测审 | `--pipeline impl-only` |
 | 规格 + 实现整条链 | `--pipeline full-lifecycle`（更重，先确认） |
 
-**不是：** 动态多角色随任务拼装（用 [coordinate](command-jj-team-coordinate.html)）；对抗搜索（用 [swarm](command-jj-team-swarm.html)）；正式验收真相（仍是 [ralph](command-jj-ralph.html) / [dispatch](command-jj-dispatch.html)）。
+**不是：** 动态多角色随任务拼装（用 [coordinate](jj-team-coordinate.md)）；对抗搜索（用 [swarm](jj-team-swarm.md)）；正式验收真相（仍是 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md)）。
 
 **不会** 推进 checkpoint。`spec/` / `plan/` / `artifacts/` 可被 ralph 引用。
 
@@ -49,4 +49,4 @@ $jj-team-lifecycle --pipeline spec-only 设计会员积分
 
 ## 相关
 
-[命令总览](commands.html) · [coordinate](command-jj-team-coordinate.html) · [swarm](command-jj-team-swarm.html) · [ralph](command-jj-ralph.html)
+[命令总览](../commands.md) · [coordinate](jj-team-coordinate.md) · [swarm](jj-team-swarm.md) · [ralph](jj-ralph.md)

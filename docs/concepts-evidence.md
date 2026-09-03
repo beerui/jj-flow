@@ -25,4 +25,4 @@
 
 ## 相关
 
-[术语](glossary.html) · [踩坑](pitfalls.html) · [目录与命名](concepts-paths.html)
+[术语](glossary.md) · [踩坑](pitfalls.md) · [目录与命名](concepts-paths.md)

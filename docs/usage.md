@@ -1,6 +1,6 @@
 # 五分钟上手
 
-先完成 [安装](installation.html)。  
+先完成 [安装](installation.md)。  
 下面几条路 **任选一条**，在对话里直接说中文即可。
 
 ## 0. 接入全局地图 → init
@@ -12,7 +12,7 @@ $jj-init 当前仓加入全局地图，中文名「姐姐」
 
 Agent 先给提案（名称 / 家族 / 要不要补知识），**你点头才写入**。ralph 不会自动加地图。
 
-→ [init 说明](command-jj-init.html)
+→ [init 说明](commands/jj-init.md)
 
 ## A. 只改当前仓库 → ralph
 
@@ -38,7 +38,7 @@ $jj-ralph
 Agent 会在对话里：建任务 → 分析 → 改代码 → 验收 → 归档。  
 做完看仓库里的任务记录，不要只听聊天总结。
 
-小改可以说「顺手修一下」（走 lite 三步）；没说默认走完整五步。详见 [ralph](command-jj-ralph.html)。
+小改可以说「顺手修一下」（走 lite 三步）；没说默认走完整五步。详见 [ralph](commands/jj-ralph.md)。
 
 ## B. 搬到别的同源项目 → same
 
@@ -50,9 +50,9 @@ $jj-same 交接到 项目B 项目C
 $jj-same 开始迁移项目D
 ```
 
-**注意：** 「开始迁移」前确认 **分支是不是这个任务的分支**，别在发布分支上改。详见 [踩坑](pitfalls.html)。
+**注意：** 「开始迁移」前确认 **分支是不是这个任务的分支**，别在发布分支上改。详见 [踩坑](pitfalls.md)。
 
-→ [same 说明](command-jj-same.html)
+→ [same 说明](commands/jj-same.md)
 
 ## C. 多个项目一起派 → dispatch
 
@@ -67,9 +67,9 @@ $jj-dispatch 把 README 装依赖改成 pnpm，预览分发到项目A项目B项�
 ```
 
 你会先看到预览，**你点同意** 后才会真正派出去。  
-调度「验收通过」**不等于** 已经推到远端——要推/合分支用 [收工 end](command-jj-end.html)。
+调度「验收通过」**不等于** 已经推到远端——要推/合分支用 [收工 end](commands/jj-end.md)。
 
-→ [dispatch 说明](command-jj-dispatch.html)（Claude **没有** 这个入口）
+→ [dispatch 说明](commands/jj-dispatch.md)（Claude **没有** 这个入口）
 
 ## 怎样算做完？
 
@@ -88,11 +88,11 @@ $jj-dispatch 把 README 装依赖改成 pnpm，预览分发到项目A项目B项�
 2. **分支不对** 就迁移 → 改到错误分支  
 3. 调度显示通过就以为 **已经上线** → 其实还没 push / 合分支  
 
-更多：[常见踩坑](pitfalls.html)
+更多：[常见踩坑](pitfalls.md)
 
 ## 两个简单概念
 
 - **调度（外层）**：谁做、批没批、任务号在哪 → 主要是 dispatch  
 - **做事（内层）**：分析 → 改 → 验 → 不过再改 → 主要是 ralph / same  
 
-名词表：[术语](glossary.html) · 全部入口：[命令总览](commands.html)
+名词表：[术语](glossary.md) · 全部入口：[命令总览](commands.md)

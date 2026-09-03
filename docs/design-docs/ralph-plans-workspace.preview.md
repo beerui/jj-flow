@@ -2,7 +2,7 @@
 
 > 状态：Proposed
 >
-> **性质**：按 [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.html) §3.2/§3.4 目标布局生成的**示例产物**，非实际运行输出。
+> **性质**：按 [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.md) §3.2/§3.4 目标布局生成的**示例产物**，非实际运行输出。
 >
 > **数据来源**：seo-daji-web 真实样本 `RALPH-enter-form-dynamic-route-20260826`（轮次 1）+ `RALPH-enter-form-dynamic-apply-20260901`（轮次 2），按 §3.12 经 `ralph migrate` + `jj ralph adopt --task task-enter-form-dynamic --absorb task-enter-form-dynamic-apply` 合并为一个任务目录。
 >

@@ -14,7 +14,7 @@
 - 多角度分析（安全 / 性能 / 兼容等）  
 - 显式说「Team Coordinate / 多角色 team」  
 
-**不是：** 单仓验收闭环（用 [ralph](command-jj-ralph.html)）；多项目调度（用 [dispatch](command-jj-dispatch.html)）；固定 PRD/架构流水线（用 [lifecycle](command-jj-team-lifecycle.html)）；方案对抗搜索（用 [swarm](command-jj-team-swarm.html)）。
+**不是：** 单仓验收闭环（用 [ralph](jj-ralph.md)）；多项目调度（用 [dispatch](jj-dispatch.md)）；固定 PRD/架构流水线（用 [lifecycle](jj-team-lifecycle.md)）；方案对抗搜索（用 [swarm](jj-team-swarm.md)）。
 
 **不会** 推进 ralph / dispatch 的 checkpoint。跑完只留下 artifact，可由父 skill **引用**。
 
@@ -47,4 +47,4 @@ $jj-team-coordinate 支付回调与订单状态分角色并行改
 
 ## 相关
 
-[命令总览](commands.html) · [lifecycle](command-jj-team-lifecycle.html) · [swarm](command-jj-team-swarm.html) · [ralph](command-jj-ralph.html)
+[命令总览](../commands.md) · [lifecycle](jj-team-lifecycle.md) · [swarm](jj-team-swarm.md) · [ralph](jj-ralph.md)

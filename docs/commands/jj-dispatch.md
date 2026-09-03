@@ -15,7 +15,7 @@
 - 需要：先预览、你点同意、中断后能接着做  
 - 需要：审查只读、开发可写 的边界  
 
-**别用 dispatch：** 只改一个仓 → [ralph](command-jj-ralph.html)；只做迁移实现 → [same](command-jj-same.html)
+**别用 dispatch：** 只改一个仓 → [ralph](jj-ralph.md)；只做迁移实现 → [same](jj-same.md)
 
 ## 怎么说
 
@@ -53,9 +53,9 @@ $jj-dispatch PREVIEW delivery=DEL-password 目标=项目A,项目B,项目C
 | 说法 | 实际意思 |
 |------|----------|
 | 调度「验收通过」 | 记录和证据齐了 |
-| 已经推远端 / 合进 dev | **还要** 用 [end](command-jj-end.html) 或你自己 push |
+| 已经推远端 / 合进 dev | **还要** 用 [end](jj-end.md) 或你自己 push |
 
-回退某个交付时：Agent 应列出选项，**你点选** 怎么改代码（不要默认 revert）。见 [踩坑](pitfalls.html)。
+回退某个交付时：Agent 应列出选项，**你点选** 怎么改代码（不要默认 revert）。见 [踩坑](../pitfalls.md)。
 
 ## 在哪个工具上跑
 
@@ -68,4 +68,4 @@ $jj-dispatch PREVIEW delivery=DEL-password 目标=项目A,项目B,项目C
 
 ## 相关
 
-[宿主说明](concepts-hosts.html) · [踩坑](pitfalls.html) · [上手](usage.html)
+[宿主说明](../concepts-hosts.md) · [踩坑](../pitfalls.md) · [上手](../usage.md)

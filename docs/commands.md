@@ -6,13 +6,13 @@
 
 | 入口 | 一句话 | 谁能用 |
 |------|--------|--------|
-| [init](command-jj-init.html) | 接入全局地图、梳理项目、补知识库 | 全平台 |
-| [ralph](command-jj-ralph.html) | 当前仓库从做到验收 | 全平台 |
-| [same](command-jj-same.html) | 迁到别的同源仓库 | 全平台 |
-| [dispatch](command-jj-dispatch.html) | 多个项目一起派、一起盯 | Codex / Grok / Qoder（**无 Claude**） |
-| [review](command-jj-review.html) | 把审查结论写进任务记录 | 全平台 |
-| [end](command-jj-end.html) | 提交并合进 dev/main | 全平台 |
-| [jj](command-jj.html) | 说不清时帮你选路 | 全平台 |
+| [init](commands/jj-init.md) | 接入全局地图、梳理项目、补知识库 | 全平台 |
+| [ralph](commands/jj-ralph.md) | 当前仓库从做到验收 | 全平台 |
+| [same](commands/jj-same.md) | 迁到别的同源仓库 | 全平台 |
+| [dispatch](commands/jj-dispatch.md) | 多个项目一起派、一起盯 | Codex / Grok / Qoder（**无 Claude**） |
+| [review](commands/jj-review.md) | 把审查结论写进任务记录 | 全平台 |
+| [end](commands/jj-end.md) | 提交并合进 dev/main | 全平台 |
+| [jj](commands/jj.md) | 说不清时帮你选路 | 全平台 |
 
 **怎么选：** 接入地图 → init；只改一个仓 → ralph；要搬家 → same；好几个仓一起协调 → dispatch；收工合分支 → end。
 
@@ -22,10 +22,10 @@
 
 | 入口 | 一句话 |
 |------|--------|
-| [team-coordinate](command-jj-team-coordinate.html) | 会话内动态多角色 |
-| [team-lifecycle](command-jj-team-lifecycle.html) | 固定 SDLC 规格→实现流水线 |
-| [team-swarm](command-jj-team-swarm.html) | 对抗搜索多方案 |
-| [evaluated](command-jj-evaluated.html) | 复盘真实交付、改进流程 |
+| [team-coordinate](commands/jj-team-coordinate.md) | 会话内动态多角色 |
+| [team-lifecycle](commands/jj-team-lifecycle.md) | 固定 SDLC 规格→实现流水线 |
+| [team-swarm](commands/jj-team-swarm.md) | 对抗搜索多方案 |
+| [evaluated](commands/jj-evaluated.md) | 复盘真实交付、改进流程 |
 
 ## 可以怎么说
 
@@ -49,7 +49,7 @@ $jj-ralph
 验收：怎样算完成
 ```
 
-更多例子：[五分钟上手](usage.html) · 翻车案例：[常见踩坑](pitfalls.html)
+更多例子：[五分钟上手](usage.md) · 翻车案例：[常见踩坑](pitfalls.md)
 
 ## 不同工具的前缀
 

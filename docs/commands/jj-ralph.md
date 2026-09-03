@@ -14,7 +14,7 @@
 - 只动 **这一个** 仓库  
 - 希望有完整记录：分析、计划、改动、验收  
 
-**别用 ralph：** 迁到别的仓库 → [same](command-jj-same.html)；多仓一起派 → [dispatch](command-jj-dispatch.html)；只提交合分支 → [end](command-jj-end.html)
+**别用 ralph：** 迁到别的仓库 → [same](jj-same.md)；多仓一起派 → [dispatch](jj-dispatch.md)；只提交合分支 → [end](jj-end.md)
 
 ## 先对齐名词
 
@@ -73,9 +73,8 @@ $jj-ralph
 交接到 项目B 项目C
 ```
 
-→ [same](command-jj-same.html)。
+→ [same](jj-same.md)。
 
-可交互演示：[ralph 内部机制动画](milestones/ralph-demo.html)
 
 ## 强度档（intensity）
 
@@ -178,4 +177,4 @@ agent 会按 **当前会话 / 最近改动 / 标题与目标是否同一需求**
 
 ## 相关
 
-[术语](glossary.html) · [same](command-jj-same.html) · [dispatch](command-jj-dispatch.html) · [end](command-jj-end.html) · [踩坑](pitfalls.html) · [上手](usage.html) · [设计（深）](design-docs/jj-ralph.html)
+[术语](../glossary.md) · [same](jj-same.md) · [dispatch](jj-dispatch.md) · [end](jj-end.md) · [踩坑](../pitfalls.md) · [上手](../usage.md) · [设计（深）](../design-docs/jj-ralph.md)

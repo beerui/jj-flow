@@ -15,7 +15,7 @@
 - 需要对抗评分、多假设竞争  
 - 用户明确说蚁群 / TAS / 对抗搜索  
 
-**不是：** 普通多角色写码（用 [coordinate](command-jj-team-coordinate.html)）；固定规格文档链（用 [lifecycle](command-jj-team-lifecycle.html)）；多项目调度（用 [dispatch](command-jj-dispatch.html)）。
+**不是：** 普通多角色写码（用 [coordinate](jj-team-coordinate.md)）；固定规格文档链（用 [lifecycle](jj-team-lifecycle.md)）；多项目调度（用 [dispatch](jj-dispatch.md)）。
 
 **不会** 推进 checkpoint。常见交付物：`artifacts/best-solution.md`（只可引用）。
 
@@ -47,4 +47,4 @@ $jj-team-swarm 比较三种缓存失效方案并收敛推荐
 
 ## 相关
 
-[命令总览](commands.html) · [coordinate](command-jj-team-coordinate.html) · [lifecycle](command-jj-team-lifecycle.html)
+[命令总览](../commands.md) · [coordinate](jj-team-coordinate.md) · [lifecycle](jj-team-lifecycle.md)

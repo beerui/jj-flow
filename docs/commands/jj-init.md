@@ -15,7 +15,7 @@ ralph / same / dispatch **不会**自动把仓库写进地图。要接入、梳�
 - 给仓库起中文名、aliases、家族  
 - 把本仓已有 ralph 贡献补进 `~/.jj-flow/knowledge`  
 
-**别用 init：** 开一轮需求 → [ralph](command-jj-ralph.html)；迁仓 → [same](command-jj-same.html)。`jj ralph init` 是开任务，不是接入。
+**别用 init：** 开一轮需求 → [ralph](jj-ralph.md)；迁仓 → [same](jj-same.md)。`jj ralph init` 是开任务，不是接入。
 
 ## 怎么说
 
@@ -30,4 +30,4 @@ Agent 会先给你看提案（名称 / 家族 / 要不要投喂），**你点头
 
 ## 相关
 
-[命令总览](commands.html) · [目录](concepts-paths.html) · [知识库](concepts-knowledge.html)
+[命令总览](../commands.md) · [目录](../concepts-paths.md) · [知识库](../concepts-knowledge.md)
