@@ -73,6 +73,7 @@ import {
   isReviewSkipPath,
   readGitSourceFacts,
   resolveReviewScope,
+  suggestGateSet,
   writeInstructionCorrection
 } from './gates.mjs';
 import { buildElevationFromRun, mapFind, tokenize } from './map.mjs';
@@ -222,6 +223,15 @@ export function initRun(options, cwd = process.cwd()) {
     memory_refs: unique((hotPack.hits || []).map((hit) => hit.id || hit.rule).filter(Boolean))
   };
   saveRun(run, cwd);
+  // P2+b: without an explicit --lite/--full the heuristic only advises. run.json already holds
+  // gate_set=full; the suggestion lives on the returned object + a progress line, never in the ledger.
+  const explicitGateSet = options.gate_set != null && String(options.gate_set).trim() !== '';
+  const gateSetSuggestion = explicitGateSet
+    ? null
+    : suggestGateSet({ title: run.title, goal: run.goal, scope: run.scope, capability_ids: run.capability_ids });
+  const gateSetSuggestionLine = gateSetSuggestion && gateSetSuggestion.gate_set === 'lite'
+    ? ('- gate_set_suggestion: lite (advisory; run.json stays full — explicit --lite only) reasons=' + gateSetSuggestion.reasons.join('; ') + nl)
+    : '';
   const knowledgeLine = '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)');
   const goalBody = writeIntent
     ? ('## ' + SECTION_GOAL + nl + nl + (run.goal || '') + nl + nl
@@ -281,6 +291,7 @@ export function initRun(options, cwd = process.cwd()) {
       + '- intensity: ' + (run.intensity || 'standard') + nl
       + '- gate_set: ' + (run.gate_set || 'full')
       + (run.gate_set === 'lite' ? (' (brief→deliver→close; max_deliver_loops=' + run.budget.max_deliver_loops + ')') : '') + nl
+      + gateSetSuggestionLine
       + '- max_iterations: ' + run.max_iterations + nl
       + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
       + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl
@@ -325,6 +336,7 @@ export function initRun(options, cwd = process.cwd()) {
     /* missing map is not fatal */
   }
   if (reuse_suggestions.length) run.reuse_suggestions = reuse_suggestions.slice(0, 5);
+  if (gateSetSuggestion) run.gate_set_suggestion = gateSetSuggestion;
   return run;
 }
 

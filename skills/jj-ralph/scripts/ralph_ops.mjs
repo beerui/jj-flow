@@ -70,7 +70,8 @@ Resolve library:
 
 Commands:
   init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
-                 (gate_set defaults to full; --lite = brief→deliver→close with max_deliver_loops≤3, auto-promotes to full on FAIL/BLOCKED or scope growth)
+                 (gate_set defaults to full; --lite = brief→deliver→close with max_deliver_loops≤3, auto-promotes to full on FAIL/BLOCKED or scope growth;
+                  without a flag the output carries gate_set_suggestion — advisory only, run.json stays full)
   status [--run-id task-x] [--cwd DIR]
   metrics --run-id task-x [--persist] [--cwd DIR]
   archive --run-id task-x [--slug name] [--cwd DIR]
@@ -257,6 +258,7 @@ async function main() {
         gate_set: run.gate_set || 'full',
         max_iterations: run.max_iterations,
         max_deliver_loops: run.budget?.max_deliver_loops ?? null,
+        gate_set_suggestion: run.gate_set_suggestion || null,
         path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', 'tasks', run.run_id)).replaceAll('\\', '/'),
         reuse_suggestions: run.reuse_suggestions || [],
         resolved,
