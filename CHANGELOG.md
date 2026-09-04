@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **CI：loop gym L1-S7a overlay（lean 合同）**：`77f5a6b` 合入 lean `task_plan` 后，pin `ed72b08` 的 L1-S7a 仍要 live plan 长出 `已落地`/`Landed`，`verify` / `lab-windows` 报 `LAB-ORACLE-FAIL`。产品仓无权推 `jj-lab-loop`，故 `lab-check` 在旧 marker 存在时拷贝 `scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a/`（改写 Goal，历史进 `progress.md` 的 `## YYYY-MM-DD — approach change`）。gym 合入同逻辑并升 pin 后 overlay 自动 no-op。合约：`tests/lab-check.test.mjs`。
+
 ## 0.2.0 — 2026-09-07 17:02
 
 - **Ralph 需求确认不了先问**：ANALYZE 以及 MUST / 范围 / 验收事后仍确认不了时禁止猜着做。写 `## 存疑`，停在当前阶段（或 BLOCKED），不 `gate` 当前/下一阶段，不回滚到 ANALYZE。tiny init 只跳过空存疑；确认不了仍写存疑。合约：`tests/jj-ralph-contract.test.mjs`。
