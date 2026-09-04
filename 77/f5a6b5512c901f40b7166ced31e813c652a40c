@@ -1,0 +1,235 @@
+skills/jj-ralph/references/phases.md
+  s_953062dc3a6dbc::t_17b2856d2e4c3c 127
+docs/design-docs/index.md
+  s_953062dc3a6dbc::t_e454b4cd8478ee 18-36,38
+docs/commands/jj-ralph.md
+  s_953062dc3a6dbc::t_194d620fd4ff4b 111
+  s_2e87ff540b1937::t_83c75675a2ccc9 132,134
+  s_953062dc3a6dbc::t_63f024f9effa2c 170
+  s_2e87ff540b1937::t_34dcb4f5061b74 90
+  s_953062dc3a6dbc::t_265a03b8c2c33b 182,191-193,197
+  s_953062dc3a6dbc::t_b7a713d424cc2e 3,5,7-12,16-17,19,21-26,28,30-32,34,36,38,41,44-68,71-72,75-78,80,83-84,87,91,93,96,99,102,104,106-110,112-116,118,120,122,124-128,130,136,138,142-143,146,148,150-158,161,164-168,174,183-190,194,201
+docs/pitfalls.md
+  s_953062dc3a6dbc::t_54ea6a31044732 3,7-9,13-14,17,23-24,29-31,33,39-40,47-48,54-55,62,65-66,71-72,77-79,81,87-88,93-95,97,103-105,109-113,115,117,121-123,125,127,131-133,135,137,143-145,149-154,162-164,168,174,180-183
+docs/design-docs/docs-site-vitepress.md
+  s_6f4d0bf2ef73fa::t_49e4b983002833 160
+  s_6f4d0bf2ef73fa::t_58caf2a5ec9380 102
+  s_6f4d0bf2ef73fa::t_148d624f3e1c1b 165
+  s_6f4d0bf2ef73fa::t_148548444e1c95 1,5,11,13,15,17,19-22,24,26,28-31,33,35-38,40,42,44-48,50,52,54-67,70,72,74,76-90,92,94-96,100-101,104,106,108,111-116,118,120,122,124,128,130,132,134-139,141,145,147,149-152,154,156,158-159,163,167,169-173,175,177-179,181,183,185,187,189-197,199,201-204,206,208,210-218,220,222,224-226,228-230,232,234-238,240,242-244
+  s_6f4d0bf2ef73fa::t_c6ded8d4f4f7c0 99
+  s_6f4d0bf2ef73fa::t_1fab3de7b9e2c3 110
+  s_6f4d0bf2ef73fa::t_3840c054eb7dce 126
+src/ralph.mjs
+  s_2e87ff540b1937::t_2b7f878e772ceb 73-74,187-188
+src/ralph/gates.mjs
+  s_2e87ff540b1937::t_5d33c654dc687e 29,44,1185,1423-1424,1429-1432
+tests/jj-ralph-contract.test.mjs
+  s_2e87ff540b1937::t_85b39dc74e8903 421,425
+  s_2e87ff540b1937::t_72768db7de670c 3248
+  s_2e87ff540b1937::t_6a8aadf02280ab 3071,3075,3079,3085,3091-3093
+  s_2e87ff540b1937::t_76480ff74a8180 67,70,88,241,390-394,422-424,3249-3424
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_953062dc3a6dbc::t_99466f68961ae2 35,79,96
+docs/commands/jj-same.md
+  s_953062dc3a6dbc::t_caa47b357d645e 1,3,5-10,14-17,19-23,25,27-33,39-48,50-55,58-63,65-66,69-70,72-73,76-77,82-92,96,102-110,112,114-117,119,121,123,127
+CHANGELOG.md
+  s_2e87ff540b1937::t_0a10b61c49f270 34
+  s_2e87ff540b1937::t_3ddfc13f365e07 24-26
+skills/jj-ralph/SKILL.md
+  s_953062dc3a6dbc::t_83a6ebc1b31ef7 36,144-146
+  s_953062dc3a6dbc::t_e486dfed105949 54,58
+  s_953062dc3a6dbc::t_814901f5573907 70,72
+src/ralph/state.mjs
+  s_2e87ff540b1937::t_f0cb4ae0435851 1170-1171,1184-1211,1223-1224,1240-1249
+  s_2e87ff540b1937::t_dd2036caad829d 1284
+  s_2e87ff540b1937::t_4c695caa299e54 23-24,666-667,906-923,927-948,1164-1169,1172-1183,1212-1213,1215,1217-1221,1225,1227-1235,1237-1239,1250-1252,1260,1263-1265,1272-1273,1290-1292,1294-1305,1435,1449-1452
+  s_2e87ff540b1937::t_1122c0fb284ccd 1261-1262,1266-1271,1274-1283,1285-1289,1293
+docs/commands/jj-init.md
+  s_953062dc3a6dbc::t_d7eff01ee13d2e 1,3,5,7-10,14-16,18,20-50,54-56,59-79,83
+docs/commands/jj-end.md
+  s_953062dc3a6dbc::t_a0edaf7971053b 1,3,5-8,10,12,16-17,19,21,23,25-27,29,33,35-37,39,41-46,48,50,52,55,57,61-76,79,81-84,88
+  s_953062dc3a6dbc::t_b8d1a85b50b81c 77-78,80
+  s_953062dc3a6dbc::t_fe7d3100d0d9bb 31
+skills/jj-review/SKILL.md
+  s_953062dc3a6dbc::t_62b49cf261487c 41-42
+docs/commands/jj-review.md
+  s_953062dc3a6dbc::t_651c523a90f11e 15,18
+  s_953062dc3a6dbc::t_d8329a6d9ca431 1,3,5-10,16-17,24-25,27-32,38-47,49,59-62,67-91,98
+  s_953062dc3a6dbc::t_eaa4574ce8451b 20,26
+  s_953062dc3a6dbc::t_c246c9b97ab088 48,50-52,54-55,58
+.github/workflows/ci.yml
+  s_953062dc3a6dbc::t_bf2f493d3ec15f 13,25-26
+.github/workflows/harness-gardener.yml
+  s_953062dc3a6dbc::t_0f1cdb891cc715 17
+.github/workflows/npm-publish.yml
+  s_953062dc3a6dbc::t_a96e0c32e00854 40
+.github/workflows/pages.yml
+  s_953062dc3a6dbc::t_b63c6f49844c70 25
+.gitignore
+  s_953062dc3a6dbc::t_50cfe1d94a9c34 10
+AGENTS.md
+  s_953062dc3a6dbc::t_a918243cc46c7a 5
+ARCHITECTURE.md
+  s_953062dc3a6dbc::t_5d51ecf6b39f6c 68,131
+docs/.vitepress/config.mjs
+  s_953062dc3a6dbc::t_bd6371e6e45c31 1-110
+docs/.vitepress/redirects.mjs
+  s_953062dc3a6dbc::t_9f5d8b44b72863 1-19
+docs/.vitepress/sidebar.mjs
+  s_953062dc3a6dbc::t_dcddd63d32e422 1-118
+docs/adr/0001-external-tool-boundary.md
+  s_953062dc3a6dbc::t_a36110ae717f40 28
+docs/adr/index.md
+  s_953062dc3a6dbc::t_5c7a9f5d5d0bb0 7-8
+docs/architecture.md
+  s_953062dc3a6dbc::t_464ce3317b11a6 54,58
+docs/changelog.md
+  s_953062dc3a6dbc::t_0f36eef400bff1 1
+docs/commands.md
+  s_953062dc3a6dbc::t_b9a6cb963a938c 3-7,11-19,21,25,27-32,36,40,42-44,47,51-54,59,61-67,69
+docs/commands/cli.md
+  s_953062dc3a6dbc::t_f9cb09fe0af853 36-38,105-107,111-113,143,172,174,190-191
+docs/commands/jj-dispatch.md
+  s_953062dc3a6dbc::t_1db34825213393 3,5-11,15-16,18,20-24,26,28-34,37,40-49,51-54,57-59,62-66,69,71-75,77,79,81-83,85,87,89,93
+docs/commands/jj-evaluated.md
+  s_953062dc3a6dbc::t_92e76e61094b91 1,3,5,7,9-12,14,16-80,84
+docs/commands/jj-team-coordinate.md
+  s_953062dc3a6dbc::t_1d8397f39251b3 1,3,5-12,16-20,22,24-26,28-30,33,36-44,46-48,51-53,56-58,61-72,74,85
+docs/commands/jj-team-lifecycle.md
+  s_953062dc3a6dbc::t_e8c2750a7a4d9b 1,3,5-12,16-22,24,26-28,30-32,35,38-45,47-50,53-55,58-62,65-78,90
+docs/commands/jj-team-swarm.md
+  s_953062dc3a6dbc::t_ab938fc71d213f 1,3,5-12,16-20,22,24-26,28-30,36-43,45-48,51-53,56-58,61-71,73,78-79,85
+docs/commands/jj.md
+  s_953062dc3a6dbc::t_4cea602247ed63 1,3,5,7-10,12,14-76,80
+docs/concepts-evidence.md
+  s_953062dc3a6dbc::t_7e94d17ec6071c 28
+docs/concepts-hosts.md
+  s_953062dc3a6dbc::t_4ae7e643454f86 22-23,29,38
+docs/concepts-knowledge.md
+  s_953062dc3a6dbc::t_b59202a78764de 15
+docs/concepts-paths.md
+  s_953062dc3a6dbc::t_6f5b59b92c544c 29
+docs/deployment.md
+  s_953062dc3a6dbc::t_eda5b0ce40f0b4 6-8,11,14
+docs/design-docs/grok-host-adapter.md
+  s_953062dc3a6dbc::t_a3298b98f38d5d 10,13,17-18
+docs/design-docs/harness-engineering.md
+  s_953062dc3a6dbc::t_ec6ce6446f3da3 9,15
+docs/design-docs/jj-ralph.md
+  s_953062dc3a6dbc::t_3aa88daf6db4f7 57
+docs/design-docs/portfolio-knowledge.md
+  s_953062dc3a6dbc::t_f0b9d60e4e462f 76,86
+docs/design-docs/ralph-auto-closeout.md
+  s_953062dc3a6dbc::t_ea6ccd2b2faaf8 1,3-7,9,11,13,15-17,19,21-26,28,30,32,34,36-40,42-43,45,47,49,51,53,55-57,59,61-63,67-89
+docs/design-docs/ralph-plans-workspace.md
+  s_953062dc3a6dbc::t_db073a419bb1bc 9,13,393
+docs/design-docs/ralph-plans-workspace.preview.md
+  s_953062dc3a6dbc::t_fb83553738182e 5
+docs/design-docs/ralph-workspace-layout.md
+  s_953062dc3a6dbc::t_0c9e6d33b94904 7
+docs/exec-plans/completed/2026-09-03-docs-site-vitepress.md
+  s_953062dc3a6dbc::t_95ec3d357732ee 1-84,88,90,92-104,106,108-113,117-130,134-142,146-153,157-174,179-190,192-195,197-199,201,203,205-210,212-225,227,229-236,238-240,242-321,324,330-332,334-335,340,342,344-346,348,350,352-355,357,359-364,366,368-379,381-414,416-422,424,426,428-431,433-437,439,441-447,449,451-453,455-456,458,460,462,464,466-474,476,478-481,483-505,507-518,520-521,523,525,527-534,536-578,580-585,587,589,591-616,618-648,650-651,653-666,669-841
+docs/exec-plans/completed/2026-09-04-ralph-auto-closeout.md
+  s_953062dc3a6dbc::t_9c52d436ae9824 1-93
+docs/exec-plans/index.md
+  s_953062dc3a6dbc::t_a82e2918ec70f8 16-17,25-35
+docs/glossary.md
+  s_953062dc3a6dbc::t_663f356b3d8da9 30
+docs/index.md
+  s_953062dc3a6dbc::t_9019534033a08d 3,7,11-13,15,19-26,28,30,34,39,49,55-60
+docs/installation.md
+  s_953062dc3a6dbc::t_79f588d7220ab4 3,9,15,18,23,27-36,44,47,55,59,68,70
+docs/jj-lab-siblings.md
+  s_953062dc3a6dbc::t_43eff9536400b2 4
+docs/loop-graph-guide.md
+  s_953062dc3a6dbc::t_7915090dea1337 3-4,6
+docs/maintenance.md
+  s_953062dc3a6dbc::t_51526235a8f08a 9-12,14-18,32,35,48
+docs/memory-knowledge-guide.md
+  s_953062dc3a6dbc::t_4b1b9d0e80dafb 11
+docs/milestones/h5-gc-baseline.json
+  s_953062dc3a6dbc::t_ae5ff689e69a70 3,5,9,33,42,48-52,56-68,72-151,162,168,172-184,197-198,200-201,204
+docs/milestones/real-host-acceptance.md
+  s_953062dc3a6dbc::t_922a8b4e497076 9
+docs/project-plan.md
+  s_953062dc3a6dbc::t_f32b77611401f6 3,20
+docs/usage.md
+  s_953062dc3a6dbc::t_e71030cf059f46 1,3,5,7,9,11,13-14,16,19,22-23,25,28,30,32-38,40,42,44,46-48,50,52,54-58,60-64,67,70-73,75,78,80,82,84-87,91-93,95
+harness-manifest.json
+  s_953062dc3a6dbc::t_3037bf2fbe87b4 274,278,282,286,290,294,298,302,321,333-335
+package-lock.json
+  s_953062dc3a6dbc::t_1b4aad65e23313 15-17,21-2526
+package.json
+  s_953062dc3a6dbc::t_2da5d972cc5da6 40-43,65-67
+scripts/check-docs.mjs
+  s_953062dc3a6dbc::t_06324ab388845b 1-66
+scripts/check-harness.mjs
+  s_953062dc3a6dbc::t_a02e6bf3e2578d 418,424,431,449,467-469,502,538-540
+scripts/check-project.mjs
+  s_953062dc3a6dbc::t_4bde39fad81399 51-54
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_953062dc3a6dbc::t_cb2bb9b9caf9c3 73-74,187-188
+skills/jj-ralph/scripts/lib/ralph/archive.mjs
+  s_953062dc3a6dbc::t_1583d1e323ab50 15,22,244-285
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_953062dc3a6dbc::t_041efea1253380 29,44,1185,1423-1424,1429-1432
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_953062dc3a6dbc::t_5d1a1da29229f3 23-24,666-667,906-923,927-948,1164-1213,1215,1217-1221,1223-1225,1227-1235,1237-1252,1260-1305,1435,1449-1452
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_953062dc3a6dbc::t_8a45c107121633 16,76-77,200,222,275-290,429,774-787
+src/cli.mjs
+  s_953062dc3a6dbc::t_183d915c4bcfd1 7-8,44,61,783-785,802-803,825,862-882,1199-1217,1654,1658,1660,1688,1692
+src/harnessGc.mjs
+  s_953062dc3a6dbc::t_7437f2a6c149b8 2,15-26,53-54,58,60-63,65
+src/installSkill.mjs
+  s_953062dc3a6dbc::t_3ce44557467823 120-138,154-155,161,180-181,186-187,227,267-268,274,293-294,299-300,449-450,455-456,510-540,774-775,781-787
+src/ralph/archive.mjs
+  s_953062dc3a6dbc::t_2679ed092f284f 15,22,244-285
+tests/docs-site.test.mjs
+  s_953062dc3a6dbc::t_43977d62b53db0 7-8,12-15,19-26,29-32,35-40,43-46,49,51-53
+tests/harness-check.test.mjs
+  s_953062dc3a6dbc::t_cdc0a303c9221e 161,182,193
+tests/install-skill.test.mjs
+  s_953062dc3a6dbc::t_78741093c48186 12-13,24-25,141-166,434-435,443-445,462-463,495-496,503-505,510,515-517,528,717-719,737-738
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "77f5a6b5512c901f40b7166ced31e813c652a40c",
+  "prompts": {},
+  "sessions": {
+    "s_2e87ff540b1937": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "13ba4e07-d5e9-4ebc-9664-0e27538c5771",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_953062dc3a6dbc": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "30f1bec0-c2ee-454c-a1e5-2441a2c1fdd8",
+        "model": "cursor-grok-4.6-high-fast"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
