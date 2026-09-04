@@ -1,6 +1,6 @@
 # Exec plan — Ralph 自动结案（auto-closeout）
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
@@ -17,7 +17,7 @@
 | 项 | 事实 |
 | --- | --- |
 | 第一批动手前 | `main` 干净，与 `origin/main`（`4dd3f7e`）同步；无在途未提交批次 |
-| 本批动手前 | `origin/main` 已含 `d377acb`（PR #30 MERGED）；工作区干净 |
+| 第二批动手前 | `origin/main` 已含 `d377acb`（PR #30 MERGED）；工作区干净 |
 | 顺序链 | jj-review Locate → §4.6 → 不破坏 ralph-workspace-layout 双轨（`progress.md` 人读 / `events.jsonl` 机器） |
 
 ## 目标
@@ -43,65 +43,51 @@ accept PASS 之后 **MUST `finalize`**。`status` 两处输出层带 `next`；`p
 
 ### 切片 0 — 本计划入库
 
-- [x] `docs/exec-plans/active/2026-09-04-ralph-auto-closeout.md`
-- [x] 执行索引 + `scripts/build-docs.mjs` DEEP_PAGES
-- [x] CHANGELOG Unreleased 指针（合约结果测完回填）
+- [x] 本文件 + 执行索引 + `scripts/build-docs.mjs` DEEP_PAGES
+- [x] CHANGELOG Unreleased 指针
 
-### §4.1 — finalize MUST + next + 两处输出层 + status 第二道告警
+### §4.1 / §4.4 / §4.6 / §4.7 / §4.2 / §4.3
 
-- [x] `computeRalphNext` / `getStatus` / `renderRalphStatusText` / `ralph_ops printJson`
-- [x] SKILL：accept PASS 后 MUST finalize
+- [x] 第一批已合入 PR #30 / `d377acb`
 
-### §4.4 — `gate_set=undefined`
-
-- [x] 文本层缺字段显示 `undefined`；`effectiveGateSet` 行为不变
-
-### §4.6 + §4.7 — writeRalphIndex 降级 + Locate 入口
-
-- [x] `writeRalphIndex` 内部 try/catch
-- [x] `jj ralph locate` + jj-review 覆盖 `task-*` / `completed/`
-
-### §4.2 / §4.3 — skill / 用户文档
-
-- [x] SKILL / phases / `docs/commands/jj-ralph.md` / zh-bridge（第一批）
-
-### §4.5 — 可选（本批补）
+### §4.5 — 可选
 
 - [x] locate 行带 `next` / `warning` / `closeout`（不自动 finalize）
 
 ### §4.8 — 测试
 
-- [x] 第一批合约（合入时 55/55）
-- [ ] 本批：locate 注释 + remediate + `--platform agents`（测完回填）
+- [x] 第一批合约 55/55（合入时）
+- [x] 本批：`tests/jj-ralph-contract.test.mjs` **56/56**；`tests/install-skill.test.mjs` 含 agents 用例；全量 `node --test tests/*.test.mjs` **381/381**
 
-### §4.9 步骤 4 — `~/.agents/skills` 清理（本批）
+### §4.9 步骤 4 — `~/.agents/skills` 清理
 
-- [ ] `--platform agents` / `all` 写入 `~/.agents/skills` + `commands`（`--project` → `.agents/…`）
-- [ ] 安装时删除该目标 retired 资产
-- [ ] 本环境跑 `jj install-skill --platform all --force`
+- [x] `--platform agents` / `all` 写入 `~/.agents/skills` + `commands`（`--project` → `.agents/…`）
+- [x] 安装时删除该目标 retired 资产
+- [x] 本环境 `node bin/jj.mjs install-skill --platform all --force`：目标含 `/home/ubuntu/.agents/skills` 与 `commands`；`jj-ralph` 已写入；无 retired
 
-### §4.9 步骤 5 — 存量 run 补救（本批）
+### §4.9 步骤 5 — 存量 run 补救
 
-- [ ] `jj ralph remediate` 默认 dry-run；`--yes` 只处理 `finalize` + `migrate`
-- [ ] 本仓 `remediate` 干跑记录（无存量则 count=0）
+- [x] `jj ralph remediate` 默认 dry-run；`--yes` 只处理 `finalize` + `migrate`
+- [x] 本仓 `node bin/jj.mjs ralph remediate --json` → `count=0`（无存量）
 
 ## 验收
 
-全部完成后依次：`npm run verify` → `git diff --check` → `node src/cli.mjs install-skill --platform all --force`。
-
-### 第一批（已合入 `d377acb`）
-
 | 命令 | 结果 |
 | --- | --- |
-| `node --test tests/jj-ralph-contract.test.mjs` | 55/55 |
-| `node --test tests/*.test.mjs` | 379/379 |
+| `node --test tests/jj-ralph-contract.test.mjs` | 56/56 |
+| `node --test tests/*.test.mjs` | 381/381 |
 | `npm run ralph:check` | in_sync，15 files |
+| `npm run check` / `harness:check` / `harness:gc` / `scenario:check` / `host:trial` / `docs:check` / `evaluated:check` | 通过 |
+| `git diff --check` | 干净 |
+| `node bin/jj.mjs install-skill --platform all --force` | ok；含 `~/.agents/skills` + `commands` |
+| `node bin/jj.mjs ralph remediate --json` | `count=0` |
+| `npm test`（`node --test tests`） | 本环境 Node 22 把 `tests` 当模块，未用此入口 |
 | `lab:check` | 既有 `LAB-ROOT-MISSING`（无 sibling gym） |
 
-### 第二批（本批，测完回填）
+## 残留风险
 
-| 命令 | 结果 |
+| 风险 | 缓解 |
 | --- | --- |
-| `node --test tests/jj-ralph-contract.test.mjs` | 待跑 |
-| `tests/install-skill.test.mjs` | 待跑 |
-| `npm run verify` | 待跑 |
+| 修订 10 原文若日后入库，行号与补录文档不对齐 | 补录标明来源；不以聊天当修订 10 |
+| `remediate --yes` 对 resume 窗口误 finalize | 只处理 `closeout=finalize`；`check` 不动 |
+| `--platform all` 现在多写 `~/.agents` | 与 AGENTS.md 用户级发现路径对齐；retired 安装时删 |

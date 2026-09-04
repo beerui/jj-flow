@@ -13,7 +13,6 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [Ralph 自动结案](active/2026-09-04-ralph-auto-closeout.html) | 主路径已合入 PR #30；本批补 §4.5 + §4.9 步骤 4/5 + 设计文档补录 | locate 带 next；`~/.agents` 分发；`jj ralph remediate` |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 
@@ -23,6 +22,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [Ralph 自动结案](completed/2026-09-04-ralph-auto-closeout.html) | 主路径 PR #30；后续补录设计文档（非修订 10）、`locate` next、`~/.agents` 分发与 retired 清理、`jj ralph remediate`。合约 56/56；全量 381/381 |
 | [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.html) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；收口批已升 gym pin（`lab:check` 回绿）并修复 lite 预算出口残留 BLOCKED |
 | [Ralph 工作区 P2](completed/2026-09-02-ralph-plans-workspace-p2.html) | P2a `task-*` + `.state/` + schema 1.2；P2b same/review 定位；P2c migrate/adopt + 去掉 1.0 标题回退。lite 未开 |
 | [Ralph 工作区 P1](completed/2026-09-02-ralph-plans-workspace-p1.html) | P1a 五模块拆分、P1b 布局 8→4 + schema 1.1、P1c 归档原地翻转；P2 另开 |
