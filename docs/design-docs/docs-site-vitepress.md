@@ -1,10 +1,12 @@
 # 文档站迁移 VitePress 与使用文档改版
 
-> 状态：Proposed
+> 状态：Implemented
 >
 > 日期：2026-09-03
 >
-> 关联执行计划：[文档站 VitePress 迁移与文案改版](../exec-plans/active/2026-09-03-docs-site-vitepress.md)
+> 验收证据：`tests/docs-site.test.mjs`、`tests/harness-check.test.mjs`、`scripts/check-docs.mjs`
+>
+> 关联执行计划：[文档站 VitePress 迁移与文案改版](../exec-plans/completed/2026-09-03-docs-site-vitepress.md)
 >
 > 边界：只动文档站（`docs/**`、站点配置、构建/校验脚本、harness 中与站点构建绑定的规则）和用户可见文案；不改 `skills/`（行为真源）、不改 `src/` 业务逻辑；文案改写不得引入 skill 里没有的行为。
 
@@ -222,7 +224,7 @@ VitePress 本地搜索（minisearch）默认按空白/标点分词，中文整�
 - **ralph**：永远五步（分析 → 计划 → 改代码 → 验收 → 归档），`tiny` 只缩短分析和计划，`strict` 在验收前多一道审查/复检；「先不写代码 / 先分析」停在分析，说「开始做吧 / 我认可」才动代码；同一件事的「继续 / 按审查改 / 改坏了 / 修完 / 再改一下」接着同一任务（归档过也一样），不新开；「这个先不做了 / 砍了」标废弃，可救回；截图 / 「这里」先当需求读；验收通过默认归档；归档后会问一次要不要投喂全局知识库，你点头才写；**不 commit / 不 push / 不合分支**（收工用 `$jj-end`）；用户不用记任务编号；记录在 `.workflow/ralph/<task-…>/`（`task_plan.md` 目标·验收·步骤、`progress.md` 过程、`findings.md` 踩坑与结论），归档后搬进 `completed/`；迁仓说「交接到 项目B 项目C」→ same（源仓未提交时交接未就绪）。
 - **same**：迁的是需求不变量，不整文件复制；先读 ralph 任务里的交接信息；动手前核对每个目标仓的分支是不是这个任务的分支，不对就停；多目标说不清（如「三端」）会先问；每个目标单独报结果（做了什么 / 怎么验证的 / 分支与提交 / 下一步），部分成功不算全部完成；不主动 commit / push。
 - **dispatch**：Codex / Grok / Qoder 可用，Claude 没有（有意为之）；预览（只读、分支表）→ 你批准 → 派发 → 可中断续跑；源仓未提交会被拦；「验收通过」要有提交 + 审查 + 真实会话 + 证明文件，口头不算；验收通过 ≠ 已 push / 已合；回退时列选项由你点选；调度状态默认在 `~/.jj-flow`；默认在功能分支上改、不额外开目录。
-- **end**：固定顺序 拉最新 → 提交 → 同步并推工作分支 → 切到合入分支同步 → 合并 → 推合入分支 → 回到工作分支；合入分支：你写的 `integration=` > 文档/配置明说的收工分支 > `dev` → `develop` → `main` > 问你；git log 里的 `Merge into staging`、`staging` 分支存在、构建脚本名含 staging **都不算**约定；执行前先打印一行 `work→integration` 计划及来源；冲突默认自己合，只有真正判不了（同一开关两边相反、二进制/密钥）才整段中止并把表交给你；绝不 force push / 删分支 / 改 git 配置；`dry_run=true` 只打印计划；做完实现后 Agent 可能主动收工，不想推就明说"先别推"；end 只动 Git，不归档 ralph 任务。
+- **end**：固定顺序 拉最新 → 提交 → 同步并推工作分支 → 切到合入分支同步 → 合并 → 推合入分支 → 回到工作分支；合入分支：你写的 `integration=` > 文档/配置明说的收工分支 > `dev` → `develop` → `main` > 问你；git log 里的 `Merge into staging`、`staging` 分支存在、构建脚本名含 staging **都不算**约定；执行前先打印一行 `work→integration` 计划及来源；冲突先分类打表，能一句话说清、不用替产品做决定的自己合完继续，判不了的（同一开关两边相反、二进制/密钥）整段中止把表交给你，不会只解一半（用户页不写分类标签名——skill 正在从 `simple`/`complex` 改为 `self-merge`/`unhandleable`，中性表述两版都成立）；绝不 force push / 删分支 / 改 git 配置；`dry_run=true` 只打印计划；做完实现后 Agent 可能主动收工，不想推就明说"先别推"；end 只动 Git，不归档 ralph 任务。
 - **review**：只读；优先用宿主自带 code review；结论写进当前 ralph 任务 `.state/reviews/REV-n.json`，结果只有 通过 / 需要修改 / 阻塞；没有 ralph 任务就不会硬建一个；你也可以把审查结论贴给它记录；改完说「按审查改」回到 ralph。
 - **init**：先给短提案（中文名 / 别名 / 家族 / 待投喂条数），你点头才写 `~/.jj-flow/map.md`；默认只处理当前仓，说「梳理 D:\2025」则加上该目录的直接子仓；名字用你说的，否则用 AGENTS.md 标题或目录名，不自己编；ralph / same / dispatch 不会自动入图。
 - **jj**：分流入口；顺序 接入 → 迁移 → 多项目 → 单仓 → 审查 → 收工；说不清就先问目标。

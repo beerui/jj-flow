@@ -1,10 +1,12 @@
 # Exec plan — 文档站 VitePress 迁移与使用文档改版
 
-> 状态：active
+> 状态：completed
 >
 > 负责人：jj-flow
 >
 > 开始日期：2026-09-03
+>
+> 完成日期：2026-09-04
 >
 > 关联设计：[文档站迁移 VitePress 与使用文档改版](../../design-docs/docs-site-vitepress.md)
 >
@@ -54,7 +56,7 @@
 
 **产出接口：** `sidebar.mjs` 导出 `sidebar`（VitePress `SidebarItem[]`）与 `sidebarDocPaths(): string[]`（`docs/...md` 仓库相对路径，posix）；`redirects.mjs` 导出 `redirects: Record<string, string>`（旧路径 → 新路径，均相对站点根、带 `.html`）。
 
-- [ ] **A1.1 开分支、装依赖**
+- [x] **A1.1 开分支、装依赖**
 
 ```bash
 git -c core.autocrlf=input checkout -b feat/docs-vitepress
@@ -62,9 +64,9 @@ npm install --save-dev vitepress@^1.6.4
 node -e "console.log(require('./node_modules/vitepress/package.json').version)"   # 期望 1.6.x
 ```
 
-- [ ] **A1.2 `.gitignore`**：在 `site/` 行后加 `docs/.vitepress/cache/`；删除文末三行 demo 媒体规则（`docs/other/dispatch-demo/frames/`、`dispatch-demo.gif`、`dispatch-demo.mp4`）及其注释行。
+- [x] **A1.2 `.gitignore`**：在 `site/` 行后加 `docs/.vitepress/cache/`；删除文末三行 demo 媒体规则（`docs/other/dispatch-demo/frames/`、`dispatch-demo.gif`、`dispatch-demo.mp4`）及其注释行。
 
-- [ ] **A1.3 `package.json` scripts**
+- [x] **A1.3 `package.json` scripts**
 
 ```json
 "docs:dev": "vitepress dev docs",
@@ -75,7 +77,7 @@ node -e "console.log(require('./node_modules/vitepress/package.json').version)" 
 
 （`docs:check` 指向的脚本在 A3 建；A1–A2 期间该命令不可用。）
 
-- [ ] **A1.4 `docs/.vitepress/sidebar.mjs`**
+- [x] **A1.4 `docs/.vitepress/sidebar.mjs`**
 
 ```js
 // 侧栏纯数据模块：不 import vitepress，供 config.mjs / scripts/check-docs.mjs / src/harnessGc.mjs 共用。
@@ -198,7 +200,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 }
 ```
 
-- [ ] **A1.5 `docs/.vitepress/redirects.mjs`**
+- [x] **A1.5 `docs/.vitepress/redirects.mjs`**
 
 ```js
 // 旧站点（scripts/build-docs.mjs 时代）URL → VitePress 路径。config.mjs buildEnd 据此写跳转页。
@@ -222,7 +224,7 @@ export const redirects = {
 };
 ```
 
-- [ ] **A1.6 `docs/.vitepress/config.mjs`**
+- [x] **A1.6 `docs/.vitepress/config.mjs`**
 
 ```js
 import fs from 'node:fs';
@@ -337,22 +339,22 @@ function redirectHtml(target, canonical) {
 }
 ```
 
-- [ ] **A1.7 `docs/changelog.md`**
+- [x] **A1.7 `docs/changelog.md`**
 
 ```md
 <!--@include: ../CHANGELOG.md-->
 ```
 
-- [ ] **A1.8 CHANGELOG 唯一相对链接改绝对**：`CHANGELOG.md` 第 17 行附近 `(docs/design-docs/ralph-plans-workspace.md)` → `(https://github.com/beerui/jj-flow/blob/main/docs/design-docs/ralph-plans-workspace.md)`。
+- [x] **A1.8 CHANGELOG 唯一相对链接改绝对**：`CHANGELOG.md` 第 17 行附近 `(docs/design-docs/ralph-plans-workspace.md)` → `(https://github.com/beerui/jj-flow/blob/main/docs/design-docs/ralph-plans-workspace.md)`。
 
-- [ ] **A1.9 删除演示**
+- [x] **A1.9 删除演示**
 
 ```bash
 git -c core.autocrlf=input rm -q docs/dispatch-demo.md docs/ralph-demo.md docs/end-demo.md
 git -c core.autocrlf=input rm -rq docs/other/dispatch-demo docs/other/end-demo docs/other/ralph-demo
 ```
 
-- [ ] **A1.10 验证骨架**
+- [x] **A1.10 验证骨架**
 
 ```bash
 node docs/.vitepress/sidebar.mjs | node -e "const a=JSON.parse(require('fs').readFileSync(0));console.log(a.length, a.slice(0,3))"
@@ -361,7 +363,7 @@ npx vitepress build docs 2>&1 | tail -30
 # 期望：配置加载成功、页面编译成功，最后因 dead links 失败并列出 (*.html) 链接 —— 这是 A2 要修的
 ```
 
-- [ ] **A1.11 提交**
+- [x] **A1.11 提交**
 
 ```bash
 git -c core.autocrlf=input add package.json package-lock.json .gitignore docs/.vitepress docs/changelog.md CHANGELOG.md
@@ -374,7 +376,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 **文件：** 修改 `docs/**/*.md`（非排除目录）；一次性脚本 `.tmp/migrate-links.mjs`（不入库）。
 
-- [ ] **A2.1 写迁移脚本**（旧 `PAGES` 表仍在 `scripts/build-docs.mjs`，此时尚未删除）
+- [x] **A2.1 写迁移脚本**（旧 `PAGES` 表仍在 `scripts/build-docs.mjs`，此时尚未删除）
 
 ```js
 // .tmp/migrate-links.mjs — 把 docs 内链从旧输出路径改成源文件相对路径（跳过围栏代码块）
@@ -421,7 +423,7 @@ function walk(dir) {
 }
 ```
 
-- [ ] **A2.2 运行并处理剩余**
+- [x] **A2.2 运行并处理剩余**
 
 ```bash
 node .tmp/migrate-links.mjs
@@ -434,7 +436,7 @@ node .tmp/migrate-links.mjs
 - `docs/design-docs/grok-host-adapter.md`：`(../../skills/jj-dispatch/references/grok-dispatch-execution.md)` → `(https://github.com/beerui/jj-flow/blob/main/skills/jj-dispatch/references/grok-dispatch-execution.md)`。
 - `docs/design-docs/ralph-workspace-layout.md` 示例表格里 `[…](tasks/task-enter-form-api-fields/progress.md)`、`[…](completed/task-enter-form-fixed-preset/progress.md)` 两个链接改为行内代码（保留显示文本）。
 
-- [ ] **A2.3 验证**
+- [x] **A2.3 验证**
 
 ```bash
 grep -rnE '\]\([^)]*\.html[)#]' docs --include=*.md | grep -v 'skill-zh-bridge\|evaluations\|docs/other' | grep -v '](http'
@@ -444,7 +446,7 @@ npx vitepress build docs 2>&1 | tail -5
 ls site/commands/jj-ralph.html site/command-jj-ralph.html site/changelog.html site/sitemap.xml site/design-docs/index.html
 ```
 
-- [ ] **A2.4 提交**
+- [x] **A2.4 提交**
 
 ```bash
 git -c core.autocrlf=input add docs
@@ -459,7 +461,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 **产出接口：** `node scripts/check-docs.mjs` 退出码 0 且 stdout 含 `docs site check passed`。
 
-- [ ] **A3.1 先写测试 `tests/docs-site.test.mjs`**（整文件替换）
+- [x] **A3.1 先写测试 `tests/docs-site.test.mjs`**（整文件替换）
 
 ```js
 import assert from 'node:assert/strict';
@@ -518,9 +520,9 @@ test('maintenance docs describe the VitePress workflow', () => {
 });
 ```
 
-- [ ] **A3.2 跑测试确认失败**：`node --test tests/docs-site.test.mjs` → 期望 `docs:check` 与 `maintenance` 两例失败（脚本不存在 / 文案未更新），其余通过。
+- [x] **A3.2 跑测试确认失败**：`node --test tests/docs-site.test.mjs` → 期望 `docs:check` 与 `maintenance` 两例失败（脚本不存在 / 文案未更新），其余通过。
 
-- [ ] **A3.3 `scripts/check-docs.mjs`**
+- [x] **A3.3 `scripts/check-docs.mjs`**
 
 ```js
 #!/usr/bin/env node
@@ -584,7 +586,7 @@ function fail(message) {
 }
 ```
 
-- [ ] **A3.4 删除旧生成器、更新必需文件清单**
+- [x] **A3.4 删除旧生成器、更新必需文件清单**
 
 ```bash
 git -c core.autocrlf=input rm -q scripts/build-docs.mjs
@@ -599,7 +601,7 @@ git -c core.autocrlf=input rm -q scripts/build-docs.mjs
   'docs/.vitepress/redirects.mjs',
 ```
 
-- [ ] **A3.5 验证**
+- [x] **A3.5 验证**
 
 ```bash
 npm run docs:check          # 期望 docs site check passed；.tmp 下无残留目录
@@ -607,7 +609,7 @@ npm run check               # check-project 通过
 node --test tests/docs-site.test.mjs   # 只剩 maintenance 一例失败（A5 修）
 ```
 
-- [ ] **A3.6 提交**
+- [x] **A3.6 提交**
 
 ```bash
 git -c core.autocrlf=input add scripts/check-docs.mjs scripts/check-project.mjs tests/docs-site.test.mjs
@@ -620,18 +622,18 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 **文件：** `scripts/check-harness.mjs`、`src/harnessGc.mjs`、`harness-manifest.json`、`tests/harness-check.test.mjs`。
 
-- [ ] **A4.1 先改测试 `tests/harness-check.test.mjs`**
+- [x] **A4.1 先改测试 `tests/harness-check.test.mjs`**
   - 「requires every design doc to be indexed and built」：删除 `HNS-DESIGN-BUILD-001` 断言；测试名改为 `…to be indexed`。
   - 「requires Implemented design evidence」：删除 `builderPath` 相关 3 行（声明、写文件、`site_builder` 赋值）；索引内容改为 `'# 设计文档\n\n- [完成设计](finished.md)\n'`。
   - 「requires every exec plan to be indexed, built, …」：删除 `builderPath` 相关行与 `HNS-EXEC-PLAN-BUILD-001` 断言；测试名去掉 `built`。
   - 运行 `node --test tests/harness-check.test.mjs` → 期望 Implemented-evidence 一例因 `HNS-DESIGN-INDEX-001` 误报而失败（索引里是 `.md`，规则还认 `.html`）。
 
-- [ ] **A4.2 `scripts/check-harness.mjs`**
+- [x] **A4.2 `scripts/check-harness.mjs`**
   - 第 417–418 行保留 `siteBuilder` 解析，把 `readTextSurface(siteBuilder, addFinding, 'HNS-DOC-008')` 的返回值丢弃（保留可读性检查），删除三处调用里的 `siteBuilderText` 参数及函数签名中的同名参数。
   - `checkIndexedDocumentSet`：`const htmlName = …` → `const mdName = path.basename(file);`；`indexText.includes(mdName)`；提示语 `在索引中添加指向 ${mdName} 的链接。`；删除 `HNS-*-BUILD-001` 块与函数末尾 `HNS-*-BUILD-002` 块。
   - `checkExecPlanPolicy`：`relativeHtml` → `relativeMd`（`.replace(/\.md$/i, '.html')` 去掉）；删除 `HNS-EXEC-PLAN-BUILD-001/002` 两块。
 
-- [ ] **A4.3 `src/harnessGc.mjs`** 第 40–49 行替换为
+- [x] **A4.3 `src/harnessGc.mjs`** 第 40–49 行替换为
 
 ```js
   const sidebarPath = path.join(cwd, manifest.documentation_policy?.site_builder || 'docs/.vitepress/sidebar.mjs');
@@ -668,16 +670,16 @@ function readSidebarDocs(sidebarPath) {
 
 顶部加 `import { spawnSync } from 'node:child_process';`；若 `readText` 因此不再被使用则删除该 helper。
 
-- [ ] **A4.4 `harness-manifest.json`**：`"site_builder": "docs/.vitepress/sidebar.mjs"`；`removed_outputs` 三项从 `command-*.html` 改为对应的 `.md` 文件名（文档里不要字面写出，否则会被 `HNS-DOC-FRESHNESS-002` 拦住）；`required_links` 里 8 条 `.html` 链接文本改为 `.md`。
+- [x] **A4.4 `harness-manifest.json`**：`"site_builder": "docs/.vitepress/sidebar.mjs"`；`removed_outputs` 三项从 `command-*.html` 改为对应的 `.md` 文件名（文档里不要字面写出，否则会被 `HNS-DOC-FRESHNESS-002` 拦住）；`required_links` 里 8 条 `.html` 链接文本改为 `.md`。
 
-- [ ] **A4.5 验证**
+- [x] **A4.5 验证**
 
 ```bash
 node --test tests/harness-check.test.mjs tests/harness-gc.test.mjs tests/harness-doctor.test.mjs
 npm run harness:check && npm run harness:gc
 ```
 
-- [ ] **A4.6 提交**
+- [x] **A4.6 提交**
 
 ```bash
 git -c core.autocrlf=input add scripts/check-harness.mjs src/harnessGc.mjs harness-manifest.json tests/harness-check.test.mjs
@@ -690,7 +692,7 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 **文件：** `docs/maintenance.md`、`docs/deployment.md`、`docs/architecture.md`、`ARCHITECTURE.md`、`docs/commands/cli.md`、`CHANGELOG.md`。
 
-- [ ] **A5.1 `docs/maintenance.md`「文档 SSOT」表与命令段**改为：
+- [x] **A5.1 `docs/maintenance.md`「文档 SSOT」表与命令段**改为：
 
 ```md
 | 层 | 路径 | 规则 |
@@ -707,19 +709,19 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 命令段加 `npm run docs:dev`。
 
-- [ ] **A5.2 `docs/deployment.md`**：`源：docs/** + scripts/build-docs.mjs` → `源：docs/**（站点声明在 docs/.vitepress/）`；命令注释 `# 本地预览` → `# 构建到 site/`，并加一行 `npm run docs:preview  # 预览构建产物`。
-- [ ] **A5.3 `ARCHITECTURE.md`** 第 68 行 `scripts/build-docs.mjs 把 docs/ 下的 Markdown 构建为文档站` → `docs/.vitepress/ 声明 VitePress 文档站，scripts/check-docs.mjs 校验侧栏覆盖与构建`；第 131 行 `| 修改文档生成逻辑 | scripts/build-docs.mjs |` → `| 修改文档站配置 / 侧栏 | docs/.vitepress/config.mjs · sidebar.mjs |`。
-- [ ] **A5.4 `docs/architecture.md`** 第 37 行保持 `npm run docs:build`（无需改）；`docs/commands/cli.md` 第 172–173 行后加 `npm run docs:dev` 与 `npm run docs:preview`。
-- [ ] **A5.5 `CHANGELOG.md` Unreleased** 顶部加：`- **文档站迁移 VitePress**：删除 scripts/build-docs.mjs 与自制搜索/SPA，站点声明移到 docs/.vitepress/（侧栏顶层手工、design-docs/exec-plans/adr 自动）；内链改为源文件相对路径；旧 command-*.html / adr-*.html / 演示页地址由构建期跳转页承接；交互演示（ralph/dispatch/end）下线；docs:check 改为侧栏覆盖 + 临时构建校验；harness 孤儿文档规则改读侧栏清单，索引规则认 .md。合约：tests/docs-site.test.mjs、tests/harness-check.test.mjs。`
-- [ ] **A5.6 全量验证**
+- [x] **A5.2 `docs/deployment.md`**：`源：docs/** + scripts/build-docs.mjs` → `源：docs/**（站点声明在 docs/.vitepress/）`；命令注释 `# 本地预览` → `# 构建到 site/`，并加一行 `npm run docs:preview  # 预览构建产物`。
+- [x] **A5.3 `ARCHITECTURE.md`** 第 68 行 `scripts/build-docs.mjs 把 docs/ 下的 Markdown 构建为文档站` → `docs/.vitepress/ 声明 VitePress 文档站，scripts/check-docs.mjs 校验侧栏覆盖与构建`；第 131 行 `| 修改文档生成逻辑 | scripts/build-docs.mjs |` → `| 修改文档站配置 / 侧栏 | docs/.vitepress/config.mjs · sidebar.mjs |`。
+- [x] **A5.4 `docs/architecture.md`** 第 37 行保持 `npm run docs:build`（无需改）；`docs/commands/cli.md` 第 172–173 行后加 `npm run docs:dev` 与 `npm run docs:preview`。
+- [x] **A5.5 `CHANGELOG.md` Unreleased** 顶部加：`- **文档站迁移 VitePress**：删除 scripts/build-docs.mjs 与自制搜索/SPA，站点声明移到 docs/.vitepress/（侧栏顶层手工、design-docs/exec-plans/adr 自动）；内链改为源文件相对路径；旧 command-*.html / adr-*.html / 演示页地址由构建期跳转页承接；交互演示（ralph/dispatch/end）下线；docs:check 改为侧栏覆盖 + 临时构建校验；harness 孤儿文档规则改读侧栏清单，索引规则认 .md。合约：tests/docs-site.test.mjs、tests/harness-check.test.mjs。`
+- [x] **A5.6 全量验证**
 
 ```bash
 npm run verify        # 期望全绿
 npm run docs:build && ls site/commands | head
 ```
 
-- [ ] **A5.7 预览截图**（Playwright MCP）：`npx vitepress preview docs --port 4173` 后打开 `http://localhost:4173/jj-flow/`、`/jj-flow/commands/jj-ralph.html`、`/jj-flow/design-docs/jj-ralph.html`（确认「设计文档」组自动展开）、搜索框输入「迁仓」有结果；窗口 390px 宽时侧栏可收起。截图保存到 `.tmp/`，不入库。
-- [ ] **A5.8 提交**
+- [x] **A5.7 预览截图**（Playwright MCP）：`npx vitepress preview docs --port 4173` 后打开 `http://localhost:4173/jj-flow/`、`/jj-flow/commands/jj-ralph.html`、`/jj-flow/design-docs/jj-ralph.html`（确认「设计文档」组自动展开）、搜索框输入「迁仓」有结果；窗口 390px 宽时侧栏可收起。截图保存到 `.tmp/`，不入库。
+- [x] **A5.8 提交**
 
 ```bash
 git -c core.autocrlf=input add docs/maintenance.md docs/deployment.md docs/architecture.md ARCHITECTURE.md docs/commands/cli.md CHANGELOG.md
@@ -742,7 +744,7 @@ grep -nE 'CAP-|DEL-|run_id|task_key|Mode [SWP]|A[234]\b|gate|L1|L2|events\.jsonl
 
 **文件：** 重写 `docs/commands/jj-ralph.md`、`docs/usage.md`。
 
-- [ ] **B1.1 `docs/commands/jj-ralph.md`** 结构与要点：
+- [x] **B1.1 `docs/commands/jj-ralph.md`** 结构与要点：
 
 ```md
 # ralph — 只改当前这一个仓库
@@ -781,41 +783,41 @@ Agent 会依次：分析（读代码、写目标和验收）→ 计划（列步�
 ## 相关
 ```
 
-- [ ] **B1.2 `docs/usage.md`** 标题改「第一次使用」：安装确认 → 在仓库里开对话 → 用 ralph 完整走一遍（复用 B1.1 的"第一次这样用"叙事，但更短、带每步你会看到什么）→ 做完之后三条路（再改一点 / 收工 end / 交接 same）→ 「其他两个入口一句话」（same、dispatch 各一段 + 链接）→ 怎样算做完表 → 最容易翻车的三件事（保留）。
-- [ ] **B1.3 验证**：`npm run docs:check`；自查 grep 前四段无禁用词；通读一遍能否只凭本页跑通。
-- [ ] **B1.4 提交**：`docs(commands): 重写 ralph 与第一次使用页为新手视角`
+- [x] **B1.2 `docs/usage.md`** 标题改「第一次使用」：安装确认 → 在仓库里开对话 → 用 ralph 完整走一遍（复用 B1.1 的"第一次这样用"叙事，但更短、带每步你会看到什么）→ 做完之后三条路（再改一点 / 收工 end / 交接 same）→ 「其他两个入口一句话」（same、dispatch 各一段 + 链接）→ 怎样算做完表 → 最容易翻车的三件事（保留）。
+- [x] **B1.3 验证**：`npm run docs:check`；自查 grep 前四段无禁用词；通读一遍能否只凭本页跑通。
+- [x] **B1.4 提交**：`docs(commands): 重写 ralph 与第一次使用页为新手视角`
 
 ### B2 · same / dispatch / end 页
 
 **文件：** 重写 `docs/commands/jj-same.md`、`docs/commands/jj-dispatch.md`、`docs/commands/jj-end.md`；修改 `docs/concepts-hosts.md`。
 
-- [ ] **B2.1 same**：一句话（把项目A 做好的能力按项目B 自己的写法迁过去，不是整文件复制）；开始前（项目A 已提交；知道目标仓在哪条分支）；第一次这样用（`$jj-same 交接到 项目B 项目C` → Agent 读交接信息 → 逐仓核对分支（不对就停问你）→ 按目标仓写法改 → 验证 → 每个目标一段结果：做了什么 / 怎么验的 / 分支与提交 / 下一步）；常用说法（交接到 / 开始迁移项目D / 继续迁项目C / 目标说不清会先问）；做完之后（部分成功不算全部；收工 end；提交要你说）；进阶（写整齐的参数）；记录在哪（目标仓 `.workflow/` 下）。
-- [ ] **B2.2 dispatch**：一句话 + Claude 没有；开始前（源仓已提交；每个目标分支对得上；你本人来批）；第一次这样用（说一句 → 先看到预览表（项目 / 分支 / 当前状态）→ 你说批准 → 派出去 → 中断可续 → 各项目验收通过要有提交 + 审查 + 证明文件）；常用说法；两个误会（验收通过 ≠ 已 push；回退由你点选）；进阶：一句"默认在功能分支上改、不额外开目录；Grok 一个会话串完" + 链接宿主页；记录在哪（`~/.jj-flow`）。
-- [ ] **B2.3 end**：一句话 + 也可以说「收工」「合到 dev」；开始前（改完了；知道要合进哪条分支，不写就按 dev → develop → main）；第一次这样用（`$jj-end` → 先打印一行 `work→integration` 计划及来源 → 拉最新 → 提交 → 推工作分支 → 合进集成分支 → 推 → 回到工作分支 → 报告分支与 hash）；常用说法（`$jj-end` / `收工，合到 dev` / `$jj-end integration=staging` / `$jj-end dry_run=true`）；做完之后（做完实现 Agent 可能主动收工，不想推就说「先别推」；冲突默认自己合，真判不了才停下把表给你）；硬规矩用户版（不 force、不删分支、不改配置；git log 里的 staging、构建脚本名都不算约定）；end 只动 Git，任务归档看 ralph。
-- [ ] **B2.4 `docs/concepts-hosts.md`**：接收原 dispatch 页 Mode S / W / P 段落（原文搬入，加小标题「dispatch 在 Grok 上的三种模式」）。
-- [ ] **B2.5 验证** `npm run docs:check`；**提交** `docs(commands): 重写 same / dispatch / end 页`
+- [x] **B2.1 same**：一句话（把项目A 做好的能力按项目B 自己的写法迁过去，不是整文件复制）；开始前（项目A 已提交；知道目标仓在哪条分支）；第一次这样用（`$jj-same 交接到 项目B 项目C` → Agent 读交接信息 → 逐仓核对分支（不对就停问你）→ 按目标仓写法改 → 验证 → 每个目标一段结果：做了什么 / 怎么验的 / 分支与提交 / 下一步）；常用说法（交接到 / 开始迁移项目D / 继续迁项目C / 目标说不清会先问）；做完之后（部分成功不算全部；收工 end；提交要你说）；进阶（写整齐的参数）；记录在哪（目标仓 `.workflow/` 下）。
+- [x] **B2.2 dispatch**：一句话 + Claude 没有；开始前（源仓已提交；每个目标分支对得上；你本人来批）；第一次这样用（说一句 → 先看到预览表（项目 / 分支 / 当前状态）→ 你说批准 → 派出去 → 中断可续 → 各项目验收通过要有提交 + 审查 + 证明文件）；常用说法；两个误会（验收通过 ≠ 已 push；回退由你点选）；进阶：一句"默认在功能分支上改、不额外开目录；Grok 一个会话串完" + 链接宿主页；记录在哪（`~/.jj-flow`）。
+- [x] **B2.3 end**：一句话 + 也可以说「收工」「合到 dev」；开始前（改完了；知道要合进哪条分支，不写就按 dev → develop → main）；第一次这样用（`$jj-end` → 先打印一行 `work→integration` 计划及来源 → 拉最新 → 提交 → 推工作分支 → 合进集成分支 → 推 → 回到工作分支 → 报告分支与 hash）；常用说法（`$jj-end` / `收工，合到 dev` / `$jj-end integration=staging` / `$jj-end dry_run=true`）；做完之后（做完实现 Agent 可能主动收工，不想推就说「先别推」；冲突默认自己合，真判不了才停下把表给你）；硬规矩用户版（不 force、不删分支、不改配置；git log 里的 staging、构建脚本名都不算约定）；end 只动 Git，任务归档看 ralph。
+- [x] **B2.4 `docs/concepts-hosts.md`**：接收原 dispatch 页 Mode S / W / P 段落（原文搬入，加小标题「dispatch 在 Grok 上的三种模式」）。
+- [x] **B2.5 验证** `npm run docs:check`；**提交** `docs(commands): 重写 same / dispatch / end 页`
 
 ### B3 · 其余入口与上手页
 
 **文件：** `docs/commands/jj-init.md`、`jj-review.md`、`jj.md`、`docs/commands.md`、`docs/index.md`、`docs/installation.md`、`docs/pitfalls.md`、`docs/commands/jj-team-*.md`、`jj-evaluated.md`。
 
-- [ ] **B3.1 init**：一句话（把当前仓写进全局地图 `~/.jj-flow/map.md`，需要时补知识库；不是开需求）；开始前（无）；第一次这样用（`$jj-init` → 短提案（中文名 / 别名 / 家族 / 待投喂条数）→ 你点头 → 写入 → 短报告）；常用说法（四句）；名字来源规则一句。
-- [ ] **B3.2 review**：一句话（把审查结论写进当前 ralph 任务，只读）；开始前（有正在做或刚做完的 ralph 任务）；第一次这样用（说一句 → 优先用工具自带 code review → 结论 通过 / 需要修改 / 阻塞 写进 `.workflow/ralph/task-…/.state/reviews/REV-n.json` → 要改就回 ralph 说「按审查改」）；也可以把审查结论贴给它记录。
-- [ ] **B3.3 jj**：保留分流列表，改成"你说的像… → 去哪"表 + 说不清就先问目标。
-- [ ] **B3.4 `docs/commands.md`**：总览表不动；"可以怎么说"合并为一组；末尾加「第一次用先看：第一次使用 → ralph」。
-- [ ] **B3.5 `docs/index.md`**：三步开始改为 安装 → 第一次使用 → 在业务仓对话里说一句话；删除与安装页重复的"怎么喊"表（留一句 + 链接）；其余保留（含"项目族编排"定位语）。
-- [ ] **B3.6 `docs/installation.md`**：开头加一句"装的是对话入口，不是后台服务"（已有则保留）；把「装好后怎么喊」表上移到「只装某一个工具」之前；下一步链接文字改「第一次使用」。
-- [ ] **B3.7 `docs/pitfalls.md`**：每条标题下加一行 `发生在：ralph / same / dispatch / end 的哪一步`；`→` 链接改为对应命令页 `.md`（A2 已改路径，这里只补文案）。
-- [ ] **B3.8 team-* / evaluated**：首段前加统一一句「可选入口：只帮你安排这一轮怎么干，单独跑完不算验收通过；验收仍看 ralph / dispatch 的记录。」，其余不动。
-- [ ] **B3.9 验证** `npm run docs:check`；**提交** `docs: 其余入口与上手页按新手模板改写`
+- [x] **B3.1 init**：一句话（把当前仓写进全局地图 `~/.jj-flow/map.md`，需要时补知识库；不是开需求）；开始前（无）；第一次这样用（`$jj-init` → 短提案（中文名 / 别名 / 家族 / 待投喂条数）→ 你点头 → 写入 → 短报告）；常用说法（四句）；名字来源规则一句。
+- [x] **B3.2 review**：一句话（把审查结论写进当前 ralph 任务，只读）；开始前（有正在做或刚做完的 ralph 任务）；第一次这样用（说一句 → 优先用工具自带 code review → 结论 通过 / 需要修改 / 阻塞 写进 `.workflow/ralph/task-…/.state/reviews/REV-n.json` → 要改就回 ralph 说「按审查改」）；也可以把审查结论贴给它记录。
+- [x] **B3.3 jj**：保留分流列表，改成"你说的像… → 去哪"表 + 说不清就先问目标。
+- [x] **B3.4 `docs/commands.md`**：总览表不动；"可以怎么说"合并为一组；末尾加「第一次用先看：第一次使用 → ralph」。
+- [x] **B3.5 `docs/index.md`**：三步开始改为 安装 → 第一次使用 → 在业务仓对话里说一句话；删除与安装页重复的"怎么喊"表（留一句 + 链接）；其余保留（含"项目族编排"定位语）。
+- [x] **B3.6 `docs/installation.md`**：开头加一句"装的是对话入口，不是后台服务"（已有则保留）；把「装好后怎么喊」表上移到「只装某一个工具」之前；下一步链接文字改「第一次使用」。
+- [x] **B3.7 `docs/pitfalls.md`**：每条标题下加一行 `发生在：ralph / same / dispatch / end 的哪一步`；`→` 链接改为对应命令页 `.md`（A2 已改路径，这里只补文案）。
+- [x] **B3.8 team-* / evaluated**：首段前加统一一句「可选入口：只帮你安排这一轮怎么干，单独跑完不算验收通过；验收仍看 ralph / dispatch 的记录。」，其余不动。
+- [x] **B3.9 验证** `npm run docs:check`；**提交** `docs: 其余入口与上手页按新手模板改写`
 
 ### B4 · 收口
 
-- [ ] **B4.1** `npm run verify` 全绿；`npm run docs:build`；预览再看一遍首页 / 第一次使用 / ralph。
-- [ ] **B4.2** 设计文档 `docs/design-docs/docs-site-vitepress.md`：`> 状态：Implemented`，加 `> 验收证据：\`tests/docs-site.test.mjs\`、\`tests/harness-check.test.mjs\`、\`scripts/check-docs.mjs\``；`docs/design-docs/index.md` 状态列同步。
-- [ ] **B4.3** 本计划：`> 状态：completed`、加完成日期，`git mv` 到 `docs/exec-plans/completed/`；`docs/exec-plans/index.md` 从「活跃」移到「已完成」并写结果一行；设计文档头部的关联链接改指 `completed/`。
-- [ ] **B4.4** 再跑 `npm run verify`（索引与侧栏自动生成会随目录变化）。
-- [ ] **B4.5 提交** `docs(plan): 文档站 VitePress 迁移与文案改版收口`，然后按 finishing-a-development-branch 给用户选择合并方式。
+- [x] **B4.1** `npm run verify` 全绿；`npm run docs:build`；预览再看一遍首页 / 第一次使用 / ralph。
+- [x] **B4.2** 设计文档 `docs/design-docs/docs-site-vitepress.md`：`> 状态：Implemented`，加 `> 验收证据：\`tests/docs-site.test.mjs\`、\`tests/harness-check.test.mjs\`、\`scripts/check-docs.mjs\``；`docs/design-docs/index.md` 状态列同步。
+- [x] **B4.3** 本计划：`> 状态：completed`、加完成日期，`git mv` 到 `docs/exec-plans/completed/`；`docs/exec-plans/index.md` 从「活跃」移到「已完成」并写结果一行；设计文档头部的关联链接改指 `completed/`。
+- [x] **B4.4** 再跑 `npm run verify`（索引与侧栏自动生成会随目录变化）。
+- [x] **B4.5 提交** `docs(plan): 文档站 VitePress 迁移与文案改版收口`，然后按 finishing-a-development-branch 给用户选择合并方式。
 
 ## 验收命令
 
@@ -831,3 +833,9 @@ grep -rnE '\]\([^)]*\.html[)#]' docs --include=*.md | grep -v 'skill-zh-bridge\|
 - `verify` 多一次 VitePress 构建（约 20–40 s）；接受。
 - 站点不再支持 `file://` 直开，维护说明已写明 `docs:preview`。
 - 文案改写事实风险：以设计 §7.5 为界，每页交付前对照一遍。
+
+## 完成记录
+
+- 2026-09-04：`node --test tests/docs-site.test.mjs` 6/6 通过；文档契约测试 86/86 通过；`npm run docs:check`、`npm run verify`、`npm run docs:build` 全部通过。
+- 2026-09-04：浏览器预览核验首页、第一次使用、ralph、设计文档页；确认设计文档侧栏自动展开、搜索“迁仓”有结果；390×844 视口下移动导航可展开/收起，并已恢复默认视口。
+- 2026-09-04：`verify` 曾遇 Windows 临时目录 `EBUSY` 瞬态失败，单独重跑 `host:trial` 后完整管线通过；未发现持续性失败。

@@ -19,6 +19,8 @@
 
 用户明确要求并行、且不需要 isolation 时，可用 **Mode P**：每个写任务绑定一个真实子会话（1:1），工作区仍是 project-branch。不能用 placeholder session 冒充多会话；临时 subagent 不能当持久 session。Mode P + 隔离需求 → 停下来改用 Mode W。
 
+Mode W / Mode P 只是工作区与会话的拓扑，**不能**因此把无人值守等级往上提（A3 / A4 仍要真宿主验收）。日常用法见 [dispatch](commands/jj-dispatch.md)。
+
 ## 「真环境」和「本机试跑」
 
 | | 本机试跑 | 真宿主验收 |

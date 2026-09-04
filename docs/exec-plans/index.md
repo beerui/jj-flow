@@ -15,7 +15,6 @@
 | --- | --- | --- |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.md) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.md) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
-| [文档站 VitePress 迁移与文案改版](active/2026-09-03-docs-site-vitepress.md) | Phase A 站点迁移 → Phase B 使用文档改版 | A1 骨架 |
 
 说明：active 中可含「主路径已完成、仍作指针」的条目；新工作优先开新 plan 或更新「仍后置」表，避免重复实现已 promoted 项。
 
@@ -24,6 +23,7 @@
 | 计划 | 结果 |
 | --- | --- |
 | [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.md) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；收口批已升 gym pin（`lab:check` 回绿）并修复 lite 预算出口残留 BLOCKED |
+| [文档站 VitePress 迁移与文案改版](completed/2026-09-03-docs-site-vitepress.md) | VitePress 站点、侧栏自动索引、旧地址跳转、`docs:check` / Harness 对齐，以及 init / ralph / same / dispatch / review / end / team / evaluated 新手文档已完成；`npm run verify`、`npm run docs:build` 通过 |
 | [Ralph 工作区 P2](completed/2026-09-02-ralph-plans-workspace-p2.md) | P2a `task-*` + `.state/` + schema 1.2；P2b same/review 定位；P2c migrate/adopt + 去掉 1.0 标题回退。lite 未开 |
 | [Ralph 工作区 P1](completed/2026-09-02-ralph-plans-workspace-p1.md) | P1a 五模块拆分、P1b 布局 8→4 + schema 1.1、P1c 归档原地翻转；P2 另开 |
 | [Grok Host Adapter Phase 2 / Wave 2](completed/2026-09-01-grok-host-adapter-phase2.md) | 真 Grok 试跑 + 人工审查升 A2；JSON 不得自关 |

@@ -32,6 +32,6 @@
 | [jj-team-swarm](jj-team-swarm.md) | Proposed（P0：TAS vendor + 透明协议 + Workflow 降级说明） |
 | [AI-native SDLC 对齐](ai-native-sdlc.md) | Implemented（切片 0–7；三条主路径内翻译） |
 | [实验场 Loop gym / Family gym](jj-flow-labs.md) | Implemented（机械实验场；Live Agent 仍为手册 / evaluated） |
-| [文档站迁移 VitePress 与使用文档改版](docs-site-vitepress.md) | Proposed（站点改 VitePress；命令页 / 上手页按新手模板重写） |
+| [文档站迁移 VitePress 与使用文档改版](docs-site-vitepress.md) | Implemented（VitePress 站点、旧地址跳转、侧栏覆盖校验与新手使用文档已完成；证据见设计文档头部） |
 
 实施进度：[执行计划](../exec-plans/index.md)
