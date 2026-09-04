@@ -31,10 +31,30 @@ test('jj-end self-merges handleable conflicts; only unhandleable aborts whole me
   assert.match(skill, /First-glance “this looks complex” is a \*\*misclassify\*\*/)
 })
 
-test('jj-end happy-path final reply is one line without tables', () => {
+test('jj-end never merges dest into work; self-merge must keep both parents', () => {
+  assert.match(skill, /G-end-3/)
+  assert.match(skill, /Never\*\* merge `dev`\/integration into the work branch/)
+  assert.match(skill, /Merge integration \(`dev`/)
+  assert.match(skill, /checkout --ours\/--theirs/)
+  assert.match(skill, /40e3f959/)
+  assert.match(skill, /both parent blobs/)
+  assert.doesNotMatch(skill, /merge dest into feat|merge origin\/dev into/)
+})
+
+test('jj-end asks when task, merge, or requirement is unclear', () => {
+  assert.match(skill, /G-end-4/)
+  assert.match(skill, /unclear task \/ merge \/ requirement/)
+  assert.match(skill, /STOP and ask/)
+  assert.match(skill, /cannot name both/)
+})
+
+test('jj-end finish reply is merge status plus current branch', () => {
   assert.match(skill, /## Final Response/)
-  assert.match(skill, /\*\*one line\*\* in Chinese/)
-  assert.match(skill, /No table, no bullet list, no field dump/)
+  assert.match(skill, /exactly two Chinese lines/)
+  assert.match(skill, /合并状态：已合并到：/)
+  assert.match(skill, /合并状态：已回退：/)
+  assert.match(skill, /当前分支：/)
   assert.match(skill, /Classify table is user-visible only on STOP/)
   assert.match(skill, /do not list auto-resolved files/)
+  assert.doesNotMatch(skill, /\*\*one line\*\* in Chinese/)
 })

@@ -11,8 +11,8 @@ Sync requirement invariants; do not copy source project files. On first port of 
 
 | # | In | Action | Out / next gate |
 | --- | --- | --- | --- |
-| 1 | Session / cwd | Ralph-handoff-first: `tasks/<task_key>/.state/run.json` → `artifact_refs.handoff_ref` / `run.handoff` (mirror `.state/handoff.json`; leftover `RALPH-*/run.json` + `handoff/handoff.json` ok). `ready=true` → **do not** redo source analysis | `handoff` pinned **or** [Failure recovery](#failure-recovery-if-x--y) |
-| 2 | User speech (+ optional control manifest) | Parse target roles; with control, **read-only** approved `targets` / `task_key`. Ambiguous multi-target (e.g.「三端」未点名) → 🔴 **CHECKPOINT**: confirm targets before coding | Authorized target set |
+| 1 | Session / cwd | Ralph-handoff-first: `.workflow/ralph/<run_id>/.state/run.json` (live flat `task-<slug>/`; leftover `tasks/<id>/` or `RALPH-*/run.json` ok) → `run.handoff` (mirror `.state/handoff.json`). `ready=true` → **do not** redo source analysis | `handoff` pinned **or** [Failure recovery](#failure-recovery-if-x--y) |
+| 2 | User speech (+ optional control manifest) | Parse target roles; with control, **read-only** approved `targets` / `task_key`. Ambiguous multi-target (e.g.「三端」未点名) → 🔴 **CHECKPOINT**: confirm targets before coding. **Same turn:** pin each target’s Ralph `task-<slug>` ([Write plane](#write-plane--do-not-collapse)) | Authorized targets + per-repo Ralph |
 | 3 | Current branch + task purpose | 🔴 **CHECKPOINT · branch purpose + CREATE base freshness** → [branch-purpose-preflight.md](references/branch-purpose-preflight.md) (`behind_count` / G6). Mismatch or stale base → 🛑 **STOP** | Work branch GO |
 | 4 | Change shape | `port_profile.mode` via [LITE vs FULL](#lite-vs-full) (single decision point) | `LITE` or `FULL` |
 | 5 | Auth + stable source commit/diff + requirements + target call chain + no MUST-`UNRESOLVED` | 🔴 **CHECKPOINT · `EXECUTION_READY`**. Unmet → 🛑 **STOP** business code (`BLOCKED` / caveat) | May code |
@@ -67,9 +67,24 @@ Use this skeleton (facts only; omit empty lines; one target block per project):
 - English: “hand off to Project B”, “start handoff”, “continue porting Project C”
 - Agent self-resolves lead Ralph run, `handoff_ref`, target roles, source commit; **do not** require `交接=@...` / `from-ralph=...`.
 
+## Write plane (do not collapse)
+
+same **ports into** a target Ralph; it does not replace Ralph and does not own dispatch scaffold.
+
+| Layer | Where | What |
+| --- | --- | --- |
+| **源** | lead repo `.workflow/ralph/<run_id>/` | `run.handoff` + Goal；不要重做源分析 |
+| **实施** | **each target repo** `.workflow/ralph/task-<slug>/` | full Ralph: `task_plan.md` (Goal / 验收 / Steps + ADAPT) + `progress.md` + `findings.md` + `.state/run.json` |
+| **统筹** | `~/.jj-flow` (`control_root`) | plane / 回执 / `TASK-*/task.md` **index only** — never ANL body or port work |
+
+- Slug: with a delivery, first resume the target’s **live** Ralph (same session thread or the only review-slice — same rule as dispatch `reuse-sibling`). Else use dispatch `task-<slug>` (e.g. `DEL-enter-form-h5-20260904` → `task-enter-form-h5`). Without control, reuse the lead `run_id` or a feature `task-<slug>`.
+- Missing target Ralph → `jj ralph init` / resume **in that repo**. Do **not** call `ensureDispatchRalphRuns` (dispatch already did, or there is no control plane). Never init `task-*-review-fix` as a new requirement.
+- `ANL-TARGET` may remain a plane / ledger **id**; the body is the target `task_plan.md`. csv-wave / scratch `ANL-*` `PLN-*` are **read-only** leftovers — do not create a second home.
+- Do **not** write `ANL-LEAD.md` / `ANL-TARGET.md` under `~/.jj-flow/.workflow/tasks/TASK-*`.
+
 ## Ralph handoff (pointer)
 
-- Resolve: session `tasks/<task_key>/.state/run.json` (legacy `RALPH-*/run.json`) → `handoff_ref` → primary `run.handoff` (optional `.state/handoff.json` or leftover `handoff/handoff.json`).
+- Resolve: lead `.workflow/ralph/<run_id>/.state/run.json` → `run.handoff` (optional `.state/handoff.json`; leftover `RALPH-*/handoff/handoff.json` ok).
 - `ready=true` → port; `ready=false` / missing / `STALE` → [Failure recovery](#failure-recovery-if-x--y).
 - Mode: [LITE vs FULL](#lite-vs-full) only — do not restate elsewhere.
 
@@ -79,7 +94,8 @@ Trigger → first fix → still failed. No silent workarounds.
 
 | Trigger | First fix | Still failed → |
 | --- | --- | --- |
-| No `tasks/*/ .state/run.json` (and no leftover `RALPH-*/run.json`) or no `handoff_ref` | Legacy snapshot / session evidence / commit range (`extract_session_evidence.py`, `collect-port-evidence.mjs`) | Ask user for source commit + targets; `BLOCKED` until pinned |
+| No lead `.workflow/ralph/<run_id>/.state/run.json` (and no leftover `tasks/` or `RALPH-*/run.json`) or no `handoff_ref` | Legacy snapshot / session evidence / commit range (`extract_session_evidence.py`, `collect-port-evidence.mjs`) | Ask user for source commit + targets; `BLOCKED` until pinned |
+| Target repo has no `.workflow/ralph/task-<slug>/` | With dispatch: resume live sibling if any, else the scaffolded slug; without: `jj ralph init` same slug **in that repo**, then write Goal / 验收 / Steps | 🛑 **STOP** coding; never invent ANL body under `~/.jj-flow` |
 | `run.handoff.ready=false` and only uncommitted source work | Commit source (if user allows), refresh handoff, re-read `ready` | Port only after stable commit/diff; else `BLOCKED` |
 | Handoff `STALE` / source HEAD or requirement hash changed | `REFRESH`: re-read only changed sources; pin new stable commit; successor handoff if needed | 🛑 **STOP** target business code until new commit pinned |
 | Branch purpose ≠ task purpose (e.g. release train) | Switch/create correct feat branch from freshened local `master` | 🛑 **STOP**; need **written** override that this train **is** the land line |
@@ -117,12 +133,12 @@ Long scripts and prose → [workflow-core.md](references/workflow-core.md#eviden
 
 ## Artifact routing
 
-Shortest path: fast implement / standard discovery / snapshot reuse. Canonical paths → [artifact-routing.md](references/artifact-routing.md). Sufficient facts beat artifact count; fill handoff artifacts before `HANDOFF_READY`. Labels: `DIRECT / ADAPT / EXTEND / BLOCKED / N/A`.
+Shortest path: fast implement / standard discovery / snapshot reuse. **Write** target analysis/plan into that repo’s Ralph (`task_plan.md`); ids such as `ANL-TARGET` do not get their own control-root files. Canonical paths → [artifact-routing.md](references/artifact-routing.md). Sufficient facts beat artifact count; fill handoff artifacts before `HANDOFF_READY`. Labels: `DIRECT / ADAPT / EXTEND / BLOCKED / N/A`.
 
 ## Hard constraints / MUST NOT
 
 - MUST: 🔴 branch-purpose preflight before coding; **before CREATE**, `git fetch`, ff-only freshen **local** `master` when behind+clean (`FF_LOCAL_MASTER`), then `checkout -b <feat> master` only (`CREATE_FROM_LOCAL_MASTER`; default `create_from=master` local); code only when `EXECUTION_READY`; claim complete only when `HANDOFF_READY`; user closeout = [template](#user-visible-closeout) only.
-- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silent CREATE from stale local base when `behind_count > 0`; `reset --hard` or rewrite dirty/divergent local `master` without **written** approval; change unauthorized repos; private `.workflow/jj-same/`; fake dispatch approval without control; chat summaries as Git/source evidence; **show “five gates” / slogan conclusions to the user**; claim all-targets complete when any authorized target is still `BLOCKED`.
+- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silent CREATE from stale local base when `behind_count > 0`; `reset --hard` or rewrite dirty/divergent local `master` without **written** approval; change unauthorized repos; private `.workflow/jj-same/`; write port/ANL body under `control_root` `TASK-*`; treat csv-wave as the implement home when a target Ralph exists; fake dispatch approval without control; chat summaries as Git/source evidence; **show “five gates” / slogan conclusions to the user**; claim all-targets complete when any authorized target is still `BLOCKED`.
 - Do not commit/push without explicit request; do not continuously watch the source repo.
 - 🛑 **STOP** on purpose mismatch, unmet `EXECUTION_READY`, or unmet `HANDOFF_READY` — recover via [Failure recovery](#failure-recovery-if-x--y); never skip gates silently.
 

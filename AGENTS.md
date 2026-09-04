@@ -31,7 +31,9 @@
 <!-- 将课程内容分解成一个个清晰、可执行的任务。不要试图在一次大型课程中“画出猫头鹰”。 -->
 2. For vague requests, split the work into separate planning vs. execution sessions.
 <!-- 对于模糊不清的需求，将工作分成单独的计划阶段和执行阶段。 -->
-3. If you give an agent a way to verify its work, it more often than not fixes its own mistakes and prevents regressions.
+3. If the task, merge, or requirement is unclear — ask first. Do not invent, do not pick a side, do not land.
+<!-- 任务、合并、需求说不清就先问。不要臆造、不要挑一边、不要收工落地。 -->
+4. If you give an agent a way to verify its work, it more often than not fixes its own mistakes and prevents regressions.
 <!-- 如果你给代理提供验证其工作的方法，它通常会自行纠正错误并防止倒退。 -->
 
 ## 核心目标

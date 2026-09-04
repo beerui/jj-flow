@@ -1,6 +1,6 @@
 # MUST evidence class (acceptance contract)
 
-> **Status:** mechanical `ralph_ops` hard gate in `evaluateAcceptArchiveGate` (PR10). `write-then-read` / `cross-path` / `runtime-env` PASS with only `diff`/`rg`/`static` evidence is blocked unless `--force`. Legacy 3-column stubs without `evidence_class` are skipped.  
+> **Status:** mechanical `ralph_ops` hard gate in `evaluateAcceptArchiveGate` (PR10). `write-then-read` / `cross-path` / `runtime-env` PASS with only `diff`/`rg`/`static` evidence is blocked unless `--force`. Legacy 3-column stubs without `evidence_class` are skipped. Lean `## 验收` checkboxes (`[x]` = PASS) are scanned the same way — tag or infer class; missing / static-only proof still over-claims.  
 > **Scope:** generic across business domains. Do **not** encode product APIs, field names, or project-specific dual-write recipes here.  
 > **Language:** English is SSOT for this contract.
 
@@ -65,19 +65,19 @@ Business-specific lessons (named APIs, product quirks) belong in the **business 
 
 ## ACCEPT: `task_plan.md` `## 验收` shape
 
-Prefer a table that includes class and evidence ref:
+Prefer lean checkboxes (current `init` stub). Leftover tables with an `evidence_class` column still work.
 
 ```markdown
-| item | must_id | evidence_class | result | evidence |
-| --- | --- | --- | --- | --- |
-| After save, reopen shows field X | REQ-001 | write-then-read | PASS | submit mock → getInfo asserts X; progress#… |
-| Button color token | REQ-002 | diff-only | PASS | styles.css diff + rg |
+1. [x] After save, reopen shows field X  evidence_class: write-then-read  证据: write_then_read:mock_ok
+2. [x] Button color token  evidence_class: diff-only  证据: styles.css diff + rg
 ```
+
+`[x]` = PASS. Unchecked `1. [ ]` stubs do not trip the gate.
 
 Rules:
 
-1. Every acceptance row that maps to a MUST must state `evidence_class` (or inherit from the MUST list in `task_plan.md` `### 必须项`).
-2. `PASS` requires evidence meeting the class minimum above.
+1. Every acceptance item that maps to a MUST must state `evidence_class` (inline `evidence_class: …`, leftover table column, or inherit from leftover `### 必须项`). Strong-class wording without a tag is still inferred (`保存后` / `reopen` / `persist` → `write-then-read`).
+2. `PASS` / `[x]` requires evidence meeting the class minimum above.
 3. **Over-claim is FAIL:** e.g. `write-then-read` MUST marked PASS with only “code contains handler” / raw diff.
 4. If evidence cannot be produced in-session:
    - set status `READY_FOR_USER_TEST`, or

@@ -19,7 +19,7 @@ Users do not run CLI. Resolve: `jj` on PATH, else `node <repo>/bin/jj.mjs`, else
    - Cap **12** project lines; then `其余 M 仓：key1, key2, …` and ask which to join.
    - Do not list contribution titles except: cwd row ≤3 titles; `--root` only `key N` for ≤5 keys with N>0.
    - Name: user speech wins; else AGENTS.md heading or package/dir name — **do not invent a Chinese product name**.
-   - Family: empty unless the user names one (preview lists existing families).
+   - Family: user speech wins. Else **suggest** an existing map family (same parent-dir siblings, or name/alias/path contains that family, longest unique hit — e.g. `中国大集管理后台` + `D:\2025` siblings → `大集`). Preview shows `家族=大集（建议）`. Do **not** invent a new family. Ambiguous / no signal → empty and ask. 「加入」without override uses the suggestion (`join` also guesses if `--family` omitted).
    - Already indexed: skip join; only ingest packages they approve.
 3. After yes: `jj init join --path … --name "…" [--aliases a,b] [--family "…"]`. Then `jj init ingest --run-id …` or `--file …` for each approved package.
 4. Short report: home path, joined rows, ingest counts.

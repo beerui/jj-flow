@@ -15,8 +15,10 @@ Single repo: requirement → acceptance → archive. Durable state is written on
 
 ```text
 「继续 / 修完 / 按审查改 / resume 按 review 修 / 改坏了」 → resume session-linked run (never init)
+「审查修复 / N点修复 / review-fix」 → **not** a new requirement. Resume the live feature run. Never init `task-*-review-fix`.
 Same requirement (incl. COMPLETED/ABANDONED)? → resume
-No matching run? → init
+Index `## 同需求提示` (same session or review-slice next to another live run) → ask; do **not** auto-merge / abandon. Same session includes `review.task_thread_id` and CLI `--thread-id` / `host.thread_id`.
+No matching run? → init with the **requirement** title (not a review-slice slug)
 「先不写代码 / 先理解需求 / 先分析」 → ANALYZE only; do not gate PASS / DELIVER
 Mid-flight drop / 「撤回修改 / 本次不需要了 / 产品砍了」 → abandon (no map)
 Truly new requirement only? → init new run_id
@@ -31,9 +33,10 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
 
 1. **Locate run (natural language first):**
    - User named `task-…` (or leftover `RALPH-…`) → use that id (uncommon); leftover active dirs → migrate first
-   - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED)
+   - Else: read `.workflow/ralph/index.md` first (`## 活跃`; if `## 归档提示` is present, do **not** auto-archive — ask when uncertain). Then session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED). Index rows are candidates only; confirm goal/scope on `task_plan.md`
    - **Screenshot / `[Image]` / 「这里」:** read the image **before** searching. Treat visible UI (labels, placement, broken layout) as the spec. Bind to the session-linked run when one exists; do not ignore the image because locate is “speech-only”
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
+   - **Review-slice is not a new run:** title / goal / slug containing `审查修复` / `按审查` / `三点修复` / `review-fix` must attach to the live feature task. Mechanical `init` refuses that slug. Field lesson: `task-h5-enter-review-fix` beside `task-enter-form-h5` was one requirement.
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
 2. **intensity** (user speech first): single-point / `tiny` / 文案两字 / 单像素 → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
@@ -49,7 +52,13 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
    - 🔴 **CHECKPOINT (analyze-hold):** user said 「先不写代码 / 先理解需求 / 先分析 / 先不改代码」 → write Goal + `## 存疑`; **do not** `gate analyze PASS`, **do not** PLAN/DELIVER, **do not** edit business files, until they say 「开始做吧 / 我认可 / 按这个做 / 继续改」
    - **Same-session continue** (never init): 「继续」 → next unfinished phase of the session-linked run; 「按审查改 / resume 按 review 修」 → DELIVER against latest `NEEDS_CHANGES` (do not re-analyze from scratch); 「改坏了」 → resume, rewrite Steps/验收, append a dated progress section, `deliver-attempt --improved false` (STAGNATION if the same strategy already failed twice); 「修完」 → finish current MUST / verify, do not start a new run
    - Task/approach change: rewrite live Goal / 验收 / Steps to the new contract; append `progress.md`. Do not grow REQ/TASK history in the plan. Shape: [artifact-layout.md](references/artifact-layout.md)
-5. After accept PASS, default `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`). `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
+5. After accept PASS, follow **status `next`** (do not jump to a blocked command):
+   - `next=review` → `$jj-review`; do **not** `gate accept`; wait for the user to say 「按审查改」 before DELIVER
+   - `next=commit-scoped-review` → commit, then `review-record --review-scope commit`; do **not** `finalize` on a `working_tree` PASS
+   - `next=finalize` → **MUST** `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`)
+   - `next=check` → resume window or blocked/paused; ask if uncertain
+   - Index `## 归档提示`: prompt only. Certain rows may suggest `finalize`; uncertain (PAUSED / BLOCKED / mid-flight) → **询问用户**. Never auto-archive.
+   `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, hot-memory promote status.
 7. **Idle offer (after the completion report, never during DELIVER):** archive already promoted `## 可复用结论` into `~/.jj-flow/memory/`. Ask **once** whether to also feed the opt-in portfolio KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only; P1b hook is skipped/degraded). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
 8. 🔴 **CHECKPOINT (irreversible):** push / merge / release / delete data → prepare only (`commit-prep` / report); **do not execute** until the user explicitly asks.
@@ -58,7 +67,7 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
 
 | Step | In | Out (durable) |
 | --- | --- | --- |
-| 1 Locate | user speech + images + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
+| 1 Locate | user speech + images + `.workflow/ralph/index.md` + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run — never `--lite` |
 | 3 map-find | title/goal/keywords | Short CAP hits from the CLI (may be empty). Do not Read or paste `business-map.json`. Hot-memory inject is events.jsonl only (`hot_memory:`); 0 hits stay empty |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
@@ -70,8 +79,9 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
 ```text
 map-find → init | resume
 → short analyze/plan (tiny: see tiny-example) → edit files
-→ deliver-attempt → gate deliver PASS → gate accept PASS
-→ finalize → completion report
+→ deliver-attempt → gate deliver PASS
+→ review (working_tree ok) → commit → review-record --review-scope commit
+→ gate accept PASS → MUST finalize → $jj-end
 # strict only: accept-layer judgment PASS before gate accept
 # stop only at 🔴 CHECKPOINT or failure table
 # 「先不写代码」: write ANALYZE then STOP (do not auto-advance)
@@ -97,7 +107,7 @@ Batch independent reads in one turn. Target ~15–20 rounds, not 40 serial hops.
 | Script resolve fails (`ralph_ops.mjs` not found) | Try: repo skill scripts → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph <cmd>` | Report resolve chain; stop mechanical steps |
 | Same tool/strategy fails twice / `STAGNATION` | Change approach; `deliver-attempt --improved false`; ralph writes `instruction-correction.md` | `set-status BLOCKED` + ask user; no third identical attempt; Reviewer does **not** write `AGENTS.md` |
 | `gate` / product-consistency reject | Fix evidence / paths / review; or `gate --status FAIL` + progress log | Adjacent `rollback-phase` only; no force on conversational path |
-| `finalize` / archive reject | Fix accept gates, paths, or review scope; re-`gate accept` | Report blockers; no conversational `--force` |
+| `finalize` / archive reject | If `next=commit-scoped-review`, commit + `review-record --review-scope commit` first; else fix accept gates / paths | Report blockers; no conversational `--force` |
 | `map-find` empty | Continue with scope from user speech + repo search | Do not block init/resume solely because map is empty |
 | Portfolio attach empty / unrelated | Leave `knowledge_refs` empty; do not invent or dump same-project history | Do not pad to 5/12; local `map-find` is the same-repo lookup |
 | Verify FAIL under `max_iterations` | Stay DELIVER; rework; append progress | On ceiling: `intervention_needed.kind=MAX_ITERATIONS`; stop and report |
@@ -107,6 +117,8 @@ Batch independent reads in one turn. Target ~15–20 rounds, not 40 serial hops.
 | User said 先不写代码 / 先理解需求 / 先分析 | Stay ANALYZE; keep `## 存疑` open; no `gate analyze PASS` | Do not auto-advance into PLAN/DELIVER |
 | Screenshot / 「这里」 present but files still unknown | Read the image; use visible labels as search keys; bind session-linked run | Do not ask the user to retype what the image already shows |
 | 「继续 / 按审查改 / 改坏了」 with a session-linked run | `resume`; do not init | If several candidates, 🔴 list titles — still never demand a typed run_id |
+| Review `NEEDS_CHANGES` / OPEN findings in a write session | Same-turn DELIVER against those findings | Do not wait for the user to say 「修」 |
+| Want to open `task-*-review-fix` / 「审查修复」 | Resume the live feature run; rewrite Steps if the review changed the contract | Never init a second live task for findings |
 | User changes approach / MUST / plan (mid-run or after archive) | Rewrite Goal / 验收 / Steps; append a dated `progress.md` section | Do not dump REQ/TASK history into the live plan ([artifact-layout.md](references/artifact-layout.md)) |
 
 Full gate rules and intensity budgets: [phases.md](references/phases.md). Rollback edges: [rollback.md](references/rollback.md).

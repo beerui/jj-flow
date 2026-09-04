@@ -1,0 +1,10 @@
+{
+  "id": "EP-20260904-h5-enter-same-live-sibling",
+  "source_episode": "docs/evaluations/EP-20260904-h5-enter-dual-ralph-report.md",
+  "skill_or_path": "skills/jj-same/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "reuse-sibling" },
+    { "type": "contains", "text": "Do **not** call `ensureDispatchRalphRuns`" },
+    { "type": "contains", "text": "Never init `task-*-review-fix`" }
+  ]
+}

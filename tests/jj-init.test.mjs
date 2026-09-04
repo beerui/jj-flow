@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { runCli } from '../src/cli.mjs';
-import { guessProjectName, ingestInit, joinInit, previewInit } from '../src/jjInit.mjs';
+import { guessProjectFamily, guessProjectName, ingestInit, joinInit, previewInit } from '../src/jjInit.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -70,7 +70,8 @@ test('jj-init skill and command assets exist', () => {
     'do not invent a Chinese product name',
     'user_view',
     'bin/jj.mjs',
-    'user speech wins'
+    'user speech wins',
+    'suggest'
   ]) {
     assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -143,6 +144,57 @@ test('join then ingest; second join is exists', () => {
     assert.ok(ingested.written >= 1);
     const after = previewInit({ cwd: repo });
     assert.equal(after.projects[0].knowledge[0].ingested, true);
+  });
+});
+
+test('preview and join guess existing family from siblings and name', () => {
+  isolatedHome((tmp) => {
+    const cluster = path.join(tmp, '2025');
+    const pc = path.join(cluster, 'seo-daji-web');
+    const admin = path.join(cluster, 'scsk-admin');
+    makeRepo(pc, { name: 'seo-daji-web', agentsHeading: '大集pc' });
+    makeRepo(admin, { name: 'scsk-admin', agentsHeading: '中国大集管理后台' });
+    assert.equal(joinInit({
+      cwd: pc,
+      projectPath: pc,
+      name: '大集pc',
+      family: '大集'
+    }).status, 'added');
+
+    const preview = previewInit({ cwd: admin });
+    assert.equal(preview.projects[0].status, 'proposed');
+    assert.equal(preview.projects[0].family, '大集');
+    assert.equal(preview.projects[0].family_source, 'guess');
+    assert.match(preview.user_view, /家族=大集（建议）/);
+    assert.equal(guessProjectFamily(admin, {
+      projects: [{ path: pc, family: '大集', heading: '大集' }]
+    }).reason, 'sibling-dir');
+
+    const joined = joinInit({ cwd: admin, projectPath: admin, name: '中国大集管理后台' });
+    assert.equal(joined.status, 'added');
+    assert.equal(joined.project.family, '大集');
+    assert.equal(joined.family_source, 'guess');
+    const map = fs.readFileSync(joined.map_path, 'utf8');
+    assert.match(map, /## 大集/);
+    assert.match(map, /中国大集管理后台/);
+    assert.doesNotMatch(map.split('## Ungrouped')[1].split('##')[0], /scsk-admin/);
+  });
+});
+
+test('join without family lands in Ungrouped, not the last family table', () => {
+  isolatedHome((tmp) => {
+    const pc = path.join(tmp, '2025', 'seo-daji-web');
+    const other = path.join(tmp, 'elsewhere', 'solo-app');
+    makeRepo(pc, { name: 'seo-daji-web' });
+    makeRepo(other, { name: 'solo-app' });
+    joinInit({ cwd: pc, projectPath: pc, name: '大集pc', family: '大集' });
+    const joined = joinInit({ cwd: other, projectPath: other, name: 'Solo' });
+    assert.equal(joined.project.family, '');
+    assert.equal(joined.family_source, 'none');
+    const map = fs.readFileSync(joined.map_path, 'utf8');
+    const ungrouped = map.split('## Ungrouped')[1].split('##')[0];
+    assert.match(ungrouped, /Solo/);
+    assert.doesNotMatch(map.split('## 大集')[1] || '', /Solo/);
   });
 });
 

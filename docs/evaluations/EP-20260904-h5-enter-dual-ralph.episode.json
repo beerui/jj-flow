@@ -1,0 +1,188 @@
+{
+  "episode_id": "EP-20260904-h5-enter-dual-ralph",
+  "skill": "jj-dispatch+jj-ralph",
+  "host": "Grok",
+  "project_path": "D:\\2025\\daji-merchants-mobile",
+  "branch": "feat/dynamic-enter-form",
+  "commit": "b86c2d624670",
+  "thread_id": "8cca3b80-f99e-427f-bdec-30d1309ffb8a",
+  "export_id": "C:/Users/motou/.jj-flow/.workflow/dispatch/DEL-enter-form-h5-20260904/control-plane.json",
+  "artifact_refs": [
+    "C:/Users/motou/.jj-flow/.workflow/dispatch/DEL-enter-form-h5-20260904/control-plane.json",
+    "C:/Users/motou/.jj-flow/.workflow/tasks/TASK-enter-form-h5-20260904/task.md",
+    "D:/2025/daji-merchants-mobile/.workflow/ralph/index.md",
+    "D:/2025/daji-merchants-mobile/.workflow/ralph/task-h5-enter-review-fix/.state/run.json",
+    "D:/2025/daji-merchants-mobile/.workflow/ralph/task-enter-form-h5/.state/run.json",
+    "D:/2025/seo-daji-web/.workflow/ralph/task-enter-form-h5/.state/run.json",
+    "D:/2025/trade-exhibition-mobile/.workflow/ralph/task-enter-form-h5/.state/run.json"
+  ],
+  "notes": "No raw thread export. Role omitted: not 项目A/B/C. Plane events are rounded to :00/:30 (derived). Ralph created_at has ms (artifact). Do not treat mtime as authority.",
+  "events": [
+    {
+      "event_id": "evt-01-preview",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "user_request",
+      "phase": "dispatch",
+      "started_at": "2026-09-04T08:40:00.000Z",
+      "ended_at": "2026-09-04T08:40:00.000Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.jj-flow/.workflow/dispatch/DEL-enter-form-h5-20260904/control-plane.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["requirement_recovery"],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "Plane PREVIEW_ONLY created DEL-enter-form-h5-20260904. Origin/lead seo-daji-web; targets merchants + buyer H5. Thread 8cca3b80 bound on lead and later target analysis."
+    },
+    {
+      "event_id": "evt-02-approved",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "user_request",
+      "phase": "dispatch",
+      "started_at": "2026-09-04T08:49:30.000Z",
+      "ended_at": "2026-09-04T08:49:30.000Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "parent_event_id": "evt-01-preview",
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.jj-flow/.workflow/dispatch/DEL-enter-form-h5-20260904/control-plane.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "approval.decision_ref user-ok-20260904; 12 task_keys. Lead pin dcfb809b850911c7658f76427f15f88e1a3ffb30."
+    },
+    {
+      "event_id": "evt-03-review-slice-init",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "artifact_write",
+      "phase": "deliver",
+      "started_at": "2026-09-04T09:37:42.801Z",
+      "ended_at": "2026-09-04T09:37:42.801Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "exact",
+      "parent_event_id": "evt-02-approved",
+      "status": "completed",
+      "artifact_refs": [
+        "D:/2025/daji-merchants-mobile/.workflow/ralph/task-h5-enter-review-fix/.state/run.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["user_correction"],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "Live work run created as task-h5-enter-review-fix (审查三点修复). review.task_thread_id=8cca3b80. This is the real merchants H5 implementation, not a new requirement."
+    },
+    {
+      "event_id": "evt-04-review-1",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "review",
+      "phase": "accept",
+      "started_at": "2026-09-04T09:45:54.621Z",
+      "ended_at": "2026-09-04T09:45:54.621Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "exact",
+      "parent_event_id": "evt-03-review-slice-init",
+      "status": "completed",
+      "artifact_refs": [
+        "D:/2025/daji-merchants-mobile/.workflow/ralph/task-h5-enter-review-fix/.state/run.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["user_correction"],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "REV-1 NEEDS_CHANGES host_builtin on review-fix; reviewed_commit 0c2a7c8c5b9928a06e20d24ab7615cb303d548d5."
+    },
+    {
+      "event_id": "evt-05-dispatch-dual-init",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "artifact_write",
+      "phase": "dispatch",
+      "started_at": "2026-09-04T09:47:22.121Z",
+      "ended_at": "2026-09-04T09:47:22.145Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "exact",
+      "parent_event_id": "evt-03-review-slice-init",
+      "status": "completed",
+      "artifact_refs": [
+        "D:/2025/seo-daji-web/.workflow/ralph/task-enter-form-h5/.state/run.json",
+        "D:/2025/daji-merchants-mobile/.workflow/ralph/task-enter-form-h5/.state/run.json",
+        "D:/2025/trade-exhibition-mobile/.workflow/ralph/task-enter-form-h5/.state/run.json",
+        "C:/Users/motou/.jj-flow/.workflow/tasks/TASK-enter-form-h5-20260904/task.md"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["redundant_analysis", "stale_snapshot"],
+      "cost": { "active_seconds": 0.024, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "ensureDispatchRalphRuns inited canonical task-enter-form-h5 in all three repos within 24ms. Merchants already had live review-fix on the same thread. Control task.md Goal/Steps named only the delivery slug. seo + merchants shells stayed ANALYZE; buyer later used the slug for real ACCEPT work."
+    },
+    {
+      "event_id": "evt-06-review-loop",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "review",
+      "phase": "accept",
+      "started_at": "2026-09-04T09:59:49.649Z",
+      "ended_at": "2026-09-04T10:30:38.087Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "exact",
+      "parent_event_id": "evt-04-review-1",
+      "status": "completed",
+      "artifact_refs": [
+        "D:/2025/daji-merchants-mobile/.workflow/ralph/task-h5-enter-review-fix/.state/run.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["user_correction"],
+      "cost": { "active_seconds": null, "wait_seconds": 1848, "tokens": null, "tool_calls": null },
+      "notes": "REV-2 PASS then REV-3/4 NEEDS_CHANGES then REV-5 PASS on the same review-fix run. wait_seconds is wall between REV-2 and run.updated_at; not active model time."
+    },
+    {
+      "event_id": "evt-07-user-keep-both",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "user_correction",
+      "phase": "intake",
+      "started_at": null,
+      "ended_at": null,
+      "timestamp_provenance": "thread",
+      "clock_quality": "unknown",
+      "parent_event_id": "evt-05-dispatch-dual-init",
+      "status": "completed",
+      "artifact_refs": [
+        "D:/2025/daji-merchants-mobile/.workflow/ralph/index.md"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["user_correction", "evidence_gap"],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "User: do not absorb/abandon the two merchants runs; evolve jj-flow from the wrong artifact. index.md ## 同需求提示 kept both. No thread-export clock."
+    },
+    {
+      "event_id": "evt-08-harness-candidate",
+      "episode_id": "EP-20260904-h5-enter-dual-ralph",
+      "kind": "agent_turn",
+      "phase": "plan",
+      "started_at": null,
+      "ended_at": null,
+      "timestamp_provenance": "thread",
+      "clock_quality": "unknown",
+      "parent_event_id": "evt-07-user-keep-both",
+      "status": "completed",
+      "artifact_refs": [
+        "src/dispatchRalph.mjs",
+        "src/ralph/knowledge.mjs",
+        "src/ralph/state.mjs",
+        "src/taskArtifacts.mjs"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": ["regression"],
+      "cost": { "active_seconds": null, "wait_seconds": null, "tokens": null, "tool_calls": null },
+      "notes": "Harness candidate C-h5-enter-reuse-sibling-v1 in jj-flow working tree: reuse-sibling / refuse review-slice init / host.thread_id same-session / task.md lists actual run_id. Not promoted. Field artifacts left as teaching cases."
+    }
+  ]
+}

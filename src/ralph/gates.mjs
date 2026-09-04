@@ -31,7 +31,11 @@ import {
   listRuns,
   loadMap,
   loadRun,
+  collectIndexArchiveHints,
+  collectSameRequirementHints,
+  computeRalphNext,
   mapPath,
+  runLayoutOf,
   normalizeIntensity,
   nowIso,
   promoteGateSetToFull,
@@ -792,14 +796,61 @@ const STRONG_EVIDENCE_ALLOW = Object.freeze({
   'cross-path': /cross_path:|write_then_read:(mock_ok|runtime_ok)/,
   'runtime-env': /runtime_env:|user_test:|uat:/i
 });
+const EVIDENCE_CLASS_VALUES = Object.freeze(['diff-only', 'behavior-local', ...STRONG_EVIDENCE_CLASSES]);
+const CHECKBOX_ACCEPT_RE = /^\s*(?:\d+\.|[-*])\s+\[([xX ])\]\s+(.*)$/;
 
 function splitMarkdownTableCells(line) {
   return String(line || '').split('|').map((cell) => cell.trim()).filter((cell, index, all) => index > 0 && index < all.length);
 }
 
+function markWeakEvidence(details, evidenceClass, result, evidence) {
+  details.rows.push({ evidence_class: evidenceClass, result, evidence });
+  if (result !== 'PASS' || !STRONG_EVIDENCE_CLASSES.includes(evidenceClass)) return;
+  const allow = STRONG_EVIDENCE_ALLOW[evidenceClass];
+  const tokenOk = allow.test(evidence);
+  const staticOnly = !String(evidence || '').trim()
+    || /^(diff|rg|static)$/i.test(evidence.trim())
+    || (/\b(diff|rg|static)\b/i.test(evidence) && !tokenOk);
+  if (!tokenOk || staticOnly) details.weak_evidence_pass = true;
+}
+
+function inferAcceptanceClass(text) {
+  const tagged = String(text || '').match(/evidence_class\s*[:：]\s*([a-z-]+)/i);
+  const taggedClass = tagged ? String(tagged[1] || '').toLowerCase() : '';
+  if (EVIDENCE_CLASS_VALUES.includes(taggedClass)) return taggedClass;
+  if (/\bwrite-then-read\b|保存后|提交后|回显|再打开|再进入|reopen|after\s+save|after\s+submit|\bpersist\b/i.test(text)) {
+    return 'write-then-read';
+  }
+  if (/\bcross-path\b|两处入口|跨路径|创建与编辑|list\s+vs/i.test(text)) return 'cross-path';
+  if (/\bruntime-env\b|真机|runtime_env:/i.test(text)) return 'runtime-env';
+  return '';
+}
+
+function extractCheckboxEvidence(text) {
+  const labeled = String(text || '').match(/(?:证据|evidence)\s*[:：]\s*(.+)$/i);
+  if (labeled) return labeled[1].trim();
+  const token = String(text || '').match(
+    /\b(write_then_read:(?:mock_ok|runtime_ok)|cross_path:\S+|runtime_env:\S+|user_test:\S+|uat:\S+|diff|rg|static)\b/i
+  );
+  return token ? token[1] : '';
+}
+
+function inspectCheckboxAcceptance(details, lines) {
+  for (const line of lines) {
+    const match = CHECKBOX_ACCEPT_RE.exec(line);
+    if (!match) continue;
+    const result = /x/i.test(match[1]) ? 'PASS' : 'PENDING';
+    const body = match[2] || '';
+    const evidenceClass = inferAcceptanceClass(body);
+    const evidence = extractCheckboxEvidence(body);
+    markWeakEvidence(details, evidenceClass, result, evidence);
+  }
+}
+
 /**
- * Parse acceptance.md evidence_class rows. Legacy 3-column stubs (no evidence_class
- * header) are skipped so older runs keep working. Over-claim is mechanical FAIL.
+ * Parse acceptance evidence_class from leftover tables or lean checkboxes.
+ * Legacy 3-column stubs (no evidence_class header) skip the table path.
+ * Checked `[x]` items are PASS; strong class still needs class-minimum evidence.
  */
 export function inspectAcceptanceEvidence(run, cwd = process.cwd()) {
   const details = {
@@ -817,28 +868,23 @@ export function inspectAcceptanceEvidence(run, cwd = process.cwd()) {
   const body = extractAcceptanceActiveText(raw) || raw;
   const lines = body.split(/\r?\n/);
   const headerLine = lines.find((line) => line.includes('|') && /item|项/i.test(line) && !/^\|\s*---/.test(line));
-  if (!headerLine) return details;
-  const headers = splitMarkdownTableCells(headerLine).map((cell) => cell.toLowerCase());
-  const classIdx = headers.indexOf('evidence_class');
-  const resultIdx = headers.includes('result') ? headers.indexOf('result') : headers.indexOf('结果');
-  const evidenceIdx = headers.includes('evidence') ? headers.indexOf('evidence') : headers.indexOf('证据');
-  details.header_has_class = classIdx >= 0;
-  if (classIdx < 0 || resultIdx < 0 || evidenceIdx < 0) return details;
-  for (const line of lines) {
-    if (!/^\|/.test(line) || /^\|\s*---/.test(line)) continue;
-    const cells = splitMarkdownTableCells(line);
-    if (!cells.length || /^(item|项)$/i.test(cells[0] || '')) continue;
-    const evidenceClass = cells[classIdx] || '';
-    const result = String(cells[resultIdx] || '').toUpperCase();
-    const evidence = cells[evidenceIdx] || '';
-    details.rows.push({ evidence_class: evidenceClass, result, evidence });
-    if (result !== 'PASS' || !STRONG_EVIDENCE_CLASSES.includes(evidenceClass)) continue;
-    const allow = STRONG_EVIDENCE_ALLOW[evidenceClass];
-    const tokenOk = allow.test(evidence);
-    const staticOnly = /^(diff|rg|static)$/i.test(evidence.trim())
-      || (/\b(diff|rg|static)\b/i.test(evidence) && !tokenOk);
-    if (!tokenOk || staticOnly) details.weak_evidence_pass = true;
+  if (headerLine) {
+    const headers = splitMarkdownTableCells(headerLine).map((cell) => cell.toLowerCase());
+    const classIdx = headers.indexOf('evidence_class');
+    const resultIdx = headers.includes('result') ? headers.indexOf('result') : headers.indexOf('结果');
+    const evidenceIdx = headers.includes('evidence') ? headers.indexOf('evidence') : headers.indexOf('证据');
+    details.header_has_class = classIdx >= 0;
+    if (classIdx >= 0 && resultIdx >= 0 && evidenceIdx >= 0) {
+      for (const line of lines) {
+        if (!/^\|/.test(line) || /^\|\s*---/.test(line)) continue;
+        const cells = splitMarkdownTableCells(line);
+        if (!cells.length || /^(item|项)$/i.test(cells[0] || '')) continue;
+        markWeakEvidence(details, cells[classIdx] || '', String(cells[resultIdx] || '').toUpperCase(), cells[evidenceIdx] || '');
+      }
+      return details;
+    }
   }
+  inspectCheckboxAcceptance(details, lines);
   return details;
 }
 
@@ -1374,10 +1420,23 @@ export function getStatus({ runId, cwd = process.cwd() } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
     const metrics = computeRunMetrics(run, cwd);
-    return { run, metrics, path: path.relative(cwd, runWorkspaceDir(run, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
+    const layout = runLayoutOf(run.run_id, cwd);
+    return {
+      run,
+      metrics,
+      path: path.relative(cwd, runWorkspaceDir(run, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
+      next: computeRalphNext(run, { layout })
+    };
   }
   const runs = listRuns(cwd);
   const mapExists = fs.existsSync(mapPath(cwd));
   const map = mapExists ? loadMap(cwd) : createEmptyMap();
-  return { runs, map_path: mapExists ? RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)) : null, map_capabilities: map.capabilities.length };
+  const active = runs.filter((row) => row.layout === 'active' || row.layout === 'legacy-tasks');
+  return {
+    runs,
+    map_path: mapExists ? RALPH_MAP_REL.replaceAll(String.fromCharCode(92), String.fromCharCode(47)) : null,
+    map_capabilities: map.capabilities.length,
+    index_hints: collectIndexArchiveHints(active),
+    same_requirement_hints: collectSameRequirementHints(active)
+  };
 }

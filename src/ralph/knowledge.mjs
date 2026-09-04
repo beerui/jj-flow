@@ -40,6 +40,7 @@ import {
   appendProgressRound,
   createEmptyAcceptLayers,
   createRunSkeleton,
+  findRalphInitConflict,
   hydrateIntensityFields,
   isLegacyRalphRunId,
   listRuns,
@@ -159,6 +160,19 @@ export function pruneProjectHotMemory({ cwd = process.cwd(), projectKey = null }
   return pruneHotMemory(key);
 }
 
+function collectInitThreadIds(options = {}) {
+  const ids = new Set();
+  for (const value of [
+    options.task_thread_id,
+    options.thread_id,
+    options.host?.thread_id,
+    options.host?.session_handle
+  ]) {
+    if (value) ids.add(String(value));
+  }
+  return ids.size ? ids : null;
+}
+
 export function initRun(options, cwd = process.cwd()) {
   const requestedId = options.run_id || options.runId;
   if (isLegacyRalphRunId(requestedId)) throw new Error(migrateHint(requestedId));
@@ -169,6 +183,17 @@ export function initRun(options, cwd = process.cwd()) {
   const existing = listRuns(cwd).find((row) => row.run_id === requestedId && !row.needs_migrate);
   if (existing && !options.force) {
     throw new Error('run already exists: ' + requestedId + ' (resume the same task_key; use --force to overwrite skeleton)');
+  }
+  if (!options.force && options.new_requirement !== true) {
+    const threadIds = collectInitThreadIds(options);
+    const conflict = findRalphInitConflict({
+      cwd,
+      title: options.title,
+      goal: options.goal,
+      runId: requestedId,
+      threadIds
+    });
+    if (conflict) throw new Error(conflict.message);
   }
   const runOptions = { ...options };
   if (!runOptions.project_key) {

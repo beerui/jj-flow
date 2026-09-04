@@ -366,7 +366,12 @@ function runTaskCommand(rawArgs, { cwd = process.cwd(), stdout } = {}) {
     else stdout.write(`${renderTaskAssignment(assignment)}\n`);
     return 0;
   }
-  const result = writeTaskArtifacts(delivery, { root, taskId: options.taskId, manifestPath: options.manifest });
+  const result = writeTaskArtifacts(delivery, {
+    root,
+    taskId: options.taskId,
+    manifestPath: options.manifest,
+    plane
+  });
   if (options.json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
   else stdout.write(result.mode === 'quick'
     ? 'quick 任务：跳过完整任务文档。\n'

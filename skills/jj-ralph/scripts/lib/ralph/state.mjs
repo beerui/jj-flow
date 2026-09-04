@@ -41,6 +41,9 @@ export const RALPH_ROOT_REL = path.join('.workflow', 'ralph');
 export const STATE_REL = '.state';
 export const EVENTS_JSONL_REL = path.join(STATE_REL, 'events.jsonl');
 export const INDEX_MD_REL = path.join(RALPH_ROOT_REL, 'index.md');
+/** Soft cap for live `task-*` rows in index.md. Overflow or stale rows emit a prompt, never auto-archive. */
+export const INDEX_ACTIVE_CAP = 5;
+export const INDEX_STALE_MS = 5 * 24 * 60 * 60 * 1000;
 /** @deprecated P2 nested live dir; Scheme A lifts live runs to ralph root. Kept for migrate lift. */
 export const RALPH_TASKS_DIR_REL = path.join(RALPH_ROOT_REL, 'tasks');
 export const RALPH_COMPLETED_DIR_REL = path.join(RALPH_ROOT_REL, 'completed');
@@ -608,8 +611,14 @@ export function saveRun(run, cwd = process.cwd()) {
   if (errors.length) throw new Error('invalid run: ' + errors.join('; '));
   const copy = { ...run };
   delete copy._readonly_archive_path;
-  writeJson(runJsonPath(copy.run_id, cwd), copy);
-  return runJsonPath(copy.run_id, cwd);
+  const saved = runJsonPath(copy.run_id, cwd);
+  writeJson(saved, copy);
+  try {
+    writeRalphIndex(cwd);
+  } catch {
+    // index.md is a derived view; a refresh miss must not roll back run.json
+  }
+  return saved;
 }
 
 export function loadMap(cwd = process.cwd()) {
@@ -628,16 +637,238 @@ export function saveMap(map, cwd = process.cwd()) {
   return mapPath(cwd);
 }
 
+function peekLatestReviewSummary(run) {
+  const reviews = Array.isArray(run?.review?.reviews) ? run.review.reviews : [];
+  if (!reviews.length) {
+    if (run?.latest_review_outcome) {
+      return { outcome: run.latest_review_outcome, review_scope: run.latest_review_scope || null };
+    }
+    return null;
+  }
+  const lid = run.review?.latest_review_id;
+  return reviews.find((item) => item.review_id === lid) || reviews[reviews.length - 1] || null;
+}
+
+function gatesOf(run) {
+  if (run?.gates && typeof run.gates === 'object') return run.gates;
+  return {
+    analyze: run?.analyze || null,
+    plan: run?.plan || null,
+    deliver: run?.deliver || null,
+    accept: run?.accept || null,
+    archive: run?.archive || null
+  };
+}
+
+/**
+ * Next mechanical step for status / locate. Does not write run.json.
+ * Values: review | commit-scoped-review | finalize | check | migrate | resume | gate * | null
+ */
+export function computeRalphNext(run, { layout = null } = {}) {
+  if (!run || typeof run !== 'object') return null;
+  const layoutName = layout || run.layout || null;
+  const parked = layoutName === 'completed';
+  const needsMigrate = Boolean(run.needs_migrate) || layoutName === 'legacy-active' || isLegacyRalphRunId(run.run_id);
+  if (needsMigrate) return 'migrate';
+  if (run.status === 'COMPLETED' && parked) return null;
+  if (run.status === 'ABANDONED') return 'resume';
+  if (run.status === 'BLOCKED' || run.status === 'PAUSED') return 'check';
+
+  const latest = peekLatestReviewSummary(run);
+  const outcome = latest?.outcome || null;
+  const scope = latest?.review_scope || null;
+  const gates = gatesOf(run);
+  const archived = Boolean(run.archive?.archived_at || run.archived_at);
+
+  if (outcome === 'NEEDS_CHANGES' || outcome === 'BLOCKED') return 'review';
+
+  if (gates.accept === 'PASS') {
+    if (outcome === 'PASS' && scope !== 'commit') return 'commit-scoped-review';
+    if (archived && run.phase !== 'ARCHIVE' && run.status === 'IN_PROGRESS') return 'check';
+    if (!parked) return 'finalize';
+  }
+
+  if (run.status === 'COMPLETED' && !parked) return 'check';
+  if (gates.analyze !== 'PASS') return 'gate analyze';
+  if (gates.plan !== 'PASS') return 'gate plan';
+  if (gates.deliver !== 'PASS') return 'gate deliver';
+  return 'gate accept';
+}
+
+function attachNext(row) {
+  return { ...row, next: computeRalphNext(row, { layout: row.layout || null }) };
+}
+
+function isIndexStale(updatedAt, now) {
+  if (!updatedAt) return true;
+  const ts = Date.parse(updatedAt);
+  if (Number.isNaN(ts)) return true;
+  return (now - ts) >= INDEX_STALE_MS;
+}
+
+function classifyIndexArchiveAction(row) {
+  const status = row.status;
+  if (status === 'PAUSED' || status === 'BLOCKED' || status === 'ABANDONED') return 'ask';
+  const accept = gatesOf(row).accept;
+  const latest = peekLatestReviewSummary(row);
+  const outcome = latest?.outcome || null;
+  const scope = latest?.review_scope || null;
+  if (accept === 'PASS' && outcome !== 'NEEDS_CHANGES' && outcome !== 'BLOCKED') {
+    if (outcome === 'PASS' && scope !== 'commit') return 'commit-scoped-review';
+    return 'finalize';
+  }
+  return 'ask';
+}
+
+function suggestionLabel(action) {
+  if (action === 'finalize') return 'finalize';
+  if (action === 'commit-scoped-review') return 'commit-scoped-review（先问用户是否提交后再复审）';
+  return '询问用户（finalize / abandon / 保留）';
+}
+
+const REVIEW_SLICE_RE = /审查修复|按审查|三点修复|review-fix|review_fix/i;
+
+export function isReviewSliceText(text) {
+  return REVIEW_SLICE_RE.test(String(text || ''));
+}
+
+function liveActiveRows(rows) {
+  return (Array.isArray(rows) ? rows : []).filter((row) => {
+    if (row.layout && row.layout !== 'active' && row.layout !== 'legacy-tasks') return false;
+    return row.status !== 'COMPLETED' && row.status !== 'ABANDONED';
+  });
+}
+
+function rowThreadIds(row) {
+  return [...new Set([row?.task_thread_id, row?.host_thread_id].filter(Boolean).map(String))];
+}
+
+/** Refuse init of a review-slice slug/title, or of a new run while a same-session live run exists. */
+export function findRalphInitConflict({ cwd, title, goal, runId, threadIds } = {}) {
+  const blob = [runId, title, goal].filter(Boolean).join(' ');
+  const live = liveActiveRows(listRuns(cwd)).filter((row) => row.run_id !== runId);
+  if (isReviewSliceText(blob)) {
+    return {
+      reason: 'review-slice',
+      candidates: live,
+      message:
+        'review-fix / 审查修复 is not a new requirement; resume the live feature run '
+        + '(or init with the real requirement title, not a review-slice slug)'
+        + (live.length ? ('; live: ' + live.map((row) => row.run_id).join(', ')) : '')
+    };
+  }
+  if (threadIds && threadIds.size) {
+    const hits = live.filter((row) => rowThreadIds(row).some((id) => threadIds.has(id)));
+    if (hits.length) {
+      return {
+        reason: 'same-session',
+        candidates: hits,
+        message: 'same session already has live Ralph ' + hits.map((row) => row.run_id).join(', ') + '; resume, do not init'
+      };
+    }
+  }
+  return null;
+}
+
+/** Prompt-only: same session or a review-slice sitting next to another live run. Never merge/abandon. */
+export function collectSameRequirementHints(activeRows) {
+  const live = liveActiveRows(activeRows);
+  const items = [];
+  const byThread = new Map();
+  for (const row of live) {
+    for (const tid of rowThreadIds(row)) {
+      if (!byThread.has(tid)) byThread.set(tid, []);
+      const bucket = byThread.get(tid);
+      if (!bucket.some((existing) => existing.run_id === row.run_id)) bucket.push(row);
+    }
+  }
+  for (const [threadId, rows] of byThread) {
+    if (rows.length < 2) continue;
+    items.push({
+      kind: 'same-session',
+      thread_id: threadId,
+      run_ids: rows.map((row) => row.run_id),
+      suggestion: '询问用户保留哪一条（同需求同一 run_id；不自动合并）'
+    });
+  }
+  const slices = live.filter((row) => isReviewSliceText([row.run_id, row.title, row.goal].join(' ')));
+  if (slices.length && live.length > slices.length) {
+    items.push({
+      kind: 'review-slice',
+      thread_id: null,
+      run_ids: slices.map((row) => row.run_id),
+      suggestion: '审查修复 / 按审查 / review-fix 不是新任务，resume 另一条活跃 run'
+    });
+  }
+  return {
+    triggered: items.length > 0,
+    items
+  };
+}
+
+/** Prompt-only index hygiene. Never finalize / abandon from here. */
+export function collectIndexArchiveHints(activeRows, { now = Date.now() } = {}) {
+  const rows = Array.isArray(activeRows) ? activeRows : [];
+  const overflow = rows.length > INDEX_ACTIVE_CAP;
+  const stale = rows.filter((row) => isIndexStale(row.updated_at, now));
+  if (!overflow && !stale.length) {
+    return {
+      triggered: false,
+      overflow: false,
+      auto_archive: false,
+      active_count: rows.length,
+      stale_ids: [],
+      items: []
+    };
+  }
+  const candidates = overflow ? rows : stale;
+  const items = candidates.map((row) => {
+    const reasons = [];
+    if (isIndexStale(row.updated_at, now)) reasons.push('5天未更新');
+    if (overflow) reasons.push('活跃超过' + INDEX_ACTIVE_CAP + '条');
+    const action = classifyIndexArchiveAction(row);
+    return {
+      run_id: row.run_id,
+      status: row.status || null,
+      phase: row.phase || null,
+      title: row.title || null,
+      reasons,
+      action,
+      suggestion: suggestionLabel(action)
+    };
+  });
+  return {
+    triggered: true,
+    overflow,
+    auto_archive: false,
+    active_count: rows.length,
+    stale_ids: stale.map((row) => row.run_id),
+    items
+  };
+}
+
 function summarizeRunFile(filePath, fallbackId, extra = {}) {
   if (!fs.existsSync(filePath)) return { run_id: fallbackId, phase: null, status: null, title: null, ...extra };
   try {
     const run = readJson(filePath);
+    const latest = peekLatestReviewSummary(run);
     return {
       run_id: run.run_id || fallbackId,
       phase: run.phase || null,
       status: run.status || null,
       title: run.title || null,
+      goal: run.goal || null,
+      task_thread_id: run.review?.task_thread_id || null,
+      host_thread_id: run.host?.thread_id || null,
       updated_at: run.updated_at || null,
+      analyze: run.gates?.analyze || null,
+      plan: run.gates?.plan || null,
+      deliver: run.gates?.deliver || null,
+      accept: run.gates?.accept || null,
+      archive: run.gates?.archive || null,
+      latest_review_outcome: latest?.outcome || null,
+      latest_review_scope: latest?.review_scope || null,
+      archived_at: run.archive?.archived_at || null,
       ...extra
     };
   } catch {
@@ -698,13 +929,13 @@ export function listRuns(cwd = process.cwd()) {
       );
     }
   }
-  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || ''))).map(attachNext);
 }
 
 export function locateRalphRuns(cwd = process.cwd()) {
   const rows = listRuns(cwd).map((row) => ({ ...row, readonly: Boolean(row.needs_migrate) }));
   const archiveRoot = archiveDir(cwd);
-  if (!fs.existsSync(archiveRoot)) return rows;
+  if (!fs.existsSync(archiveRoot)) return rows.map(attachNext);
   const stack = [archiveRoot];
   while (stack.length) {
     const dir = stack.pop();
@@ -724,7 +955,7 @@ export function locateRalphRuns(cwd = process.cwd()) {
       }
     }
   }
-  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || ''))).map(attachNext);
 }
 
 export function normalizeHostMeta(host = null) {
@@ -939,11 +1170,13 @@ export function moveRunToActive(runId, cwd = process.cwd()) {
   return { moved: true, from, path: to };
 }
 
-export function writeRalphIndex(cwd = process.cwd()) {
+export function writeRalphIndex(cwd = process.cwd(), { now = Date.now() } = {}) {
   const rows = listRuns(cwd);
   const active = rows.filter((r) => r.layout === 'active' || r.layout === 'legacy-tasks');
   const completed = rows.filter((r) => r.layout === 'completed');
   const legacy = rows.filter((r) => r.needs_migrate);
+  const hints = collectIndexArchiveHints(active, { now });
+  const sameHints = collectSameRequirementHints(active);
   let migratedCount = 0;
   const mig = migratedDir(cwd);
   if (fs.existsSync(mig)) {
@@ -956,6 +1189,34 @@ export function writeRalphIndex(cwd = process.cwd()) {
   }
   const nl = '\n';
   const line = (row) => '| `' + row.run_id + '` | ' + (row.status || '?') + ' | ' + (row.phase || '?') + ' | ' + (row.title || '') + ' |';
+  const hintLine = (item) => '| `' + item.run_id + '` | ' + item.reasons.join(' · ') + ' | ' + item.suggestion + ' |';
+  const hintBlock = hints.triggered
+    ? [
+      '## 归档提示',
+      '',
+      '> 活跃 ' + hints.active_count + ' 条（软上限 ' + INDEX_ACTIVE_CAP + '）。超过 5 天未更新 ' + hints.stale_ids.length + ' 条。**只提示，不自动 finalize / abandon**。能确定的写出建议；其余先问用户。',
+      '',
+      '| 任务 | 原因 | 建议 |',
+      '| --- | --- | --- |',
+      ...hints.items.map(hintLine),
+      ''
+    ]
+    : [];
+  const sameBlock = sameHints.triggered
+    ? [
+      '## 同需求提示',
+      '',
+      '> 同一需求出现了两条活跃 Ralph（同会话或「审查修复」切片）。**只提示，不自动合并 / abandon**。',
+      '',
+      '| 任务 | 原因 | 建议 |',
+      '| --- | --- | --- |',
+      ...sameHints.items.map((item) => {
+        const reason = item.kind === 'same-session' ? ('同会话 ' + item.thread_id) : '审查切片不是新任务';
+        return '| `' + item.run_ids.join('` `') + '` | ' + reason + ' | ' + item.suggestion + ' |';
+      }),
+      ''
+    ]
+    : [];
   const md = [
     '# Ralph 工作区索引',
     '',
@@ -967,6 +1228,8 @@ export function writeRalphIndex(cwd = process.cwd()) {
     '| --- | --- | --- | --- |',
     ...(active.length ? active.map(line) : ['| （无） | | | |']),
     '',
+    ...sameBlock,
+    ...hintBlock,
     '## 已完成（`completed/`，含 ABANDONED）',
     '',
     '| 任务 | 状态 | 阶段 | 标题 |',
@@ -982,7 +1245,15 @@ export function writeRalphIndex(cwd = process.cwd()) {
   ].join(nl);
   fs.mkdirSync(ralphRoot(cwd), { recursive: true });
   fs.writeFileSync(indexMdPath(cwd), md, 'utf8');
-  return { path: indexMdPath(cwd), active: active.length, completed: completed.length, migrated: migratedCount, archive: archiveCount };
+  return {
+    path: indexMdPath(cwd),
+    active: active.length,
+    completed: completed.length,
+    migrated: migratedCount,
+    archive: archiveCount,
+    hints,
+    same_requirement_hints: sameHints
+  };
 }
 
 /** Legacy runs without gate_set behave as full. */
@@ -1133,12 +1404,28 @@ export function renderRalphStatusText(payload) {
       latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.review_scope ? (' scope=' + latestReview.review_scope) : '') + ((latestReview.fix_commit || latestReview.reviewed_commit) ? (' @' + (latestReview.fix_commit || latestReview.reviewed_commit)) : '')) : 'review: none',
       run.host ? ('host: ' + [run.host.host_id, run.host.thread_id || run.host.session_handle, run.host.model_id].filter(Boolean).join(' / ')) : 'host: none',
       run.intervention_needed ? ('intervention: ' + (run.intervention_needed.kind ? (run.intervention_needed.kind + ' ') : '') + run.intervention_needed.reason) : 'intervention: none',
+      'next: ' + (payload.next || computeRalphNext(run) || '(none)'),
       'path: ' + (payload.path || '')
     ].join(nl);
   }
   const nl = String.fromCharCode(10);
-  const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.needs_migrate ? ' · needs_migrate' : '') + (item.title ? (' · ' + item.title) : ''))];
+  const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.next ? (' · next=' + item.next) : '') + (item.needs_migrate ? ' · needs_migrate' : '') + (item.title ? (' · ' + item.title) : ''))];
   if (payload.map_path) lines.push('business-map: ' + payload.map_path);
   if (payload.map_capabilities != null) lines.push('capabilities: ' + payload.map_capabilities);
+  const hints = payload.index_hints;
+  if (hints?.triggered) {
+    lines.push(
+      '归档提示: 活跃 ' + hints.active_count + '/' + INDEX_ACTIVE_CAP
+      + (hints.stale_ids.length ? ('；5天未更新 ' + hints.stale_ids.join(', ')) : '')
+      + '；不要自动归档'
+    );
+  }
+  const same = payload.same_requirement_hints;
+  if (same?.triggered) {
+    lines.push(
+      '同需求提示: ' + same.items.map((item) => (item.kind || 'same') + ' ' + (item.run_ids || []).join(',')).join('；')
+      + '；不自动合并'
+    );
+  }
   return lines.join(nl);
 }

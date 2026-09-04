@@ -1,0 +1,14 @@
+{
+  "id": "EP-20260904-h5-enter-dual-ralph",
+  "source_episode": "docs/evaluations/EP-20260904-h5-enter-dual-ralph-report.md",
+  "skill_or_path": "skills/jj-dispatch/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "reuse-sibling" },
+    { "type": "contains", "text": "Do **not** init a second live `task-*`" },
+    { "type": "contains", "text": "Multi-turn chat does not drive the plane" },
+    { "type": "contains", "text": "host.thread_id" },
+    { "type": "file_exists", "path": "src/dispatchRalph.mjs" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260904-h5-enter-dual-ralph-report.md" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260904-h5-enter-dual-ralph.episode.json" }
+  ]
+}

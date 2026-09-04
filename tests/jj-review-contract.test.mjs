@@ -7,12 +7,14 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const skill = fs.readFileSync(path.join(root, 'skills/jj-review/SKILL.md'), 'utf8')
 
-test('jj-review happy-path final reply is one line without tables', () => {
-  assert.match(skill, /one-line on PASS/)
-  assert.match(skill, /no exception \(`PASS`\): \*\*one line\*\*/)
-  assert.match(skill, /No table, no path\/host\/source dump/)
-  assert.match(skill, /OPEN findings on NEEDS_CHANGES/)
+test('jj-review finish reply is 通过 plus summary, or problem plus 修改意见', () => {
+  assert.match(skill, /通过。/)
+  assert.match(skill, /一句总结/)
+  assert.match(skill, /修改意见/)
   assert.match(skill, /STOP template on BLOCKED/)
+  assert.doesNotMatch(skill, /same-turn/)
+  assert.doesNotMatch(skill, /one-line on PASS/)
+  assert.match(skill, /Wait for the user to say 「按审查改」/)
 })
 
 test('jj-review unbound when no ralph run; never init', () => {

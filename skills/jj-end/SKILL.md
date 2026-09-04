@@ -25,7 +25,7 @@ On failure, stop and **try to return to `work_branch`**.
 | 3 | Change git config / credentials | Out of scope; security surface |
 | 4 | Commit secrets, temp dumps, unrelated dirty files | Scope creep + leak risk |
 | 5 | `git pull --rebase` unless user explicitly asks | Rewrites published commits |
-| 6 | Skip steps 4–6 for “fear of merge” / “ask first” | Historical half-closeout failure mode |
+| 6 | Skip steps 4–6 for “fear of merge” when task / requirement / both-side intents are **already clear** | Historical half-closeout. **Unclear** → ask (G-end-4); fear ≠ unclear |
 | 7 | Leave a half-finished merge after failure | Must `merge --abort` or clearly report still merging |
 | 8 | Treat `merge --abort` rollback as closeout success | Abort ≠ landed |
 | 9 | Create empty integration history when branch missing | No inventing integration |
@@ -33,6 +33,8 @@ On failure, stop and **try to return to `work_branch`**.
 | 11 | Treat git log / MR titles / `origin/HEAD` / a staging-merge parent / mere `staging` existence / a build-script name containing `staging` as the closeout integration | Historical EP-20260828 land-on-预发; build flavor ≠ land target |
 | 12 | Abort because a file is Vue/docs/logic or “looks complex”, or resolve a subset then abort | Historical over-classify (feat/dynamic-form); mixed merge + silent loss |
 | 13 | Leave `<<<<<<<` / `=======` / `>>>>>>>` in a completed closeout | Merge not actually finished |
+| 14 | Merge integration (`dev` / `develop` / `main`) into the work / feature branch | Direction is only `work → integration`. Never `git merge <integration>` on `work_branch` to “pre-resolve” |
+| 15 | `checkout --ours/--theirs` or take one parent file wholesale on conflict | Silent loss (EP-20260904 `40e3f959`: `audit-detail.vue` ≡ feature; dest 外综服 guards dropped) |
 
 ## Core Rule
 
@@ -40,9 +42,10 @@ On failure, stop and **try to return to `work_branch`**.
 - **Proactive closeout**: when implementation is done and the user did not forbid push/merge, **first print one line** of the `work→integration` plan, then **execute through to the end**
 - 🔴 CHECKPOINT · 🛑 STOP — **user forbade push/merge**: must not merge / push; report plan only; do not continue steps 4–6
 - 🔴 CHECKPOINT · 🛑 STOP — **`dry_run=true`**: print the field table → stop; no commit / pull-write / merge / push
+- 🔴 CHECKPOINT · 🛑 STOP — **unclear task / merge / requirement**: ask first (G-end-4). Do not invent, do not pick a side, do not land
 - Commit only, no push/merge: do not use this skill
-- **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except **unhandleable** conflict, or user explicitly forbids)
-- This skill does **not** write the control plane and does **not** read/advance dispatch manifests; scheduling closeout uses `$jj-dispatch`
+- **Do not** skip steps 4–6 because of “fear of merge” when both sides are already clear (except **unhandleable** / unclear → ask, or user explicitly forbids)
+- This skill does **not** write the control plane, ralph `run.json`, or dispatch manifests. Ralph closeout is `finalize` first; this skill is Git only. Scheduling closeout uses `$jj-dispatch`
 
 ## Integration resolution priority
 
@@ -81,6 +84,18 @@ Print the one-line `work→integration` plan **with source** (`user` / `docs` / 
 
 **A:** No. Label them `self-merge`. Combine both sides’ intent (union policy text; keep the more complete guard; keep the newer draft helper and the still-true restore; keep the more specific logo condition if it subsumes the other). Resolve **all**, continue closeout. Do **not** abort the whole merge because files are Vue/docs/logic. Do **not** resolve a subset then abort. STOP only if the same product flag is true on one side and false on the other and you cannot tell which product wants. Classify table is user-visible only on STOP.
 
+### Golden Q&A — G-end-3 (must not regress)
+
+**Q:** `git merge feat/dynamic-form` into `dev` conflicts on `merchant-detail.vue` / `audit-detail.vue`. Dest just landed 外综服 (`userType` from query, `=== 12` validate/submit). Work has enter-form template fetch. Merge `dev` into the feature first? Take the feature file so land is easy?
+
+**A:** **Never** merge `dev`/integration into the work branch. Stay on dest, merge work in. Inventory **both** parents’ unique behaviors and keep both (query `userType` + 外综服 guards **and** template/schema fetch). Taking one parent wholesale (`audit-detail` ≡ feature; leftover `isExternalServiceCustomer` with `ref(1)`) is silent loss — a **failed** self-merge, not “too big so pick a side”. Regression: `40e3f959` / recover `6bd69083`.
+
+### Golden Q&A — G-end-4 (must not regress)
+
+**Q:** Closeout task is fuzzy, you cannot name dest-only vs work-only behaviors, or a hunk’s product requirement is ambiguous. Keep going and pick a side so `$jj-end` finishes?
+
+**A:** No. 🔴 **STOP and ask**. Do not invent the task, the land scope, or the requirement. Do not `--ours/--theirs`. Do not merge dest into work. After a **written** answer, self-merge (keep both) or re-run `$jj-end`. Fear of merge when both sides are already clear is **not** this gate.
+
 ## Defaults
 
 | key | default |
@@ -108,7 +123,9 @@ Classify before any resolve. Show the classify table to the user only when any f
 git diff --name-only --diff-filter=U
 ```
 
-Read each file’s conflict hunks (`<<<<<<<` / `=======` / `>>>>>>>`) and enough surrounding code to state a resolution.
+Read each file’s conflict hunks (`<<<<<<<` / `=======` / `>>>>>>>`) **and both parent blobs** (not only the markers). For each file, name dest-only behaviors and work-only behaviors. If you **cannot name both**, the merge is unclear → G-end-4 (ask; do not invent). Resolution must keep **both** sets unless they literally contradict the same product flag.
+
+After resolve, spot-check those names still fire (a leftover computed with a dead `userType = ref(1)` is loss). Do **not** `checkout --ours/--theirs`.
 
 ### 2. Classify each file (internal; user-visible only on STOP)
 
@@ -123,7 +140,7 @@ Label **`self-merge`** when you can state a one-sentence resolution that **does 
 - both sides identical after stripping markers; import/require-only union; changelog both prepended; comment/whitespace only
 - lockfile you will **regenerate with the package manager** (never hand-edit)
 - both sides evolved the same area: union complementary policy/docs; keep the more complete guard (`readonly` vs `uploadDisabled` → keep the condition that still enforces both intents); keep a renamed helper and the still-true restore; keep the more specific display condition if it subsumes the other
-- same Vue method / template changed differently, but the two edits compose (add both behaviors, or keep feature-side plus still-true integration-side)
+- same Vue method / template changed differently, but the two edits compose (add both behaviors: dest-side still-true guards **and** work-side new fetch/UI). Composing requires naming both sides first — “take the file I understand” is not self-merge
 
 Label **`unhandleable`** only when:
 
@@ -150,8 +167,8 @@ git checkout <work_branch>
 
 ### 5. Report
 
-Happy path (all `self-merge`, closeout continued): see **Final Response** — one line; do not list auto-resolved files.
-Any `unhandleable` abort: hand the classify table to the user. Abort is **not** closeout success.
+Happy path (all `self-merge`, closeout continued): see **Final Response**; do not list auto-resolved files.
+Any `unhandleable` abort: hand the classify table, then **Final Response** with `已回退`. Abort is **not** closeout success.
 
 ## Workflow
 
@@ -216,7 +233,7 @@ When this task has uncommitted changes:
 
 If the working tree is already clean for this task, skip commit.
 
-**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → one-line **Final Response** and stop.
+**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → **Final Response** (`已合并到` + current branch) and stop.
 
 > Commit before sync: avoid a dirty tree that cannot pull. Commit only this task’s files.
 
@@ -301,7 +318,7 @@ git merge --no-edit <work_branch>
 ```
 
 - Already ancestor (Already up to date) → note “no new merge needed”; still continue to push integration (may already be synced)
-- **merge work→integration conflict**: follow **Conflict classify**. Any `unhandleable` → abort → `git checkout <work_branch>` → STOP (user resolves on work, then re-run `$jj-end`). All `self-merge` → finish the merge and continue to push integration.
+- **merge work→integration conflict**: follow **Conflict classify**. Any `unhandleable` → abort → `git checkout <work_branch>` → STOP with table (user states the product call; re-run `$jj-end` and apply it on dest). **Do not** merge integration into work to pre-resolve. All `self-merge` → finish the merge and continue to push integration.
 
 ### 6. Push integration
 
@@ -333,8 +350,9 @@ git log -1 --oneline <integration>   # if resolvable
 | pull work conflict | **Conflict classify**; all `self-merge` → finish pull and continue | Any `unhandleable`: abort; stay on work; STOP with table |
 | push work failure | Stay on work; surface remote error | STOP; no checkout to integration |
 | pull integration conflict | **Conflict classify**; all `self-merge` → finish pull and continue | Any `unhandleable`: abort; `git checkout <work_branch>`; STOP with table |
-| merge work→integration conflict | **Conflict classify**; all `self-merge` → finish merge and continue to push | Any `unhandleable`: abort; `git checkout <work_branch>`; STOP with table; user re-runs `$jj-end` after resolving on work |
+| merge work→integration conflict | **Conflict classify**; all `self-merge` → finish merge and continue to push | Any `unhandleable`: abort; `git checkout <work_branch>`; STOP with table; user states the call; re-run `$jj-end` — **never** merge dest into work |
 | push integration failure | Prefer `git checkout <work_branch>` | Report: local may be merged but unpushed; needs manual push |
+| unclear task / merge / requirement (cannot name land scope or both-side intents) | 🔴 ask (G-end-4); abort in-progress merge if any | No invent / no pick-a-side / no dest→work; wait for written answer |
 | 🔴 user forbids push/merge or `dry_run=true` | Plan / dry_run table only | No push/merge; STOP (do not run steps 4–6) |
 | candidate integration is `staging`/`预发` but source would be git-log / existence / build-script (not `user`/`docs`) | Discard candidate; continue priority (heuristic `dev` if present) | Do not merge 预发; STOP only if heuristic also missing |
 
@@ -347,7 +365,7 @@ git log -1 --oneline <integration>   # if resolvable
 - [ ] Already `merge work` (or explained skip when same branch)
 - [ ] Already push **integration**
 - [ ] Already switched per `return_to`
-- [ ] Final reply follows **Final Response** (one line on happy path; tables only on STOP / dry_run)
+- [ ] Final reply follows **Final Response** (two status lines; classify / dry_run tables only on STOP / dry_run)
 
 If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / **unhandleable** conflict → **finish it**; do not reply with only a plan.
 If hard-stop or 🔴 CHECKPOINT hit → **stay stopped**; do not “finish it”.
@@ -355,13 +373,25 @@ All-`self-merge` conflicts are **not** a stop; classify → resolve → continue
 
 ## Final Response
 
-**Happy path** (landed, or nothing to close out; no STOP / unhandleable / push failure): **one line** in Chinese. No table, no bullet list, no field dump. The pre-execution `work→integration` plan line still prints before steps 4–6; the closing reply is one additional line.
+Closeout finish (landed, already synced, or aborted after `merge --abort` / return to work): **exactly two Chinese lines**. No hash dump, no pushed-branch list, no extra prose.
 
-That line includes `work→integration` (with `integration_source`), commit hash + subject if any (subject may be Chinese), pushed branches, and the branch you returned to. All-`self-merge` that continued to land is still happy path.
+```text
+合并状态：已合并到：<integration>
+当前分支：<HEAD after return>
+```
 
-Example: `feat/login → dev (heuristic)：已落地 a1b2c3d feat(login): 过期提醒；已推 work+dev；回到 feat/login`
+or, when the merge was rolled back (`merge --abort`, unhandleable, or other closeout abort that left dest unlanded):
 
-**Exception / STOP / dry_run / user forbade push/merge:** keep the field table, conflict classify table, blockers, and next steps. Abort is not closeout success.
+```text
+合并状态：已回退：<one-line reason>
+当前分支：<HEAD after return>
+```
+
+`当前分支` is `git rev-parse --abbrev-ref HEAD` after step 7 (or after abort return). All-`self-merge` that continued to land uses `已合并到`. Abort is **not** closeout success — use `已回退` plus the classify table when unhandleable.
+
+The pre-execution `work→integration` plan line still prints before steps 4–6.
+
+**dry_run / user forbade push/merge / hard-stop before merge:** keep the field table / blockers. Do not pretend `已合并到`. If HEAD is known, still print `当前分支：<HEAD>`.
 
 ## Boundaries
 

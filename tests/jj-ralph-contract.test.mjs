@@ -56,6 +56,12 @@ import {
   loadRun,
   listRuns,
   locateRalphRuns,
+  computeRalphNext,
+  collectIndexArchiveHints,
+  collectSameRequirementHints,
+  writeRalphIndex,
+  INDEX_ACTIVE_CAP,
+  INDEX_STALE_MS,
   migrateRuns,
   adoptRun,
   getStatus,
@@ -89,7 +95,9 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'HANDOFF_ROOT_REL',
   'HOST_IDS',
   'HOST_REVIEW_METHODS',
+  'INDEX_ACTIVE_CAP',
   'INDEX_MD_REL',
+  'INDEX_STALE_MS',
   'INSTRUCTION_CORRECTION_REL',
   'INTENSITY_DEFAULTS',
   'JUDGMENT_MODES',
@@ -152,7 +160,10 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'collectClaimedImplementationPaths',
   'collectGitDeletedPaths',
   'collectGitDiffPaths',
+  'collectIndexArchiveHints',
+  'collectSameRequirementHints',
   'commitPrep',
+  'computeRalphNext',
   'computeRunMetrics',
   'compactKeywords',
   'confirmProjectHotMemory',
@@ -173,6 +184,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'finalizeRun',
   'findImplementationPathMismatch',
   'findInMap',
+  'findRalphInitConflict',
   'fingerprintDeliverState',
   'getLatestReviewRecord',
   'getStatus',
@@ -181,6 +193,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'invokeKnowledgeContributeHook',
   'isLegacyRalphRunId',
   'isReviewSkipPath',
+  'isReviewSliceText',
   'isTaskRunId',
   'isTestPath',
   'knowledgeContribute',
@@ -361,7 +374,16 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'Tool use (speed)',
     'Goal / 验收 / Steps',
     'MasterGo',
-    'offset'
+    'offset',
+    'commit-scoped-review',
+    '归档提示',
+    '.workflow/ralph/index.md',
+    '询问用户',
+    '审查修复',
+    'review-fix',
+    '同需求提示',
+    'host.thread_id',
+    'wait for the user to say'
   ]) {
     assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -386,7 +408,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '按审查改',
     '改坏了',
     '这里',
-    '仍走五步'
+    '仍走五步',
+    '归档提示',
+    '审查修复'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -402,6 +426,8 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /## Gate set \(deprecated\)/);
   assert.match(phases, /\*\*never\*\* uses `--lite`/);
   assert.match(phases, /先不写代码/);
+  assert.match(phases, /commit-scoped-review/);
+  assert.match(phases, /归档提示/);
   assert.match(read('claude-commands/jj-ralph.md'), /不要.*`--lite`/);
   assert.match(read('skills/jj-ralph/references/tiny-example.md'), /does \*\*not\*\* drop gates/);
 
@@ -1276,6 +1302,41 @@ test('accept PASS blocked when write-then-read evidence_class is only static', (
     saveRun(run, cwd);
     const ok = setGate(runId, { gate: 'accept', status: 'PASS', cwd });
     assert.equal(ok.run.gates.accept, 'PASS');
+
+    run.gates.accept = 'PENDING';
+    saveRun(run, cwd);
+    fs.writeFileSync(acceptancePath, [
+      '# ' + runId,
+      '',
+      '## Goal',
+      '',
+      'lean checkbox',
+      '',
+      '## 验收',
+      '',
+      '1. [x] After save, reopen shows title persist 证据: static',
+      '',
+      '## Steps',
+      '',
+      '1. [x] `src/a.js`',
+      ''
+    ].join('\n'), 'utf8');
+    const checkbox = inspectAcceptanceEvidence(loadRun(runId, cwd), cwd);
+    assert.equal(checkbox.weak_evidence_pass, true);
+    assert.throws(
+      () => setGate(runId, { gate: 'accept', status: 'PASS', cwd }),
+      /evidence_class over-claim/
+    );
+    fs.writeFileSync(acceptancePath, [
+      '# ' + runId,
+      '',
+      '## 验收',
+      '',
+      '1. [x] After save, reopen shows title  evidence_class: write-then-read  证据: write_then_read:mock_ok',
+      ''
+    ].join('\n'), 'utf8');
+    const checkboxOk = setGate(runId, { gate: 'accept', status: 'PASS', cwd });
+    assert.equal(checkboxOk.run.gates.accept, 'PASS');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2973,6 +3034,201 @@ test('migrate --prune-archive dry-run by default; --yes deletes 1.0 archive/ sna
     assert.equal(deleted.prune_archive.dry_run, false);
     assert.equal(deleted.prune_archive.count, 1);
     assert.ok(!fs.existsSync(snap));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+function makeNextRun(patch = {}) {
+  return {
+    run_id: 'task-next-sample',
+    status: 'IN_PROGRESS',
+    phase: 'ACCEPT',
+    gates: { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PENDING', archive: 'PENDING' },
+    review: null,
+    archive: null,
+    ...patch
+  };
+}
+
+test('computeRalphNext: review / commit-scoped-review / finalize / completed empty / resume window', () => {
+  assert.equal(INDEX_ACTIVE_CAP, 5);
+  assert.equal(INDEX_STALE_MS, 5 * 24 * 60 * 60 * 1000);
+  assert.equal(computeRalphNext(makeNextRun({
+    review: { latest_review_id: 'REV-1', reviews: [{ review_id: 'REV-1', outcome: 'NEEDS_CHANGES' }] }
+  })), 'review');
+  assert.equal(computeRalphNext(makeNextRun({
+    gates: { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' },
+    review: { latest_review_id: 'REV-2', reviews: [{ review_id: 'REV-2', outcome: 'PASS', review_scope: 'working_tree' }] }
+  })), 'commit-scoped-review');
+  assert.equal(computeRalphNext(makeNextRun({
+    gates: { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PENDING' },
+    review: { latest_review_id: 'REV-3', reviews: [{ review_id: 'REV-3', outcome: 'PASS', review_scope: 'commit', reviewed_commit: 'abc1234' }] }
+  })), 'finalize');
+  assert.equal(computeRalphNext(makeNextRun({
+    status: 'COMPLETED',
+    phase: 'ARCHIVE',
+    gates: { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PASS' },
+    archive: { archived_at: '2026-09-01T00:00:00.000Z' }
+  }), { layout: 'completed' }), null);
+  assert.equal(computeRalphNext(makeNextRun({
+    status: 'IN_PROGRESS',
+    phase: 'DELIVER',
+    gates: { analyze: 'PASS', plan: 'PASS', deliver: 'PASS', accept: 'PASS', archive: 'PASS' },
+    archive: { archived_at: '2026-09-01T00:00:00.000Z' }
+  })), 'check');
+  assert.equal(computeRalphNext(makeNextRun({ status: 'PAUSED' })), 'check');
+  assert.equal(computeRalphNext(makeNextRun({ needs_migrate: true, run_id: 'RALPH-old' })), 'migrate');
+});
+
+test('init same-session guard matches CLI --thread-id / host.thread_id', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-host-sess-'));
+  const stdout = { write: () => {} };
+  try {
+    assert.equal(runCli([
+      'ralph', 'init',
+      '--run-id', 'task-host-sess-a',
+      '--title', 'first in session',
+      '--goal', 'do the first thing',
+      '--thread-id', 'sess-1',
+      '--no-knowledge-refs'
+    ], { cwd, stdout }), 0);
+    const listed = listRuns(cwd);
+    assert.equal(listed.find((row) => row.run_id === 'task-host-sess-a')?.host_thread_id, 'sess-1');
+    assert.throws(
+      () => runCli([
+        'ralph', 'init',
+        '--run-id', 'task-host-sess-b',
+        '--title', 'unrelated title here',
+        '--goal', 'unrelated goal here',
+        '--thread-id', 'sess-1',
+        '--no-knowledge-refs'
+      ], { cwd, stdout }),
+      /same session already has live Ralph task-host-sess-a/
+    );
+    initRun({
+      run_id: 'task-host-sess-b',
+      title: 'second forced',
+      goal: 'forced sibling',
+      attach_knowledge: false,
+      force: true,
+      host: { thread_id: 'sess-1' }
+    }, cwd);
+    const hints = collectSameRequirementHints(listRuns(cwd));
+    assert.equal(hints.triggered, true);
+    assert.ok(hints.items.some((item) => item.kind === 'same-session' && item.thread_id === 'sess-1'));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('init refuses review-slice slug; index prompts when it sits beside another live run', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-slice-'));
+  try {
+    assert.throws(
+      () => initRun({
+        run_id: 'task-h5-enter-review-fix',
+        title: '供应商H5入驻审查三点修复',
+        goal: '按审查修三点',
+        attach_knowledge: false
+      }, cwd),
+      /review-fix \/ 审查修复 is not a new requirement/
+    );
+    initRun({
+      run_id: 'task-enter-form-h5',
+      title: '动态入驻表单交接到供应商端H5',
+      goal: 'H5 交接',
+      attach_knowledge: false
+    }, cwd);
+    initRun({
+      run_id: 'task-h5-enter-review-fix',
+      title: '供应商H5入驻审查三点修复',
+      goal: '按审查修三点',
+      attach_knowledge: false,
+      force: true
+    }, cwd);
+    const index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.match(index, /## 同需求提示/);
+    assert.match(index, /审查切片不是新任务/);
+    assert.match(index, /不自动合并/);
+    const listed = getStatus({ cwd });
+    assert.equal(listed.same_requirement_hints.triggered, true);
+    assert.match(renderRalphStatusText(listed), /同需求提示/);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('index.md archive hints: overflow / stale trigger; uncertain asks; never auto-archive', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-index-hints-'));
+  try {
+    const fresh = initRun({
+      run_id: 'task-hint-fresh-a',
+      title: 'fresh a',
+      goal: 'two live runs stay quiet',
+      attach_knowledge: false
+    }, cwd);
+    initRun({
+      run_id: 'task-hint-fresh-b',
+      title: 'fresh b',
+      goal: 'two live runs stay quiet',
+      attach_knowledge: false
+    }, cwd);
+    let index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.doesNotMatch(index, /## 归档提示/);
+    const quiet = collectIndexArchiveHints([
+      { run_id: fresh.run_id, status: 'IN_PROGRESS', updated_at: fresh.updated_at },
+      { run_id: 'task-hint-fresh-b', status: 'IN_PROGRESS', updated_at: new Date().toISOString() }
+    ]);
+    assert.equal(quiet.triggered, false);
+    assert.equal(quiet.auto_archive, false);
+
+    const staleAt = new Date(Date.now() - INDEX_STALE_MS - 60_000).toISOString();
+    const paused = loadRun('task-hint-fresh-a', cwd);
+    paused.status = 'PAUSED';
+    paused.updated_at = staleAt;
+    saveRun(paused, cwd);
+    index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.match(index, /## 归档提示/);
+    assert.match(index, /5天未更新/);
+    assert.match(index, /询问用户/);
+    assert.match(index, /不自动 finalize \/ abandon/);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'task-hint-fresh-a', '.state', 'run.json')));
+
+    const ready = loadRun('task-hint-fresh-b', cwd);
+    ready.gates.accept = 'PASS';
+    ready.gates.deliver = 'PASS';
+    ready.updated_at = staleAt;
+    saveRun(ready, cwd);
+    index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.match(index, /`task-hint-fresh-b` \| 5天未更新 \| finalize/);
+
+    for (let i = 0; i < 4; i += 1) {
+      initRun({
+        run_id: 'task-hint-overflow-' + i,
+        title: 'overflow ' + i,
+        goal: 'push active count over cap',
+        attach_knowledge: false
+      }, cwd);
+    }
+    const listed = listRuns(cwd).filter((row) => row.layout === 'active');
+    assert.ok(listed.length > INDEX_ACTIVE_CAP);
+    const written = writeRalphIndex(cwd);
+    assert.equal(written.hints.triggered, true);
+    assert.equal(written.hints.auto_archive, false);
+    assert.equal(written.hints.overflow, true);
+    index = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', 'index.md'), 'utf8');
+    assert.match(index, /活跃超过5条/);
+    for (const row of listed) {
+      assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', row.run_id, '.state', 'run.json')));
+    }
+
+    const status = getStatus({ runId: 'task-hint-fresh-b', cwd });
+    assert.equal(status.next, 'finalize');
+    assert.match(renderRalphStatusText(status), /next: finalize/);
+    const listedStatus = getStatus({ cwd });
+    assert.equal(listedStatus.index_hints.triggered, true);
+    assert.match(renderRalphStatusText(listedStatus), /归档提示/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

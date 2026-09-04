@@ -2,7 +2,7 @@
 
 ## Preferred path (Ralph)
 
-When a lead Ralph run exists, prefer: `.workflow/ralph/tasks/<task_key>/.state/handoff.json` (SSOT remains `run.handoff`). Fallback: leftover `.workflow/ralph/RALPH-*/handoff/handoff.json`. Users only say natural language such as “hand off to …”. Legacy csv-wave is read for compatibility only.
+When a lead Ralph run exists, prefer: `.workflow/ralph/<run_id>/.state/handoff.json` (live flat `task-<slug>/`; leftover `tasks/<id>/` ok). SSOT remains `run.handoff`. Fallback: leftover `.workflow/ralph/RALPH-*/handoff/handoff.json`. Users only say natural language such as “hand off to …”. Legacy csv-wave is **read-only** compatibility.
 
 Handoff snapshot passes already-converged source requirement semantics to multiple target projects. It solves the duplication and understanding drift of “every target re-reads the full source session and requirement docs”. It does not replace formal requirements and does not cache target source facts.
 
@@ -12,7 +12,7 @@ Handoff snapshot passes already-converged source requirement semantics to multip
 - Snapshot is an immutable derived inventory inside the source `ANL-SOURCE` artifact; MUST store only refs, source fingerprints, coverage, correction order, verification status, and target differences still to verify.
 - Snapshot MUST NOT copy requirement body; MUST NOT write into `.workflow/specs/`, `.workflow/.sessions/*/status.json`, or create `.workflow/jj-same/`.
 - Source Inventory entities MUST live only in the snapshot’s owning `requirement-baseline` bundle; `context-package.json` stores only `handoff_ref`, `snapshot_id`, and necessary summaries.
-- Each target MUST re-verify current Git, source, call chain, and target-only behavior, and independently generate `ANL-TARGET -> PLN -> EXC/VRF -> REV`.
+- Each target MUST re-verify current Git, source, call chain, and target-only behavior, and write ADAPT / plan / verify into **that repo’s** `.workflow/ralph/task-<slug>/` (`task_plan.md` = Goal / 验收 / Steps). `ANL-TARGET` / `PLN` / `EXC` remain **ids**; do not create control-root `ANL-*.md` or a second csv-wave home.
 
 Canonical path:
 
@@ -31,7 +31,7 @@ Field contract: [handoff-snapshot.schema.json](handoff-snapshot.schema.json).
 Generate a snapshot when the source project enters either state:
 
 - `PARTIAL_HANDOFF`: source commit is stable, but delivery or requirement evidence is still incomplete. MUST also give `execution_readiness`: `READY` when only source review, UAT, VRF, or handoff records are missing — targets MAY implement with caveats; `BLOCKED` when source is unstable, final requirements conflict, or `MUST`-impacting gaps exist — targets may only do high-level difference analysis.
-- `READY_FOR_HANDOFF`: source commit stable, required static checks pass, required user runtime tests confirmed or evidenced `N/A`, review does not block, and no `MUST`-impacting `UNRESOLVED`. After user trigger, targets MAY enter full `ANL-TARGET` and the implement chain.
+- `READY_FOR_HANDOFF`: source commit stable, required static checks pass, required user runtime tests confirmed or evidenced `N/A`, review does not block, and no `MUST`-impacting `UNRESOLVED`. After user trigger, targets MAY fill their Ralph `task_plan.md` and the implement chain.
 
 `handoff_status` is source handoff completeness; `execution_readiness` is whether the current target has enough facts to start coding — do not mix them. Source `review/user_test` `PENDING` can only prevent claiming `READY_FOR_HANDOFF`; it alone MUST NOT drop `execution_readiness` to `BLOCKED`.
 
@@ -71,7 +71,7 @@ When running consume-handoff (e.g. `$jj-same handoff=@.../handoff-snapshot.yaml`
 3. On `REUSE`, consume shared `ANL-SOURCE / BLP/REQ` directly; MUST NOT regenerate source analysis or blueprint in the target repo.
 4. On `REFRESH_SOURCES`, read only changed, new, restored, or `UNRESOLVED`-linked sources and generate a successor snapshot in the source artifact owner repo; targets MUST NOT privately rewrite shared requirements.
 5. On `REBASELINE`, return to the source artifact owner repo to rebuild source analysis and blueprint refs; target stays `BLOCKED`.
-6. Target `ANL-TARGET` MUST record consumed `snapshot_id`, `handoff_ref`, snapshot hash, source HEAD, and freshness evidence.
+6. Target Ralph `task_plan.md` / progress MUST record consumed `snapshot_id`, `handoff_ref`, snapshot hash, source HEAD, and freshness evidence (`ANL-TARGET` as id only).
 7. When the current target finds differences that apply only to itself, write `TARGET-ONLY / DO-NOT-PORT / N/A`; when shared product semantics change, return to the source for a requirement delta and successor snapshot.
 
 ## Update handoff

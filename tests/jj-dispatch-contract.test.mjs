@@ -1727,4 +1727,10 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /Hot memory/);
   assert.match(skill, /~\/\.jj-flow\/memory/);
   assert.match(skill, /do not pad/i);
+  assert.match(skill, /ensureDispatchRalphRuns/);
+  assert.match(skill, /Coordination vs Ralph/);
+  assert.match(skill, /ANL-LEAD\.md/);
+  assert.match(skill, /reuse-sibling/);
+  assert.match(skill, /Multi-turn chat does not drive the plane/);
+  assert.match(skill, /host\.thread_id/);
 });

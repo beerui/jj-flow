@@ -254,6 +254,12 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /reference_implementation/);
   assert.match(sameCorpus, /\.workflow|must not|不得继续用补齐|不得只更新计划/i);
   assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Happy path|happy path/i);
+  assert.match(sameSkill, /Write plane/);
+  assert.match(sameSkill, /task_plan\.md/);
+  assert.match(sameSkill, /ensureDispatchRalphRuns/);
+  assert.match(sameSkill, /reuse-sibling/);
+  assert.match(sameSkill, /Never init `task-\*-review-fix`/);
+  assert.doesNotMatch(sameSkill, /\.workflow\/ralph\/tasks\/<task_key>/);
   assert.match(sameCorpus, /analysis|ANALYZE|分析阶段/i);
   assert.doesNotMatch(sameCorpus, /[Mm]aestro|maestro explore/);
   assert.equal(fs.existsSync(path.join(target, 'jj-feat', 'SKILL.md')), false);

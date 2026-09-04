@@ -106,13 +106,13 @@ When the user provides `handoff_ref`:
 3. On `REUSE`, consume shared `ANL-SOURCE / BLP/REQ` referenced by the snapshot; target repos MUST NOT regenerate source analysis or blueprint.
 4. `REFRESH_SOURCES` reads only changed, new, restored, or `UNRESOLVED`-linked sources and generates a successor snapshot in the source artifact owner repo.
 5. For `PARTIAL_HANDOFF`, read `execution_readiness` separately: `READY` means only delivery-completion evidence is missing — implement with caveats is allowed; `BLOCKED` means unstable source, requirement conflict, or `MUST`-impacting gaps — do not create executable `PLN` or business changes.
-6. The target still MUST generate its own `ANL-TARGET` from current source and record `snapshot_id`, `handoff_ref`, snapshot hash, and source HEAD.
+6. The target still MUST write its own Ralph `task_plan.md` from current source and record `snapshot_id`, `handoff_ref`, snapshot hash, and source HEAD (`ANL-TARGET` as id only).
 
 ## Artifact routing (detail)
 
 Summary and canonical table: [artifact-routing.md](artifact-routing.md). Do not change code before requirements and target facts converge, and do not treat “artifact chain complete” as “facts sufficient”. Choose the shortest path from input:
 
-- **Fast implement**: user explicitly asks migrate/implement; stable source commit/diff, final requirement sources, and target call chain are all verifiable; no `MUST`-impacting `UNRESOLVED`. Reuse existing `ANL/BLP/REQ`; if missing, record a minimal source-cited requirement ledger in target `ANL-TARGET`, generate the narrowest `PLN`, then enter `EXC` immediately. Do not rebuild full `ANL-SOURCE` or blueprint for formal completeness; fill missing canonical handoff artifacts before `HANDOFF_READY`.
+- **Fast implement**: user explicitly asks migrate/implement; stable source commit/diff, final requirement sources, and target call chain are all verifiable; no `MUST`-impacting `UNRESOLVED`. Reuse existing `ANL/BLP/REQ` ids; if missing, record a minimal source-cited ledger in the target `task_plan.md`, then code. Do not rebuild full `ANL-SOURCE` or blueprint for formal completeness; fill missing canonical handoff artifacts before `HANDOFF_READY`.
 - **Standard discovery**: conflicting requirements, unclear source scope, multiple targets need shared semantics, or `MUST`-impacting evidence has not converged. Generate full source analysis and formal requirements.
 - **Snapshot reuse**: with a valid `handoff_ref`, reuse shared source analysis and requirements; only do freshness, target analysis, implement, and verification.
 
@@ -120,22 +120,22 @@ Standard discovery generates and registers in order:
 
 1. **Source analysis `ANL-SOURCE`**: summarize session, requirement evolution, commits, diffs, source change map, draft requirement ledger, and razor list.
 2. **Formal requirements `BLP`**: consume source analysis into `.workflow/blueprint/BLP-*/requirements/REQ-*.md`; do not rewrite `UNRESOLVED` as confirmed requirements.
-3. **Target analysis `ANL-TARGET`**: each target reviews current architecture, call chain, capability matrix, risks, and port decisions (from blueprint `BLP-*`). Across repos, use the blueprint’s direct path.
-4. **Implement plan `PLN`**: only after requirement readiness passes and target analysis has no `MUST`-impacting block, generate minimal `plan.json` and `.task/TASK-*.json`; after plan generation, continue coding in the same implement request — do not stop at plan delivery.
-5. **Implement and re-review `EXC/VRF/REV`**: implement, then `quality-review`; each skill writes canonical artifacts and registers them in the target repo’s `.workflow/state.json`.
+3. **Target analysis `ANL-TARGET` (id)**: each target reviews current architecture, call chain, capability matrix, risks, and port decisions in **that repo’s** `task_plan.md`. Across repos, consume the source Ralph / blueprint path — do not copy bodies into `control_root`.
+4. **Implement plan `PLN` (id)**: only after requirement readiness passes and target analysis has no `MUST`-impacting block, write the narrowest `## Steps` in that Ralph; continue coding in the same implement request — do not stop at plan delivery.
+5. **Implement and re-review `EXC/VRF/REV` (ids)**: implement, then `$jj-review`; write progress / findings / `REV-*` in the **target Ralph**, not under `~/.jj-flow/tasks`.
 
 After the source finishes steps 1–2 and has a stable commit, generate the handoff snapshot inside source `ANL-SOURCE` per [handoff-snapshot.md](handoff-snapshot.md). With a valid `handoff_ref`, targets reuse shared steps 1–2 and only run the freshness gate plus their own steps 3–5; do not copy a full source analysis and blueprint into every target for “artifact completeness”.
 
-Multi-project tasks maintain the family coordination plan from the `ANL-SOURCE` phase. Before blueprint readiness, record only plan drafts and blockers; after readiness, register the family coordination `PLN` on the lead project. It manages project order, status, branches, session handoff, and unlock gates only — it does not replace each target’s own `ANL-TARGET -> PLN`.
+Multi-project tasks maintain the family / coordination plan from the source-analysis phase. Before blueprint readiness, record only plan drafts and blockers; after readiness, the lead Ralph (or dispatch plane) tracks order and unlocks only — it does not replace each target’s own Ralph `task_plan.md`.
 
-Single-target ports without handoff snapshot: the target repo owns the full artifact chain. Prepare-handoff mode: the source artifact owner holds shared source analysis, blueprint, and snapshot; whether one or many targets, each target separately owns `ANL-TARGET`, `PLN`, `EXC/VRF`, and `REV`. If the target has no `.workflow/`, run workflow init first.
+Single-target ports without handoff snapshot: the target repo owns the full Ralph. Prepare-handoff mode: the source Ralph / optional blueprint hold shared semantics; whether one or many targets, each target separately owns its Ralph ADAPT + implement + review. If the target has no `.workflow/ralph/task-<slug>/`, init it in that repo first.
 
 Subsequent sync uses an incremental chain:
 
 1. Restore `sync_key` and stable scope from the target arch spec; reverse `last_source_head` from the latest successful `VRF/REV` delivery chain or a `NO_CHANGE_REQUIRED` target analysis.
 2. Analyze `last_source_head..current_source_head` and generate `ANL-SOURCE-DELTA`.
 3. On product-behavior change, generate a new `BLP-*` requirement delta; for bug fixes under the same requirement, reuse the original blueprint.
-4. Each target regenerates `ANL-TARGET -> PLN -> EXC/VRF -> REV`; do not code from an old target analysis.
+4. Each target refreshes its Ralph `task_plan.md` + progress (ids may still be `ANL-TARGET` / `PLN` / `EXC`); do not code from an old target analysis.
 5. Only when target non-browser checks pass, required user manual tests are confirmed or evidenced as `N/A`, and review does not block — or target analysis proves all deltas need no change — treat this `current_source_head` as the next successful checkpoint.
 
 Source and target analysis MUST at least produce:
@@ -165,7 +165,7 @@ Full contract, checkpoints, and deferral fields: [continuous-sync.md](continuous
 - Later sync MUST compare three sides — last successful target state, B’s current state, A’s new delta — and preserve B’s local changes after the first port.
 - Classify source deltas as `REQUIREMENT_CHANGE / BUG_FIX / REFACTOR / REVERT / NOISE`. Only requirement-related changes and same-root-cause fixes enter target review.
 - Failed sync does not advance the baseline; next run continues cumulative analysis from the old baseline and MUST NOT skip intermediate commits.
-- When all deltas this round are `N/A / NOISE / DO-NOT-PORT`, allow `ANL-TARGET` to form a `NO_CHANGE_REQUIRED` zero-change checkpoint; do not forge `EXC/VRF/REV`.
+- When all deltas this round are `N/A / NOISE / DO-NOT-PORT`, allow the target Ralph (`ANL-TARGET` id) to form a `NO_CHANGE_REQUIRED` zero-change checkpoint; do not forge `EXC/VRF/REV`.
 - `jj-same` does not continuously watch A. Automation only has A’s CI emit `sync_key + before_sha + after_sha + changed_paths`; default is a reviewable PR on B — no silent edits or auto-merge.
 
 ## Post-change sync decision
@@ -192,7 +192,7 @@ Detailed execution and deferral fields: [continuous-sync.md](continuous-sync.md)
 - Confirm lead project, default or user-specified delivery order, lead branch, derived target branches, and family plan ownership; when Project A leads, default `pa -> pb -> pc`.
 - **Branch purpose + base freshness preflight (hard gate, before coding)**: read [branch-purpose-preflight.md](branch-purpose-preflight.md). Before writing business code or creating a target branch, answer from current-repo `git branch --show-current` / HEAD: task purpose, current branch purpose, intended work branch, this turn’s **integration land** (check 4 — not CREATE base), and (if the user asks about ship content) whether the **tip tree** contains the target capability. On task/current purpose mismatch, mark `BLOCKED`; only allow switch/create of the correct branch or a recorded explicit user override (“land on this train branch”). Do not attach requirements onto a release train or unrelated feature line just because it is checked out (regression: EP-20260730-S1). **On CREATE additionally**: after `git fetch`, fill `base` / `origin_base` / `behind_count` / `base_action` / `create_from=master` (local); when `behind_count > 0` and clean, run `FF_LOCAL_MASTER` then `CREATE_FROM_LOCAL_MASTER`; forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev` (regression: EP-20260803 + 2026-08-10).
 - For continuous sync, confirm `sync_key`, source ref, trigger mode, and last successful checkpoint; if checkpoint is missing and initial baseline cannot be verified, stay `BLOCKED`.
-- When the user only asks for analysis: generate `ANL-SOURCE` and `BLP` only without a valid handoff snapshot; with a valid snapshot, only run the freshness gate and current-target `ANL-TARGET` — no business code.
+- When the user only asks for analysis: update source Ralph / optional `BLP` only without a valid handoff snapshot; with a valid snapshot, only run the freshness gate and current-target `task_plan.md` — no business code.
 - When the user asks migrate or change, continue implement after analysis; without explicit ask, do not commit or push on your own.
 - When the agent auto-advances to the next project, the predecessor must reach `HANDOFF_READY`; when the current message explicitly names a target and asks implement, use that target’s `EXECUTION_READY` — do not require other siblings first.
 - With `handoff_ref`, run the freshness gate first; `STALE/BROKEN` MUST NOT continue; `PARTIAL` MUST NOT bypass `MUST`-impacting source gates.

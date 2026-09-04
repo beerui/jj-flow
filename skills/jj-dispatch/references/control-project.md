@@ -71,7 +71,9 @@ The control project itself lives in `control_project` and may also appear in `pr
 # Product default control_root (all users, no config)
 ~/.jj-flow/
   .workflow/dispatch/<DELIVERY_ID>/control-plane.json
-  .workflow/tasks/TASK-<DELIVERY_ID>/
+  .workflow/tasks/TASK-<DELIVERY_ID>/   # 统筹索引（Goal/验收/Steps）；不是业务 Ralph
+# each business repo
+  <project>/.workflow/ralph/task-<slug>/
 
 # Optional portfolio (requires naming.json portfolio_root / control_root etc.)
 /portfolio/

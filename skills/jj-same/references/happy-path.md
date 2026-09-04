@@ -4,8 +4,8 @@ Main-path index. Details and long flows live in [workflow-core.md](workflow-core
 
 ## Numbered main path
 
-1. **Ralph-handoff-first**: current session `tasks/<task_key>/.state/run.json` (legacy `RALPH-*/run.json`) → `artifact_refs.handoff_ref` / `run.handoff`; when `ready=true`, do not redo source analysis.
-2. Resolve target roles and authorization scope (user natural language; with control, read-only manifest).
+1. **Ralph-handoff-first**: lead `.workflow/ralph/<run_id>/.state/run.json` (live flat `task-<slug>/`; leftover `tasks/<id>/` or `RALPH-*/run.json` ok) → `run.handoff`; when `ready=true`, do not redo source analysis.
+2. Resolve target roles and authorization scope (user natural language; with control, read-only manifest). **Same turn:** pin each target repo’s live Ralph (same session / review-slice first; else dispatch `task-<slug>`; else lead `run_id`). Missing Ralph → init/resume **in that repo**. Do not write ANL body under `~/.jj-flow`. Do not call `ensureDispatchRalphRuns`.
 3. **Branch purpose + CREATE base freshness preflight** (hard gate): [branch-purpose-preflight.md](branch-purpose-preflight.md) (purpose 1–5 + base freshness 6–10; CREATE only from freshened **local** `master` — default `create_from=master`; `base_action` = `FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER`; forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev`).
 4. Confirm **`EXECUTION_READY`**; if not met, `BLOCKED` / caveat — do not change business code.
 5. Narrowest plan + **implement** target business code and focused tests (same turn; not plan-status-only).
@@ -55,10 +55,10 @@ After same / port work, give the user **only** compact facts, for example:
 
 | Scenario | Rule |
 | --- | --- |
-| **With** `$jj-dispatch` control project | **Read-only** manifest: `origin_project`, `requirement_owner`, `lead_project`, `reference_implementation`, `targets`, `task_key`. This skill only ports / adapts / syncs checkpoints; **do not** invent control tasks or change approval snapshots. |
-| **Without** control project | Compatible with `source=A targets=B,C`; lead project may hold the family coordination plan. **Family plan ≠ dispatch approval** — no authoritative `task_key`; do not fake a scheduled delivery. |
+| **With** `$jj-dispatch` control project | **Read-only** manifest: `origin_project`, `requirement_owner`, `lead_project`, `reference_implementation`, `targets`, `task_key`. This skill only ports / adapts / syncs checkpoints; **do not** invent control tasks or change approval snapshots. Implement in each target’s Ralph — not in `~/.jj-flow/.workflow/tasks/TASK-*`. Do **not** call `ensureDispatchRalphRuns` (dispatch owns scaffold). |
+| **Without** control project | Compatible with `source=A targets=B,C`; lead project may hold the family coordination plan. **Family plan ≠ dispatch approval** — no authoritative `task_key`; do not fake a scheduled delivery. Still init/reuse a full Ralph in **each** target repo. |
 
-Business-task artifacts go under typed `.workflow/` directories; **forbid** a private `.workflow/jj-same/` tree. The `jj-flow` repo itself does not treat `.workflow` as a fact source.
+Business-task artifacts go under that repo’s `.workflow/ralph/task-<slug>/`; **forbid** a private `.workflow/jj-same/` tree and **forbid** treating `control_root` TASK files as the implement home. The `jj-flow` repo itself does not treat `.workflow` as a fact source.
 
 ## Other references
 

@@ -9,7 +9,7 @@
 
 单仓**只读审查适配器**：优先调用当前宿主内置 review/code-review。有 ralph run 时把结论映射为 `reviews/REV-*.json` 并回写 `run.json`；没有 run 时审工作区 / HEAD，不 init。
 
-不改业务代码，不 init run，不建 fix 任务，不走 dispatch。  
+不改业务代码，不 init run，不建 fix 任务，不走 dispatch。审查出 `NEEDS_CHANGES` 后停在 findings，等用户说「按审查改」再改。  
 可写到已 soft-archive / `COMPLETED` 的 run（ralph 无终态冻结）；不要为「补审查」另 init 新 run。  
 跨项目正式 VERIFIED 门用 `jj-dispatch`。
 
@@ -21,7 +21,7 @@
 4. **否则宿主内置 review** → `source=host_builtin`
 5. **映射** outcome：`PASS` / `NEEDS_CHANGES` / `BLOCKED`；compliance 对照 `## Steps`
 6. **落盘** 仅有 run 时：`reviews/REV-n.json` + 回写 `run.json` + `.state/events.jsonl`（不要把 ISO review 行写入 `progress.md`）；无绑定不落盘
-7. **最终回复**：`PASS` 只回一行；`NEEDS_CHANGES` 只列 OPEN findings；`BLOCKED` 才用 STOP 模板
+7. **最终回复**：无问题回 `通过。` + 一句总结；有问题列出每条问题 + 修改意见；`BLOCKED` 才用 STOP 模板
 
 ## 硬规则（摘要）
 

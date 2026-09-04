@@ -7,7 +7,7 @@ description: Single-repo read-only review adapter. Prefer host built-in review/c
 
 Produce a **read-only review**. Prefer the **host built-in** review engine; bind a ralph run when one exists, otherwise review the working tree or HEAD. **Do not** init a run to hold a review.
 
-**Happy path in one pass** (locate → scope → user/host map → persist if bound → one-line reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
+**Happy path in one pass** (locate → scope → user/host map → persist if bound → finish reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
 
 **May** write into soft-archived / `COMPLETED` runs (no terminal freeze).
 
@@ -32,7 +32,7 @@ Produce a **read-only review**. Prefer the **host built-in** review engine; bind
 | explicit `run_id` missing | 🔴 `BLOCKED` |
 | commit / paths / pasted host result | scope or 🔴 `BLOCKED` |
 | host entry **or** user artifact **or** (after 🔴) fallback | bound: `REV-n.json` + `run.json.review` + events.jsonl; unbound: chat only |
-| — | one-line on PASS; OPEN findings on NEEDS_CHANGES; STOP template on BLOCKED |
+| — | PASS: `通过。` + one-sentence summary; NEEDS_CHANGES: list each problem + 修改意见; STOP template on BLOCKED |
 
 Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md). Passes / nit cap / Steps compliance: [review-policy.md](references/review-policy.md).
 
@@ -83,8 +83,25 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
    CLI fails → direct-write skeleton. Write fails → 🔴 `BLOCKED` + paths.
 
-7. **Final reply** — no exception (`PASS`): **one line**. Bound: `outcome` `review_id` `run_id`. Unbound: `PASS` + `HEAD` or `working_tree`. No table, no path/host/source dump. Example: `PASS REV-1 on task-login-reminder`
-   `NEEDS_CHANGES`: one-line header + OPEN findings only (`id` / `file` / `line` / `description`). No metadata table.
+7. **Final reply** — Chinese, no `PASS REV-*` / `working_tree` dump, no host/source table.
+
+   `PASS` (no OPEN findings):
+
+   ```text
+   通过。<一句总结：审了什么、结论为何通过>
+   ```
+
+   Example: `通过。工作区协议改动未见必须修改项。`
+
+   `NEEDS_CHANGES` (OPEN findings): list each problem and the suggested fix. No metadata table.
+
+   ```text
+   1. <问题：file:line + 现象>
+      修改意见：<怎么改>
+   ```
+
+   Bound `working_tree` PASS is temporary; archive needs a later `review-record --review-scope commit`. `$jj-end` is Git only after ralph `finalize`.
+   This adapter stays **read-only**. Do not change business code or start a fix in the same turn. Wait for the user to say 「按审查改」 / `$jj-ralph` before DELIVER.
    `BLOCKED` / host missing / write fail: STOP template + missing evidence.
 
 ## Fallback (host unavailable only)

@@ -198,9 +198,14 @@ export function appendProjectMapRow({
     const h = lines[i].trim().match(/^##\s+(.+)$/);
     if (h) currentHeading = h[1].trim();
     if (lines[i].trim().startsWith('|') && /aliases/i.test(lines[i]) && /path/i.test(lines[i])) {
-      if (!familyText || currentHeading.toLowerCase() === headingWanted.toLowerCase()) {
+      if (familyText) {
+        if (currentHeading.toLowerCase() === headingWanted.toLowerCase()) {
+          headerIdx = i;
+          break;
+        }
+      } else if (!isGroupedFamily(currentHeading)) {
         headerIdx = i;
-        if (familyText && currentHeading.toLowerCase() === headingWanted.toLowerCase()) break;
+        break;
       }
     }
   }

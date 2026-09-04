@@ -28,7 +28,7 @@ TASK-ID recovery -> PREVIEW (branch/workspace table)
 | 3 | Complete intake | **PREVIEW** read-only: write-task branch/workspace table (`behind_count`, `base_action`, `proposed_mode=S\|W\|P`, …); **no** intent write | `PREVIEW_ONLY` + table |
 | 4 | PREVIEW table | 🔴 **CHECKPOINT · user approves `task_keys`** this round. No approval → 🛑 **STOP** at `PREVIEW_ONLY` | Approved keys |
 | 5 | Branch/mode / CREATE base | 🔴 **CHECKPOINT · `NEEDS_CONFIRM`** when confidence low, dirty/diverged base, or unclear isolation. Show decision table; 🛑 **STOP** DISPATCH until user confirms | `READY` path |
-| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree. Opt-in Mode P → child session 1:1 per write `task_key` | Bound / RUNNING |
+| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree. Opt-in Mode P → child session 1:1 per write `task_key`. **Same turn:** scaffold control TASK index + `ensureDispatchRalphRuns` — every lead/target repo gets a full Ralph `task-<slug>` | Bound / RUNNING + per-repo Ralph |
 | 7 | Receipt / bound tasks | tick/resume; **without CLI, Agent writes plane** → [agent-write-plane.md](references/agent-write-plane.md) | Advanced status |
 | 8 | Claim done | 🔴 **CHECKPOINT · VERIFIED**: need `produced_commit` + review + real session + **attestation file** + **T-task-result-sync** in same write batch. Missing any → 🛑 **STOP** at `EVIDENCE_READY`/`RUNNING` | VERIFIED or hold |
 
@@ -90,6 +90,20 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 **Hot memory (optional, non-blocking):** when writing the per-task brief after DISPATCH, inject up to 5 lexical hits from `~/.jj-flow/memory/<project_key>.md` (one-line rule + backref). Empty is valid — do not pad. Confirmed `[x]` rows rank first. Never dump the whole file. Do not write AGENTS.md / CLAUDE.md. Portfolio KB overlay stays opt-in and silent-skip when missing.
 
 **Do not** claim VERIFIED in prose without attestation file path; **do not** dump full plane JSON unless user asks or BLOCKED needs it.
+
+## Coordination vs Ralph (do not collapse)
+
+| Layer | Where | What |
+| --- | --- | --- |
+| **统筹** | `~/.jj-flow` (`control_root`) | `DEL-*` plane / receipts / attestations / `TASK-*/task.md` **index only** (Goal / 验收 / Steps + Ralph pointers) |
+| **实施** | each business repo `.workflow/ralph/task-<slug>/` | full Ralph: `task_plan.md` + `progress.md` + `findings.md` + `.state/run.json` |
+
+- Control `TASK-*` format **is** Goal / 验收 / Steps (same contract as Ralph). Do **not** generate `ANL-LEAD.md` / `ANL-TARGET.md` / 10-section `分发提示词` as the implementation home.
+- `jj task scaffold` / DISPATCH **must** init or resume the same `task-<slug>` in **every** lead and target whose `projects[].path` exists. Missing path → list it and ask; do not pretend the control TASK dir is that project's Ralph.
+- Same delivery + same session thread already has a **live** Ralph in that repo → resume that run (`reuse-sibling`). Do **not** init a second live `task-*` for the same requirement. Thread match includes plane `thread_id` and run `review.task_thread_id` / `host.thread_id`.
+- **Multi-turn chat does not drive the plane.** New user turns resume the bound `task_key` + live Ralph. Chat / memory cannot TICK, BIND, or VERIFIED. `$jj-same` writes only the target Ralph (reuse live sibling; never `ensureDispatchRalphRuns`). `$jj-dispatch` writes only `control_root`. `$jj-ralph` writes only the current repo’s `run_id`.
+- Plane may still use `ANL-TARGET` as an evidence **id**; the body is the target repo `task_plan.md`.
+- `$jj-same` ports protocol into the **target Ralph**, it does not replace it.
 
 ## Directory configuration
 
@@ -196,7 +210,8 @@ Role fields: `origin_project` · `requirement_owner` · `lead_project` · `refer
 - Do not hand-write `VERIFIED` without `produced_commit` / real session / **attestation file**
 - Do not synthesize `session-…` placeholders to fake BOUND
 - Do not add Claude `/jj-dispatch`
-- Do not treat control root as a business source project
+- Do not treat control root as a business source project or as a substitute Ralph workspace
+- Do not leave a DISPATCH wave with only `~/.jj-flow/.workflow/tasks/TASK-*/ANL-*.md` and no per-project `.workflow/ralph/task-*`
 - Do not forge host APIs or “degrade to projectless” on capability failure
 - Do not treat skill install or `host:trial` as real Host acceptance
 - 🛑 **STOP** DISPATCH without approved keys + confirmed branch/mode; 🛑 **STOP** VERIFIED without attestation-bound evidence — recover via [Failure recovery](#failure-recovery-if-x--y)

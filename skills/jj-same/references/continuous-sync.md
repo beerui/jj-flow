@@ -47,7 +47,7 @@ Create a cross-project coordination plan when requirements start analysis on the
 - Current `snapshot_id`, `handoff_ref`, source HEAD, freshness, and successor relations.
 - Next project unlock conditions and user-trigger state.
 
-During analysis, record only high-level scope, risks, and differences still to verify for future projects — do not prefill lead project files or implement steps as target tasks. After blueprint readiness, generate or update the family coordination `PLN`; each target still must complete `ANL-TARGET` and its own implement `PLN` in its repo before development.
+During analysis, record only high-level scope, risks, and differences still to verify for future projects — do not prefill lead project files or implement steps as target tasks. After blueprint readiness, update family / coordination notes; each target still must complete its own Ralph `task_plan.md` (Goal / 验收 / Steps + ADAPT) in **that repo** before development. `ANL-TARGET` / `PLN` are ids, not control-root files.
 
 After any of development, bug fix, requirement correction, verification, review, commit, or handoff status changes, update the family delivery plan. Plan status cannot replace Git, `VRF`, or `REV` evidence.
 
@@ -85,7 +85,7 @@ There are two success checkpoints that may advance the baseline.
 - `REV-*` is not `BLOCK`.
 - No deferred, blocked, or unresolved conflicts impacting `MUST`.
 
-**Zero-change checkpoint** applies only when every source delta this round is evidenced as `N/A`, `NOISE`, or `DO-NOT-PORT` by target analysis. `ANL-TARGET` MUST record each disposition, evidence, and a `NO_CHANGE_REQUIRED` conclusion, with no `MUST` impact or unresolved items. This path does not forge `EXC/VRF/REV`.
+**Zero-change checkpoint** applies only when every source delta this round is evidenced as `N/A`, `NOISE`, or `DO-NOT-PORT` by target analysis. The target Ralph (`ANL-TARGET` id) MUST record each disposition, evidence, and a `NO_CHANGE_REQUIRED` conclusion, with no `MUST` impact or unresolved items. This path does not forge `EXC/VRF/REV`.
 
 Outside that zero-change path, analysis-only, plan failure, implement failure, verification failure, or review block do not advance the checkpoint. The next run keeps using the previous successful `last_source_head`, so A changes not yet landed on B are not skipped.
 
@@ -93,9 +93,9 @@ If no success checkpoint is found, use the first-port source commit from the syn
 
 ## First port
 
-1. Per `artifact-routing.md`, generate `ANL-SOURCE -> BLP -> ANL-TARGET -> PLN -> EXC/VRF -> REV`.
+1. Per `artifact-routing.md`, write source Ralph + optional `BLP`, then each target’s Ralph (`task_plan.md` / progress). Ids may still be `ANL-SOURCE` / `ANL-TARGET` / `PLN` / `EXC`.
 2. In source analysis, record `sync_key`, `source_base`, `source_head`, and feature scope.
-3. In target analysis, record B’s matching entrypoints, `TARGET-ONLY`, exclusions, and port decisions.
+3. In the target Ralph, record B’s matching entrypoints, `TARGET-ONLY`, exclusions, and port decisions.
 4. After successful verification, write arch specs: outgoing index on A, incoming contract on B.
 5. Use the first-port `source_head` as the first success checkpoint.
 

@@ -1,0 +1,17 @@
+{
+  "episode_id": "EP-20260904-h5-enter-dual-ralph",
+  "search": [
+    {
+      "id": "EP-20260904-h5-enter-dual-ralph",
+      "notes": "Only sample of dispatch init creating a second live Ralph beside a same-session review-slice."
+    }
+  ],
+  "holdout": [],
+  "regression": [
+    {
+      "id": "G-h5-reuse-sibling",
+      "notes": "Immutable: same delivery + live review-slice or same thread → reuse-sibling. Locked in evals/regression/EP-20260904-h5-enter-dual-ralph.json after human approve 2026-09-04."
+    }
+  ],
+  "notes": "n=1. Holdout empty until a second independent dual-Ralph dispatch appears. Do not score candidates on invented holdout."
+}

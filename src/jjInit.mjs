@@ -98,6 +98,59 @@ function groupedFamily(project) {
   return isGroupedFamily(raw) ? raw : '';
 }
 
+function pathParentKey(p) {
+  if (!p) return '';
+  return path.dirname(path.resolve(String(p))).replace(/\\/g, '/').replace(/\/$/, '').toLowerCase();
+}
+
+function textHitsFamily(text, family) {
+  const hay = String(text || '');
+  const needle = String(family || '').trim();
+  return needle.length >= 2 && hay.includes(needle);
+}
+
+/**
+ * Suggest an existing map family. Never invent a new family name.
+ * Signals: unique sibling-dir family, or unique longest name/alias/path hit.
+ */
+export function guessProjectFamily(projectPath, map = {}) {
+  const families = listFamilies(map);
+  if (!families.length) return { family: '', reason: 'none', candidates: [] };
+
+  const abs = path.resolve(projectPath || '.');
+  const parent = pathParentKey(abs);
+  const name = guessProjectName(abs);
+  const aliases = guessProjectAliases(abs);
+  const base = path.basename(abs);
+  const texts = [name, base, ...aliases];
+
+  const sibling = new Set();
+  for (const project of map.projects || []) {
+    if (!project?.path) continue;
+    if (pathParentKey(project.path) !== parent) continue;
+    const family = groupedFamily(project);
+    if (family) sibling.add(family);
+  }
+
+  const nameHits = families
+    .filter((family) => texts.some((text) => textHitsFamily(text, family)))
+    .sort((a, b) => b.length - a.length);
+  const uniqueName = nameHits.length && (nameHits.length === 1 || nameHits[0].length > nameHits[1].length)
+    ? nameHits[0]
+    : '';
+
+  if (sibling.size === 1) {
+    const only = [...sibling][0];
+    if (uniqueName && uniqueName !== only) {
+      return { family: '', reason: 'conflict', candidates: [only, uniqueName] };
+    }
+    return { family: only, reason: 'sibling-dir', candidates: [only] };
+  }
+  if (uniqueName) return { family: uniqueName, reason: 'name-match', candidates: [uniqueName] };
+  if (nameHits.length > 1) return { family: '', reason: 'ambiguous-name', candidates: nameHits };
+  return { family: '', reason: 'none', candidates: [] };
+}
+
 function listFamilies(map) {
   const set = new Set();
   for (const project of map.projects || []) {
@@ -179,7 +232,9 @@ export function formatInitPreviewView(payload) {
     const status = project.status === 'indexed' ? '已在地图' : '待加入';
     const pending = (project.knowledge || []).filter((row) => !row.ingested);
     const aliasText = (project.aliases || []).filter(Boolean).join(',');
-    const familyText = project.family ? `  家族=${project.family}` : '';
+    const familyText = project.family
+      ? `  家族=${project.family}${project.family_source === 'guess' ? '（建议）' : ''}`
+      : '';
     const pendingText = pending.length
       ? `  待投喂=${pending.length}  ${pending.map((row) => row.title).filter(Boolean).join('；')}`
       : '  待投喂=0';
@@ -214,17 +269,21 @@ export function previewInit({ cwd = process.cwd(), root = null } = {}) {
         name: hit.name,
         aliases: hit.aliases || [],
         family: groupedFamily(hit),
+        family_source: groupedFamily(hit) ? 'map' : 'none',
         project_key: projectKey,
         entry: hit.entry || '',
         knowledge
       };
     }
+    const guessed = guessProjectFamily(projectPath, map);
     return {
       status: 'proposed',
       path: projectPath,
       name: guessProjectName(projectPath),
       aliases: guessProjectAliases(projectPath),
-      family: '',
+      family: guessed.family,
+      family_source: guessed.family ? 'guess' : 'none',
+      family_reason: guessed.reason,
       project_key: projectKey,
       entry: guessEntry(projectPath),
       knowledge
@@ -260,16 +319,30 @@ export function joinInit({
   entry = ''
 } = {}) {
   const { mapPath } = ensureInitLayout();
-  return appendProjectMapRow({
+  const target = projectPath || cwd;
+  let familyText = String(family || '').trim();
+  let familySource = familyText ? 'user' : '';
+  let familyReason = '';
+  if (!familyText) {
+    const map = loadProjectMap({ mapPath });
+    const guessed = guessProjectFamily(target, map);
+    if (guessed.family) {
+      familyText = guessed.family;
+      familySource = 'guess';
+      familyReason = guessed.reason;
+    }
+  }
+  const result = appendProjectMapRow({
     mapPath,
-    projectPath: projectPath || cwd,
+    projectPath: target,
     name,
     aliases,
-    family,
+    family: familyText,
     type,
     host,
     entry
   });
+  return { ...result, family_source: familySource || 'none', family_reason: familyReason };
 }
 
 function resolveContributionFile({ cwd, runId, file }) {

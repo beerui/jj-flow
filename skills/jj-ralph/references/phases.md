@@ -18,7 +18,7 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 | `COMPLETED` | After the latest archive; **may** `resume` same run to edit again |
 | `ABANDONED` | Abandoned; no map/archive; can `resume` to recover |
 
-Same requirement always prefers the same `run_id`. New run only for a truly new requirement.
+Same requirement always prefers the same `run_id`. New run only for a truly new requirement. A review finding / 「审查修复」 / `review-fix` is the same requirement — resume, do not init. `index.md` `## 同需求提示` is prompt-only (never auto-merge).
 
 ## Autonomy loop
 
@@ -118,11 +118,18 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 
 ## Closeout
 
-- After accept PASS, prefer `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`).
+```text
+review（可先 working_tree）→ commit → review-record --review-scope commit
+→ gate accept PASS → MUST finalize → $jj-end
+```
+
+- Follow `jj ralph status` `next`. `NEEDS_CHANGES`/`BLOCKED` → `review` (not `gate accept`). accept PASS + latest PASS on `working_tree` → `commit-scoped-review` (not `finalize`). accept PASS with no blocking review and no leftover resume window → `finalize`. COMPLETED in `completed/` → no next.
+- After accept PASS, `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `$jj-end` is Git only and does not write the run.
 - Stepwise: `map-merge` then `archive`; do not archive without map.
-- Further edits: `resume` same run → re-verify → may `finalize` again.
+- Further edits: `resume` same run → re-verify → may `finalize` again. After resume, leftover `run.archive` is **not** an immediate finalize MUST (`next=check`).
 - Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated.
 - Truly new requirement only → `init` a new run.
+- `index.md` `## 归档提示`: live `task-*` **> 5** or any live `updated_at` **≥ 5 days** → prompt only. Never auto finalize/abandon. Certain (accept PASS, no blocking review) may suggest `finalize`; PAUSED / BLOCKED / mid-flight / cannot tell finalize vs abandon → **ask the user**.
 
 ## Rollback
 

@@ -29,6 +29,6 @@ Mandatory order:
 5. Push integration
 6. Return per `return_to` (default work)
 
-On conflict: default self-merge (Vue/docs/logic that compose). Abort the whole merge only if unhandleable (same product flag contradicts and you cannot tell which side wins). Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push. Unrelated dirty files stay unstaged.
+On conflict: default self-merge — inventory both parents and keep both. Never merge `dev` into the work branch. Never `--ours/--theirs`. Unclear task / merge / requirement → ask first (do not invent or pick a side). Abort only if unhandleable. Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push.
 
-Happy path: one Chinese line (`work→integration`, hash, pushed). Tables/blockers only on STOP / dry_run / unhandleable abort.
+Finish reply: two Chinese lines — `合并状态：已合并到：<integration>` or `合并状态：已回退：<reason>`, then `当前分支：<HEAD>`. Classify table / blockers only on STOP / dry_run / unhandleable abort.

@@ -9,7 +9,7 @@
 
 单仓闭环：需求分析 → 计划 → 实施验证 → 验收 → 归档（ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE）。  
 产物在业务仓 `.workflow/ralph/`；交接真相源是 `run.handoff`。  
-同需求始终优先同一 `run_id`（归档后 `resume`；半途 `abandon` 可救回）。跨仓用 `jj-same`，多项目调度用 `jj-dispatch`。
+同需求始终优先同一 `run_id`（归档后 `resume`；半途 `abandon` 可救回）。「审查修复 / review-fix」不是新任务。同会话守卫认 `review.task_thread_id` 和 CLI `--thread-id` / `host.thread_id`。审查只出 findings，等用户说「按审查改」再改。跨仓用 `jj-same`，多项目调度用 `jj-dispatch`。
 
 ## 仓库规范（2026-08-03）
 
@@ -93,12 +93,13 @@
 3. 证据层级不得低于 MUST 的 `evidence_class`；禁 write-then-read 仅用静态 diff 假绿 → `must-evidence.md`  
 4. product-consistency 在 accept/archive gate 机械执行 → `phases.md` § gate  
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
-6. `$jj-end` 只做 Git，与 run status 正交  
+6. `$jj-end` 只做 Git，与 run status 正交；收工顺序 review → commit → commit-scope 复审 → accept PASS → MUST finalize → `$jj-end`
 7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；**嵌套时**一句提示即可，直接调用不打 banner  
 8. 任务/方案变更：重写 live Goal / 验收 / Steps；按日追加 `progress.md`；禁止在 live plan 里堆 已落地 / REQ 账本 → `artifact-layout.md`
 9. 对话路径不用 `--lite` / `brief` / `close`；忽略 `gate_set?`；tiny 只缩短计划
 10. 「先不写代码 / 先理解需求」只写 ANALYZE，不过关、不改业务文件
 11. 截图 / 「这里」先读图当需求；同会话「继续 / 按审查改 / 改坏了」→ resume，禁止 init
+12. `index.md` 活跃超过 5 条或 5 天未动 → 「归档提示」；不自动归档；不确定先问用户
 
 ## 刻意不对照的内容
 

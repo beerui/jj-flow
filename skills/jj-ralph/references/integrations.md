@@ -18,15 +18,16 @@ The **control project** only records schedule state; do not use ralph there as a
 1. Ralph maintains a lean handoff in `run.handoff` (accept may write automatically)
 2. User only says: 「交接到 项目B」 / 「交接到 项目B 项目C」 / “hand off to ProjectB ProjectC”
 3. same reads the current session run/handoff then ports to targets; does not re-do source analysis
-4. Target implementation is **not** written under `.workflow/ralph/`
+4. Target implementation **is** a full Ralph run in **that target repo** (`.workflow/ralph/task-<slug>/`). same ports protocol into it; it does not replace Ralph
 5. If source repo `intensity=strict`, handoff must / do_not_port / targets should be more complete (easier for ProjectB·ProjectC reuse)
 6. After archive, same-run edits: should **commit + re-accept/handoff**, refresh `source_head` / must; handoff ready tracks accept + git stability
 
 ## jj-dispatch
 
-When a control plane is needed, write a dispatch recommendation. dispatch owns delivery / task_key.  
-Example: `$jj-dispatch PREVIEW delivery=DEL-password targets=ProjectA,ProjectB,ProjectC`  
-→ Separate line from `task-login-reminder` in ProjectA; may cross-reference but do not write the wrong directory.
+When a control plane is needed, write a dispatch recommendation. dispatch owns `DEL-*` / `task_key` in `~/.jj-flow`.
+Each lead/target still needs its **own** Ralph `task-<slug>` (same slug derived from the delivery).
+Example: `$jj-dispatch PREVIEW delivery=DEL-password targets=ProjectA,ProjectB,ProjectC`
+→ control index `TASK-DEL-password` **and** `ProjectB/.workflow/ralph/task-password/` + `ProjectC/.workflow/ralph/task-password/`. Do not implement inside the control TASK dir.
 
 ## Optional: jj-team-coordinate (session multi-role engine)
 

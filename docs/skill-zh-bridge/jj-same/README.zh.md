@@ -3,11 +3,13 @@
 > **重要**：本文档仅供人类理解与审阅。  
 > **不是** Agent 运行时 SSOT。发生冲突时以 skill 正文为准。  
 > English SSOT: `skills/jj-same/`  
-> Session: TC-skill-en-zh-20260803 · Updated: 2026-08-03
+> Session: TC-skill-en-zh-20260803 · Updated: 2026-09-04
 
 ## 技能用途
 
 同源分叉项目间迁移/同步功能；从 Ralph handoff 解析目标并适配目标原生架构。
+
+**写哪（2026-09-04）**：源仓读 `run.handoff`；每个目标仓写自己的 Ralph（先复用同会话 / 审查切片 live run，否则 dispatch `task-<slug>`）。`ANL-TARGET` 只是 id。不要把分析正文写进 `~/.jj-flow/.workflow/tasks/`，也不要再开 csv-wave 当实施本。same 不调用 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。
 
 ## 仓库规范（2026-08-03）
 
@@ -35,6 +37,7 @@
 | Cross-project precise port | 跨项目精准迁移 |
 | Happy path checklist | Happy path 清单 |
 | How users say it | 用户怎么说 |
+| Write plane (do not collapse) | 写面（勿塌层） |
 | Ralph handoff first | Ralph handoff 优先 |
 | Dual gates + user-visible output | 双门禁 + 用户可见输出 |
 | Project family + control-plane boundary | 项目族 + 控制面边界 |

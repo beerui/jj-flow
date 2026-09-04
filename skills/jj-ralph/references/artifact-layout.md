@@ -4,7 +4,7 @@
 
 ```text
 .workflow/ralph/
-  index.md
+  index.md                        # CLI 派生：活跃/已完成表；活跃>5 或 5 天未动写 ## 归档提示（只提示）
   business-map.json
   task-{kebab-slug}/              # Scheme A: live runs sit flat (no tasks/ wrapper)
     task_plan.md                  # current contract only: Goal / 验收 / Steps
