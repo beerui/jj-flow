@@ -84,7 +84,7 @@ accept PASS 之后 **MUST `finalize`**（不是只 `archive` / 只翻 gate）。
 ### §4.8 — 测试
 
 - [x] 合约用例已写（跑测前先 commit）
-- [ ] 每批：`node --test tests/jj-ralph-contract.test.mjs`；改 `src/` 后 `npm run ralph:sync`
+- [x] `node --test tests/jj-ralph-contract.test.mjs` **55/55**；`npm run ralph:sync` / `ralph:check` in_sync
 
 ## 不做
 
@@ -94,3 +94,16 @@ accept PASS 之后 **MUST `finalize`**（不是只 `archive` / 只翻 gate）。
 ## 验收
 
 全部完成后依次：`npm run verify` → `git diff --check` → `node src/cli.mjs install-skill --platform all --force`。
+
+验收记录（2026-09-04，本云端 Node 22.14.0）：
+
+| 命令 | 结果 |
+| --- | --- |
+| `node --test tests/jj-ralph-contract.test.mjs` | 55/55 |
+| `node --test tests/*.test.mjs` | 379/379 |
+| `npm run ralph:check` | in_sync，15 files |
+| `npm run check` / `harness:check` / `harness:gc` / `scenario:check` / `host:trial` / `docs:check` / `evaluated:check` | 通过 |
+| `git diff --check` | 干净 |
+| `node bin/jj.mjs install-skill --platform all --force` | ok（`node src/cli.mjs` 只加载模块、不跑 CLI） |
+| `npm test`（`node --test tests`） | 本环境 Node 22 把 `tests` 当模块，未用此入口 |
+| `lab:check` | 既有 `LAB-ROOT-MISSING`（无 sibling gym） |
