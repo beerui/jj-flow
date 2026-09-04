@@ -1,0 +1,309 @@
+docs/commands/cli.md
+  s_47f3078199f670::t_4f24e25319bdd3 106-107
+  s_3363a4b4e1dbd9::t_d7573410a65ba8 112
+  s_3363a4b4e1dbd9::t_795b9ced23a7ee 113
+  s_0937a2283a3c1e::t_750fcd63d3e8ff 111
+claude-commands/jj-end.md
+  s_47f3078199f670::t_1efb2a0a4d2d49 32
+  s_f53a56ac41619d::t_4e1c0b8f6c90ca 34
+src/ralph/map.mjs
+  s_0937a2283a3c1e::t_67970b9b4c6b7d 129
+  s_0937a2283a3c1e::t_19503362026050 86,113,157-167
+src/ralph/state.mjs
+  s_0937a2283a3c1e::t_f96d8b4f7d49d1 872-873,878-887,890,895-896,899,901,903,905,907-909
+skills/jj-ralph/SKILL.md
+  s_47f3078199f670::t_1ee42e8fb95497 3,17,20-21,28-29,35,39,41,43,81
+  s_47f3078199f670::t_44e32fcccf1546 61-62,77,80,106,108-109,126,129-130,162
+  s_0937a2283a3c1e::t_99049da0b642bd 107,210
+  s_0937a2283a3c1e::t_ec838514d77331 40,42,49-51,63,82-89,110,181,183,204,211,213-216
+  s_47f3078199f670::t_b99dca40441e1c 209,212,220,229-235
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_0937a2283a3c1e::t_2f081e39b4b487 513
+  s_0937a2283a3c1e::t_a3e11ecc805164 26,286-287,291-292,447-449,1336-1337
+skills/jj-review/SKILL.md
+  s_f53a56ac41619d::t_a543e3e490f45a 120
+  s_f53a56ac41619d::t_b787feb7aa1d4b 35,87-88
+  s_f53a56ac41619d::t_08ea7a136a6b19 31
+  s_f53a56ac41619d::t_f3f205431a20dd 3,8,10,12,19,32,34,45,49,65,67,86,105-106,112-113
+  s_f53a56ac41619d::t_67b2e2859cd245 42
+  s_0937a2283a3c1e::t_2f2728d0e36707 37
+  s_0937a2283a3c1e::t_843865ef344cb9 71-72
+docs/commands/jj-ralph.md
+  s_47f3078199f670::t_aad3e280a0150c 51-64,80,83-84,126-131,139-141,173-175
+  s_0937a2283a3c1e::t_5ccb70aa7ba26d 158
+CHANGELOG.md
+  s_3363a4b4e1dbd9::t_b81c3292555046 9
+  s_f53a56ac41619d::t_f93887bf945562 7
+  s_0937a2283a3c1e::t_f8ae78e6ee70d4 10
+  s_47f3078199f670::t_66bf4481ccff71 12
+  s_47f3078199f670::t_448e846c35722b 11
+  s_f53a56ac41619d::t_e38b01e9be341c 8
+  s_3f129ddc32dcee::t_1857d42c23c8c1 14
+claude-commands/jj-review.md
+  s_f53a56ac41619d::t_18bba130549a36 20
+  s_f53a56ac41619d::t_e4ae93df8bf5bf 3
+src/ralph/knowledge.mjs
+  s_0937a2283a3c1e::t_8a1b5566ad3c08 9
+  s_0937a2283a3c1e::t_abe916f57008d6 213,219,221-223,227,229-230,232,234,236,241-244,251-263
+  s_0937a2283a3c1e::t_e6a79dffc189fa 806
+docs/commands/jj-review.md
+  s_f53a56ac41619d::t_5fb5b2538591fe 33,39
+  s_f53a56ac41619d::t_fa0e48baf7d177 19
+  s_f53a56ac41619d::t_86760e86a4702a 3
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_47f3078199f670::t_8005c31ed035a4 23
+  s_f53a56ac41619d::t_16c8d5e581a560 31
+docs/design-docs/jj-flow-labs.md
+  s_0937a2283a3c1e::t_7a7dfd1a43baa0 482,716
+docs/design-docs/ralph-workspace-layout.md
+  s_3f129ddc32dcee::t_423b7ef4e9498c 203
+skills/jj-ralph/references/phases.md
+  s_47f3078199f670::t_6239d036183755 66,68,70,114-115,117,124,133
+  s_0937a2283a3c1e::t_3feb5ad12dae0a 7-10,26-28,59,139,142
+  s_0937a2283a3c1e::t_4bfb8c03dbc25a 80,84,86
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_0937a2283a3c1e::t_a3e11ecc805164 872-873,878-887,890,895-896,899,901,903,905,907-909
+skills/jj-ralph/references/artifact-layout.md
+  s_0937a2283a3c1e::t_f9077475e4f867 10-12,32-33,37,41-45,49,52-60,62-90,93,95,97,99-106,108-133
+skills/jj-end/SKILL.md
+  s_47f3078199f670::t_1748ce96243507 8,34,44,80,97,101-102,111,117,121-128,130-135,139,149
+  s_47f3078199f670::t_aa1223cf8fd917 245,295,304,327,333,335-336,352,354
+  s_f53a56ac41619d::t_40868b8e40cebf 82,103,153-154,350,358-362,364
+  s_f53a56ac41619d::t_16415628b93fc6 219
+  s_f53a56ac41619d::t_387e20a0116037 113
+docs/pitfalls.md
+  s_47f3078199f670::t_483b910c527297 141,145-149
+tests/memory-hot-layer.test.mjs
+  s_0937a2283a3c1e::t_700aad28daa89b 27,283-284,286
+  s_0937a2283a3c1e::t_5c721e3f62716e 135
+src/ralph/migrate.mjs
+  s_3363a4b4e1dbd9::t_8016e2f707eaca 286
+  s_3363a4b4e1dbd9::t_a03a962ffdad5e 267-285,287-308,352,362-363
+  s_3363a4b4e1dbd9::t_5a44ca1f4775a7 8,19
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_0937a2283a3c1e::t_a3e11ecc805164 9,213,219,221-223,227,229-230,232,234,236,241-244,251-263,806
+docs/usage.md
+  s_47f3078199f670::t_da5c510f112764 41
+tests/jj-ralph-contract.test.mjs
+  s_0937a2283a3c1e::t_6c353fc715476e 482,495,497-501,510,512,514-515,718,1012,1087,1840,1849-1850,1857-1858
+  s_0937a2283a3c1e::t_f7671d40c3807f 360-361,363-364
+  s_47f3078199f670::t_706d0de7837275 268,353,357-359,366,368-371,385-389,393-394,402,404-406
+  s_0937a2283a3c1e::t_a65ea2cf8c5ba1 362
+  s_47f3078199f670::t_fda155a5a51113 354,403
+  s_0937a2283a3c1e::t_4bd9e5e562f2a1 32,157,220,265-267
+  s_0937a2283a3c1e::t_3661c0013d0da2 2376,2379-2380,2447,2501,2518,2545,2819
+  s_3363a4b4e1dbd9::t_c0ed9251b1b499 2256-2298
+  s_0937a2283a3c1e::t_99743a2af566f7 1897-1906,2846-2849,2944-2945
+  s_0937a2283a3c1e::t_66f4a5fa3d3d69 560-561,2166
+src/memoryHotLayer.mjs
+  s_0937a2283a3c1e::t_217ad0b0710990 305,307,311-312,314-319,397-398,400
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_0937a2283a3c1e::t_4837321ca805b8 65
+  s_47f3078199f670::t_23a7f789d63a7e 52,123
+  s_0937a2283a3c1e::t_007d9eb3d6f478 98
+  s_47f3078199f670::t_a67d1d0968f791 99-100
+  s_0937a2283a3c1e::t_8242a0d99af462 75-78
+  s_47f3078199f670::t_1ba73536f26e6f 101
+skills/jj-review/references/host-review.md
+  s_0937a2283a3c1e::t_82cb5394e0f5b3 59
+  s_0937a2283a3c1e::t_38cf86c29389e3 5
+  s_f53a56ac41619d::t_0d06631f10529c 72
+  s_f53a56ac41619d::t_ddfc5af71c06bd 3,135-136,139-140
+skills/jj-ralph/references/tiny-example.md
+  s_0937a2283a3c1e::t_82498a562ac05d 6,12-13,18,20,22,24,27-32,38-43,50,53-55,58,63
+tests/jj-review-contract.test.mjs
+  s_f53a56ac41619d::t_0b9c47c8835ca3 35,39-42
+  s_f53a56ac41619d::t_e275051061644a 38
+  s_f53a56ac41619d::t_23cab1ef100710 1-11,13-15,28
+  s_f53a56ac41619d::t_a8376cbe837f9b 12,16-18,20-24
+  s_f53a56ac41619d::t_eef98844eaeee2 19,26-27
+  s_f53a56ac41619d::t_d66cfa29543b5c 25
+  s_f53a56ac41619d::t_5327527639626e 29-34,36-37,43
+skills/jj-ralph/scripts/lib/memoryHotLayer.mjs
+  s_0937a2283a3c1e::t_a3e11ecc805164 305,307,311-312,314-319,397-398,400
+src/ralph.mjs
+  s_0937a2283a3c1e::t_122342a404ecda 66,155
+docs/design-docs/index.md
+  s_3f129ddc32dcee::t_184a9d7fa2f428 27
+skills/jj-ralph/scripts/lib/ralph/migrate.mjs
+  s_3363a4b4e1dbd9::t_2c1b10b04fe060 8,19,267-308,352,362-363
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_f53a56ac41619d::t_ee73145d39e80f 33
+  s_f53a56ac41619d::t_16c4211a4021c3 24
+  s_f53a56ac41619d::t_a4367784a769a7 18
+  s_f53a56ac41619d::t_f789f3b4f344c3 19,23
+  s_f53a56ac41619d::t_a855586d0a6f20 10,32
+  s_0937a2283a3c1e::t_21afb974759177 20-22
+scripts/build-docs.mjs
+  s_be454b185d4857::t_f4727b56159e7a 105
+skills/jj-review/references/review-policy.md
+  s_0937a2283a3c1e::t_ac318808638076 13
+  s_0937a2283a3c1e::t_a93dcf9fc58903 19,33,35
+evals/regression/EP-20260828-jj-end-staging-not-dev.json
+  s_47f3078199f670::t_2c6feac36b0f1c 10
+docs/glossary.md
+  s_47f3078199f670::t_ca660db742a671 22
+docs/design-docs/ralph-auto-closeout.md
+  s_3f129ddc32dcee::t_fe44ab2676e213 134
+  s_be454b185d4857::t_d82fe15b2a8899 36
+  s_5006082598e493::t_095426eb340e30 24
+  s_3f129ddc32dcee::t_d612b196579d89 33
+  s_3f129ddc32dcee::t_ac7ef8682c2036 76
+  s_be454b185d4857::t_d2124e28d681c9 55
+  s_3f129ddc32dcee::t_1e16b223be9867 114
+  s_3f129ddc32dcee::t_8afbee21962627 16
+  s_5006082598e493::t_b612b50b79936d 37-38
+  s_be454b185d4857::t_2e9c642cfb36e6 57
+  s_3f129ddc32dcee::t_9cd0b85b246e3f 115
+  s_3f129ddc32dcee::t_97394987789ac8 119
+  s_5006082598e493::t_67078016914154 22
+  s_3f129ddc32dcee::t_0722191846725e 12
+  s_3f129ddc32dcee::t_563a780af3a0d9 15
+  s_3f129ddc32dcee::t_1916dc26016433 74
+  s_3f129ddc32dcee::t_6c3d0f7ef2b341 127-133
+  s_be454b185d4857::t_7fce47757bb81e 162-163
+  s_3f129ddc32dcee::t_c0ec2a3a8aad4e 9
+  s_3f129ddc32dcee::t_526b2782b20a33 94
+  s_3f129ddc32dcee::t_6a667d606d45de 11
+  s_3f129ddc32dcee::t_f77f0fdb6385da 123
+  s_be454b185d4857::t_279200936f8a33 7
+  s_3f129ddc32dcee::t_cbef124bade76f 154
+  s_be454b185d4857::t_3f794126151d66 105,107,110
+  s_be454b185d4857::t_b4d9ad09e2e285 120-122
+  s_5006082598e493::t_b414b50e027685 90,92
+  s_5006082598e493::t_58d61e3af68c4a 118
+  s_3f129ddc32dcee::t_0cc32bbfe65034 70
+  s_be454b185d4857::t_f2203439ac3f9d 157
+  s_5006082598e493::t_c05b104cfe2a59 103,108-109,112
+  s_3f129ddc32dcee::t_a20d8f1978ea67 10
+  s_3f129ddc32dcee::t_a797986f47a30b 46
+  s_3f129ddc32dcee::t_51630e49d8cdb8 13
+  s_be454b185d4857::t_ac0039ecf523b5 75
+  s_be454b185d4857::t_b5ca4e9958f54c 95-96,99-100
+  s_5006082598e493::t_b282b424d049e4 1,5-6,18,20,26,28-32,34,40,42,44-45,48,50-53,59,61,64,68-69,72,78,80,82,84,86,88,116-117,140,142,144-146,148,150,152,155-156,158,160
+  s_3f129ddc32dcee::t_6fe20eb7d4d05f 97
+  s_3f129ddc32dcee::t_9cacb8dbc5e8ba 101
+  s_3f129ddc32dcee::t_2c0b8d0a7f0c35 8
+  s_3f129ddc32dcee::t_ff136ad90d0b4e 98
+  s_be454b185d4857::t_a07d7b4a9aa0c1 125,135-136,138
+  s_3f129ddc32dcee::t_4f5108c92492fd 14
+  s_be454b185d4857::t_2e629c9a23dc08 63,65
+  s_be454b185d4857::t_b25bbb13acce75 35
+  s_3f129ddc32dcee::t_e5e40a9c8a45a6 66-67
+  s_be454b185d4857::t_4d67aef626a1f4 137
+docs/other/end-demo/interactive.fragment.html
+  s_f53a56ac41619d::t_97e9af1549770f 162
+  s_47f3078199f670::t_0c00596b8cc4f3 117,121,135,145,173-174
+skills/jj-ralph/scripts/lib/ralph/map.mjs
+  s_0937a2283a3c1e::t_a3e11ecc805164 86,113,129,157-167
+skills/jj-review/references/report-layout.md
+  s_f53a56ac41619d::t_bebf2231b08e27 16,22,26-27,70
+  s_f53a56ac41619d::t_14ab0b406ed947 17-21
+  s_0937a2283a3c1e::t_5cfb1909b65417 6-8,10,30,95,101-102
+docs/commands/jj-end.md
+  s_47f3078199f670::t_77cbd1911c0574 45,48
+  s_f53a56ac41619d::t_0f54e44a90df34 20-21
+  s_47f3078199f670::t_21430129215a51 38
+tests/jj-end-contract.test.mjs
+  s_47f3078199f670::t_fa4f4b3add40b5 23,26-32
+  s_f53a56ac41619d::t_a8770755ae8e8a 33-39
+src/cli.mjs
+  s_3363a4b4e1dbd9::t_e322624a347563 1174
+skills/jj-ralph/references/business-map.md
+  s_0937a2283a3c1e::t_a58b7ce4d6fbfb 17,33-34,37-38
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_0937a2283a3c1e::t_a3e11ecc805164 66,155
+docs/end-demo.md
+  s_47f3078199f670::t_c03a99bb5567a8 29
+claude-commands/jj-ralph.md
+  s_0937a2283a3c1e::t_99c0f9a826e508 26-27,29
+src/ralph/gates.mjs
+  s_0937a2283a3c1e::t_a8e5f05932a1c0 513
+  s_0937a2283a3c1e::t_bdd279d1d085f6 26,286-287,291-292
+  s_0937a2283a3c1e::t_1abfd9d9264245 447-449,1336-1337
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "d72d68d344b25722e7a9c169890aaab583a7555a",
+  "prompts": {},
+  "sessions": {
+    "s_0937a2283a3c1e": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06641-6eb5-7b12-9f1c-a8af7ed4a64b",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_3363a4b4e1dbd9": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0669c-2d42-76f1-a2c0-d8ff1a613520",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_3f129ddc32dcee": {
+      "agent_id": {
+        "tool": "zcode",
+        "id": "sess_53d87162-9741-40fb-95e6-daf9cc6602a5",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_47f3078199f670": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0660a-9d6d-77c0-a005-8aeb981436bb",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_5006082598e493": {
+      "agent_id": {
+        "tool": "zcode",
+        "id": "sess_6669a552-2614-4029-b2db-6be621a5b1b0",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_be454b185d4857": {
+      "agent_id": {
+        "tool": "zcode",
+        "id": "sess_cda6cbd6-0d6e-4942-aae3-8edf90b20e15",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_f53a56ac41619d": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a066ae-430c-7e21-a5c4-b8a40ff9c257",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
