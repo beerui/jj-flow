@@ -1,8 +1,8 @@
 # Prefer host built-in review
 
-`jj-review` is an **adapter**: prefer the review engine already available on the current host; this skill writes results into ralph `REV-*.json`.
+`jj-review` is an **adapter**: prefer the review engine already available on the current host; persist `REV-*.json` only when a ralph run is bound.
 
-Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `task_plan.md` ### 当前).
+Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `task_plan.md` ## Steps).
 
 Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose. Choose the entry via **capability discovery**.
 
@@ -56,7 +56,7 @@ At minimum provide:
 
 | Item | Content |
 | --- | --- |
-| Scope | ralph `run_id`, goal, MUST / OUT (from `task_plan.md` 分析/计划) |
+| Scope | ralph `run_id`, Goal / 验收 / Steps (from `task_plan.md`; leftover 分析/计划) |
 | Target | `reviewed_commit` or working tree / specified paths |
 | Constraints | read-only; do not fix code; do not init ralph |
 | Expectation | structured findings (file/line/severity/description) + overall verdict |
@@ -69,7 +69,7 @@ Host review’s target diff should cover ralph-related changes; reduce whole-rep
 | --- | --- |
 | No OPEN issues; approve / PASS / LGTM / “no issues” | `PASS` |
 | Issues that need changes; request changes / FAIL / NEEDS_CHANGES | `NEEDS_CHANGES` |
-| Missing run, missing diff, cannot locate commit, insufficient context | `BLOCKED` |
+| Explicit `run_id` missing, missing diff, cannot locate commit, insufficient context | `BLOCKED` |
 
 After mapping, still satisfy report-layout validation:
 
@@ -132,10 +132,10 @@ host built-in review (or user artifact / fallback self-review)
         ▼
   map outcome + findings
         │
-        ▼
-  reviews/REV-n.json  +  run.json.review  +  progress.md
+        ├── bound run → reviews/REV-n.json  +  run.json.review  +  events.jsonl
+        └── unbound   → chat only (do not init; do not invent REV-*.json)
 ```
 
-- **Fact source** remains `REV-*.json` and `run.json`, not chat body.
-- Host review files may stay in their default locations; jj-flow only requires a normalized report under the contract path.
+- **Bound fact source** is `REV-*.json` and `run.json`, not chat body. Unbound: chat only.
+- Host review files may stay in their default locations; jj-flow only requires a normalized report under the contract path when bound.
 - accept/archive product-consistency still reads the latest REV outcome (see jj-ralph phases).

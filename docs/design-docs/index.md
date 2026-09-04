@@ -24,6 +24,7 @@
 | [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.html) | Implemented（P0 热层 / P1 布局与归档 / P2 `task-*` 身份 / [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.html) 均已落地；schema 1.2） |
 | [Ralph 多轮任务内容预览](ralph-plans-workspace.preview.html) | Proposed（§3.2/§3.4 目标布局示例，非运行输出） |
 | [Ralph 工作区目录对齐 exec-plans 与 progress 双轨](ralph-workspace-layout.html) | Proposed（规划草案：`index.md` + `tasks/`≡active + `completed/` + `migrated/`；progress 人读轨 / `.state/events.log` 机器轨分离；Phase 0–2 待开 exec plan） |
+| [Ralph 自动收尾（accept → finalize 同回合闭环）](ralph-auto-closeout.html) | Proposed（finalize MUST + gate `next` 提示（含 ralph_ops 输出层）+ 解析链按当前宿主排序 + index 刷新下沉 saveRun / Locate 快速入口 + reopen 状态头清理） |
 | [Ralph 归档提升](ralph-archive-elevation.html) | Accepted |
 | [jj-evaluated](jj-evaluated.html) | Implemented（MVP runner） |
 | [Grok Host Adapter](grok-host-adapter.html) | Implemented（Grok Wave 2 completed；`max_unattended_level=A2`） |

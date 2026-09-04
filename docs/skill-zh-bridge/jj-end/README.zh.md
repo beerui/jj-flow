@@ -20,7 +20,7 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 
 失败即停并尽量回到 `work_branch`。禁止 force push、删分支、改 git config、提交 secrets/无关文件。
 
-冲突：agent 先打分类表（simple/complex）。全部 simple 则自己解完继续收工；有一条 complex 或拿不准 → 整段 abort，不分解子集。见 SSOT `Conflict classify` / G-end-2。
+冲突：默认自己合。分类表 `self-merge` / `unhandleable`。能说清怎么合、不发明产品决策 → 解完继续收工（Vue/文档/条件守卫不同也算）；只有真正合不了才整段 abort。禁止「看起来像逻辑就停」和子集解再 abort。见 SSOT `Conflict classify` / G-end-2。
 
 ## 核心规则（摘要）
 
@@ -28,6 +28,7 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 | --- | --- |
 | 一次跑完 | 不得中途「只 commit / 只 push」后停等用户（Hard-stop/冲突除外） |
 | 主动收尾 | 实现完成且未禁止 push/merge 时，先打印 `work→integration` 计划再执行到底 |
+| 无异常回复 | 落地成功只回一行（分支 → 合入目标 + hash）；表格只在失败 / dry_run / 合不了时出现 |
 | dry_run / 禁止 push | 只报告计划，不 merge/push |
 | 不写控制面 | 不读/推进 dispatch；调度闭环用 `$jj-dispatch` |
 | end ≠ 关仓 | 只做 Git 落地；ralph 归档/resume 仍走 `$jj-ralph` |

@@ -10,13 +10,13 @@ Run three passes. Tag each finding with `pass` when known:
 | --- | --- |
 | `bugs` | Logic errors, broken edges, silent regressions |
 | `security` | Injection, auth gaps, secrets/PII in logs, weakened tests on a bugfix |
-| `compliance` | Diff does not match `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`) |
+| `compliance` | Diff does not match `task_plan.md` **## Steps** (leftover: `## 计划 → ### 当前`) |
 
 Untagged host findings default to `bugs`. Style/naming keywords map to nits (`importance=nit`, `severity=info`).
 
 ## Important vs nit
 
-- **important**: would break behavior, leak data, or miss Current. OPEN important cannot sit on `outcome=PASS`.
+- **important**: would break behavior, leak data, or miss `## Steps`. OPEN important cannot sit on `outcome=PASS`.
 - **nit**: style, naming, optional cleanup. Nits never block PASS (WAIVED on PASS).
 
 ## Nit cap
@@ -30,9 +30,9 @@ At most **5** OPEN nits per review. Extra nits are `WAIVED` and summarized as a 
 - Style nits on ledger wording in `task_plan.md` (compliance findings may still target `task_plan.md`)
 - Anything CI already enforces (`npm test` / `npm run verify` green is **not** a review PASS)
 
-## Compliance vs Current
+## Compliance vs Steps
 
-When a ralph run exists, compare the implementation diff to `task_plan.md` ## 计划 → ### 当前 (not 已落地 / 已取代). Mismatch → OPEN finding `pass=compliance`, `importance=important`, `file=task_plan.md`. Mechanical helper: `buildPlanComplianceFindings` in `src/ralph.mjs`.
+When a ralph run exists, compare the implementation diff to `task_plan.md` ## Steps (leftover: ## 计划 → ### 当前). Mismatch → OPEN finding `pass=compliance`, `importance=important`, `file=task_plan.md`. Mechanical helper: `buildPlanComplianceFindings` in `src/ralph.mjs`. Do not ask the fixer to grow 已落地 / Landed in the live plan.
 
 ## Test integrity (bugfix)
 

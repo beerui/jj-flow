@@ -24,6 +24,7 @@ import {
   FINDING_HINT,
   archiveRun,
   initRun,
+  readRunEventsText,
   recordDeliverAttempt,
   recordFinding,
   resumeRun,
@@ -131,7 +132,7 @@ test('retrieveHotMemory ranks confirmed first and does not pad empty query', asy
 test('extractReusableRulesFromFindings reads ## 可复用结论 and skips (none)', () => {
   const stub = defaultFindingsStub({ taskKey: 'RALPH-x' });
   assert.equal(extractReusableRulesFromFindings(stub).length, 0);
-  assert.match(stub, /\| --- \| --- \| --- \|/);
+  assert.match(stub, /\| --- \| --- \|/);
   const filled = [
     '# findings',
     '',
@@ -279,9 +280,10 @@ test('init/resume write hot_memory progress; finding command prefills from progr
         attach_knowledge: false
       }, cwd);
       const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
-      assert.match(progress, /hot_memory:/);
+      assert.doesNotMatch(progress, /hot_memory:/);
+      assert.match(readRunEventsText(runId, cwd), /hot_memory:/);
       const analyze = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'task_plan.md'), 'utf8');
-      assert.match(analyze, /## hot_memory/);
+      assert.doesNotMatch(analyze, /## hot_memory/);
       assert.equal(run.artifact_refs.analyze, 'task_plan.md');
 
       fs.appendFileSync(

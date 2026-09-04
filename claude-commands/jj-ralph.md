@@ -23,11 +23,10 @@ allowed-tools:
 
 1. 解析脚本：repo skill → `$CODEX_HOME/skills/jj-ralph/scripts/` → `jj ralph`。
 2. **用户口语优先**（「再改 tip」「刚才那个」「先不做了」）；**禁止**要求用户先报 `task-…`。同需求 → resume/继续，勿默认 init。活跃 `RALPH-*` 先 `jj ralph migrate`。
-3. map-find；单点跟 tiny-example。
-   档位听用户：「小改 / 顺手修」→ `init --lite`（BRIEF→DELIVER→CLOSE，判错自动升 full）；「完整走一遍」→ `--full`；没说 = full。init 打的 `gate_set?` 只是建议，不自动改档；tiny ≠ lite。
-4. 聊天不推进检查点；更新 run.json 与阶段文档。报告里可写 run_id 供核对。
+3. map-find **只跑 CLI**，不要整读 `business-map.json`。单点跟 tiny-example。只有 intensity（tiny/standard/strict），**不要** `--lite`。截图 / 「这里」先读图。用户说「先不写代码」只写 Goal + 存疑、不过关。同会话「继续 / 按审查改 / 改坏了」→ resume，禁止 init。
+4. 聊天不推进检查点。三份人读文件保持短合同：`task_plan.md` = Goal / 验收 / Steps；`progress.md` 按日追加；机器事件在 `.state/events.jsonl`。并行读文件，用 offset/limit，禁止重读已注入内容。Grok 默认不调 MasterGo MCP。
 5. 同操作失败最多 2 次后换策略；校正写 `instruction-correction.md`，审查者只读、不写 `AGENTS.md`。
-   tiny 默认不写 `task_plan.md` `## 目标` 意图块；ANALYZE 要回应 intent 未决问题。
+   tiny 默认不写 `## 存疑`；先不写代码时才写存疑。
 6. accept PASS 后 `finalize`；之后仍可同 run 再改。
 7. 一半不做：`abandon`；再做：`resume`。
 8. 未要求 commit/push/review/handoff/dispatch 不做。

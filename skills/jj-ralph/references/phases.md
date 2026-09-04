@@ -4,10 +4,10 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 
 | Stage (gloss) | phase | Required artifacts | gates.* PASS conditions |
 | --- | --- | --- | --- |
-| Requirements analysis | `ANALYZE` | `task_plan.md` `## 分析`; optional intent under `## 目标` | MUST/acceptance traceable; every MUST has **evidence_class** (see [must-evidence.md](must-evidence.md)); add field lifecycle for `write-then-read`/`cross-path`; **### 存疑事项** must answer or carry forward every intent open question; no blocking 未解决, or already `BLOCKED` |
-| Implementation plan | `PLAN` | `task_plan.md` `## 计划` | Every TASK → REQ; in-scope and out-of-scope explicit |
-| Implement & verify | `DELIVER` | Code, `progress.md` iterations, focused verification | Tasks done and verification not FAIL; rework loops allowed; `deliver-attempt` signal matches evidence_class |
-| Acceptance | `ACCEPT` | `task_plan.md` `## 验收` | Checklist items `PASS` or `N/A`+reason; **evidence level must not be lower than the MUST’s evidence_class** (ban write-then-read PASS via diff only); missing evidence → no PASS; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; path sets consistent |
+| Requirements analysis | `ANALYZE` | `task_plan.md` `## Goal` (+ optional `## 存疑`) | Goal + 验收 checklist; `write-then-read`/`cross-path` still need a real write→read verify (see [must-evidence.md](must-evidence.md)); analyze-hold keeps `## 存疑` open |
+| Implementation plan | `PLAN` | `task_plan.md` `## Steps` | Every Step names a file in backticks; 验收 items stay current |
+| Implement & verify | `DELIVER` | Code, dated `progress.md` section, focused verification | Steps done and verification not FAIL; rework loops allowed; `deliver-attempt` (events.jsonl) matches the verify you ran |
+| Acceptance | `ACCEPT` | `task_plan.md` `## 验收` | Checklist items checked with real evidence; ban write-then-read PASS via diff only; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; `## Steps` paths vs current diff |
 | Archive | `ARCHIVE` | live run dir + `run.json` `archive` / `archive_history`; map merge | In-place COMPLETED (resumable); sha256 ledger inline; no `archive-manifest.json`; leftover `.workflow/ralph/archive/` snapshots are read-only; product-consistency + if a PASS review exists then commit-scoped review SHA required; COMPLETED ≠ committed (report honestly lists dirty / commit-prep); **re-archive allowed** (appends `archive_history`) |
 
 ## status
@@ -23,9 +23,9 @@ Same requirement always prefers the same `run_id`. New run only for a truly new 
 ## Autonomy loop
 
 ```text
-Read run.json + progress.md + business-map.json + Git
-  → do next task for current phase
-  → append progress + update run.json
+Read run.json + last 30 lines of progress.md + Git (map-find CLI, not the JSON)
+  → do next Step
+  → append a dated progress section
   → verify FAIL and iteration < max → stay in DELIVER
   → needs human decision → BLOCKED / READY_FOR_USER_TEST (stop clock)
   → accept PASS → finalize (map-merge + in-place archive) → COMPLETED (can resume)
@@ -56,27 +56,18 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - **Layer 1 mechanical**: existing product-consistency (deliver PASS, paths, review not NEEDS_CHANGES…)
 - **Layer 2 judgment**: required for strict; error-level `gate_issues` always block accept (unless waived/`--force`)
 - Consecutive `improved=false` reaching `stagnation.patience` (default 2) and/or `budget.max_same_strategy_failures` → `BLOCKED` + `intervention_needed.kind=STAGNATION`, and write run-local `instruction-correction.md`. Reviewer stays read-only; Developer may later land a durable rule under business-repo `AGENTS.md` ## Agent corrections
-- Soft hint only: `deliver-attempt --improved false` or `rollback-phase` may print `这次失败的原因记下来了吗（ralph_ops finding）` when `findings.md` has no `### F-` entry. **Does not block** the gate. Record with `ralph_ops.mjs finding` (prefill 现象/原因 from progress `failed_must` / `over_claimed`)
+- Soft hint only: `deliver-attempt --improved false` or `rollback-phase` may print `这次失败的原因记下来了吗（ralph_ops finding）`. **Does not block** the gate. Record a pitfall only when you have a 对策.
 - `jj ralph metrics` / `ralph_ops metrics` derives clocks from progress timestamps; missing clocks stay `null` and **never** block ACCEPT
 - Hit `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
 - `review-record` outcome=PASS/NEEDS_CHANGES → auto-write `accept_layers.judgment` (strict may gate accept directly)
 - `map-merge` / finalize auto-write STAGNATION, strict, etc. into capability `lessons` (weak pheromone for map-find)
 - **ABANDONED** forbids `map-merge` / `archive` (resume first)
 
-## Gate set (full / lite)
+## Gate set (deprecated)
 
-`run.gate_set` is a policy layer over the **same five ledger keys**: schema stays 1.2, `phase` stays the five values, `gates` stays `analyze/plan/deliver/accept/archive`. Orthogonal to intensity — `tiny` is “how short the plan is”, `lite` is “how many gates”; `tiny` never implies `lite`.
+Conversational `$jj-ralph` **never** uses `--lite` / `brief` / `close`. Always ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE. Ignore init `gate_set?` text. `tiny` only shortens the plan.
 
-| gate_set | Path | Budget | How chosen |
-| --- | --- | --- | --- |
-| `full` (default) | ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE | intensity default | no flag, `--full`, or user says 「完整走一遍 / 按流程走」 |
-| `lite` | BRIEF→DELIVER→CLOSE | `max_deliver_loops ≤ 3` (stagnation fingerprint still runs) | **explicit `init --lite` only**; user says 「小改 / 顺手修 / 改个 typo」 |
-
-- **Aliases (lite only)**: `gate --gate brief` writes `analyze`+`plan` and lands in DELIVER; `gate --gate close` writes `accept`+`archive` **through the same product-consistency evidence gate and judgment layer** (weak write-then-read evidence still blocks; strict still needs `accept_layers.judgment=PASS`; then `finalize` as usual). `deliver` is shared. progress keeps five-key gate lines tagged `via=brief|close`; `brief`/`close` are never `gates.*` keys. Aliases are refused on a full run.
-- **Same files**: one `task_plan.md` / `progress.md` / `findings.md` + `.state/`; only `## 分析` may shrink to one line. No second template tree.
-- **Promotion (tier was wrong)**: any lite gate FAIL/BLOCKED (`gate` or `rollback-phase`) or a new `scope.in` entry via `scope --in` → `gate_set=full`, `max_deliver_loops` back to the intensity default (never below iterations already used), progress `promoted lite→full reason=…`. Same `run_id`, same dir, no gate reset, no evidence lost; from here walk the five gates.
-- **Budget stop on lite** (`MAX_ITERATIONS` at 3): **not** auto-promoted — the run is BLOCKED and the `unblock` hint names the exit: `gate deliver FAIL` (or `scope --in` growth) promotes to full, restores the intensity budget and lifts the block (progress `promoted lite→full … status=BLOCKED→IN_PROGRESS`). A gate written BLOCKED or a STAGNATION block stays. Do not raise the lite cap by hand and do not open a new run.
-- **Init advisory (no flag)**: init prints `gate_set? lite …` (text) / returns `gate_set_suggestion` (`--json`, `ralph_ops`) when 改动面小 (≤ 2 concrete `--in` files, or small-change wording such as 小改 / 顺手 / typo / px) ∧ 无架构词 (重构 / 协议 / 鉴权 / 迁移 / schema / api …) ∧ 单一验收项. **Advisory only**: `run.json` keeps `gate_set=full`; anything uncertain reads full. Take it by re-running `init --lite --force` **before any gate**, and only when the user's own words also say small.
+CLI `--lite` may still exist for leftover runs. Do **not** start a new conversational run with it. If you load `gate_set=lite`, walk the five gates (or let any FAIL / `scope --in` promote to full). Do not teach the user a second tier.
 
 ## MUST evidence (generic, anti false-green)
 
@@ -86,12 +77,13 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 - **Claims must not exceed evidence**: `write-then-read` needs a write→read trace (mock allowed); ban PASS on diff alone
 - `tiny` + pure presentational defaults to `diff-only`; **no** mandatory lifecycle / dual-path ceremony
 - Business API names and dual-write recipes live in the business-repo knowledge, **not** this skill
-- User-correction resume: record `failed_must` / `failed_evidence_class` / `over_claimed`; prioritize closing the evidence gap
+- User-correction resume: append a dated progress section; close the evidence gap; do not dump `failed_must` machine lines into progress.md
 
 ## Lean execution
 
-- Single-point / single-file: ANALYZE/PLAN only write shortest MUST, file list, acceptance; follow [tiny-example.md](tiny-example.md); prefer `intensity=tiny`.
+- Single-point / single-file: shortest Goal + file list + 验收; follow [tiny-example.md](tiny-example.md); prefer `intensity=tiny`.
 - Once files are located, go DELIVER; do not re-search the whole tree for completeness theater.
+- Batch independent reads; `offset`/`limit`; do not re-read injected files; do not Read `business-map.json`.
 - Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify; second unchanged attempt writes `instruction-correction.md`.
 - Parallel capacity: one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only.
 - All steps are done by the current session reading/writing the agreed paths (host-agnostic).
@@ -119,15 +111,17 @@ Host-level only — not a jj-flow dependency. Same pattern as optional team engi
 3. Missing secrets/permissions
 4. Human UAT required and static evidence insufficient
 5. Dirty workspace would overwrite user edits
+6. User said 先不写代码 / 先理解需求 / 先分析 — stay ANALYZE; no `gate analyze PASS` until 「开始做吧 / 我认可 / 继续改」
+7. Screenshot / 「这里」 / `[Image]` — read the image before searching; it is the spec
 
-After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”.
+After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. **Exception:** analyze-hold (item 6).
 
 ## Closeout
 
 - After accept PASS, prefer `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`).
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again.
-- Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated (`gate --gate close` is only the lite accept+archive alias).
+- Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated.
 - Truly new requirement only → `init` a new run.
 
 ## Rollback
@@ -136,16 +130,16 @@ See [rollback.md](rollback.md). Adjacent phases only; ARCHIVE→ACCEPT is legal;
 
 ## gate
 
-- Prefer `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS` (lite run: `brief|deliver|close`, see § Gate set).
+- Prefer `ralph_ops.mjs gate --run-id … --gate analyze|plan|deliver|accept|archive --status PASS`. Do not use `brief`/`close` on the conversational path.
 - PASS advances phase by default; `--no-advance` only flips the gate.
 - `accept`/`archive` PASS run product-consistency:
   - `gates.deliver` must already be `PASS` or `N/A` (forbid code landed while ledger still on PLAN)
   - progress/diff shows DELIVER evidence but `deliver` not PASS → reject (deliver-outside-ledger)
   - Latest review = `NEEDS_CHANGES` or `BLOCKED` → reject PASS
-  - Implementation paths in `task_plan.md` **## 计划 → ### 当前** (fallback `当前` → `Current` → `Tasks`), active `## 验收` rows, and `scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS. 已落地 / 已取代 paths are not current claims
+  - Implementation paths in `task_plan.md` **## Steps** (leftover: `## 计划 → ### 当前`), active `## 验收` rows, and `scope.in` vs current diff (or explicit `diff_paths`) mismatch → reject PASS
   - Bugfix / `failed_must` / latest `NEEDS_CHANGES` runs must not delete or empty tests; `tiny` presentational without those signals is exempt
   - **ARCHIVE** with latest `PASS` review: must have `review_scope=commit` and `fix_commit`/`reviewed_commit`; `working_tree` PASS is temporary evidence only and cannot archive as landed
-  - When policy changes mid-run, revise `task_plan.md` **### 当前** before accepting; do not only change code. Move the previous 当前 block to 已落地 or 已取代 first ([artifact-layout.md](artifact-layout.md) § Current contract vs history). Do not delete prior TASK/MUST/acceptance rows
+  - When policy changes mid-run, rewrite Goal / 验收 / Steps before accepting; do not only change code ([artifact-layout.md](artifact-layout.md))
   - Ops override: `force: true` (library API / finalize force); default conversational path must not use force
 - Host metadata (optional, does not advance checkpoints): `run.host.host_id` / `thread_id` / `model_id` / `export_path`; write via `jj ralph host-record` or init for evaluation and session replay
 - Optional review fields: `--review-scope working_tree|commit`, `--fix-commit <sha>`

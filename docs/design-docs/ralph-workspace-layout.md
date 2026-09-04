@@ -200,6 +200,7 @@ ABANDONED 同样搬进 `completed/`（先例见 §2.1 末条：exec-plans 的 `c
 | §3.10 表 B10 | `parseProgressEvents` 读 progress.md | 改读 `events.log`（并集回退 progress.md 以兼容存量） |
 | §3.12 步 7 | 原目录改名 `.migrated-RALPH-<原名>/`，人手动删 | rename 进 `migrated/RALPH-<原名>/`；`migrate --prune --yes` |
 | §5「旧数据迁移与兼容策略」 | `.migrated-` 保留一轮 | 保留口径量化为「新目录可列出 + 一次 gate/finalize 成功」 |
+| [ralph-auto-closeout.md](ralph-auto-closeout.html) §4.6（同期 Proposed） | 彼案把 index 刷新下沉到 `saveRun` 咽喉点：每次状态变更自动重写，含 gate / scope / rollback-phase | 本草案 §4.1 的 index 行是「init / finalize / abandon / resume / migrate 显式重写 + `status --write-index` 重生成」——修了 init 缺口，但 gate / scope / rollback 变更仍不刷新。若彼案先落地，本行收敛为冗余（显式重写点幂等无害），`--write-index` 降级为修复工具；实施顺序见彼案 §4.9.0（jj-review Locate → 彼案 §4.6 → 本草案 Phase 1/2） |
 
 ## 4. B · 具体文件写入规范
 

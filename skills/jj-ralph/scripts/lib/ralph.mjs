@@ -63,6 +63,7 @@ export {
   appendEvent,
   appendProgressLine,
   appendProgressRound,
+  readRunEventsText,
   moveRunToCompleted,
   moveRunToActive,
   readEvents,
@@ -151,6 +152,7 @@ export {
   mapFind,
   mapMergeFromRun,
   mergeCapabilityIntoMap,
+  compactKeywords,
   tokenize
 } from './ralph/map.mjs';
 

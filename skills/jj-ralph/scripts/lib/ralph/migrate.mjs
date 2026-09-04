@@ -5,6 +5,7 @@ import { normalizeRalphSlug } from '../namingConfig.mjs';
 import {
   FINDINGS_REL,
   PROGRESS_REL,
+  RALPH_COMPLETED_DIR_REL,
   RALPH_ROOT_REL,
   RALPH_RUN_SCHEMA_VERSION,
   RALPH_TASKS_DIR_REL,
@@ -15,6 +16,7 @@ import {
   legacyTasksDir,
   listRuns,
   migratedDir,
+  moveRunToCompleted,
   nowIso,
   ralphRoot,
   readJson,
@@ -262,6 +264,48 @@ export function shelterDotMigrated(cwd = process.cwd()) {
   return { moved };
 }
 
+function posixJoin(...parts) {
+  return parts.join('/').replaceAll(String.fromCharCode(92), '/');
+}
+
+function rewriteParkedPaths(runId, cwd) {
+  const jsonPath = runJsonPath(runId, cwd);
+  const run = readJson(jsonPath);
+  const completedRel = posixJoin(RALPH_COMPLETED_DIR_REL, runId);
+  run.last_archive_path = completedRel;
+  if (run.handoff && typeof run.handoff === 'object' && run.handoff.path) {
+    run.handoff.path = posixJoin(completedRel, STATE_REL);
+    if (run.artifact_refs && typeof run.artifact_refs === 'object') {
+      run.artifact_refs.handoff_ref = posixJoin(run.handoff.path, 'handoff.json');
+    }
+  }
+  writeJson(jsonPath, run);
+}
+
+/** Idempotent tidy: COMPLETED/ABANDONED that still sit live (root or leftover tasks/) go to completed/. */
+function parkClosedRuns(cwd = process.cwd()) {
+  const parked = [];
+  const skipped = [];
+  for (const row of listRuns(cwd)) {
+    if (row.needs_migrate) continue;
+    if (row.layout === 'completed') continue;
+    if (!isTaskRunId(row.run_id)) continue;
+    if (row.status !== 'COMPLETED' && row.status !== 'ABANDONED') continue;
+    try {
+      const moved = moveRunToCompleted(row.run_id, cwd);
+      rewriteParkedPaths(row.run_id, cwd);
+      parked.push({
+        run_id: row.run_id,
+        moved: moved.moved,
+        path: posixJoin(RALPH_COMPLETED_DIR_REL, row.run_id)
+      });
+    } catch (err) {
+      skipped.push({ run_id: row.run_id, reason: String(err.message || err) });
+    }
+  }
+  return { parked, skipped };
+}
+
 /**
  * Remove 1.0 archive/ snapshot dirs. Default dry-run; require confirm=true (CLI --yes) to delete.
  */
@@ -305,6 +349,7 @@ export function migrateRuns({ cwd = process.cwd(), all_projects = false, prune_a
   for (const row of pending) {
     results.push(migrateOneRun(row.run_id, { cwd, taken }));
   }
+  const park = parkClosedRuns(cwd);
   const prune = prune_archive ? pruneArchive({ cwd, confirm: yes }) : null;
   writeRalphIndex(cwd);
   return {
@@ -314,6 +359,8 @@ export function migrateRuns({ cwd = process.cwd(), all_projects = false, prune_a
     runs: results,
     lifted: lift.lifted,
     sheltered: shelter.moved,
+    parked: park.parked,
+    park_skipped: park.skipped,
     prune_archive: prune
   };
 }

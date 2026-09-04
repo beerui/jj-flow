@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { assertStrictRalphRunId, loadNamingConfig } from '../namingConfig.mjs';
-import { attachKnowledgeRefs, formatKnowledgeRefsMarkdown, resolvePortfolioKbRoot } from '../portfolioKnowledge.mjs';
+import { attachKnowledgeRefs, resolvePortfolioKbRoot } from '../portfolioKnowledge.mjs';
 import { INJECT_SOFT_CAP } from '../memoryRetrieve.mjs';
 import { gateLesson } from '../memoryExtract.mjs';
 import { ingestContribution } from '../homeKnowledge.mjs';
@@ -17,7 +17,6 @@ import {
   confirmHotMemoryEntry,
   defaultFindingsStub,
   extractReusableRulesFromFindings,
-  formatHotMemoryMarkdown,
   formatHotMemoryProgressLine,
   parseProgressDraft,
   pruneHotMemory,
@@ -36,18 +35,6 @@ import {
   REVIEW_NIT_CAP,
   REVIEW_OUTCOMES,
   REVIEW_SOURCES,
-  SECTION_ACCEPT,
-  SECTION_ANALYZE,
-  SECTION_CURRENT,
-  SECTION_FLAGGED,
-  SECTION_GOAL,
-  SECTION_LANDED,
-  SECTION_MUST,
-  SECTION_OPEN_QUESTIONS,
-  SECTION_OUT,
-  SECTION_PLAN,
-  SECTION_SUPERSEDED,
-  SECTION_UNRESOLVED,
   TASK_PLAN_REL,
   appendProgressLine,
   appendProgressRound,
@@ -209,15 +196,10 @@ export function initRun(options, cwd = process.cwd()) {
   fs.mkdirSync(dir, { recursive: true });
   saveRun(run, cwd);
   const nl = String.fromCharCode(10);
-  const knowledgeMd = formatKnowledgeRefsMarkdown({
-    knowledge_refs: run.knowledge_refs || [],
-    knowledge_summary: run.knowledge_summary || []
-  });
   const hotPack = collectHotMemoryHits(run, {
     cwd,
     query: options.knowledge_query || hotMemoryQueryFrom(run)
   });
-  const hotMd = formatHotMemoryMarkdown(hotPack.hits || []);
   const writeIntent = options.write_intent === true
     || (options.write_intent !== false && run.intensity !== 'tiny');
   if (writeIntent) {
@@ -228,84 +210,57 @@ export function initRun(options, cwd = process.cwd()) {
   };
   saveRun(run, cwd);
   // P2+b: without an explicit --lite/--full the heuristic only advises. run.json already holds
-  // gate_set=full; the suggestion lives on the returned object + a progress line, never in the ledger.
+  // gate_set=full; the suggestion lives on the returned object + events.jsonl, never in the ledger.
   const explicitGateSet = options.gate_set != null && String(options.gate_set).trim() !== '';
   const gateSetSuggestion = explicitGateSet
     ? null
     : suggestGateSet({ title: run.title, goal: run.goal, scope: run.scope, capability_ids: run.capability_ids });
   const gateSetSuggestionLine = gateSetSuggestion && gateSetSuggestion.gate_set === 'lite'
-    ? ('- gate_set_suggestion: lite (advisory; run.json stays full — explicit --lite only) reasons=' + gateSetSuggestion.reasons.join('; ') + nl)
+    ? ('- gate_set_suggestion: lite (advisory; run.json stays full — explicit --lite only) reasons=' + gateSetSuggestion.reasons.join('; '))
     : '';
-  const knowledgeLine = '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)');
-  const goalBody = writeIntent
-    ? ('## ' + SECTION_GOAL + nl + nl + (run.goal || '') + nl + nl
-      + '### ' + SECTION_OPEN_QUESTIONS + nl + nl
-      + '### 问题' + nl + nl
-      + '### 预期结果' + nl + nl
-      + '### 影响面' + nl + nl
-      + '### 约束' + nl)
-    : ('## ' + SECTION_GOAL + nl);
+  const today = nowIso().slice(0, 10);
+  const goalBlock = ['## Goal', '', run.goal || '', ''];
+  if (writeIntent) goalBlock.push('## 存疑', '');
   const taskPlan = [
     '# ' + run.run_id,
     '',
-    '> 运行: ' + run.run_id + '　状态: ' + run.phase + '/' + run.status,
+    '> Status: ' + run.phase + ' / ' + run.status,
     '',
-    goalBody,
+    ...goalBlock,
+    '## 验收',
     '',
-    '## ' + SECTION_ANALYZE,
+    '1. [ ] ',
     '',
-    knowledgeMd,
+    '## Steps',
     '',
-    hotMd,
-    '',
-    '### ' + SECTION_MUST,
-    '',
-    '### ' + SECTION_OUT,
-    '',
-    '### ' + SECTION_FLAGGED,
-    '',
-    '### ' + SECTION_UNRESOLVED,
-    '',
-    '## ' + SECTION_PLAN,
-    '',
-    knowledgeLine,
-    '',
-    '### ' + SECTION_CURRENT,
-    '',
-    '### ' + SECTION_LANDED,
-    '',
-    '### ' + SECTION_SUPERSEDED,
-    '',
-    '## ' + SECTION_ACCEPT,
-    '',
-    '### ' + SECTION_CURRENT,
-    '',
-    '| 项 | must_id | evidence_class | 结果 | 证据 |',
-    '| --- | --- | --- | --- | --- |',
-    '',
-    '### ' + SECTION_LANDED,
+    '1. [ ] ',
     ''
   ].join(nl);
   const stubs = {
     [TASK_PLAN_REL]: taskPlan,
-    [PROGRESS_REL]: '# ' + run.run_id + ' - 进度' + nl + nl
-      + '> 用于上下文恢复。压缩/重启后先读此文件（最后 30 行）。' + nl
-      + '> **追加式，时间正序**。' + nl + nl
-      + '- ' + nowIso() + ' init ' + run.run_id + nl
-      + '- intensity: ' + (run.intensity || 'standard') + nl
-      + '- gate_set: ' + (run.gate_set || 'full')
-      + (run.gate_set === 'lite' ? (' (brief→deliver→close; max_deliver_loops=' + run.budget.max_deliver_loops + ')') : '') + nl
-      + gateSetSuggestionLine
-      + '- max_iterations: ' + run.max_iterations + nl
-      + '- intent: ' + (run.artifact_refs.intent || '(none)') + nl
-      + '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)') + nl
-      + formatHotMemoryProgressLine(hotPack.hits || []) + nl,
+    [PROGRESS_REL]: '# ' + run.run_id + ' — progress' + nl + nl
+      + '## ' + today + nl + nl
+      + '- init: ' + (run.title || run.run_id) + nl
+      + '- intensity: ' + (run.intensity || 'standard') + nl,
     [FINDINGS_REL]: defaultFindingsStub({ taskKey: run.run_id })
   };
   for (const [name, bodyText] of Object.entries(stubs)) {
     const filePath = path.join(dir, name);
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
   }
+  appendProgressLine(run.run_id, cwd, '- ' + nowIso() + ' init ' + run.run_id);
+  appendProgressLine(run.run_id, cwd, '- intensity: ' + (run.intensity || 'standard'));
+  appendProgressLine(
+    run.run_id,
+    cwd,
+    '- gate_set: ' + (run.gate_set || 'full')
+      + (run.gate_set === 'lite' ? (' (brief→deliver→close; max_deliver_loops=' + run.budget.max_deliver_loops + ')') : '')
+  );
+  if (gateSetSuggestionLine) appendProgressLine(run.run_id, cwd, gateSetSuggestionLine);
+  appendProgressLine(run.run_id, cwd, '- max_iterations: ' + run.max_iterations);
+  appendProgressLine(run.run_id, cwd, '- intent: ' + (run.artifact_refs.intent || '(none)'));
+  appendProgressLine(run.run_id, cwd, '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'));
+  appendProgressLine(run.run_id, cwd, formatHotMemoryProgressLine(hotPack.hits || []));
   const reuse_suggestions = [];
   const seen = new Set([run.run_id]);
   const title = String(run.title || '').trim();
@@ -840,8 +795,6 @@ export function recordReview(runId, {
   }
   run.updated_at = nowIso();
   saveRun(run, cwd);
-  const progressPath = path.join(runDir(runId, cwd), 'progress.md');
-  const nl = String.fromCharCode(10);
   let line = '- ' + report.recorded_at + ' review ' + id + ' ' + report.outcome;
   if (report.reviewed_commit) line += ' commit=' + report.reviewed_commit;
   if (report.fix_commit) line += ' fix_commit=' + report.fix_commit;
@@ -850,9 +803,7 @@ export function recordReview(runId, {
   if (report.task_thread_id) line += ' task_thread=' + report.task_thread_id;
   if (report.review_thread_id) line += ' review_thread=' + report.review_thread_id;
   line += ' accept_layers.judgment=' + run.accept_layers.judgment;
-  line += nl;
-  if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, line, 'utf8');
-  else fs.writeFileSync(progressPath, '# Progress' + nl + nl + line, 'utf8');
+  appendProgressLine(runId, cwd, line);
   return { run, report, path: path.join(RALPHS_DIR_REL, runId, STATE_REL, relPath).replaceAll(String.fromCharCode(92), String.fromCharCode(47)) };
 }
 

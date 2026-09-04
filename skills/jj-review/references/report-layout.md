@@ -3,28 +3,31 @@
 ## Paths
 
 ```text
-.workflow/ralph/tasks/<task_key>/
-  progress.md
+.workflow/ralph/<task_key>/          # leftover nest: tasks/<task_key>/
+  task_plan.md
+  progress.md                        # dated human narrative; do not dump review ISO lines here
   .state/run.json
+  .state/events.jsonl                # machine review line (CLI review-record)
   .state/reviews/REV-n.json
 ```
 
 ## Selecting a run
 
-- Explicit `run_id` → use that run; missing → BLOCKED.
-- Unspecified → pick latest among `.workflow/ralph/tasks/*/ .state/run.json` (also leftover `archive/**/run.json` and unmigrated `RALPH-*/run.json`, read-only):
-  1. `updated_at` descending
-  2. on ties, `run_id` descending
-- New layout and leftover archive must each be locatable when both exist.
-- No runs at all → BLOCKED; do not init / hand-build an empty run.
+- Explicit `run_id` → use that run; missing → BLOCKED (do not init).
+- Unspecified → **currently working** run from `.workflow/ralph/index.md` first (one file; do not glob the tree yet):
+  1. Read `## 活跃` (CLI heading `## 活跃（根目录 \`task-*\`)`). Skip the `（无）` placeholder.
+  2. One `` `task-*` `` → bind it. Confirm `.state/run.json` at live `.workflow/ralph/<id>/` (leftover nest: `tasks/<id>/`). Missing file → ignore that row.
+  3. Several → prefer status `IN_PROGRESS`; still several → `updated_at` desc then `run_id` desc among **those ids only**.
+  4. No 活跃 row / no `index.md` → fallback glob: live `.workflow/ralph/<task_key>/.state/run.json`, then leftover `tasks/*/`, `completed/`, `archive/**/run.json`, unmigrated `RALPH-*/run.json` (read-only). Same sort: `updated_at` desc, then `run_id` desc. Live root and leftover must each be locatable.
+- No runs at all → **unbound** review of working tree / HEAD; do not init / hand-build an empty run; do not persist `REV-*.json`.
 
 ## Review source (priority)
 
-1. User-provided review result → map → persist (`source=user_provided`)
-2. Host built-in review → map → persist (`source=host_builtin`)
+1. User-provided review result → map → persist if bound (`source=user_provided`)
+2. Host built-in review → map → persist if bound (`source=host_builtin`)
 3. Only when 1/2 unavailable: minimal inline review (`source=fallback_inline`)
 
-Details: [host-review.md](host-review.md). Passes / nit cap / Current: [review-policy.md](review-policy.md). **Do not** run a second parallel self-review that overwrites a host verdict already given (unless the user explicitly requests re-review).
+Details: [host-review.md](host-review.md). Passes / nit cap / Steps: [review-policy.md](review-policy.md). **Do not** run a second parallel self-review that overwrites a host verdict already given (unless the user explicitly requests re-review).
 
 Maintenance path and conversation path share the same schema: `jj ralph review-record --source … [--host-review-json …]` writes provenance fields; do not assume the CLI drops provenance.
 
@@ -64,7 +67,7 @@ Maintenance path and conversation path share the same schema: `jj ralph review-r
 
 - `PASS`: no OPEN finding, and `reviewed_commit` present (OPEN nits are WAIVED on PASS; OPEN important flips to `NEEDS_CHANGES`)
 - `NEEDS_CHANGES`: ≥1 OPEN finding, and `reviewed_commit` present (nit cap 5; extras WAIVED)
-- `BLOCKED`: insufficient evidence; state missing run / diff / context
+- `BLOCKED`: insufficient evidence; state missing explicit `run_id` / diff / context (not “no ralph run”)
 
 ## Write back run.json
 
@@ -89,11 +92,13 @@ Maintenance path and conversation path share the same schema: `jj ralph review-r
 }
 ```
 
-Append one line to `progress.md`:
+`jj ralph review-record` appends the machine line to `.state/events.jsonl` (not `progress.md`):
 
 ```text
 - <iso> review REV-1 PASS commit=<sha> source=host_builtin task_thread=<id> review_thread=<id>
 ```
+
+Do not copy that ISO line into `progress.md`. Optional human note: a dated `## YYYY-MM-DD` bullet such as “review REV-1 NEEDS_CHANGES”.
 
 ## Boundaries
 

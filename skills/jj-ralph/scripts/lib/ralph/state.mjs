@@ -869,61 +869,44 @@ function inferEventFromProgressLine(line) {
 }
 
 /**
- * Machine-track writer. Prefer appendEvent for structured fields.
- * Still mirrors a markdown bullet into progress.md so older contracts/readers keep working
- * until call sites move to narrative appendProgressRound; events.jsonl is the SSOT for parsers.
+ * Machine-track writer. events.jsonl is the SSOT.
+ * Do not mirror into progress.md — that file is dated human narrative only.
  */
 export function appendProgressLine(runId, cwd, line) {
-  const nl = '\n';
   const event = inferEventFromProgressLine(line);
   appendEvent(runId, cwd, event);
-  const progressPath = path.join(runDir(runId, cwd), 'progress.md');
-  const text = String(line || '').endsWith(nl) ? String(line) : String(line) + nl;
-  if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, text, 'utf8');
-  else {
-    fs.writeFileSync(
-      progressPath,
-      '# Progress' + nl + nl
-        + '> 人读轨：按「## 轮次 N」追加。机器事件见 .state/events.jsonl。' + nl + nl
-        + '## 轮次 1 · ' + nowIso().slice(0, 10) + ' · init' + nl + nl
-        + text,
-      'utf8'
-    );
-  }
+  return event;
 }
 
-/** Human-track only: append a new round section (never rewrites prior rounds). */
+/** Concatenate event `line` fields (legacy markdown bullets) for parsers/tests. */
+export function readRunEventsText(runId, cwd = process.cwd()) {
+  return readEvents(runId, cwd).map((row) => {
+    if (row?.line) return String(row.line);
+    const ts = row?.ts ? String(row.ts) + ' ' : '';
+    return '- ' + ts + String(row?.message || '').trim();
+  }).filter(Boolean).join('\n');
+}
+
+/** Human-track only: append a dated section (never rewrites prior days). */
 export function appendProgressRound(runId, cwd, { title, goal, result = null, findingHint = null } = {}) {
   const progressPath = path.join(runDir(runId, cwd), 'progress.md');
   const nl = '\n';
-  let next = 1;
-  if (fs.existsSync(progressPath)) {
-    const cur = fs.readFileSync(progressPath, 'utf8');
-    const matches = cur.match(/^## 轮次\s+(\d+)/gm) || [];
-    for (const m of matches) {
-      const n = Number(m.replace(/\D+/g, ''));
-      if (Number.isInteger(n) && n >= next) next = n + 1;
-    }
-  }
   const at = nowIso();
+  const day = at.slice(0, 10);
+  const heading = title ? ('## ' + day + ' — ' + title) : ('## ' + day);
   const block = [
     '',
-    '## 轮次 ' + next + ' · ' + at.slice(0, 10) + ' · ' + (title || 'resume'),
+    heading,
     '',
-    '### 本轮目标',
-    '',
-    '- ' + (goal || title || '(未填写)'),
-    '',
-    '### 本轮结果',
-    '',
+    goal ? ('- ' + goal) : null,
     '- ' + (result || '进行中'),
-    findingHint ? ('', '> finding 软提示：' + findingHint, '') : '',
+    findingHint ? ('> finding 软提示：' + findingHint) : null,
     ''
-  ].flat().join(nl);
+  ].filter((row) => row !== null).join(nl);
   if (fs.existsSync(progressPath)) fs.appendFileSync(progressPath, block, 'utf8');
-  else fs.writeFileSync(progressPath, '# Progress' + nl + block, 'utf8');
-  appendEvent(runId, cwd, { ts: at, type: 'round', round: next, title: title || 'resume', goal: goal || null });
-  return { round: next, path: progressPath };
+  else fs.writeFileSync(progressPath, '# ' + runId + ' — progress' + nl + block, 'utf8');
+  appendEvent(runId, cwd, { ts: at, type: 'round', title: title || 'resume', goal: goal || null });
+  return { path: progressPath, heading };
 }
 
 export function readEvents(runId, cwd = process.cwd()) {

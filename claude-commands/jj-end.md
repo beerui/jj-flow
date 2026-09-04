@@ -29,6 +29,6 @@ Mandatory order:
 5. Push integration
 6. Return per `return_to` (default work)
 
-On conflict: abort merge, return to work, report files — do not claim success. No force push. Unrelated dirty files stay unstaged.
+On conflict: default self-merge (Vue/docs/logic that compose). Abort the whole merge only if unhandleable (same product flag contradicts and you cannot tell which side wins). Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push. Unrelated dirty files stay unstaged.
 
-Final report in Chinese: branches, commit, pulls, merge, pushes, blockers.
+Happy path: one Chinese line (`work→integration`, hash, pushed). Tables/blockers only on STOP / dry_run / unhandleable abort.

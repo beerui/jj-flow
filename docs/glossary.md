@@ -19,8 +19,7 @@
 | Mode S | Grok 上：尽量 **一个会话** 串完多个任务 |
 | PENDING | 证据不够，不能当「已通过」 |
 | 证据 | 提交、审查文件、调度记录等 **可核对** 的东西 |
-| lite / full | ralph 走几道关：小改三步（lite）或完整五步（full）；没说默认 full |
-| intensity（tiny / standard / strict） | 分析、计划写多短、验收多严；和 lite/full 不是一回事 |
+| intensity（tiny / standard / strict） | 分析、计划写多短、验收多严；对话路径一律五步，tiny 只是写短 |
 | `completed/` | 已归档或已放弃的任务目录（含 ABANDONED） |
 | `events.jsonl` | 机器事件流水（门禁、尝试次数等）；人读进度看 `progress.md` |
 | team-coordinate / `TC-*` | 会话内**动态多角色**执行；**不是**验收真相 |

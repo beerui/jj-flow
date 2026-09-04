@@ -17,6 +17,8 @@
 
 **别用 end：** 只是中途存一下、只要审查、不允许 push 时。
 
+收工成功时 Agent **只回一行**（工作分支 → 合入目标 + hash）；表格只在失败 / dry_run / 合不了时出现。
+
 > 调度里显示「验收通过」**不等于** 已经合进 dev。见 [踩坑](pitfalls.html)。  
 > **end 只做 Git**：不写 ralph `run.json`、不把任务「关死」。归档后再改 / 半途废弃 → 仍用 [ralph](command-jj-ralph.html) 同编号 resume（无终态冻结）。
 
@@ -33,16 +35,17 @@ git log 里的 `Merge #N into staging`、仓库里同时有 `staging` 分支、A
 
 ### 内部机制演示（可交互）
 
-fetch / commit / 同步 work / push / 合进集成分支 / 再推 / 冲突停表——用 SVG 点着看：
+fetch / commit / 同步 work / push / 合进集成分支 / 再推 / 冲突默认自己合——用 SVG 点着看：
 
 → **[end 收工机制动画](milestones/end-demo.html)**（本地：`site/milestones/end-demo.html`）
 
 ## 硬规矩
 
 - 不 force push、不删分支、不改 git 配置
-- 冲突先分类：全部简单则自己解完继续收工；有一条复杂或拿不准 → 整段 abort，回到工作分支，把分类表给你
+- 冲突默认自己合：两边都在演进、能说清怎么合的（Vue/文档/条件守卫不同）→ 合完继续收工；只有真正合不了（同一产品开关两边相反且无法判断）才整段 abort
 - 不能「只推了工作分支」就当收工成功
 - 不能只解一部分冲突再停（子集解 + 半成品 merge）
+- 不能因为「看起来像逻辑」就整单中止（feat/dynamic-form 误判）
 
 ## 怎么说
 

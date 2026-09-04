@@ -1,22 +1,22 @@
 ---
 name: jj-review
-description: Single-repo read-only review adapter. Prefer host built-in review/code-review; map to ralph reviews/REV-*.json and write back run.json. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions, or recording a review on the latest ralph run (incl. after soft-archive). Cross-project VERIFIED → jj-dispatch. Does not replace the host review engine; does not change business code.
+description: Single-repo read-only review adapter. Prefer host built-in review/code-review. If a ralph run exists, map to reviews/REV-*.json and write back run.json; if not, review the working tree or HEAD and do not init. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions, or recording a review on the latest ralph run (incl. after soft-archive). Cross-project VERIFIED → jj-dispatch. Does not replace the host review engine; does not change business code.
 ---
 
 # jj-review
 
-Produce a **read-only review record** for an existing ralph run. Prefer the **host built-in** review engine; this skill binds scope, maps results, and persists artifacts.
+Produce a **read-only review**. Prefer the **host built-in** review engine; bind a ralph run when one exists, otherwise review the working tree or HEAD. **Do not** init a run to hold a review.
 
-**Happy path in one pass** (locate → scope → user/host map → persist → report). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
+**Happy path in one pass** (locate → scope → user/host map → persist if bound → one-line reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
 
-**May** write into soft-archived / `COMPLETED` runs (no terminal freeze). **Do not** init a run only to “add a review.”
+**May** write into soft-archived / `COMPLETED` runs (no terminal freeze).
 
 ## Red-light blacklist (never do)
 
 | # | Forbidden | Why |
 |---|-----------|-----|
 | 1 | Change business code / open fix tasks / enter dispatch | Read-only adapter |
-| 2 | Init or hand-build a ralph run to hold a review | No run → `BLOCKED` |
+| 2 | Init or hand-build a ralph run to hold a review | Unbound review instead; never init |
 | 3 | Skip host review for parallel self-review when host exists | Host-first; chat ≠ fact source |
 | 4 | Treat `npm test` / `npm run verify` / CI green as `PASS` | Verify ≠ review |
 | 5 | Chain multiple full review engines in one invocation | One host path only |
@@ -28,28 +28,25 @@ Produce a **read-only review record** for an existing ralph run. Prefer the **ho
 
 | In | Out |
 |----|-----|
-| optional `run_id` (else latest) | bound run or 🔴 `BLOCKED` |
+| optional `run_id` (else currently working from index.md 活跃) | bound run, or unbound (no persist) |
+| explicit `run_id` missing | 🔴 `BLOCKED` |
 | commit / paths / pasted host result | scope or 🔴 `BLOCKED` |
-| host entry **or** user artifact **or** (after 🔴) fallback | `REV-n.json` + `run.json.review` + `progress.md` line |
-| — | brief: `review_id`, `outcome`, `source`, paths, rework? |
+| host entry **or** user artifact **or** (after 🔴) fallback | bound: `REV-n.json` + `run.json.review` + events.jsonl; unbound: chat only |
+| — | one-line on PASS; OPEN findings on NEEDS_CHANGES; STOP template on BLOCKED |
 
-Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md). Passes / nit cap / Current compliance: [review-policy.md](references/review-policy.md).
+Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-review.md](references/host-review.md). Passes / nit cap / Steps compliance: [review-policy.md](references/review-policy.md).
 
 ## Immediate actions
 
-1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/`. **Out:** `run.json`.  
-   Prefer `tasks/*/ .state/run.json`. Still glob leftover `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
+1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/index.md`. **Out:** bound `run.json`, or unbound.
+   Order: [report-layout.md](references/report-layout.md) Selecting a run. Unspecified: read `index.md` **活跃** first (currently working); do not glob until that table is empty or the file is missing.
 
-   🔴 CHECKPOINT · 🛑 STOP — **no run** (do not init):
+   Explicit `run_id` named but missing → 🔴 `BLOCKED` (do not init).
+   Unspecified and no run → **unbound**; continue. Do not init.
 
-   ```text
-   status: BLOCKED
-   reason: no_ralph_run
-   next: complete $jj-ralph init in this repo first, or pass run_id; this skill must not init
-   ```
-
-2. **Determine scope** — **In:** run artifacts + user target. **Out:** commit and/or paths.  
-   Read `task_plan.md` (`## 分析` / `## 计划` / `## 验收`) and `progress.md`. Resolve `reviewed_commit` / working-tree diff / user paths.
+2. **Determine scope** — **In:** run artifacts (if bound) + user target. **Out:** commit and/or paths.
+   Bound: read `task_plan.md` (`## Goal` / `## Steps` / `## 验收`; leftover `## 分析` / `## 计划`) and last 30 lines of `progress.md`.
+   Unbound: dirty working tree, else `HEAD`, else user paths. Skip `## Steps` compliance when there is no `task_plan.md`.
 
    🔴 CHECKPOINT · 🛑 STOP — **no commit/diff/scope**: `BLOCKED`; list missing evidence; do not invent SHA; do not call host.
 
@@ -65,14 +62,14 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 5. **Map schema** — outcome only `PASS` / `NEEDS_CHANGES` / `BLOCKED`.
    Findings: `id` / `severity` / `file` / `line` / `description` / `status` / `acceptance`; optional `pass` (`bugs`|`security`|`compliance`) and `importance` (`important`|`nit`).
-   Compare the diff to `task_plan.md` **## 计划 → ### 当前**. Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
+   Compare the diff to `task_plan.md` **## Steps** when that file exists (leftover: `## 计划 → ### 当前`). Skip generated paths. Nit cap 5; OPEN important cannot sit on PASS (nits WAIVED on PASS).
    Record `source` + `host_review` (provenance; does not advance other gates).
-   `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
+   Bound `PASS`/`NEEDS_CHANGES` need `reviewed_commit` ≥7 chars. Unbound uses `HEAD` when present. Unstructured text → severity tables; missing file/line → `unknown`/`1`; still undecidable → `BLOCKED`.
 
-6. **Persist** — copy [review-report.skeleton.json](references/review-report.skeleton.json):  
+6. **Persist** — **bound run only.** Unbound: skip; do not init; do not invent `REV-*.json`. Bound: copy [review-report.skeleton.json](references/review-report.skeleton.json):
    - `reviews/REV-n.json` (n = max+1 or 1)  
-   - `run.json.review` + `artifact_refs.latest_review_ref`  
-   - one `progress.md` line with `source=`  
+   - `run.json.review` + `artifact_refs.latest_review_ref`
+   - CLI writes the machine `review` line to `.state/events.jsonl` (not `progress.md`)
    Prefer CLI (same schema; **keep provenance**):
 
    ```bash
@@ -86,7 +83,9 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
    CLI fails → direct-write skeleton. Write fails → 🔴 `BLOCKED` + paths.
 
-7. **Completion report** — `run_id`, `review_id`, `outcome`, `source`, report path, host refs, rework?
+7. **Final reply** — no exception (`PASS`): **one line**. Bound: `outcome` `review_id` `run_id`. Unbound: `PASS` + `HEAD` or `working_tree`. No table, no path/host/source dump. Example: `PASS REV-1 on task-login-reminder`
+   `NEEDS_CHANGES`: one-line header + OPEN findings only (`id` / `file` / `line` / `description`). No metadata table.
+   `BLOCKED` / host missing / write fail: STOP template + missing evidence.
 
 ## Fallback (host unavailable only)
 
@@ -94,7 +93,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 🔴 CHECKPOINT · 🛑 STOP — **before fallback**: no explicit continue → stop; report why host unused; offer (a) paste → `user_provided` or (b) allow fallback. Never auto-fallback.
 
-Still read-only; still persist `REV-*.json`; explain in `summary` / `host_review.note`.  
+Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `host_review.note`.
 `user_provided` ≠ fallback.
 
 ## Failure and recovery
@@ -103,20 +102,22 @@ Still read-only; still persist `REV-*.json`; explain in `summary` / `host_review
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|
-| 🔴 no ralph run | `no_ralph_run` template | STOP; never init |
+| unspecified, no ralph run | Unbound review of working tree / HEAD | Never init |
+| 🔴 explicit `run_id` missing | `BLOCKED`; do not init | STOP |
 | 🔴 no commit/diff/scope | `BLOCKED` + missing list | STOP; no invent SHA |
 | 🔴 must-use-host, no entry | Name capability | STOP; no silent fallback |
 | host call fails | Surface error; ask fallback? | No user OK → `BLOCKED` |
 | 🔴 fallback without user OK | Offer paste or continue | STOP until user chooses |
 | unstructured host output | Map via tables; `unknown`/`1` | Undecidable → `BLOCKED` |
-| `review-record` CLI fails | Direct-write skeleton | Write fails → `BLOCKED` |
-| PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
+| bound `review-record` CLI fails | Direct-write skeleton | Write fails → `BLOCKED` |
+| bound PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
 | OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
 | Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |
 
 ## Examples
 
 ```text
+$jj-review
 $jj-review run=task-login-reminder
 $jj-review 评审当前 commit 的登录提醒改动
 $jj-review record the host review result on the latest ralph run

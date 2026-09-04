@@ -302,17 +302,21 @@ export function extractReusableRulesFromFindings(text, { taskKey = '', backrefBa
 
 export function defaultFindingsStub({ taskKey = 'findings' } = {}) {
   return [
-    `# ${taskKey} - findings`,
+    `# ${taskKey} — findings`,
     '',
-    '> 状态: draft　ADR/决策: 无',
+    '> Status: draft',
     '',
     '## 改动摘要',
-    '| 文件 | 轮次 | 变更 |',
-    '| --- | --- | --- |',
     '',
-    '## 行为/契约',
+    '| 文件 | 变更 |',
+    '| --- | --- |',
     '',
-    '## 踩坑与因果',
+    '## 行为',
+    '',
+    '| 场景 | 决策 |',
+    '| --- | --- |',
+    '',
+    '## 踩坑',
     '',
     '## 可复用结论',
     '- (none)',
@@ -390,10 +394,10 @@ export function appendFindingsEntry(text, {
 
   if (/^##\s+可复用结论/m.test(body)) {
     body = body.replace(/^##\s+可复用结论/m, block + '## 可复用结论');
-  } else if (/^##\s+踩坑与因果/m.test(body)) {
-    body = body.replace(/^##\s+踩坑与因果[^\n]*\n/, (match) => match + '\n' + block);
+  } else if (/^##\s+踩坑(?:与因果)?/m.test(body)) {
+    body = body.replace(/^##\s+踩坑(?:与因果)?[^\n]*\n/, (match) => match + '\n' + block);
   } else {
-    body = body.replace(/\s*$/, '\n\n## 踩坑与因果\n\n' + block);
+    body = body.replace(/\s*$/, '\n\n## 踩坑\n\n' + block);
   }
 
   const ruleText = String(rule || '').trim();

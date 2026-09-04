@@ -29,6 +29,7 @@ import {
   extractMarkdownSection,
   extractPlanCurrentSection,
   readRunArtifactText,
+  readRunEventsText,
   collectClaimedImplementationPaths,
   findImplementationPathMismatch,
   computeRunMetrics,
@@ -153,6 +154,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'collectGitDiffPaths',
   'commitPrep',
   'computeRunMetrics',
+  'compactKeywords',
   'confirmProjectHotMemory',
   'createEmptyAcceptLayers',
   'createEmptyMap',
@@ -215,6 +217,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'readEvents',
   'readJson',
   'readRunArtifactText',
+  'readRunEventsText',
   'recordDeliverAttempt',
   'recordFinding',
   'recordHostMeta',
@@ -257,6 +260,10 @@ test('P1b façade export set includes layout constants', () => {
 
 function read(rel) {
   return fs.readFileSync(path.join(root, rel), 'utf8');
+}
+
+function ledgerText(cwd, runId) {
+  return readRunEventsText(runId, cwd);
 }
 
 function readJson(rel) {
@@ -343,19 +350,25 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'jj-init',
     'knowledge-confirm',
     'hot_memory',
-    // P2+b: lite path wording (explicit --lite; advisory never flips gate_set; tiny ≠ lite)
-    '--lite',
+    // conversational path: never --lite; screenshot / analyze-hold / same-session continue
+    'Conversational path never uses --lite',
     'gate brief',
     'gate close',
-    '小改',
-    '顺手修',
-    '完整走一遍',
-    'promoted lite→full',
-    'gate_set\\?'
+    '先不写代码',
+    '按审查改',
+    '改坏了',
+    'gate_set?',
+    'Tool use (speed)',
+    'Goal / 验收 / Steps',
+    'MasterGo',
+    'offset'
   ]) {
-    assert.match(skill, new RegExp(marker));
+    assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-  assert.match(skill, /`tiny` never implies `lite`/);
+  assert.match(skill, /`tiny` only shortens the plan/);
+  assert.match(skill, /Screenshot \/ `\[Image\]` \/ 「这里」/);
+  assert.doesNotMatch(skill, /顺手修/);
+  assert.doesNotMatch(skill, /完整走一遍/);
 
   const userCmd = read('docs/commands/jj-ralph.md');
   for (const marker of [
@@ -369,14 +382,16 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'intensity',
     'tiny',
     'strict',
-    '轻量档（lite）',
-    '顺手修',
-    '完整走一遍',
-    '不会自作主张切换',
-    '自动升回 full'
+    '先不写代码',
+    '按审查改',
+    '改坏了',
+    '这里',
+    '仍走五步'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.doesNotMatch(userCmd, /轻量档（lite）/);
+  assert.doesNotMatch(userCmd, /顺手修/);
 
   const phases = read('skills/jj-ralph/references/phases.md');
   // English SSOT: intensity tier section (was Chinese 「强度档」)
@@ -384,11 +399,11 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /deliver-attempt/);
   assert.match(phases, /accept-layer|accept_layers/);
   assert.match(phases, /archive_history/);
-  assert.match(phases, /## Gate set \(full \/ lite\)/);
-  assert.match(phases, /explicit `init --lite` only/);
-  assert.match(phases, /Advisory only\*\*: `run\.json` keeps `gate_set=full`/);
-  assert.match(read('claude-commands/jj-ralph.md'), /--lite/);
-  assert.match(read('skills/jj-ralph/references/tiny-example.md'), /does \*\*not\*\* switch the gate path/);
+  assert.match(phases, /## Gate set \(deprecated\)/);
+  assert.match(phases, /\*\*never\*\* uses `--lite`/);
+  assert.match(phases, /先不写代码/);
+  assert.match(read('claude-commands/jj-ralph.md'), /不要.*`--lite`/);
+  assert.match(read('skills/jj-ralph/references/tiny-example.md'), /does \*\*not\*\* drop gates/);
 
   const schema = read('schemas/ralph-run.schema.json');
   assert.match(schema, /"intensity"/);
@@ -464,7 +479,7 @@ test('sample run and business map validate', () => {
   assert.ok(map.capabilities[0].run_refs.includes('RALPH-login-reminder-20260722'));
 });
 
-test('initRun writes Chinese task_plan.md sections and schema 1.2 task-* layout', () => {
+test('initRun writes lean Goal/验收/Steps task_plan and schema 1.2 task-* layout', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-init-shape-'));
   try {
     const runId = 'task-init-shape';
@@ -477,13 +492,13 @@ test('initRun writes Chinese task_plan.md sections and schema 1.2 task-* layout'
     assert.equal(run.gate_set, 'full');
     const dir = path.join(cwd, '.workflow', 'ralph', runId);
     const plan = fs.readFileSync(path.join(dir, TASK_PLAN_REL), 'utf8');
-    assert.match(plan, /^## 目标$/m);
-    assert.match(plan, /^## 分析$/m);
-    assert.match(plan, /^## 计划$/m);
+    assert.match(plan, /^## Goal$/m);
     assert.match(plan, /^## 验收$/m);
-    assert.match(plan, /^### 当前$/m);
-    assert.match(plan, /^### 必须项$/m);
-    assert.match(plan, /^### 存疑事项$/m);
+    assert.match(plan, /^## Steps$/m);
+    assert.match(plan, /^## 存疑$/m);
+    assert.equal((plan.match(/^## 分析$/m) || []).length, 0);
+    assert.equal((plan.match(/^## 计划$/m) || []).length, 0);
+    assert.equal((plan.match(/^### 当前$/m) || []).length, 0);
     assert.equal((plan.match(/^## Tasks$/m) || []).length, 0);
     assert.equal(fs.existsSync(path.join(dir, 'analyze.md')), false);
     assert.equal(fs.existsSync(path.join(dir, 'plan.md')), false);
@@ -492,9 +507,12 @@ test('initRun writes Chinese task_plan.md sections and schema 1.2 task-* layout'
     assert.equal(fs.existsSync(path.join(dir, 'knowledge-attach.json')), false);
     const findings = fs.readFileSync(path.join(dir, 'findings.md'), 'utf8');
     assert.match(findings, /## 可复用结论/);
+    assert.match(findings, /## 改动摘要/);
     const progress = fs.readFileSync(path.join(dir, 'progress.md'), 'utf8');
-    assert.match(progress, /hot_memory:/);
+    assert.match(progress, /^## \d{4}-\d{2}-\d{2}$/m);
     assert.doesNotMatch(progress, /failed_must:/);
+    assert.doesNotMatch(progress, /hot_memory:/);
+    assert.match(ledgerText(cwd, runId), /hot_memory:/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -539,6 +557,8 @@ test('map-merge then map-find recovers historical capability and run paths', () 
       keywords: ['password', '登录', '过期']
     }, cwd);
     assert.equal(merged.capability.id, 'CAP-login-reminder');
+    assert.deepEqual(merged.capability.keywords.sort(), ['password', '登录', '过期'].sort());
+    assert.equal(merged.capability.keywords.includes('登录成功后提示更新过期密码'), false);
 
     const map = loadMap(cwd);
     assert.equal(map.capabilities.length, 1);
@@ -695,7 +715,7 @@ test('review-record persists source and host_review provenance', () => {
     const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'reviews', 'REV-1.json'), 'utf8'));
     assert.equal(disk.source, 'host_builtin');
     assert.equal(disk.host_review.entry, 'review');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, runId);
     assert.match(progress, /source=host_builtin/);
     const run = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json'), 'utf8'));
     assert.equal(run.review.reviews[0].source, 'host_builtin');
@@ -989,7 +1009,7 @@ test('rollbackPhase allows apbacent edges and writes progress; COMPLETED/ARCHIVE
     assert.equal(run.phase, 'DELIVER');
     assert.equal(run.gates.deliver, 'FAIL');
     assert.equal(run.gates.accept, 'PENDING');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, runId);
     assert.match(progress, /rollbackPhase ACCEPT→DELIVER/);
 
     assert.throws(
@@ -1064,7 +1084,7 @@ test('setGate FAIL covers prior PASS without forging COMPLETED reopen', () => {
     const failed = setGate(runId, { gate: 'plan', status: 'FAIL', cwd, advance: false });
     assert.equal(failed.run.gates.plan, 'FAIL');
     assert.equal(failed.phase, 'DELIVER');
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, runId);
     assert.match(progress, /gate plan=FAIL/);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
@@ -1817,7 +1837,7 @@ test('cli deliver-attempt and accept-layer wire through', () => {
   }
 });
 
-test('init writes intent into task_plan.md except tiny; 存疑事项 is present', () => {
+test('init writes Goal into task_plan.md except tiny skips 存疑', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-intent-'));
   try {
     const standardId = 'task-intent-std';
@@ -1826,16 +1846,16 @@ test('init writes intent into task_plan.md except tiny; 存疑事项 is present'
     assert.equal(loadRun(standardId, cwd).artifact_refs.intent, TASK_PLAN_REL);
     assert.equal(fs.existsSync(path.join(stdDir, 'intent.md')), false);
     const stdPlan = fs.readFileSync(path.join(stdDir, TASK_PLAN_REL), 'utf8');
-    assert.match(stdPlan, /### 存疑事项/);
-    assert.match(stdPlan, /### 待答问题/);
+    assert.match(stdPlan, /^## Goal$/m);
+    assert.match(stdPlan, /^## 存疑$/m);
 
     const tinyId = 'task-intent-tiny';
     initRun({ run_id: tinyId, title: 'intent tiny', goal: 'skip intent', intensity: 'tiny', attach_knowledge: false }, cwd);
     assert.equal(loadRun(tinyId, cwd).artifact_refs.intent, null);
     assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', tinyId, 'intent.md')), false);
     const tinyPlan = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', tinyId, TASK_PLAN_REL), 'utf8');
-    assert.match(tinyPlan, /^## 目标$/m);
-    assert.doesNotMatch(tinyPlan, /### 待答问题/);
+    assert.match(tinyPlan, /^## Goal$/m);
+    assert.doesNotMatch(tinyPlan, /^## 存疑$/m);
 
     const forcedId = 'task-intent-force';
     initRun({ run_id: forcedId, title: 'intent force', goal: 'tiny with intent', intensity: 'tiny', write_intent: true, attach_knowledge: false }, cwd);
@@ -1874,6 +1894,16 @@ test('extractPlanCurrentSection ignores Landed and claimed paths use 当前 only
   assert.match(extractMarkdownSection(chinese, '计划', 2), /tip\.vue/);
   assert.match(extractMarkdownSection(chinese, '计划', 2), /old-panel\.vue/);
   assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(chinese)), ['tip.vue']);
+
+  const steps = [
+    '## Goal',
+    'do the thing',
+    '## Steps',
+    `- TASK-2 ${bt}tip.vue${bt}`,
+    '## 验收',
+    `- ${bt}should-not-count.vue${bt}`
+  ].join('\n');
+  assert.deepEqual(extractLedgerPathRefs(extractPlanCurrentSection(steps)), ['tip.vue']);
   const emptyCurrent = [
     '## 计划',
     '### 当前',
@@ -2133,7 +2163,7 @@ test('validateRun accepts 1.0 and 1.1; fragments and missing refs fail closed', 
     );
     const emptyRef = { ...run, artifact_refs: { ...run.artifact_refs, plan: null } };
     assert.equal(readRunArtifactText(emptyRef, 'plan', cwd), '');
-    assert.ok(readRunArtifactText(run, 'plan', cwd).includes('## 计划'));
+    assert.ok(readRunArtifactText(run, 'plan', cwd).includes('## Steps'));
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
@@ -2223,6 +2253,49 @@ test('ralph migrate 1:1 moves RALPH-* into tasks/task-* and leaves archive lefto
   }
 });
 
+test('migrate shelters leftover .migrated-* and parks COMPLETED out of leftover tasks/', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-migrate-tidy-'));
+  try {
+    const leftover = path.join(cwd, '.workflow', 'ralph', '.migrated-RALPH-old-form-20260825');
+    fs.mkdirSync(leftover, { recursive: true });
+    fs.writeFileSync(path.join(leftover, 'run.json'), '{}\n');
+
+    const liveId = 'task-live-form';
+    initRun({ run_id: liveId, title: 'live', goal: 'keep active', attach_knowledge: false }, cwd);
+    const liveRoot = path.join(cwd, '.workflow', 'ralph', liveId);
+    const liveNested = path.join(cwd, '.workflow', 'ralph', 'tasks', liveId);
+    fs.mkdirSync(path.dirname(liveNested), { recursive: true });
+    fs.renameSync(liveRoot, liveNested);
+
+    const doneId = 'task-done-form';
+    initRun({ run_id: doneId, title: 'done', goal: 'park me', attach_knowledge: false }, cwd);
+    const done = loadRun(doneId, cwd);
+    done.status = 'COMPLETED';
+    done.phase = 'ARCHIVE';
+    saveRun(done, cwd);
+    const doneRoot = path.join(cwd, '.workflow', 'ralph', doneId);
+    const doneNested = path.join(cwd, '.workflow', 'ralph', 'tasks', doneId);
+    fs.renameSync(doneRoot, doneNested);
+
+    const result = migrateRuns({ cwd });
+    assert.equal(result.sheltered.length, 1);
+    assert.equal(result.sheltered[0].to.replaceAll('\\', '/'), '.workflow/ralph/migrated/RALPH-old-form-20260825');
+    assert.equal(fs.existsSync(leftover), false);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'migrated', 'RALPH-old-form-20260825', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', liveId, '.state', 'run.json')));
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'completed', doneId, '.state', 'run.json')));
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'tasks')), false);
+    assert.equal(loadRun(doneId, cwd).last_archive_path.replaceAll('\\', '/'), '.workflow/ralph/completed/' + doneId);
+    assert.equal(result.parked.some((row) => row.run_id === doneId), true);
+    const listed = listRuns(cwd);
+    assert.equal(listed.some((row) => String(row.path || '').includes('.migrated-') || String(row.path || '').includes('/migrated/')), false);
+    assert.equal(listed.find((row) => row.run_id === liveId).layout, 'active');
+    assert.equal(listed.find((row) => row.run_id === doneId).layout, 'completed');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('init same task_key resumes; adopt --absorb is refused', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-adopt-'));
   try {
@@ -2300,12 +2373,11 @@ test('P2+a init --lite sets gate_set=lite and caps max_deliver_loops; default an
     assert.equal(lite.stagnation.patience, INTENSITY_DEFAULTS.standard.stagnation_patience);
     assert.deepEqual(validateRun(loadRun('task-lite-std', cwd)), []);
     const liteDir = path.join(cwd, '.workflow', 'ralph', 'task-lite-std');
-    const progress = fs.readFileSync(path.join(liteDir, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, 'task-lite-std');
     assert.match(progress, /gate_set: lite/);
-    // same layout, same task_plan template (analyze section may be one line, no new tree)
     const plan = fs.readFileSync(path.join(liteDir, TASK_PLAN_REL), 'utf8');
-    assert.match(plan, /^## 分析$/m);
-    assert.match(plan, /^## 计划$/m);
+    assert.match(plan, /^## Goal$/m);
+    assert.match(plan, /^## Steps$/m);
     assert.match(plan, /^## 验收$/m);
     assert.deepEqual(fs.readdirSync(liteDir).sort(), ['.state', 'findings.md', 'progress.md', 'task_plan.md']);
 
@@ -2372,7 +2444,7 @@ test('P2+a setGate brief PASS writes analyze+plan PASS and lands in DELIVER; ali
     assert.equal(Object.hasOwn(run.gates, 'brief'), false);
     assert.equal(Object.hasOwn(run.gates, 'close'), false);
     // progress keeps five-key gate lines (metrics parser) tagged with the alias
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, runId);
     assert.match(progress, /gate analyze=PASS phase=DELIVER status=IN_PROGRESS via=brief/);
     assert.match(progress, /gate plan=PASS phase=DELIVER status=IN_PROGRESS via=brief/);
     assert.doesNotMatch(progress, /gate brief=/);
@@ -2426,7 +2498,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     assert.equal(run.phase, 'ACCEPT');
     assert.equal(run.status, 'IN_PROGRESS');
     assert.equal(run.gate_set, 'lite');
-    const progressWeak = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progressWeak = ledgerText(cwd, runId);
     assert.doesNotMatch(progressWeak, /gate accept=PASS/);
     assert.doesNotMatch(progressWeak, /promoted lite→full/);
 
@@ -2443,7 +2515,7 @@ test('P2+a close PASS still runs accept/archive evidence gates; weak write-then-
     assert.equal(run.status, 'COMPLETED');
     assert.equal(run.gate_set, 'lite');
     assert.deepEqual(validateRun(run), []);
-    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    const progress = ledgerText(cwd, runId);
     assert.match(progress, /gate accept=PASS phase=ARCHIVE status=COMPLETED via=close/);
     assert.match(progress, /gate archive=PASS phase=ARCHIVE status=COMPLETED via=close/);
 
@@ -2470,7 +2542,7 @@ test('P2+a lite FAIL/BLOCKED or scope.in growth promotes to full in place (same 
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-lite-promote-'));
   try {
     const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', id);
-    const progressOf = (id) => fs.readFileSync(path.join(dirOf(id), 'progress.md'), 'utf8');
+    const progressOf = (id) => ledgerText(cwd, id);
 
     // (a) gate FAIL on lite → full; budget restored to intensity default; BRIEF evidence kept
     const failId = 'task-lite-fail';
@@ -2744,7 +2816,7 @@ test('P2+b init without --lite/--full stays full; heuristic only advises (return
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-lite-hint-'));
   try {
     const dirOf = (id) => path.join(cwd, '.workflow', 'ralph', id);
-    const progressOf = (id) => fs.readFileSync(path.join(dirOf(id), 'progress.md'), 'utf8');
+    const progressOf = (id) => ledgerText(cwd, id);
     const diskOf = (id) => JSON.parse(fs.readFileSync(path.join(dirOf(id), '.state', 'run.json'), 'utf8'));
 
     // (a) small change, no flag → run.json full + standard budget; suggestion lite only on the returned object
@@ -2771,7 +2843,10 @@ test('P2+b init without --lite/--full stays full; heuristic only advises (return
     assert.equal(taken.gate_set_suggestion, undefined);
     assert.equal(diskOf(smallId).gate_set, 'lite');
     assert.match(progressOf(smallId), /gate_set: lite \(brief→deliver→close; max_deliver_loops=3\)/);
-    assert.doesNotMatch(progressOf(smallId), /gate_set_suggestion/);
+    assert.doesNotMatch(
+      fs.readFileSync(path.join(dirOf(smallId), 'progress.md'), 'utf8'),
+      /gate_set_suggestion/
+    );
 
     // (b) intensity ⟂ gate_set: tiny never flips gate_set and never feeds the heuristic
     const tinyArch = initRun({ run_id: 'task-hint-tiny-arch', title: '重构鉴权', goal: '重构鉴权协议', attach_knowledge: false, intensity: 'tiny' }, cwd);
@@ -2866,8 +2941,8 @@ test('Scheme A: events.jsonl is machine SSOT; progress rounds append; abandon pa
 
     appendProgressRound(runId, cwd, { title: '用户纠正', goal: '第二轮', result: '进行中' });
     const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
-    assert.match(progress, /## 轮次 \d+/);
-    assert.match(progress, /用户纠正/);
+    assert.match(progress, /## \d{4}-\d{2}-\d{2} — 用户纠正/);
+    assert.doesNotMatch(progress, /gate analyze=PASS/);
 
     const abandoned = abandonRun(runId, { reason: 'park incomplete work', cwd });
     assert.equal(abandoned.status, 'ABANDONED');

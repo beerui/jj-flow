@@ -138,14 +138,15 @@ team 产物可以**写进证据里引用**，不会自动把验收门打开。
 
 ## 11. 收工遇到冲突就整段放弃，或只解一半
 
-**出什么事：** `$jj-end` 一有冲突就停；或者只把 import 冲突解了、业务函数冲突还留着，半成品 merge。
+**出什么事：** `$jj-end` 把「两边都在演进」的 Vue/文档冲突标成 complex，整单 `merge --abort`（feat/dynamic-form：AGENTS.md 策略段、`readonly` vs `uploadDisabled`、草稿恢复 helper、LOGO 条件）。或者只把 import 解了、业务函数还留着，半成品 merge。
 
 **怎么做：**
 
-1. 先打分类表：每个冲突文件 `simple` 或 `complex`（拿不准 = `complex`）
-2. **全部 simple** → 按表解完，继续 push 合入
-3. **有一条 complex** → `merge --abort`，回到工作分支，把表给你；不要只解子集
-4. 解完不能留下 `<<<<<<<`
+1. 先打分类表：每个冲突文件 `self-merge` 或 `unhandleable`
+2. **默认自己合**：能一句话说清、不发明产品决策 → 解完继续 push 合入（Vue/文档/条件守卫不同也算）
+3. **只有真正合不了**（同一产品开关两边相反且无法判断、二进制/密钥、读完仍无法陈述解法）→ `merge --abort`，回到工作分支，把表给你
+4. 不要只解子集再 abort；解完不能留下 `<<<<<<<`
+5. 第一眼「看起来复杂」不是停手理由，要读 hunk 和上下文再判
 
 → [end](command-jj-end.html)
 

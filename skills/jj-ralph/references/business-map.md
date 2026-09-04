@@ -14,7 +14,7 @@ Contract: [business-map.schema.json](business-map.schema.json)
 | `modules` | Related source paths |
 | `acceptance` | Acceptance doc paths |
 | `run_refs` | Source `task-*` (leftover `RALPH-*` refs stay until migrate) |
-| `keywords` / `lessons` | Search keywords and lessons |
+| `keywords` / `lessons` | Short search terms (≤16, ≤32 chars). Title/summary are already searched — do **not** dump sentence fragments |
 | `handoff_refs` | Handoff paths |
 
 When creating/merging nodes, copy [capability.skeleton.json](capability.skeleton.json).
@@ -30,7 +30,9 @@ When creating/merging nodes, copy [capability.skeleton.json](capability.skeleton
 
 Prefer: `ralph_ops.mjs map-find --query "…"` (outputs matches + discover_paths).
 
-1. Read `business-map.json`; search by title / keywords / module fragments.
-2. On hit, open `.workflow/ralph/<task_key>/.state/run.json`, `progress.md`, `task_plan.md` via `run_refs` (legacy `RALPH-*/run.json` until migrate).
+1. Call the CLI. **Do not Read `business-map.json` wholesale** — title / summary / modules / lessons are already searched.
+2. On hit, open only the current `task_plan.md` (and last 30 lines of `progress.md`) if you need context. Do not paste CAP history into the live plan.
 3. `discover_paths` in tool output is a search-time path list — **not persisted**.
 4. If `handoff_refs` exist, read requirements under `.workflow/handoffs/<HOF-ID>/`; do not implement migration inside the ralph directory.
+
+`finalize --keywords` accepts short business terms only (`enter-form`, `dynamic`). Sentence-length tokens are dropped.

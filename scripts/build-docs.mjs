@@ -102,6 +102,7 @@ const DEEP_PAGES = [
   { title: 'Ralph 任务工作区 .plans 化改造', source: 'docs/design-docs/ralph-plans-workspace.md', output: 'design-docs/ralph-plans-workspace.html', group: '设计文档' },
   { title: 'Ralph 工作区布局（方案 A）', source: 'docs/design-docs/ralph-workspace-layout.md', output: 'design-docs/ralph-workspace-layout.html', group: '设计文档' },
   { title: 'Ralph 多轮任务内容预览', source: 'docs/design-docs/ralph-plans-workspace.preview.md', output: 'design-docs/ralph-plans-workspace.preview.html', group: '设计文档' },
+  { title: 'Ralph 自动收尾', source: 'docs/design-docs/ralph-auto-closeout.md', output: 'design-docs/ralph-auto-closeout.html', group: '设计文档' },
   { title: 'jj-evaluated 设计', source: 'docs/design-docs/jj-evaluated.md', output: 'design-docs/jj-evaluated.html', group: '设计文档' },
   { title: 'Grok Host Adapter', source: 'docs/design-docs/grok-host-adapter.md', output: 'design-docs/grok-host-adapter.html', group: '设计文档' },
   { title: 'jj-team-coordinate 设计', source: 'docs/design-docs/jj-team-coordinate.md', output: 'design-docs/jj-team-coordinate.html', group: '设计文档' },

@@ -1171,7 +1171,7 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     const result = migrateRuns({ cwd, all_projects: allProjects, prune_archive: pruneArchive, yes });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else {
-      stdout.write(`migrate count=${result.count} lifted=${(result.lifted || []).length} sheltered=${(result.sheltered || []).length}\n`);
+      stdout.write(`migrate count=${result.count} lifted=${(result.lifted || []).length} sheltered=${(result.sheltered || []).length} parked=${(result.parked || []).length}\n`);
       for (const row of result.runs || []) {
         stdout.write(`  ${row.from} -> ${row.to} (${row.path})\n`);
       }

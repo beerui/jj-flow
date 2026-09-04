@@ -23,6 +23,7 @@ import {
   STATE_REL,
   stripRunIdPrefix,
   appendProgressLine,
+  readRunEventsText,
   createEmptyAcceptLayers,
   createEmptyMap,
   effectiveGateSet,
@@ -282,11 +283,13 @@ function firstPresentHeading(text, heading, levels) {
 }
 
 /**
- * Current plan contract: `## 计划` → `### 当前`. Empty `### 当前` stays empty
- * (does not leak 已落地 / 已取代).
+ * Current plan contract: `## Steps` (lean) or leftover `## 计划` → `### 当前`.
+ * Empty `### 当前` stays empty (does not leak 已落地 / 已取代).
  */
 export function extractPlanCurrentSection(text) {
   if (!text || typeof text !== 'string') return '';
+  const steps = firstPresentHeading(text, 'Steps', [2]) ?? firstPresentHeading(text, '步骤', [2]);
+  if (steps != null) return steps;
   const plan = hasHeading(text, '计划', 2) ? extractMarkdownSection(text, '计划', 2) : null;
   const scope = plan != null ? plan : text;
   const current = firstPresentHeading(scope, '当前', [3, 2]);
@@ -441,7 +444,9 @@ export function collectGitDeletedPaths(cwd = process.cwd()) {
 
 function looksLikeFixRun(run, cwd) {
   const progress = readRunArtifactText(run, 'progress', cwd);
-  if (/\bfailed_must\b/i.test(progress) || /\buser_correction\b/i.test(progress) || /\bover_claimed\b/i.test(progress)) {
+  const events = run?.run_id ? readRunEventsText(run.run_id, cwd) : '';
+  const hay = progress + '\n' + events;
+  if (/\bfailed_must\b/i.test(hay) || /\buser_correction\b/i.test(hay) || /\bover_claimed\b/i.test(hay)) {
     return true;
   }
   const latest = getLatestReviewRecord(run, cwd);
@@ -505,7 +510,7 @@ export function buildPlanComplianceFindings(run, cwd = process.cwd(), { diff_pat
     line: 1,
     description: mismatch,
     status: 'OPEN',
-    acceptance: '对齐 task_plan.md ## 计划 ### 当前（先把旧当前挪到已落地/已取代）'
+    acceptance: '对齐 task_plan.md ## Steps（leftover: ## 计划 → ### 当前）；旧合约写进 progress.md，不要往 live plan 堆已落地'
   }];
 }
 
@@ -1328,7 +1333,8 @@ export function computeRunMetrics(run, cwd = process.cwd()) {
   const firstDeliver = first('deliver-attempt');
   const deliverAttempts = events.filter((item) => item.kind === 'deliver-attempt');
   const falseDelivers = deliverAttempts.filter((item) => item.improved === false);
-  const analyzeRework = /(?:\bSUPERSEDED\b|已取代)|\bfailed_must\b|\bover_claimed\b/i.test(progress)
+  const eventText = run?.run_id ? readRunEventsText(run.run_id, cwd) : '';
+  const analyzeRework = /(?:\bSUPERSEDED\b|已取代)|\bfailed_must\b|\bover_claimed\b/i.test(progress + '\n' + eventText)
     && Boolean(planPass);
   const latestReview = getLatestReviewRecord(run, cwd);
   const findings = Array.isArray(latestReview?.findings) ? latestReview.findings : [];

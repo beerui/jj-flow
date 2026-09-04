@@ -7,7 +7,7 @@
     { "type": "contains", "text": "Land where?" },
     { "type": "contains", "text": "A:** `dev`" },
     { "type": "contains", "text": "Golden Q&A — G-end-2" },
-    { "type": "contains", "text": "The Vue method is `complex`" },
+    { "type": "contains", "text": "Label them `self-merge`" },
     { "type": "file_exists", "path": "docs/evaluations/EP-20260828-jj-end-staging-not-dev.md" }
   ]
 }

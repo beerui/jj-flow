@@ -3,74 +3,63 @@
 Use when the user already gave `@file:line` or a clear single-field / single-interaction change.  
 Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”).
 
-`tiny` is the intensity tier only; it does **not** switch the gate path. Add `--lite` explicitly when the user says 「小改 / 顺手修」 (BRIEF→DELIVER→CLOSE, see [phases.md](phases.md) § Gate set); otherwise a tiny run still walks the five gates.
+`tiny` is the intensity tier only; it does **not** drop gates. Conversational path never `--lite`. A tiny run still walks ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE, with the shortest Goal + file list.
 
 ## Scope
 
 - Change exactly 1 business file (plus at most 1 reference implementation file, read-only)
 - No long background; no whole-repo search
-- **No intent block** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
-- After every DELIVER verification, record `deliver-attempt --improved true|false` (prevents empty loops)
+- **No `## 存疑`** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
+- After every DELIVER verification, record `deliver-attempt --improved true|false` (events.jsonl; prevents empty loops)
 
 ## task_plan.md (example)
 
 ```markdown
-# RALPH-zero-interest-url-20260723
+# task-zero-interest-url
 
-## 目标
+> Status: ACCEPT / IN_PROGRESS
 
-## 分析
-### 必须项
-- Agreement link uses backend field zeroInterestBizAgreementUrl  
-  evidence_class: behavior-local
-### 范围外
-- Do not change other agreement download logic
-### 存疑事项
-### 未解决
+## Goal
 
-## 计划
-### 当前
-- TASK-1 → REQ-001: update order-operation-link.vue agreement URL binding
-### 已落地
-### 已取代
+Agreement link uses backend field `zeroInterestBizAgreementUrl`.
 
 ## 验收
-### 当前
-| 项 | must_id | evidence_class | 结果 | 证据 |
-| --- | --- | --- | --- | --- |
-| Uses zeroInterestBizAgreementUrl | REQ-001 | behavior-local | PASS | order-operation-link.vue + rg |
-### 已落地
+
+1. [x] Uses `zeroInterestBizAgreementUrl` (`order-operation-link.vue` + rg)
+
+## Steps
+
+1. [x] `order-operation-link.vue` bind the backend URL
 ```
 
 ## progress.md (append)
 
 ```markdown
-- 2026-07-23T00:00:00Z init … intensity: tiny
-- 2026-07-23T00:00:00Z DELIVER: update URL binding
-- 2026-07-23T00:01:00Z VERIFY: rg confirms old static address removed
-- 2026-07-23T00:01:01Z deliver-attempt improved=true signal=rg_clean
+# task-zero-interest-url — progress
+
+## 2026-07-23
+
+- 绑定协议链接到 `zeroInterestBizAgreementUrl`
+- VERIFY: rg 确认旧静态地址已去掉
 ```
 
 `diff-only` / `behavior-local` only — do **not** add field-lifecycle or dual-path checks for tiny presentational work. Full rules: [must-evidence.md](must-evidence.md).
 
 ## Resume / policy change (even tiny)
 
-Same `run_id`. Do not overwrite `task_plan.md` down to only the new bullets.
+Same `run_id`. Rewrite Steps/验收 to the new contract. Append a new date section. Do not grow 已落地 / REQ history in the live plan.
 
 ```markdown
-## 计划
-### 当前
-- TASK-2 → REQ-001: tip 8px → 6px
-### 已落地
-- TASK-1 → REQ-001: bind zeroInterestBizAgreementUrl  (still true)
-### 已取代
+## 2026-07-24 — tip 8px → 6px
+
+- 同一文件再改 2px
 ```
 
-Move the previous `### 当前` block to 已落地 or 已取代 **before** writing the new 当前. Legacy English `## Tasks` without Current is Current — rename it, then move. File shape: [artifact-layout.md](artifact-layout.md).
+File shape: [artifact-layout.md](artifact-layout.md).
 
 ## Closeout
 
 1. After gates.accept=PASS → `finalize` (map-merge + in-place archive; same run may continue)
-2. Merge capability: modules include changed files; keywords include business terms
+2. Merge capability: modules include changed files; keywords = short business terms only (not title/goal sentences)
 3. No commit/push unless asked; Git closeout via `$jj-end` (orthogonal to run lifetime)
 4. After archive, same requirement changes → `resume` same `run_id`; do not default to new init

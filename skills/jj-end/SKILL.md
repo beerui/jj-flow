@@ -5,7 +5,7 @@ description: Task closeout that syncs remote branches, commits with Chinese Conv
 
 # JJ End
 
-**Run the full closeout pipeline in one pass.** Do not stop after “commit only / push only” and wait for the user, unless Hard-stop or **complex** conflict (see Conflict classify).
+**Run the full closeout pipeline in one pass.** Do not stop after “commit only / push only” and wait for the user, unless Hard-stop or **unhandleable** conflict (see Conflict classify).
 
 Fixed order:
 
@@ -31,7 +31,7 @@ On failure, stop and **try to return to `work_branch`**.
 | 9 | Create empty integration history when branch missing | No inventing integration |
 | 10 | Write control plane / ralph run / dispatch manifests | Use `$jj-dispatch` / `$jj-ralph` |
 | 11 | Treat git log / MR titles / `origin/HEAD` / a staging-merge parent / mere `staging` existence / a build-script name containing `staging` as the closeout integration | Historical EP-20260828 land-on-预发; build flavor ≠ land target |
-| 12 | Label a conflict `simple` when unsure, or auto-resolve a subset then abort | Mixed merge + silent business-logic loss |
+| 12 | Abort because a file is Vue/docs/logic or “looks complex”, or resolve a subset then abort | Historical over-classify (feat/dynamic-form); mixed merge + silent loss |
 | 13 | Leave `<<<<<<<` / `=======` / `>>>>>>>` in a completed closeout | Merge not actually finished |
 
 ## Core Rule
@@ -41,7 +41,7 @@ On failure, stop and **try to return to `work_branch`**.
 - 🔴 CHECKPOINT · 🛑 STOP — **user forbade push/merge**: must not merge / push; report plan only; do not continue steps 4–6
 - 🔴 CHECKPOINT · 🛑 STOP — **`dry_run=true`**: print the field table → stop; no commit / pull-write / merge / push
 - Commit only, no push/merge: do not use this skill
-- **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except **complex** conflict, or user explicitly forbids)
+- **Do not** skip steps 4–6 because of “fear of merge” or “ask first” (except **unhandleable** conflict, or user explicitly forbids)
 - This skill does **not** write the control plane and does **not** read/advance dispatch manifests; scheduling closeout uses `$jj-dispatch`
 
 ## Integration resolution priority
@@ -77,9 +77,9 @@ Print the one-line `work→integration` plan **with source** (`user` / `docs` / 
 
 ### Golden Q&A — G-end-2 (must not regress)
 
-**Q:** `git merge work` into `dev` conflicts in two files: one import-only, one the same Vue method changed differently. Auto-resolve the import?
+**Q:** `git merge work` into `dev` conflicts in AGENTS.md (two “AI commit” policy paragraphs + extra tracking check on feature), `upload.vue` (`readonly` vs `uploadDisabled` on the same drag/delete/upload conditions), a draft-restore block (old tab-drag vs `promptEnterDraftForTab`), and a logo display condition (`showBusinessLogo` vs `userType===2`). Abort because they are “logic”?
 
-**A:** No. Print the classify table. The Vue method is `complex` → **abort the whole merge**, return to `work_branch`, hand the table to the user. Do not resolve a subset.
+**A:** No. Label them `self-merge`. Combine both sides’ intent (union policy text; keep the more complete guard; keep the newer draft helper and the still-true restore; keep the more specific logo condition if it subsumes the other). Resolve **all**, continue closeout. Do **not** abort the whole merge because files are Vue/docs/logic. Do **not** resolve a subset then abort. STOP only if the same product flag is true on one side and false on the other and you cannot tell which product wants. Classify table is user-visible only on STOP.
 
 ## Defaults
 
@@ -94,11 +94,13 @@ Print the one-line `work→integration` plan **with source** (`user` / `docs` / 
 
 `$jj-end` · `$jj-end integration=release return_to=integration` · `$jj-end dry_run=true`
 
-## Conflict classify (model judgment, fail closed)
+## Conflict classify (prefer self-merge)
 
 Applies to: step 3 pull work, step 5 pull integration, step 5 merge work→integration.
 
-The agent **judges** each conflicted file `simple` or `complex`. Unsure → `complex`. Print the table **before** any resolve. This is **not** a user-confirm pause when every file is `simple`.
+**Default: resolve yourself and continue closeout.** STOP only when a hunk is **unhandleable** (you cannot produce a correct merge without inventing a product decision). “Looks like logic”, “two strategies differ”, Vue/docs, or unsure at first glance is **not** a stop.
+
+Classify before any resolve. Show the classify table to the user only when any file is `unhandleable` (STOP). All-`self-merge` is **not** a user-visible pause or table.
 
 ### 1. Inventory (do not abort yet)
 
@@ -106,23 +108,35 @@ The agent **judges** each conflicted file `simple` or `complex`. Unsure → `com
 git diff --name-only --diff-filter=U
 ```
 
-Read each file’s conflict hunks (`<<<<<<<` / `=======` / `>>>>>>>`).
+Read each file’s conflict hunks (`<<<<<<<` / `=======` / `>>>>>>>`) and enough surrounding code to state a resolution.
 
-### 2. Required table (before resolve)
+### 2. Classify each file (internal; user-visible only on STOP)
 
 | file | class | reason | resolution |
 |------|-------|--------|------------|
-| path | `simple` \| `complex` | one line | one sentence, or `hand to user` |
+| path | `self-merge` \| `unhandleable` | one line | one sentence, or `hand to user` |
 
 ### 3. How to judge
 
-Label **`simple`** only when you can state a one-sentence resolution that **does not invent product behavior**. Typical `simple` (not an exhaustive whitelist — the agent still judges): both sides identical after stripping markers; import/require-only union; changelog both prepended entries; comment/whitespace only; lockfile you will **regenerate with the package manager** (never hand-edit).
+Label **`self-merge`** when you can state a one-sentence resolution that **does not invent a product decision**. Typical (not an exhaustive whitelist):
 
-Label **`complex`** when: the same function / template / logic changed differently; you cannot explain the resolution in one sentence; binary / secrets; too many files to inspect hunk-by-hunk this turn; **or you are unsure**.
+- both sides identical after stripping markers; import/require-only union; changelog both prepended; comment/whitespace only
+- lockfile you will **regenerate with the package manager** (never hand-edit)
+- both sides evolved the same area: union complementary policy/docs; keep the more complete guard (`readonly` vs `uploadDisabled` → keep the condition that still enforces both intents); keep a renamed helper and the still-true restore; keep the more specific display condition if it subsumes the other
+- same Vue method / template changed differently, but the two edits compose (add both behaviors, or keep feature-side plus still-true integration-side)
+
+Label **`unhandleable`** only when:
+
+- the same product flag/decision is true on one side and false on the other, and you cannot tell which product wants
+- binary / secrets
+- too many files to inspect hunk-by-hunk this turn
+- after reading hunks **and** surrounding code you still cannot state a resolution without inventing product behavior
+
+First-glance “this looks complex” is a **misclassify**. Read more. Unsure after reading → `unhandleable`.
 
 ### 4. Decision
 
-**Any** `complex` (or unsure):
+**Any** `unhandleable`:
 
 ```bash
 git merge --abort
@@ -132,11 +146,12 @@ git checkout <work_branch>
 
 🔴 CHECKPOINT · 🛑 STOP — hand the table to the user. Do **not** resolve a subset. Do **not** continue steps 4–6.
 
-**All** `simple`: apply the stated resolutions → `git add -- <files>` → confirm no conflict markers remain → `git diff --check` (fix or treat as `complex` and abort) → finish the in-progress merge (`git commit --no-edit` if a merge commit is required) → **continue** the closeout pipeline.
+**All** `self-merge`: apply the stated resolutions → `git add -- <files>` → confirm no conflict markers remain → `git diff --check` (fix or treat as `unhandleable` and abort) → finish the in-progress merge (`git commit --no-edit` if a merge commit is required) → **continue** the closeout pipeline.
 
 ### 5. Report
 
-Final response must list every auto-resolved file and the resolution (`ours` / `theirs` / `union` / `regenerated lockfile`). Abort is **not** closeout success.
+Happy path (all `self-merge`, closeout continued): see **Final Response** — one line; do not list auto-resolved files.
+Any `unhandleable` abort: hand the classify table to the user. Abort is **not** closeout success.
 
 ## Workflow
 
@@ -201,7 +216,7 @@ When this task has uncommitted changes:
 
 If the working tree is already clean for this task, skip commit.
 
-**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → report and stop.
+**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → one-line **Final Response** and stop.
 
 > Commit before sync: avoid a dirty tree that cannot pull. Commit only this task’s files.
 
@@ -227,7 +242,7 @@ If `--ff-only` fails due to divergence (not network error):
 git pull --no-rebase <remote> <work_branch>
 ```
 
-- **pull work conflict**: follow **Conflict classify** (all `simple` → finish the pull merge and continue; any `complex` → abort, stay on `work_branch`, STOP)
+- **pull work conflict**: follow **Conflict classify** (all `self-merge` → finish the pull merge and continue; any `unhandleable` → abort, stay on `work_branch`, STOP)
 - no remote work branch: skip pull; step 4 uses `push -u` to set tracking
 
 **Forbidden** `pull --rebase` unless the user explicitly asks (see blacklist).
@@ -277,7 +292,7 @@ If ff-only fails due to divergence:
 git pull --no-rebase <remote> <integration>
 ```
 
-**pull integration conflict**: follow **Conflict classify** (any `complex` → abort → `git checkout <work_branch>` → STOP).
+**pull integration conflict**: follow **Conflict classify** (any `unhandleable` → abort → `git checkout <work_branch>` → STOP).
 
 Merge work branch:
 
@@ -286,7 +301,7 @@ git merge --no-edit <work_branch>
 ```
 
 - Already ancestor (Already up to date) → note “no new merge needed”; still continue to push integration (may already be synced)
-- **merge work→integration conflict**: follow **Conflict classify**. Any `complex` → abort → `git checkout <work_branch>` → STOP (user resolves on work, then re-run `$jj-end`). All `simple` → finish the merge and continue to push integration.
+- **merge work→integration conflict**: follow **Conflict classify**. Any `unhandleable` → abort → `git checkout <work_branch>` → STOP (user resolves on work, then re-run `$jj-end`). All `self-merge` → finish the merge and continue to push integration.
 
 ### 6. Push integration
 
@@ -309,16 +324,16 @@ git log -1 --oneline <integration>   # if resolvable
 
 ## Failure and recovery (must follow)
 
-🔴 Rows are **STOP or continue-after-classify**. Happy path (including all-`simple` conflicts) does **not** pause for user confirmation before push/merge. Any-`complex` is a STOP.
+🔴 Rows are **STOP or continue-after-classify**. Happy path (including all-`self-merge` conflicts) does **not** pause for user confirmation before push/merge. Any-`unhandleable` is a STOP. Vue/docs/logic that you can compose is **not** unhandleable.
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|
 | hard-stop before commit (no git/remote, detached, in-progress merge/rebase, unrelated heavy dirt) | Report condition; do not change branch | Stay stopped; do not merge/push |
 | monorepo/package workspace mis-detect | Report `git rev-parse --show-toplevel` + intended root | No commit/merge until user fixes cwd/root |
-| pull work conflict | **Conflict classify**; all `simple` → finish pull and continue | Any `complex`/unsure: abort; stay on work; STOP with table |
+| pull work conflict | **Conflict classify**; all `self-merge` → finish pull and continue | Any `unhandleable`: abort; stay on work; STOP with table |
 | push work failure | Stay on work; surface remote error | STOP; no checkout to integration |
-| pull integration conflict | **Conflict classify**; all `simple` → finish pull and continue | Any `complex`/unsure: abort; `git checkout <work_branch>`; STOP with table |
-| merge work→integration conflict | **Conflict classify**; all `simple` → finish merge and continue to push | Any `complex`/unsure: abort; `git checkout <work_branch>`; STOP with table; user re-runs `$jj-end` after resolving on work |
+| pull integration conflict | **Conflict classify**; all `self-merge` → finish pull and continue | Any `unhandleable`: abort; `git checkout <work_branch>`; STOP with table |
+| merge work→integration conflict | **Conflict classify**; all `self-merge` → finish merge and continue to push | Any `unhandleable`: abort; `git checkout <work_branch>`; STOP with table; user re-runs `$jj-end` after resolving on work |
 | push integration failure | Prefer `git checkout <work_branch>` | Report: local may be merged but unpushed; needs manual push |
 | 🔴 user forbids push/merge or `dry_run=true` | Plan / dry_run table only | No push/merge; STOP (do not run steps 4–6) |
 | candidate integration is `staging`/`预发` but source would be git-log / existence / build-script (not `user`/`docs`) | Discard candidate; continue priority (heuristic `dev` if present) | Do not merge 预发; STOP only if heuristic also missing |
@@ -332,23 +347,21 @@ git log -1 --oneline <integration>   # if resolvable
 - [ ] Already `merge work` (or explained skip when same branch)
 - [ ] Already push **integration**
 - [ ] Already switched per `return_to`
-- [ ] Final report includes branches and hashes (commit subject may be Chinese)
+- [ ] Final reply follows **Final Response** (one line on happy path; tables only on STOP / dry_run)
 
-If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / **complex** conflict → **finish it**; do not reply with only a plan.
+If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / **unhandleable** conflict → **finish it**; do not reply with only a plan.
 If hard-stop or 🔴 CHECKPOINT hit → **stay stopped**; do not “finish it”.
-All-`simple` conflicts are **not** a stop; classify → resolve → continue.
+All-`self-merge` conflicts are **not** a stop; classify → resolve → continue.
 
 ## Final Response
 
-Report facts only:
+**Happy path** (landed, or nothing to close out; no STOP / unhandleable / push failure): **one line** in Chinese. No table, no bullet list, no field dump. The pre-execution `work→integration` plan line still prints before steps 4–6; the closing reply is one additional line.
 
-- work branch / integration / final branch
-- commit hash + subject (if any; subject may be Chinese)
-- whether work / integration were pulled
-- branches pushed
-- whether merge ran (or Already up to date / same-branch skip)
-- conflict classify table if a merge/pull conflict occurred (auto-resolved files + how, or abort + table)
-- blockers and next steps (on failure)
+That line includes `work→integration` (with `integration_source`), commit hash + subject if any (subject may be Chinese), pushed branches, and the branch you returned to. All-`self-merge` that continued to land is still happy path.
+
+Example: `feat/login → dev (heuristic)：已落地 a1b2c3d feat(login): 过期提醒；已推 work+dev；回到 feat/login`
+
+**Exception / STOP / dry_run / user forbade push/merge:** keep the field table, conflict classify table, blockers, and next steps. Abort is not closeout success.
 
 ## Boundaries
 

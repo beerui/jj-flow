@@ -7,9 +7,9 @@
   index.md
   business-map.json
   task-{kebab-slug}/              # Scheme A: live runs sit flat (no tasks/ wrapper)
-    task_plan.md                  # ## 目标 / ## 分析 / ## 计划 / ## 验收
-    progress.md                   # human rounds only (## 轮次 N); append-only
-    findings.md                   # 踩坑与因果；finding 软提示，不硬失败
+    task_plan.md                  # current contract only: Goal / 验收 / Steps
+    progress.md                   # dated human narrative (## YYYY-MM-DD); append-only
+    findings.md                   # 改动摘要 / 行为 / 踩坑 / 验证；empty F-00N forbidden
     .state/
       run.json
       events.jsonl                # machine SSOT (gate / deliver-attempt / review / …)
@@ -29,69 +29,105 @@
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
 5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. Live runs sit at `.workflow/ralph/task-*`. `archive` / `abandon` rename into `completed/`; `resume` lifts back and opens a new progress round. Leftover `archive/` folders are historical 1.0 snapshots — `jj ralph migrate --prune-archive` dry-runs removal, `--yes` deletes. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
-7. Intent is optional text under `task_plan.md` `## 目标`. `init` writes it except `tiny` or `--no-intent` (`artifact_refs.intent` = `task_plan.md`). Same requirement resume keeps the existing intent; a truly new requirement may get a new intent on a new run
-8. Claimed implementation paths and review compliance read `task_plan.md` **## 计划 → ### 当前** only (no `Current` / `Tasks` / full-file fallback on the active write path). `### 已落地` / `### 已取代` do not count as the current ledger. Do not put `#` fragments in `artifact_refs`
+7. Intent is the Goal paragraph. `tiny` skips `## 存疑`. Same requirement resume keeps Goal; a truly new requirement may get a new run
+8. Claimed implementation paths read `task_plan.md` **## Steps** (leftover runs: `## 计划 → ### 当前`). Do not put `#` fragments in `artifact_refs`
 
 ## Current contract vs history
 
-Live `task_plan.md` = **current contract** (what to do now). It is not a changelog.
+Live `task_plan.md` = **what to do now**. History lives in `progress.md`. Machine events live in `.state/events.jsonl`. Do not keep 已落地 / 已取代 / REQ-001…N ledgers in the live plan.
 
 | Layer | Where | Mutate how |
 | --- | --- | --- |
-| Current contract | live `task_plan.md` (`### 当前` under 分析 / 计划 / 验收) | Update **当前**; do not delete prior rows |
-| Audit | live `progress.md` | Append only |
-| Pitfalls | live `findings.md` | Append F-00N + 可复用结论 |
-| Finalize snapshot | `completed/<task>/` + inline `run.archive` / `archive_history` | Rename into `completed/` on `finalize` / `abandon`; leftover `archive/` dirs are not mutated |
-
-`archive` / `abandon` rename the live dir into `completed/`. Leftover `.workflow/ralph/archive/*` dirs (if any) are read-only 1.0 snapshots (`migrate --prune-archive [--yes]`). A mid-DELIVER plan that never passed `finalize` has no `archive` field. If you replace live `task_plan.md` in place, that text is gone.
+| Current contract | live `task_plan.md` | Rewrite Goal / 验收 / Steps to match this loop |
+| Audit | live `progress.md` | Append a dated section; never rewrite prior days |
+| Pitfalls | live `findings.md` | Real pitfalls only (对策 required); plus 改动摘要 / 验证 |
+| Machine log | `.state/events.jsonl` | CLI only (`gate` / `deliver-attempt` / review). Do not copy into progress.md |
+| Finalize snapshot | `completed/<task>/` + inline `run.archive` / `archive_history` | Rename into `completed/` on `finalize` / `abandon` |
 
 ### File shape (`task_plan.md`)
 
-Keep this H2 order. Nested H3 under 计划 / 验收. `tiny` uses the same shape, shortest bullets. `init` writes **Chinese headings only**.
+Current contract only. `tiny` = shortest Goal + 1–3 验收 + 1–3 Steps. Backtick the files you will touch — gates read those paths from **## Steps**.
 
 ```markdown
-## 目标
-## 分析
-### 必须项
-### 范围外
-### 存疑事项
-### 未解决
-## 计划
-### 当前
-- only in-force TASK items for this loop
-### 已落地
-- still-true completed items (do not re-implement)
-### 已取代
-- previous 当前 that is no longer the approach
+# task-outbound-token-takeover
+
+> Status: DELIVER / IN_PROGRESS
+> Branch: feat/example
+
+## Goal
+
+One paragraph: what changes and for whom.
+
 ## 验收
-### 当前
-| 项 | must_id | evidence_class | 结果 | 证据 |
-| --- | --- | --- | --- | --- |
-### 已落地
+
+1. [ ] Logged-in A + URL token=B → login overlay
+2. [x] Tests 13 PASS
+
+## Steps
+
+1. [x] `src/utils/agent-token-identity.ts` decide guard
+2. [ ] `src/router/index.ts` wire beforeEach
 ```
 
-On first write of a new run, `### 已落地` / `### 已取代` may stay empty until something lands or is replaced.
+Optional `## 存疑` only for analyze-hold (「先不写代码」). Do not add 分析 / 必须项 / 已落地 / evidence_class tables unless a leftover run already has them.
 
-### Legacy / init headings
+### File shape (`progress.md`)
 
-`ralph_ops init` writes `task_plan.md` with `### 当前`. Older 1.0 runs may still have `analyze.md` / `plan.md` / `acceptance.md` and English `## Current` / `## Tasks`. `jj ralph migrate` merges those files and translates headings fail-open. Active extractors no longer treat `Current`/`Tasks` as current. Gate path checks read backtick paths, not these heading names.
+Dated human narrative. Read the last ~30 lines on resume. Do not paste ISO `gate=` / `deliver-attempt` / `fp=` lines — CLI already wrote those to `events.jsonl`.
 
-| If you see | On task / approach change |
+```markdown
+# task-outbound-token-takeover — progress
+
+## 2026-08-27
+
+- 派单：异人 JWT 挤掉重登；同人不重登
+- 实现：`agent-token-identity.ts` + router requiresAgent
+- 单测 12 PASS；`pnpm build` PASS
+
+## 2026-08-27 — M-1 静默换票
+
+- 同人 → `refresh-token`，不闪登录页
+- 单测 13 PASS
+```
+
+`resume` / approach change: append `## YYYY-MM-DD — <reason>`. Never rewrite an earlier date section.
+
+### File shape (`findings.md`)
+
+Change summary + behavior + real pitfalls + verify. Skip empty F-00N shells. `## 可复用结论` is the only hot-memory source.
+
+```markdown
+# task-outbound-token-takeover — findings
+
+> Status: DONE + M-1 已修
+
+## 改动摘要
+
+| 文件 | 变更 |
 | --- | --- |
-| `task_plan.md` `### 当前` | Move that block to `### 已落地` / `### 已取代`, then write the new 当前. Never replace 当前 in place. |
-| Legacy `plan.md` `## Tasks` and no `## Current` | That Tasks block **is** Current. Rename it to Current first, then move. |
-| Legacy `analyze.md` `## MUST` / `## OUT` | Keep those headings on 1.0 files. New runs use `### 必须项` / `### 范围外`. Mark abandoned MUST `SUPERSEDED` / `已取代`. |
-| Legacy `acceptance.md` table, no Current sections | Keep the table on 1.0 files. `结果`/`result` = `PASS` (既有) / `SUPERSEDED`/`已取代` + reason / empty until evidence. New runs put the table under `## 验收` `### 当前`. |
+| `src/utils/agent-token-identity.ts` | 同人决策 strip-token → refresh-token |
 
-### When the task / approach / MUST changes
+## 行为
 
-Includes: resume after archive, user correction, mid-DELIVER policy swap. Same `run_id`.
+| 场景 | 决策 |
+| --- | --- |
+| 已登录 + sub === agentId | 静默换票，清 URL token |
 
-1. **Before** replacing `### 当前`: move that whole block into `### 已落地` (still true) or `### 已取代` (approach abandoned). Then write the new `### 当前`.
-2. This move is mandatory even if the previous 当前 was never archived. Do not wait for `finalize` to preserve it.
-3. `## 分析`: add or tighten `### 必须项`; do not drop still-true REQ; mark abandoned MUST `已取代`.
-4. `## 计划`: new work only under `### 当前`. Old TASKs stay in 已落地 or 已取代 — never a file that contains only this loop’s TASKs after a prior loop existed.
-5. `## 验收`: still-true rows stay `PASS` (evidence `既有` or archive pointer). Replaced rows `已取代` + reason. New rows empty/FAIL until evidence. Do not wipe the table down to only the new round.
-6. `progress.md`: append `failed_must` / `failed_evidence_class` / `over_claimed` when a correction retracts a claim.
-7. Gate meaning of “rewrite plan/acceptance before accepting”: **当前** must match the code. It does not mean erase 已落地/已取代.
-8. “Add REQ / TASK” = append under 当前 (and 必须项). Do not keep superseded TASKs in 当前 as if they were still to-do.
+## 踩坑
+
+- **M-1**：同人只 strip 会 401 → `refreshAgentAuthByToken`（已修）
+
+## 验证
+
+- `node --test tests/agent-token-identity.test.mjs` → 13 PASS
+
+## 可复用结论
+
+- 同人新 JWT 必须换票，禁止只 strip（F-001）
+```
+
+`ralph_ops finding` is optional and only when there is a 对策. Prefill from a progress bullet if you wrote one; do not invent empty 现象/原因 rows.
+
+### When the task / approach changes
+
+Same `run_id`. Rewrite live Goal / 验收 / Steps to the new contract. Append a dated progress section with what was wrong and what you will do instead. Put the pitfall in findings if it will recur. Leftover runs that still have `### 当前` may move that block to `### 已落地` / `### 已取代` — new runs do not grow those sections.

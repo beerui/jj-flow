@@ -49,6 +49,7 @@
 | `phases.md` | status | 运行状态 |
 | `phases.md` | Autonomy loop | 自治循环 |
 | `phases.md` | Intensity | 强度档 tiny\|standard\|strict |
+| `phases.md` | Gate set (deprecated) | 对话路径不用 lite；机械 CLI 仅兼容旧 run |
 | `phases.md` | MUST evidence | MUST 证据（防假绿） |
 | `phases.md` | Lean execution | 精简执行 |
 | `phases.md` | User intervention | 用户介入（仅此） |
@@ -61,7 +62,7 @@
 | `post-complete-continue.md` | Knowledge contribute | 投喂知识库 |
 | `tiny-example.md` | Tiny single-point example | 单点改动最短样例 |
 | `artifact-layout.md` | Ralph artifact layout | Ralph 产物布局 |
-| `artifact-layout.md` | Current contract vs history | 当前合约 vs 历史（Current / Landed / Superseded；改任务先挪再写） |
+| `artifact-layout.md` | Current contract vs history | 当前合约 vs 历史（live Goal / 验收 / Steps；历史按日写 progress.md） |
 | `business-map.md` | Business / capability map | 能力地图 |
 | `rollback.md` | Ralph rollback (agent) | Ralph 回退（agent） |
 | `integrations.md` | Integration with jj-same / jj-dispatch | 与 same / dispatch 边界；另含 optional team-coordinate / team-swarm |
@@ -71,10 +72,10 @@
 
 | 英文名 | 中文理解 | 产物 |
 | --- | --- | --- |
-| ANALYZE | 需求分析 | `analyze.md`、REQ 账本 |
-| PLAN | 计划实施 | `plan.md`、任务表 |
-| DELIVER | 实施验证 | 代码、`progress.md`、聚焦验证 |
-| ACCEPT | 验收 | `acceptance.md` |
+| ANALYZE | 需求分析 | `task_plan.md` Goal（+ 可选 存疑） |
+| PLAN | 计划实施 | `task_plan.md` Steps |
+| DELIVER | 实施验证 | 代码、按日 `progress.md`、聚焦验证 |
+| ACCEPT | 验收 | `task_plan.md` 验收清单 |
 | ARCHIVE | 归档 | 原地 COMPLETED + `run.json` `archive` / `archive_history`、`business-map.json` 合并 |
 
 ## intensity
@@ -94,7 +95,10 @@
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
 6. `$jj-end` 只做 Git，与 run status 正交  
 7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；**嵌套时**一句提示即可，直接调用不打 banner  
-8. 任务/方案变更：init 写 `## Current`；旧 run 若仍是 `## Tasks` 则先改名再挪到 Landed/Superseded；禁止整文件覆盖 → `artifact-layout.md`  
+8. 任务/方案变更：重写 live Goal / 验收 / Steps；按日追加 `progress.md`；禁止在 live plan 里堆 已落地 / REQ 账本 → `artifact-layout.md`
+9. 对话路径不用 `--lite` / `brief` / `close`；忽略 `gate_set?`；tiny 只缩短计划
+10. 「先不写代码 / 先理解需求」只写 ANALYZE，不过关、不改业务文件
+11. 截图 / 「这里」先读图当需求；同会话「继续 / 按审查改 / 改坏了」→ resume，禁止 init
 
 ## 刻意不对照的内容
 
@@ -116,3 +120,4 @@
 | --- | --- | --- |
 | 2026-08-03 | SEZ-20260803-path-migrate | 路径迁移后入口级对照 |
 | 2026-08-03 | TC-skill-en-zh-20260803 | 正文 EN SSOT 完成；章节对照表更新 |
+| 2026-09-03 | conversational-no-lite | 对话路径弃用 lite；补截图 / 分析停手 / 同会话续跑 |

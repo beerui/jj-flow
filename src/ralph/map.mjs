@@ -83,7 +83,7 @@ export function buildElevationFromRun(run, {
     modules: unique(modules || []),
     lessons: mainLessons,
     process_lessons: processLessons,
-    keywords: unique([...(keywords || []), ...tokenize(run.title), ...tokenize(run.goal)]),
+    keywords: compactKeywords(keywords || []),
     acceptance: unique([...(acceptance || []), defaultAcceptance]),
     run_refs: [run.run_id]
   };
@@ -110,7 +110,7 @@ export function mergeCapabilityIntoMap(map, capability) {
       modules: unique([...(existing.modules || []), ...(capability.modules || [])]),
       lessons: unique([...(existing.lessons || []), ...(capability.lessons || [])]),
       process_lessons: unique([...(existing.process_lessons || []), ...(capability.process_lessons || [])]).slice(-20),
-      keywords: unique([...(existing.keywords || []), ...(capability.keywords || [])]),
+      keywords: compactKeywords([...(existing.keywords || []), ...(capability.keywords || [])]),
       acceptance: unique([...(existing.acceptance || []), ...(capability.acceptance || [])]),
       run_refs: unique([...(existing.run_refs || []), ...(capability.run_refs || [])])
     });
@@ -126,7 +126,7 @@ function normalizeCapability(capability) {
     summary: capability.summary || '',
     modules: unique(capability.modules || []),
     lessons: unique(capability.lessons || []),
-    keywords: unique(capability.keywords || []),
+    keywords: compactKeywords(capability.keywords || []),
     acceptance: unique(capability.acceptance || []),
     run_refs: unique(capability.run_refs || [])
   };
@@ -152,6 +152,17 @@ export function mapMergeFromRun(runId, options = {}, cwd = process.cwd()) {
 
 export function tokenize(text = '') {
   return String(text).toLowerCase().split(/[^a-z0-9\u4e00-\u9fff]+/i).map((item) => item.trim()).filter((item) => item.length >= 2);
+}
+
+/** Search keys only. Title/summary are already searched; do not dump sentence fragments. */
+export const KEYWORD_MAX = 16;
+export const KEYWORD_LEN_MAX = 32;
+
+export function compactKeywords(list = []) {
+  return unique(list)
+    .map((item) => String(item || '').trim())
+    .filter((item) => item.length >= 2 && item.length <= KEYWORD_LEN_MAX)
+    .slice(0, KEYWORD_MAX);
 }
 
 export function findInMap(map, query, { limit = 10 } = {}) {

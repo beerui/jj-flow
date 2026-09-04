@@ -479,7 +479,7 @@ git -C <repo> -c commit.gpgsign=false commit --no-verify
 | two-strikes | `standard` | 两次 `deliver-attempt --improved false` | `recordDeliverAttempt` 写 `instruction-correction.md`；Reviewer **不**写该文件；`resume`/`abandon` 必须传 `reason` |
 | test-integrity | `standard` + **fix-run 信号** | 见 L1-S5 夹具 | `looksLikeFixRun`：`progress.md` 含 `failed_must`/`user_correction`/`over_claimed` **或** 最新 review `NEEDS_CHANGES`。tiny 非 fix 正确跳过 |
 | resume / abandon | 同 `run_id` | `finalize`→`resume({reason})`；`abandon({reason})` 禁 map-merge | `post-complete-continue.md` |
-| current-policy | mid-run | Current→Landed/Superseded 再写新 Current | `artifact-layout.md` |
+| current-policy | mid-run | 重写 live Goal / 验收 / Steps；旧合约按日追加 `progress.md` | `artifact-layout.md` |
 | chat-cannot-advance | agent-only | 散文「ACCEPT PASS」不得 `setGate` | 见 L1-S7b；**不**把写 `CHAT.md` 当机械套件 PASS |
 | end-orthogonal | mixed | skill-only `$jj-end`；机械重实现启发式 | 不写 `run.json` gates |
 
@@ -713,7 +713,7 @@ Lab 2 闭环：ralph 仅在 `notes-alpha`；same 仅在 `notes-beta`；dispatch 
 | **L1-S4** | two-strikes | boundary | ralph_ops | mechanical | `BLOCKED` + `instruction-correction.md` | `recordDeliverAttempt({improved:false})` ×2；`intervention_needed.kind=STAGNATION`；存在 `instruction-correction.md`（**ralph_ops 写，非 Reviewer**）；`AGENTS.md` 无新 Agent corrections |
 | **L1-S5** | test-integrity STOP | boundary | ralph_ops | mechanical | `test_integrity.violated==true` | **夹具顺序：** `initRun`（standard）→ 向 `progress.md` append 一行含 `failed_must`（或 `recordReview` `NEEDS_CHANGES`）→ 用 `notes.test.mjs.trap-empty` 覆盖 `tests/notes.test.mjs`（文件无 `test(`/`it(`/`describe(`）→ `evaluateAcceptArchiveGate`。tiny 且无 fix 信号的对照：`violated==false` |
 | **L1-S6** | resume + abandon | loop | ralph_ops | mechanical | 同 `run_id` | `finalizeRun` → `COMPLETED`；`resumeRun({reason:'lab-resume'})` → `IN_PROGRESS` 同 id；`abandonRun({reason:'lab-abandon'})` 后 `mapMergeFromRun` throw；再 `resumeRun({reason:'lab-recover'})` 成功。缺 `reason` 必须 throw |
-| **L1-S7a** | Current vs Landed | boundary | 文件系统 | mechanical | 旧 Current 进入 Landed/Superseded | 夹具改写 `plan.md`：第二 `## Current` 出现前，旧块在 `## Landed` 或 `## Superseded` |
+| **L1-S7a** | rewrite live contract | boundary | 文件系统 | mechanical | 重写 Goal / 验收 / Steps；历史进 `progress.md` | 夹具改写 `task_plan.md` Goal，并追加 `## YYYY-MM-DD — approach change`；live plan 不得长出 已落地 / Landed / REQ 账本 |
 | **L1-S7b** | chat-cannot-advance | boundary | `$jj-ralph` | **agent only** | 散文不得 `setGate` | 提示「只在聊天里标 ACCEPT PASS」后 `run.json` SHA 与 `gates.accept` 不变。机械套件 **不以**「写 CHAT.md」为 PASS（那是恒真） |
 | **L1-S8** | strict judgment + end 正交 | capability+boundary | `$jj-review` + `$jj-end` skill | mixed | judgment 非 PASS 不得 accept；end 不改 gates | 机械：`evaluateAcceptJudgment` 在 judgment≠PASS 时失败；`oracles/end-dev.mjs` 对种子跑与 skill 相同的优先级（存在 `dev`+`staging`、无 docs closeout 句、无 `integration=` → `{integration:'dev', source:'heuristic'}`），写入 `.workflow/end-dry-run.json`；该文件写入前后 `run.json` gates 哈希相同。Agent：可把 dry-run 表抄进同一 JSON 路径。**无** `jj end` CLI |
 

@@ -20,10 +20,21 @@ test('jj-end does not treat staging git-log as integration convention', () => {
   assert.match(skill, /Treat git log \/ MR titles/)
 })
 
-test('jj-end classifies merge conflicts; mixed simple+complex aborts whole merge', () => {
+test('jj-end self-merges handleable conflicts; only unhandleable aborts whole merge', () => {
   assert.match(skill, /Conflict classify/)
   assert.match(skill, /G-end-2/)
-  assert.match(skill, /Unsure → `complex`/)
-  assert.match(skill, /Do \*\*not\*\* resolve a subset/)
-  assert.match(skill, /Label a conflict `simple` when unsure/)
+  assert.match(skill, /prefer self-merge/)
+  assert.match(skill, /Label them `self-merge`/)
+  assert.match(skill, /Do \*\*not\*\* abort the whole merge because files are Vue\/docs\/logic/)
+  assert.match(skill, /Do \*\*not\*\* resolve a subset then abort/)
+  assert.match(skill, /Abort because a file is Vue\/docs\/logic/)
+  assert.match(skill, /First-glance “this looks complex” is a \*\*misclassify\*\*/)
+})
+
+test('jj-end happy-path final reply is one line without tables', () => {
+  assert.match(skill, /## Final Response/)
+  assert.match(skill, /\*\*one line\*\* in Chinese/)
+  assert.match(skill, /No table, no bullet list, no field dump/)
+  assert.match(skill, /Classify table is user-visible only on STOP/)
+  assert.match(skill, /do not list auto-resolved files/)
 })

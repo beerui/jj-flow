@@ -7,7 +7,7 @@
 
 ## 技能用途
 
-单仓**只读审查适配器**：优先调用当前宿主内置 review/code-review，把结论映射为 ralph run 的 `reviews/REV-*.json` 并回写 `run.json`。
+单仓**只读审查适配器**：优先调用当前宿主内置 review/code-review。有 ralph run 时把结论映射为 `reviews/REV-*.json` 并回写 `run.json`；没有 run 时审工作区 / HEAD，不 init。
 
 不改业务代码，不 init run，不建 fix 任务，不走 dispatch。  
 可写到已 soft-archive / `COMPLETED` 的 run（ralph 无终态冻结）；不要为「补审查」另 init 新 run。  
@@ -15,13 +15,13 @@
 
 ## 立即动作（对照）
 
-1. **定位 run**：读 `.workflow/ralph/RALPH-*/run.json`；无 run → `BLOCKED`，禁止 init  
-2. **确定审查范围**：analyze/plan/progress/acceptance；缺 commit/diff → `BLOCKED`  
-3. **用户已提供结果** → `source=user_provided`，直接映射落盘  
-4. **否则宿主内置 review** → `source=host_builtin`  
-5. **映射** outcome：`PASS` / `NEEDS_CHANGES` / `BLOCKED`  
-6. **落盘** `reviews/REV-n.json` + 回写 run.json + progress.md  
-7. **完成报告**（简短）
+1. **定位 run**：未点名时先读 `.workflow/ralph/index.md` 的「活跃」表（正在做的任务，不要先 glob）；没有活跃行再扫 live `task-*` / leftover。无 run → 无绑定，审工作区/HEAD，禁止 init；点名的 `run_id` 不存在才 `BLOCKED`
+2. **确定审查范围**：有 run 时读 `task_plan.md` + `progress.md` 末约 30 行；无绑定则脏工作区否则 HEAD；缺 commit/diff → `BLOCKED`
+3. **用户已提供结果** → `source=user_provided`，直接映射落盘
+4. **否则宿主内置 review** → `source=host_builtin`
+5. **映射** outcome：`PASS` / `NEEDS_CHANGES` / `BLOCKED`；compliance 对照 `## Steps`
+6. **落盘** 仅有 run 时：`reviews/REV-n.json` + 回写 `run.json` + `.state/events.jsonl`（不要把 ISO review 行写入 `progress.md`）；无绑定不落盘
+7. **最终回复**：`PASS` 只回一行；`NEEDS_CHANGES` 只列 OPEN findings；`BLOCKED` 才用 STOP 模板
 
 ## 硬规则（摘要）
 
@@ -29,8 +29,8 @@
 | --- | --- |
 | 只读 | 不改业务代码、不 init、不建 fix 任务 |
 | 宿主优先 | 有内置 review 时禁止跳过改做平行自审 |
-| 必须落盘 | `REV-*.json` 是事实源，不是聊天结论 |
-| PASS/NEEDS_CHANGES | 必须有 `reviewed_commit`（≥7 位） |
+| 落盘 | 有 run 时 `REV-*.json` 是事实源；无绑定则只回聊天 |
+| PASS/NEEDS_CHANGES | 有 run 时必须有 `reviewed_commit`（≥7 位）；无绑定用 HEAD |
 | 证据不足 | `BLOCKED` |
 | 禁止 | 用 `npm test` / verify / CI 绿灯冒充 review `PASS` |
 

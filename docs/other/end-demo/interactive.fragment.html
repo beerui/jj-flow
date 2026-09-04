@@ -114,11 +114,11 @@
     {
       title: "2. 同步工作分支，再推工作分支",
       one: "先把远端 work 合进来，再 push work；禁止跳过直接推。",
-      body: "优先快进 pull；分叉了默认 merge 拉（不 rebase，除非你点名）。冲突 → abort，留在工作分支，报告文件。然后再 push 工作分支（禁止 force）。",
+      body: "优先快进 pull；分叉了默认 merge 拉（不 rebase，除非你点名）。冲突默认自己合完再继续；只有真正合不了才 abort，留在工作分支。然后再 push 工作分支（禁止 force）。",
       cmd: "（内部）pull work → push work",
       facts: [
         "远端还没有 work 分支：push -u 建跟踪",
-        "pull 冲突：停，不假装成功",
+        "pull 冲突：能合就合，合不了才停",
         "「只推了 work」还不算收工成功"
       ],
       active: { work: true, remote: true, pushW: true },
@@ -132,7 +132,7 @@
       cmd: "（内部）checkout dev → pull dev",
       facts: [
         "若工作分支已经等于集成分支：跳过「合另一条线」，仍要 push",
-        "pull 冲突：abort 并回到 work",
+        "pull 冲突：默认自己合；合不了才 abort 回 work",
         "解析顺序：显式 integration= → 约定 → dev→develop→main"
       ],
       active: { integ: true, remote: true, fetch: true },
@@ -142,7 +142,7 @@
     {
       title: "4. 把工作分支合进集成分支",
       one: "这一步不能省：push work 之后对话不能就此结束。",
-      body: "在集成分支上 merge 工作分支。已是 ancestor（Already up to date）也算过。冲突 → merge --abort，切回 work，列出冲突，不擅自解业务冲突。",
+      body: "在集成分支上 merge 工作分支。已是 ancestor（Already up to date）也算过。冲突默认自己合（Vue/文档/条件守卫不同也要合）；只有同一产品开关两边相反且无法判断才 abort 回 work。禁止只解一半。",
       cmd: "（内部）在 dev 上：git merge 工作分支",
       facts: [
         "禁止因「怕 merge」跳过",
@@ -159,7 +159,7 @@
       body: "push integration（禁止 force）。失败则尽量回到 work，并说明：本地可能已 merge 但远端还没有。return_to 默认 work，可留在 integration。",
       cmd: "（内部）push dev → checkout 工作分支\n$jj-end return_to=integration  # 想留在 dev 时",
       facts: [
-        "完成报告要含：分支名、commit、是否 merge、推了哪些",
+        "无异常时只回一行：work→integration + hash；表格只在失败/dry_run",
         "缺任一步且非 hard-stop/冲突 → 应继续做完",
         "不写 ralph run、不写 dispatch plane"
       ],
@@ -170,8 +170,8 @@
     {
       title: "冲突 / 失败时怎么停",
       one: "停在可恢复状态：尽量回到工作分支，说清楚卡在哪。",
-      body: "pull work 冲突、merge 冲突、push 失败：abort（如需要）→ checkout work → 中文说明冲突文件或远端报错。禁止 force、禁止当成功汇报。",
-      cmd: "（失败示例）冲突后回到 feature/…，列出冲突文件，请你处理后重跑 $jj-end",
+      body: "能合的冲突自己合完继续收工。真正合不了或 push 失败：abort（如需要）→ checkout work → 中文说明。禁止「看起来像逻辑就停」、禁止 force、禁止当成功汇报。",
+      cmd: "（失败示例）合不了才回到 feature/…，列出冲突文件，请你处理后重跑 $jj-end",
       facts: [
         "commit 前 hard-stop：不改分支、不 merge",
         "push integration 失败：可能本地已 merge 未推送",
