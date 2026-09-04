@@ -1,0 +1,343 @@
+tests/jj-init.test.mjs
+  s_2e87ff540b1937::t_4f9a5024e9a199 73-74
+  s_2e87ff540b1937::t_34511b7a59d63f 186-187
+  s_2e87ff540b1937::t_85aa8b7d5528b3 8
+  s_2e87ff540b1937::t_6f25ee6baaa843 150-185,188-200
+skills/jj-ralph/references/artifact-layout.md
+  s_2e87ff540b1937::t_3562289311eb84 7
+skills/jj-same/references/happy-path.md
+  s_2e87ff540b1937::t_04a5d549f9f401 58-59,61
+  s_2e87ff540b1937::t_944aceb1bfb631 7
+  s_2e87ff540b1937::t_9308e364cd8986 8
+docs/evaluations/EP-20260904-h5-enter-dual-ralph.split.json
+  s_2e87ff540b1937::t_791a199f5e36a5 1-12,14-17
+  s_2e87ff540b1937::t_2f8e979461b402 13
+src/ralph.mjs
+  s_2e87ff540b1937::t_64d16cfa70dcc4 21,23
+  s_2e87ff540b1937::t_95c895fe3a90c0 77-79
+  s_2e87ff540b1937::t_c082997f16a296 76,81
+claude-commands/jj-end.md
+  s_2e87ff540b1937::t_e25719e58d07f1 34
+  s_2e87ff540b1937::t_f4e8bb4d699cf8 32
+docs/evaluations/EP-20260904-h5-enter-dual-ralph-report.md
+  s_2e87ff540b1937::t_a1af852c4e98c4 123
+  s_2e87ff540b1937::t_5b52c3368df249 3
+  s_2e87ff540b1937::t_609c3e8524c9db 1-2,4-95,97-118,121-122,124-130,132-134,136-140,144-150
+  s_2e87ff540b1937::t_16000fae37c68d 119
+  s_2e87ff540b1937::t_08a944aeea75f5 141-143
+  s_2e87ff540b1937::t_88a114df20fddf 131,135
+  s_2e87ff540b1937::t_0db5d37ccef815 120
+  s_2e87ff540b1937::t_c4b08e91f06ee1 96
+skills/jj-dispatch/references/control-project.md
+  s_2e87ff540b1937::t_13ca0062b49d20 74-76
+src/taskArtifacts.mjs
+  s_2e87ff540b1937::t_6924d4ea8ce207 119
+  s_2e87ff540b1937::t_07c64ed8a6606b 81-82
+  s_2e87ff540b1937::t_c7bbb9ecc6db32 76-80,88-89,92
+  s_2e87ff540b1937::t_4f50e27b854c5f 4,6,14-20,27-33,37,40,44-53,69,73,85-87,90-91,93-104,106-118,120-137,141-154,158-168
+skills/jj-same/test-prompts.json
+  s_2e87ff540b1937::t_32cda02cb2b424 4-5
+CHANGELOG.md
+  s_2e87ff540b1937::t_70f975e2e1302f 8
+  s_2e87ff540b1937::t_222fc829336f44 12
+  s_2e87ff540b1937::t_f8918f51783732 9-10
+  s_2e87ff540b1937::t_d39aa225cff6fe 13
+  s_2e87ff540b1937::t_6934266f8edb36 14
+  s_2e87ff540b1937::t_d6bc1d874ea670 16
+  s_2e87ff540b1937::t_9f9dbc70b74639 7
+  s_2e87ff540b1937::t_774688f4880831 17
+  s_2e87ff540b1937::t_b80e6b9d82658d 15
+  s_2e87ff540b1937::t_5a21323a88af9f 19
+  s_2e87ff540b1937::t_1404408d340bee 11
+skills/jj-same/references/continuous-sync.md
+  s_2e87ff540b1937::t_926857d367eb4d 50
+  s_2e87ff540b1937::t_7372a81ef09b32 96,98
+  s_2e87ff540b1937::t_c5ccf4f6bfd553 88
+skills/jj-ralph/SKILL.md
+  s_2e87ff540b1937::t_4005f3064c8043 20
+  s_2e87ff540b1937::t_1b7fec21769b4a 121
+  s_2e87ff540b1937::t_8970a357a59ca9 120
+  s_2e87ff540b1937::t_ce472ff8ebc9b1 70
+  s_2e87ff540b1937::t_fc748d4c872e96 55,57-59,61
+  s_2e87ff540b1937::t_713f458deb0174 39
+  s_2e87ff540b1937::t_b0095627a80d83 36
+  s_2e87ff540b1937::t_8c7d6b6c9c0e69 56
+  s_2e87ff540b1937::t_300a12f6f570c2 82-84
+  s_2e87ff540b1937::t_d882dc7af00ac0 110
+  s_2e87ff540b1937::t_79f6c70fe85c29 18,21
+  s_2e87ff540b1937::t_47540281347f80 60
+skills/jj-same/references/artifact-routing.md
+  s_2e87ff540b1937::t_ad525babaee056 53-56
+  s_2e87ff540b1937::t_ddd3cebbedc0d8 77
+  s_2e87ff540b1937::t_1137bc556c0195 34-38
+  s_2e87ff540b1937::t_a3e9c83a70ad14 49-50
+  s_2e87ff540b1937::t_e8d82c58b31ed7 58
+  s_2e87ff540b1937::t_b46a41ea35af35 39
+  s_2e87ff540b1937::t_cfbd9606727139 90-91
+  s_2e87ff540b1937::t_17335c27ff1973 52
+  s_2e87ff540b1937::t_8e3b4e532239ea 3,5,8-25,28
+  s_2e87ff540b1937::t_1539af68dcef08 107
+  s_2e87ff540b1937::t_7577ad4d0594f9 29
+skills/jj-same/SKILL.md
+  s_2e87ff540b1937::t_e7c19941cc7619 80-81
+  s_2e87ff540b1937::t_fa7e2f7b53fd63 97
+  s_2e87ff540b1937::t_fc42334c7f9f97 14-15
+  s_2e87ff540b1937::t_c4f80e41bc0474 98
+  s_2e87ff540b1937::t_41d4536645337d 70-79,82-84,87
+  s_2e87ff540b1937::t_77d7958bc67934 141
+  s_2e87ff540b1937::t_dadf3831dc894f 136
+skills/jj-ralph/references/must-evidence.md
+  s_2e87ff540b1937::t_88b1400d25d565 3
+  s_2e87ff540b1937::t_b4022ebd710a0e 68,71-72,75-76,79-80
+tests/install-skill.test.mjs
+  s_2e87ff540b1937::t_7216f8e086aba7 260-261
+  s_2e87ff540b1937::t_1c09ab2bbdcbda 257-259,262
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_2e87ff540b1937::t_e488057152ed59 96
+  s_2e87ff540b1937::t_90bdf9ea77af7b 102
+  s_2e87ff540b1937::t_56fd10b74bd13f 12
+tests/jj-end-contract.test.mjs
+  s_2e87ff540b1937::t_8941f4338ea0e6 44-50
+  s_2e87ff540b1937::t_9c56f2dab399a8 51,53-56,59
+  s_2e87ff540b1937::t_d2dd6a405ec2e6 34-43
+docs/evaluations/EP-20260904-h5-enter-dual-ralph.episode.json
+  s_2e87ff540b1937::t_0cff522b762d93 1-188
+AGENTS.md
+  s_2e87ff540b1937::t_e2cfb8e8b4763b 34-36
+claude-commands/jj-same.md
+  s_2e87ff540b1937::t_aa445013cadfc1 23-27
+docs/commands/jj-ralph.md
+  s_2e87ff540b1937::t_ca12446ecf282f 151
+  s_2e87ff540b1937::t_823d1ff878c9cf 127
+  s_2e87ff540b1937::t_7070298df7acaf 150
+tests/task-artifacts.test.mjs
+  s_2e87ff540b1937::t_17e083b1be817e 33-40
+  s_2e87ff540b1937::t_0235812383779d 217-253
+  s_2e87ff540b1937::t_8b76df1ad61e58 126,161-170,173,185-202,213-216
+  s_2e87ff540b1937::t_b14c699bf4d4a0 8
+  s_2e87ff540b1937::t_051ad59e42b758 174-184
+  s_2e87ff540b1937::t_f104bc1e39fa7b 72-125
+  s_2e87ff540b1937::t_929911351d12d8 203-212
+  s_2e87ff540b1937::t_324e5c33138ecb 171-172
+  s_2e87ff540b1937::t_a77fa945e45ffa 127-160
+  s_2e87ff540b1937::t_c9d4fa56289fd2 7
+skills/jj-same/references/handoff-snapshot.md
+  s_2e87ff540b1937::t_c3c39a5ed2190e 74
+  s_2e87ff540b1937::t_9c75ef9c1e69cc 15
+  s_2e87ff540b1937::t_f972a0c9017808 34
+  s_2e87ff540b1937::t_996bfa2e3c7215 5
+src/jjInit.mjs
+  s_2e87ff540b1937::t_e467c4f0cff27f 235-237
+  s_2e87ff540b1937::t_3fb5531241198b 272,278,284-286
+  s_2e87ff540b1937::t_019837fc0d7e6e 101-153
+  s_2e87ff540b1937::t_56d27fc029d231 322-335,337,340,345
+skills/jj-same/agents/openai.yaml
+  s_2e87ff540b1937::t_ef9a15091a949d 4
+docs/commands/jj-same.md
+  s_2e87ff540b1937::t_6023578e5bbf46 63
+src/projectMap.mjs
+  s_2e87ff540b1937::t_54291715b2d40a 201-206,208
+evals/regression/EP-20260904-h5-enter-dual-ralph.json
+  s_2e87ff540b1937::t_e76aa4181e33eb 1-14
+skills/jj-review/SKILL.md
+  s_2e87ff540b1937::t_139bfe8369c9ae 104
+  s_2e87ff540b1937::t_84cd010c0346c3 10
+  s_2e87ff540b1937::t_8217e5af53e4e8 35
+  s_2e87ff540b1937::t_93b0566280e245 86-102
+  s_2e87ff540b1937::t_6cf725d4b283e2 103
+docs/skill-zh-bridge/jj-dispatch/README.zh.md
+  h_9115cfa70f54a6 12
+evals/regression/EP-20260904-h5-enter-same-live-sibling.json
+  s_2e87ff540b1937::t_04c0e39ccf55f7 1-10
+skills/jj-same/references/workflow-core.md
+  s_2e87ff540b1937::t_9ddd003b541141 129,131
+  s_2e87ff540b1937::t_9ad718ca76ff35 123-125
+  s_2e87ff540b1937::t_28f074ad6b434e 109
+  s_2e87ff540b1937::t_c331c2340dbe63 115
+  s_2e87ff540b1937::t_9e94a1cc4af81f 138
+  s_2e87ff540b1937::t_6e88397c206a6f 168
+  s_2e87ff540b1937::t_c64d2d2470d6ed 195
+skills/jj-dispatch/SKILL.md
+  s_2e87ff540b1937::t_ac42a99cd480c1 31
+  s_2e87ff540b1937::t_3f775810e13df6 94-102,105-107
+  s_2e87ff540b1937::t_4bb1b05297d7b1 213-214
+  s_2e87ff540b1937::t_3bb5816464381e 103-104
+docs/commands/jj-review.md
+  s_2e87ff540b1937::t_a85a677cc5e92d 19
+src/dispatchRalph.mjs
+  s_2e87ff540b1937::t_a26f2e921f4456 16-32,38-44,46-57,72-74
+  s_2e87ff540b1937::t_3398c71dfc47ae 45
+  s_2e87ff540b1937::t_1a6b362ad4d816 33-37
+  s_2e87ff540b1937::t_3e92e6a0c38569 4
+  s_2e87ff540b1937::t_909bd585afb671 244-248
+  s_2e87ff540b1937::t_665289ce48e2d4 162,178-182,202-229
+  s_2e87ff540b1937::t_6f74675af26d5f 188-192
+  s_2e87ff540b1937::t_82b1b0665b29ea 1-3,5-15,75-103,105-161,163-177,183-187,193-201,230-243,249-258
+  s_2e87ff540b1937::t_90fddac66c2b1f 58-71
+  s_2e87ff540b1937::t_9ab3c85060a74d 104
+skills/jj-end/SKILL.md
+  s_2e87ff540b1937::t_f682d9c9b84370 127-128
+  s_2e87ff540b1937::t_3e4665101b2f79 36-37
+  s_2e87ff540b1937::t_6497e8b5d668c5 355
+  s_2e87ff540b1937::t_1966dff8a7a67c 376,378-381,383,385-388,390,392,394
+  s_2e87ff540b1937::t_596ff9b985d776 87-92
+  s_2e87ff540b1937::t_685e66e7adcc70 28
+  s_2e87ff540b1937::t_de470aa8c2fe11 170
+  s_2e87ff540b1937::t_b9322cd1705d71 143
+  s_2e87ff540b1937::t_8066b3321f980c 171
+  s_2e87ff540b1937::t_d1db7e94c90f51 236
+  s_2e87ff540b1937::t_82576f6b7df4fc 45,47
+  s_2e87ff540b1937::t_2ce510e252c747 353
+  s_2e87ff540b1937::t_0db68c62566d44 321
+  s_2e87ff540b1937::t_d1039f026c411e 48,377,382,384
+  s_2e87ff540b1937::t_d99d6a4a4ebb8f 126
+  s_2e87ff540b1937::t_206ebfc916778b 93-98
+  s_2e87ff540b1937::t_0dacbec500f0a1 368
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_2e87ff540b1937::t_93f41d73b05550 6
+  s_2e87ff540b1937::t_a7d089dbcd9410 23
+  s_2e87ff540b1937::t_4a63f4967d61e8 31
+docs/skill-zh-bridge/jj-same/README.zh.md
+  s_2e87ff540b1937::t_35a2e31e615c96 6
+  s_2e87ff540b1937::t_bd3d72dee72ade 13
+  s_2e87ff540b1937::t_83599d87ef4d51 12
+  s_2e87ff540b1937::t_5b858ec36b8517 40
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_2e87ff540b1937::t_7b1fc529f94223 12
+  s_2e87ff540b1937::t_de8b40b2750189 24
+src/ralph/state.mjs
+  s_2e87ff540b1937::t_220c5e0e7f8af6 729-741,746-760,762-778,784-808
+  s_2e87ff540b1937::t_5cae9eedad8b6d 862
+  s_2e87ff540b1937::t_546eac4149d8cb 1179
+  s_2e87ff540b1937::t_a2a0feb5cb7ee8 1423-1429
+  s_2e87ff540b1937::t_830df043b7e3cc 640-728,809-849,854,864-871
+  s_2e87ff540b1937::t_bceef64f507e92 860-861
+  s_2e87ff540b1937::t_2e32f60429683d 614-621
+  s_2e87ff540b1937::t_df8ef52893e03f 742-745,761
+  s_2e87ff540b1937::t_7c267a95679462 1254-1255
+  s_2e87ff540b1937::t_f96ea06a3f94fb 1205-1219
+  s_2e87ff540b1937::t_42fc58a9725ba3 1173,1178,1192-1204,1232,1248-1253,1256
+  s_2e87ff540b1937::t_590ec648402796 779-783
+  s_2e87ff540b1937::t_bdac3266449065 44-46
+  s_2e87ff540b1937::t_4ed68eb9c3fd45 958
+  s_2e87ff540b1937::t_013b7f3e92b58e 932,938
+  s_2e87ff540b1937::t_b9f637adc4eebb 1231
+  s_2e87ff540b1937::t_d1af9305b613fb 1407,1412,1415-1422
+src/ralph/gates.mjs
+  s_2e87ff540b1937::t_1efd2ca733dc28 35
+  s_2e87ff540b1937::t_cee6b7070997f6 34,36,38
+  s_2e87ff540b1937::t_abccf23e57a209 1439-1440
+  s_2e87ff540b1937::t_ab64f012a5e784 799-800,806-849,851-853,871-885,887
+  s_2e87ff540b1937::t_34d19e99f37d31 1423-1429,1434-1438,1441
+skills/jj-ralph/references/phases.md
+  s_2e87ff540b1937::t_d086581bf9cb7b 21
+  s_2e87ff540b1937::t_0d86a7d349410a 121-127,129,132
+docs/commands/jj-end.md
+  s_2e87ff540b1937::t_c8436132b7aaae 47
+  s_2e87ff540b1937::t_ee9703be8ed731 20
+  s_2e87ff540b1937::t_42a62c77505065 45-46,48
+tests/jj-dispatch-contract.test.mjs
+  s_2e87ff540b1937::t_282c543f69aa2f 1730-1732
+  s_2e87ff540b1937::t_40ea3f8e650921 1733
+  s_2e87ff540b1937::t_86c5d52046ccc7 1734-1735
+skills/jj-init/SKILL.md
+  s_2e87ff540b1937::t_3a11214119ac7c 22
+docs/commands/jj-init.md
+  s_2e87ff540b1937::t_d55b8af1461261 29
+src/ralph/knowledge.mjs
+  s_2e87ff540b1937::t_09e0a27b02cded 163-175
+  s_2e87ff540b1937::t_cd61969299f694 188
+  s_2e87ff540b1937::t_64e03075dafbf0 187,189-197
+  s_2e87ff540b1937::t_c1b6013d88c38c 43
+tests/jj-ralph-contract.test.mjs
+  s_2e87ff540b1937::t_7f434a2c1c35e6 381-383
+  s_2e87ff540b1937::t_26ec1e7be20547 59-60,62-64
+  s_2e87ff540b1937::t_181577dbbe9b9d 187
+  s_2e87ff540b1937::t_05d619a48c98dd 412-413
+  s_2e87ff540b1937::t_c864ba154b4b5f 196
+  s_2e87ff540b1937::t_46017ebe6e7f31 3195,3204
+  s_2e87ff540b1937::t_737e7eae357471 3125-3161
+  s_2e87ff540b1937::t_45f096952ee1c7 1305-1339
+  s_2e87ff540b1937::t_ce83766cdf987e 377-380
+  s_2e87ff540b1937::t_be0bb256ce125c 98,100
+  s_2e87ff540b1937::t_fcd2d98f7da426 411
+  s_2e87ff540b1937::t_b6998393530e45 384
+  s_2e87ff540b1937::t_ed9f572f39f36d 163,166
+  s_2e87ff540b1937::t_564c432ef18ee1 164
+  s_2e87ff540b1937::t_d86955dc14975b 3041-3083,3162-3194,3196-3203,3205-3235
+  s_2e87ff540b1937::t_a78709d2784ad6 61
+  s_2e87ff540b1937::t_40394bab723ca8 385-386
+  s_2e87ff540b1937::t_f18bf73d23c058 429-430
+  s_2e87ff540b1937::t_f2b6ba441c5804 3084-3124
+src/cli.mjs
+  s_2e87ff540b1937::t_76febe78c24f45 369-374
+tests/jj-review-contract.test.mjs
+  s_2e87ff540b1937::t_eb6cbe04c1f87f 17
+  s_2e87ff540b1937::t_f06b02deb0ef05 15
+  s_2e87ff540b1937::t_673366a28fc3e1 10-13,16
+claude-commands/jj-review.md
+  s_2e87ff540b1937::t_f6f3e9ac57dd6c 20
+skills/jj-ralph/references/integrations.md
+  s_2e87ff540b1937::t_5dc89bceece5f5 27-29
+  s_2e87ff540b1937::t_9c05dcc846bdcd 21
+  s_2e87ff540b1937::t_98deebe6f5b552 30
+claude-commands/jj-ralph.md
+  s_2e87ff540b1937::t_8fb6e75409bd48 30
+  s_2e87ff540b1937::t_a2e66a6b75dced 26
+skills/jj-ralph/scripts/lib/projectMap.mjs
+  s_91964edbcef715::t_7e49392565d4da 201-206,208
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_a78f71b1a6fd98::t_37550b74618850 21,23,76-79,81
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_eb83bd1fa6ea16 34-36,38,799-800,806-849,851-853,871-885,887,1423-1429,1434-1441
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_9e488bb5d3a895 43,163-175,187-197
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_a78f71b1a6fd98::t_81308b919df0c6 44-46,614-621,640-849,854,860-862,864-871,932,938,958,1173,1178-1179,1192-1219,1231-1232,1248-1256,1407,1412,1415-1429
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "ee93d8adbc57ba64f2f2417cc9736569e06d7ba9",
+  "prompts": {},
+  "humans": {
+    "h_9115cfa70f54a6": {
+      "author": "刘勇杰 <motou2017@163.com>"
+    }
+  },
+  "sessions": {
+    "s_2e87ff540b1937": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "13ba4e07-d5e9-4ebc-9664-0e27538c5771",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_91964edbcef715": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a05c30-4d17-77b0-95e7-15876a2136b8",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
