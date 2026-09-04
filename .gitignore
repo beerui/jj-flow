@@ -10,11 +10,13 @@ site/
 .tmp/
 eval/ralph-memory/generated/
 .plans
-# Host install / IDE dirs (not repo SSOT; package sources are skills/ agents/ claude-commands/)`n.grok
+# Host install / IDE dirs (not repo SSOT; package sources are skills/ agents/ claude-commands/)
+.grok
 .qoder
 .codex
 .claude
-.grok
+.agents
+.zcode
 # One-shot local patch / wire scripts (do not land on main)
 _w_*.py
 _write_*.cjs
