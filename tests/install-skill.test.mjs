@@ -9,6 +9,8 @@ import {
   defaultClaudeTarget,
   defaultCodexAgentsTarget,
   defaultCodexTarget,
+  defaultAgentsCommandsTarget,
+  defaultAgentsSkillsTarget,
   defaultGrokTarget,
   defaultQoderTarget,
   defaultSkillTarget,
@@ -19,6 +21,8 @@ import {
   projectClaudeTarget,
   projectCodexAgentsTarget,
   projectCodexTarget,
+  projectAgentsCommandsTarget,
+  projectAgentsSkillsTarget,
   projectGrokTarget,
   projectQoderTarget,
   projectSkillTarget,
@@ -134,6 +138,32 @@ test('Qoder and Grok skill targets point to vendor skill directories', () => {
     defaultGrokTarget({ homeDir: '/home/example', grokHome: '/custom/grok' }),
     path.join('/custom/grok', 'skills')
   );
+  assert.equal(defaultAgentsSkillsTarget({ homeDir: '/home/example' }), path.join('/home/example', '.agents', 'skills'));
+  assert.equal(defaultAgentsCommandsTarget({ homeDir: '/home/example' }), path.join('/home/example', '.agents', 'commands'));
+  assert.equal(projectAgentsSkillsTarget({ cwd: '/repo/example' }), path.join('/repo/example', '.agents', 'skills'));
+  assert.equal(projectAgentsCommandsTarget({ cwd: '/repo/example' }), path.join('/repo/example', '.agents', 'commands'));
+});
+
+test('installSkill agents platform writes ~/.agents and removes retired skills', () => {
+  const workspace = makeWorkspace('jj-flow-install-agents-');
+  const skillsTarget = path.join(workspace, '.agents', 'skills');
+  const commandsTarget = path.join(workspace, '.agents', 'commands');
+  const retired = path.join(skillsTarget, 'jj-validate', 'SKILL.md');
+  fs.mkdirSync(path.dirname(retired), { recursive: true });
+  fs.writeFileSync(retired, '---\nname: jj-validate\n---\n', 'utf8');
+
+  const installed = install({
+    platform: 'agents',
+    agentsSkillsTargetDir: skillsTarget,
+    agentsCommandsTargetDir: commandsTarget,
+    force: true
+  });
+
+  assert.equal(installed.ok, true);
+  assert.equal(installed.platform, 'agents');
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-ralph', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-ralph.md')), true);
+  assert.equal(fs.existsSync(path.dirname(retired)), false);
 });
 
 test('installSkill scaffolds ~/.jj-flow map and knowledge without clobbering', () => {
@@ -401,6 +431,8 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   const claudeTarget = path.join(workspace, '.claude', 'commands');
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
+  const agentsSkillsTarget = path.join(workspace, '.agents', 'skills');
+  const agentsCommandsTarget = path.join(workspace, '.agents', 'commands');
 
   const installed = install({
     platform: 'all',
@@ -408,7 +440,9 @@ test('installSkill can install Codex skills and Claude skills+commands together'
     claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
-    grokTargetDir: grokTarget
+    grokTargetDir: grokTarget,
+    agentsSkillsTargetDir: agentsSkillsTarget,
+    agentsCommandsTargetDir: agentsCommandsTarget
   });
 
   assert.equal(installed.ok, true);
@@ -425,6 +459,8 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-dispatch', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(agentsSkillsTarget, 'jj-ralph', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(agentsCommandsTarget, 'jj-ralph.md')), true);
 });
 
 test('uninstallSkill removes owned Codex assets and preserves unrelated files', () => {
@@ -456,22 +492,29 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   const claudeTarget = path.join(workspace, '.claude', 'commands');
   const qoderTarget = path.join(workspace, '.qoder', 'skills');
   const grokTarget = path.join(workspace, '.grok', 'skills');
+  const agentsSkillsTarget = path.join(workspace, '.agents', 'skills');
+  const agentsCommandsTarget = path.join(workspace, '.agents', 'commands');
   install({
     platform: 'all',
     codexTargetDir: codexTarget,
     claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
-    grokTargetDir: grokTarget
+    grokTargetDir: grokTarget,
+    agentsSkillsTargetDir: agentsSkillsTarget,
+    agentsCommandsTargetDir: agentsCommandsTarget
   });
 
   const result = uninstallSkill({
     platform: 'all',
+    homeDir: TEST_JJ_HOME,
     codexTargetDir: codexTarget,
     claudeSkillsTargetDir: claudeSkillsTarget,
     claudeTargetDir: claudeTarget,
     qoderTargetDir: qoderTarget,
-    grokTargetDir: grokTarget
+    grokTargetDir: grokTarget,
+    agentsSkillsTargetDir: agentsSkillsTarget,
+    agentsCommandsTargetDir: agentsCommandsTarget
   });
 
   assert.equal(result.ok, true);
@@ -482,6 +525,7 @@ test('uninstallSkill removes Codex and Claude assets together', () => {
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), false);
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same')), false);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-same')), false);
+  assert.equal(fs.existsSync(path.join(agentsSkillsTarget, 'jj-ralph')), false);
 });
 
 test('uninstallSkill dry run reports targets without deleting files', () => {
@@ -670,7 +714,9 @@ test('CLI install-skill can target the current project', () => {
     path.join(workspace, '.claude', 'skills'),
     path.join(workspace, '.claude', 'commands'),
     path.join(workspace, '.qoder', 'skills'),
-    path.join(workspace, '.grok', 'skills')
+    path.join(workspace, '.grok', 'skills'),
+    path.join(workspace, '.agents', 'skills'),
+    path.join(workspace, '.agents', 'commands')
   ]);
   assert.equal(parsed.agent_target, path.join(workspace, '.codex', 'agents'));
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'skills', 'jj-same')), false);
@@ -688,6 +734,8 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.qoder', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.grok', 'skills', 'jj-same', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.agents', 'skills', 'jj-ralph', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.agents', 'commands', 'jj-ralph.md')), true);
   });
 });
 

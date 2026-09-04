@@ -27,4 +27,4 @@
 | team-swarm / `TAS-*` | 对抗蚁群**搜索**；**不是**验收真相 |
 | 会话执行引擎 | team-*：只管「这轮怎么干」；验收仍认 ralph/dispatch |
 
-更深的架构词见 [架构](architecture.html)。
+更深的架构词见 [架构](architecture.md)。

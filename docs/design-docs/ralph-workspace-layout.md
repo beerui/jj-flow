@@ -4,7 +4,7 @@
 >
 > **性质**：规划草案（目录结构预览 + 文件写入规范 + 分阶段实现方案）。本轮**不改 `src/ralph/`**；代码位置只为核对迁移成本而读。采纳后 §5 各 Phase 各自开 exec plan 再实现。
 >
-> 关联设计：[Ralph 任务工作区 `.plans` 化改造](ralph-plans-workspace.html)（Implemented，P0–P2+ 已落地；本草案是它的**后续修订**，冲突段落登记在 §3.5）· [Ralph 多轮任务内容预览](ralph-plans-workspace.preview.html)（Proposed，进度模板示例）· [jj-ralph](jj-ralph.html)
+> 关联设计：[Ralph 任务工作区 `.plans` 化改造](ralph-plans-workspace.md)（Implemented，P0–P2+ 已落地；本草案是它的**后续修订**，冲突段落登记在 §3.5）· [Ralph 多轮任务内容预览](ralph-plans-workspace.preview.md)（Proposed，进度模板示例）· [jj-ralph](jj-ralph.md)
 >
 > 触发：业务仓 `scsk-admin` 的 `.workflow/ralph/` 在 P2 迁移后，根目录堆着多个 `.migrated-RALPH-*`，活跃任务与已完成任务混在 `tasks/`，没有一份「活跃表」；样本任务 `task-enter-form-fixed-preset` 的 `progress.md` 在二次纠正（字段 id → mapping）时**改写/交错**了第一轮正文，而且内容是门控机器流水账（`gate=PASS` / `deliver-attempt` / `archive in-place`），不是人可恢复的进度叙事。
 >

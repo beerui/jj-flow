@@ -6,7 +6,7 @@
 >
 > 关闭路径：**Grok Build**（session + 可哈希 worktree/权限绑定）。Codex App 路径仍可选补齐，不挡本里程碑。
 >
-> 关联：半真实证据 [M7 验收](m7-acceptance.html) · Repository Harness [H5](h5-acceptance.html) · [Harness 收口计划](../exec-plans/completed/2026-07-18-harness-hardening.html) · Grok 试跑 [`real-host-trial-grok.json`](real-host-trial-grok.json)
+> 关联：半真实证据 [M7 验收](m7-acceptance.md) · Repository Harness [H5](h5-acceptance.md) · [Harness 收口计划](../exec-plans/completed/2026-07-18-harness-hardening.md) · Grok 试跑 [`real-host-trial-grok.json`](real-host-trial-grok.json)
 
 ## 目的
 

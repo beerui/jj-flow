@@ -6,11 +6,11 @@
 >
 > 参考模型：`daji-customer-service` 仓库 `.plans/<project>/<role>/task-*` 工作区（任务 / 进度 / 文档三套规范）
 >
-> 关联设计：[jj-ralph](jj-ralph.html)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.html)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed，本方案 P0 即其落地路径）
+> 关联设计：[jj-ralph](jj-ralph.md)（Implemented）、[Ralph 归档提升](ralph-archive-elevation.md)（Accepted）、[Ralph → 知识库贡献](ralph-knowledge-contribute.md)（Proposed，本方案 P0 即其落地路径）
 >
 > 执行：[P1](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md)（已关闭）· [P2](../exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md)（已落地；review-fix `b11d670`）· [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md)（已关闭：P2+a `7fcd43c`、P2+b `5cc314a`）。P0–P2+ 全部落地，整体标 Implemented。
 >
-> 后续修订草案：[Ralph 工作区目录对齐 exec-plans 与 progress 双轨](ralph-workspace-layout.html)（Proposed）——`index.md` / `completed/` / `migrated/` 目录归位与 progress 双轨；与本文 §3.2 / §3.4 / §3.5 / §3.12 步 7 的冲突登记在其 §3.5，采纳后回改本文。
+> 后续修订草案：[Ralph 工作区目录对齐 exec-plans 与 progress 双轨](ralph-workspace-layout.md)（Proposed）——`index.md` / `completed/` / `migrated/` 目录归位与 progress 双轨；与本文 §3.2 / §3.4 / §3.5 / §3.12 步 7 的冲突登记在其 §3.5，采纳后回改本文。
 
 ## 1. 背景与问题
 
@@ -390,7 +390,7 @@ gate 判据调整：PLAN gate 要求 `## 计划` 的 `### 当前` 存在且非�
 - **提取源与 §1.2 的论证对齐（闭环补缺）**：§1.2 证明原料已在 progress 的 `failed_must` / `over_claimed` 三行里，但热层取的是 findings 的 `## 可复用结论`——一个需 agent 另外手写的文件。若不衔接，等于「旧管道读错地方，新管道读对地方但那里可能是空的」。故 `ralph_ops finding` 与 DELIVER 软提示**以本轮 progress 的 `failed_must` / `over_claimed` 三行为预填草稿**：现象与原因两栏自动带入，人只补「对策」与「适用范围」。这样已保证存在的机器信号成为知识的起点，而不是被绕过。
 - **可追溯（分阶段，评审修正）**：run.json 留 `knowledge.memory_refs`（本轮注入了哪些热层条目），保证「哪条知识影响了哪个任务」可回查。**该键随 P1b schema 1.1 落地，不进 P0**——P0 红线是「不动布局与 schema」，而 schema 顶层 `additionalProperties:false` 且现状无 `knowledge` 对象（`knowledge_refs` / `knowledge_summary` 是顶层标量数组，语义不同不可复用）；P0 期间注入记录以 progress.md 追写行承载（沿用 init 现有 `knowledge_refs:` 行格式，`src/ralph.mjs:493`）。
 
-该节取代 [Ralph → 知识库贡献](ralph-knowledge-contribute.html)（Proposed）中「写包裹文件、等外部流水线」的默认路径（其管线保留为组合层实现）；`ralph-archive-elevation` 的 L1 business-map 提升不变。
+该节取代 [Ralph → 知识库贡献](ralph-knowledge-contribute.md)（Proposed）中「写包裹文件、等外部流水线」的默认路径（其管线保留为组合层实现）；`ralph-archive-elevation` 的 L1 business-map 提升不变。
 
 ### 3.7 保持不变的 ralph 机制
 

@@ -37,8 +37,10 @@
     "host:trial": "node bin/jj.mjs host-trial run --json",
     "grok:trial": "node bin/jj.mjs grok-trial run --json",
     "harness:gc": "node bin/jj.mjs harness-gc --json",
-    "docs:build": "node scripts/build-docs.mjs",
-    "docs:check": "node scripts/build-docs.mjs --check",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:check": "node scripts/check-docs.mjs",
     "lab:check": "node scripts/lab-check.mjs --suite mechanical --json",
     "evaluated:check": "node skills/jj-evaluated/scripts/evaluated_ops.mjs regression --dir evals/regression --json",
     "verify": "npm run ralph:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check && npm run evaluated:check && npm run lab:check",
@@ -60,5 +62,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4"
   }
 }

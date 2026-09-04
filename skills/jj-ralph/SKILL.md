@@ -33,7 +33,7 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
 
 1. **Locate run (natural language first):**
    - User named `task-…` (or leftover `RALPH-…`) → use that id (uncommon); leftover active dirs → migrate first
-   - Else: read `.workflow/ralph/index.md` first (`## 活跃`; if `## 归档提示` is present, do **not** auto-archive — ask when uncertain). Then session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED). Index rows are candidates only; confirm goal/scope on `task_plan.md`
+   - Else: read `.workflow/ralph/index.md` first (`## 活跃`; if `## 归档提示` is present, do **not** auto-archive — ask when uncertain). Then session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED under `completed/`). Prefer `jj ralph locate` (rows carry `next` / `closeout`). Index rows are candidates only; confirm goal/scope on `task_plan.md`. Leftover closeouts: `jj ralph remediate` then `--yes` (finalize/migrate only).
    - **Screenshot / `[Image]` / 「这里」:** read the image **before** searching. Treat visible UI (labels, placement, broken layout) as the spec. Bind to the session-linked run when one exists; do not ignore the image because locate is “speech-only”
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
    - **Review-slice is not a new run:** title / goal / slug containing `审查修复` / `按审查` / `三点修复` / `review-fix` must attach to the live feature task. Mechanical `init` refuses that slug. Field lesson: `task-h5-enter-review-fix` beside `task-enter-form-h5` was one requirement.
@@ -51,11 +51,11 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
    - 🔴 **CHECKPOINT (analyze-hold):** user said 「先不写代码 / 先理解需求 / 先分析 / 先不改代码」 → write Goal + `## 存疑`; **do not** `gate analyze PASS`, **do not** PLAN/DELIVER, **do not** edit business files, until they say 「开始做吧 / 我认可 / 按这个做 / 继续改」
    - **Same-session continue** (never init): 「继续」 → next unfinished phase of the session-linked run; 「按审查改 / resume 按 review 修」 → DELIVER against latest `NEEDS_CHANGES` (do not re-analyze from scratch); 「改坏了」 → resume, rewrite Steps/验收, append a dated progress section, `deliver-attempt --improved false` (STAGNATION if the same strategy already failed twice); 「修完」 → finish current MUST / verify, do not start a new run
-   - Task/approach change: rewrite live Goal / 验收 / Steps to the new contract; append `progress.md`. Do not grow REQ/TASK history in the plan. Shape: [artifact-layout.md](references/artifact-layout.md)
+   - Task/approach change (incl. resume after archive): rewrite live Goal / 验收 / Steps to the new contract; leftover `### 当前` → `### 已落地` / `### 已取代` then write new 当前. Do not grow REQ/TASK history in the plan. Active write path no longer treats `## Current` / `## Tasks` as current. Shape: [artifact-layout.md](references/artifact-layout.md)
 5. After accept PASS, follow **status `next`** (do not jump to a blocked command):
    - `next=review` → `$jj-review`; do **not** `gate accept`; wait for the user to say 「按审查改」 before DELIVER
    - `next=commit-scoped-review` → commit, then `review-record --review-scope commit`; do **not** `finalize` on a `working_tree` PASS
-   - `next=finalize` → **MUST** `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`)
+   - `next=finalize` → **MUST** `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`). `status` prints `next: finalize`; `phase=ARCHIVE` still on the live root (incl. after resume, before rollback) warns `未完成收尾`
    - `next=check` → resume window or blocked/paused; ask if uncertain
    - Index `## 归档提示`: prompt only. Certain rows may suggest `finalize`; uncertain (PAUSED / BLOCKED / mid-flight) → **询问用户**. Never auto-archive.
    `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
@@ -67,9 +67,9 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
 
 | Step | In | Out (durable) |
 | --- | --- | --- |
-| 1 Locate | user speech + images + `.workflow/ralph/index.md` + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
+| 1 Locate | user speech + images + `.workflow/ralph/index.md` + `.workflow/ralph/*` + `completed/` (`jj ralph locate`) | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run — never `--lite` |
-| 3 map-find | title/goal/keywords | Short CAP hits from the CLI (may be empty). Do not Read or paste `business-map.json`. Hot-memory inject is events.jsonl only (`hot_memory:`); 0 hits stay empty |
+| 3 map-find | title/goal/keywords | Short CAP hits from the CLI (may be empty). Do not Read or paste `business-map.json`. Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad. Hot-memory inject is events.jsonl only (`hot_memory:`); 0 hits stay empty |
 | 4 phases | code + verify | phase arts + `deliver-attempt` + `gates.*` |
 | 5 finalize | accept PASS | in-place archive + map merge + hot-memory promote (`knowledge-contribution.json` degraded) |
 | 6 report | run + CAP paths | short completion report |
@@ -141,6 +141,9 @@ node <resolved>/ralph_ops.mjs accept-layer --run-id task-x --layer judgment --st
 node <resolved>/ralph_ops.mjs gate --run-id task-x --gate analyze|plan|deliver|accept|archive --status PASS
 node <resolved>/ralph_ops.mjs scope --run-id task-x --in src/extra.js
 node <resolved>/ralph_ops.mjs metrics --run-id task-x [--persist]
+node <resolved>/ralph_ops.mjs status --run-id task-x
+node <resolved>/ralph_ops.mjs locate [--run-id task-x]
+node <resolved>/ralph_ops.mjs remediate [--yes] [--force]
 node <resolved>/ralph_ops.mjs finalize --run-id task-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id task-x [--hook]
 node <resolved>/ralph_ops.mjs finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]

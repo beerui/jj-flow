@@ -1,50 +1,85 @@
-# team-swarm — 对抗蚁群搜索
+# team-swarm — 用多假设搜索选方案
 
-需要 **多假设搜索 / 方案优选 / 对抗评分** 时用。  
-算法侧 Python `aco.py`；编排侧 explore → score → converge → synthesize。  
-产物写在业务仓 `.workflow/.team/TAS-*/`。
+**可选入口：** 它只帮你搜索和比较方案，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。
 
-| 工具 | 怎么喊 |
-|------|--------|
-| Codex / Grok / Qoder | `$jj-team-swarm` |
-| Claude | `/jj-team-swarm` |
+**它帮你做什么：** 针对架构路径或实现策略生成多个候选，经过探索、评分、收敛后给出一份推荐方案。
+
+**它不做什么：** 不直接替你完成单仓交付，不替代动态多角色实现，也不会推进 ralph / dispatch 的检查点。
+
+| 你用的工具 | 怎么喊 |
+|------------|--------|
+| Codex / Grok / Qoder | `$jj-team-swarm …` |
+| Claude | `/jj-team-swarm …` |
 
 ## 什么时候用
 
-- 架构路径或方案不确定，要多轮搜索收敛  
-- 需要对抗评分、多假设竞争  
-- 用户明确说蚁群 / TAS / 对抗搜索  
+- 架构路径或方案不确定，需要多轮比较
+- 希望候选之间有明确的评分和反方意见
+- 你明确说“蚁群”“ACO”“对抗搜索”或“多假设搜索”
 
-**不是：** 普通多角色写码（用 [coordinate](command-jj-team-coordinate.html)）；固定规格文档链（用 [lifecycle](command-jj-team-lifecycle.html)）；多项目调度（用 [dispatch](command-jj-dispatch.html)）。
+**不该用它的情况：** 小改动用 [ralph](jj-ralph.md)；普通多角色实现用 [coordinate](jj-team-coordinate.md)；固定规格链用 [lifecycle](jj-team-lifecycle.md)。
 
-**不会** 推进 checkpoint。常见交付物：`artifacts/best-solution.md`（只可引用）。
+## 开始前
 
-## 怎么说
+1. 说清搜索目标、候选空间和你关心的评分标准；不清楚时会先问。
+2. 确认本机有 Python 3.10 或更高版本（标准库即可）；缺少时会报告并降级，不伪造评分。
+3. 搜索成本可能较高；嵌在主流程时，开始重型搜索前会给一行提示。
+
+## 第一次这样用
+
+**你说：**
 
 ```text
 $jj-team-swarm 比较三种缓存失效方案并收敛推荐
 ```
 
+**Agent 会做：**
+
+1. 先保存搜索目标和评分设置。
+2. 初始化搜索控制器，循环执行探索、评分、更新和收敛；候选全部失败或长期不收敛时会停下来说明。
+3. 收敛后综合出 `best-solution.md`，列出推荐、依据和限制。
+
+**你会看到：**
+
 ```text
-/jj-team-swarm 搜索登录改造的架构路径
+搜索目标：缓存失效方案
+当前轮次：探索 → 评分 → 收敛
+推荐方案：.workflow/.team/TAS-…/artifacts/best-solution.md
+下一步：归档 / 保留继续 / 再搜索一轮
 ```
 
-嵌套时一句：
+**怎样算做完：** 推荐方案和搜索过程产物可查；要把方案实现并验收，仍回到 ralph 或 dispatch。
+
+## 常用说法
 
 ```text
-开启 swarm 模式，开始任务缓存方案搜索 约 15-40分钟
+$jj-team-swarm 搜索登录改造的架构路径
+$jj-team-swarm 比较三种缓存方案，重点看一致性和迁移成本
+$jj-team-swarm resume
 ```
 
-需要本机 **Python ≥ 3.10**（stdlib）。Claude 可走 Workflow；Codex/Grok 多为 agent 降级。
+## 做完之后
 
-## 写在哪
+| 你想做什么 | 下一步 |
+|------------|--------|
+| 采用推荐方案实现 | 在 [ralph](jj-ralph.md) 里引用 `best-solution.md` |
+| 继续下一轮搜索 | 说 `resume` 或调整目标后再运行 |
+| 只保存结果 | 选择归档，不把它当验收凭证 |
+
+## 进阶
+
+Claude 可优先使用 Workflow；Codex / Grok / Qoder 通常走 agent 降级路径，Python ACO 控制器仍负责搜索状态。直接调用没有强制长 banner；嵌在 ralph、review 或 dispatch 中只在重型工作前提示一次。
+
+## 记录在哪
 
 ```text
 .workflow/.team/TAS-<简述>-<日期>/
   swarm-config.json
+  workflows/
+  scores/
   artifacts/best-solution.md
 ```
 
 ## 相关
 
-[命令总览](commands.html) · [coordinate](command-jj-team-coordinate.html) · [lifecycle](command-jj-team-lifecycle.html)
+[coordinate](jj-team-coordinate.md) · [lifecycle](jj-team-lifecycle.md) · [ralph](jj-ralph.md) · [命令总览](../commands.md)

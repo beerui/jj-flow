@@ -12,12 +12,14 @@ import {
   RALPH_MAP_REL,
   appendProgressLine,
   loadRun,
+  locateRalphRuns,
   moveRunToCompleted,
   nowIso,
   runDir,
   saveRun,
   writeRalphIndex
 } from './state.mjs';
+import { migrateRuns } from './migrate.mjs';
 import {
   applyHandoffState,
   evaluateAcceptArchiveGate,
@@ -237,5 +239,47 @@ export function finalizeRun(runId, {
       durable_lessons: merged.elevation?.durable_lessons || [],
       process_lessons: merged.elevation?.process_lessons || []
     }
+  };
+}
+
+/**
+ * List leftover closeouts. Default dry-run.
+ * --yes: migrate layout leftovers, then finalize runs whose next is finalize.
+ * closeout=check (resume window) is never auto-applied.
+ */
+export function remediateCloseout({ cwd = process.cwd(), yes = false, force = false } = {}) {
+  const located = locateRalphRuns(cwd);
+  const items = located.filter((row) => row.closeout === 'finalize' || row.closeout === 'migrate');
+  if (!yes) {
+    return {
+      ok: true,
+      action: 'remediate',
+      dry_run: true,
+      count: items.length,
+      items
+    };
+  }
+  let migrated = null;
+  if (items.some((row) => row.closeout === 'migrate')) {
+    migrated = migrateRuns({ cwd });
+  }
+  const finalized = [];
+  for (const row of items.filter((item) => item.closeout === 'finalize')) {
+    try {
+      const result = finalizeRun(row.run_id, { cwd, force });
+      finalized.push({ run_id: row.run_id, ok: true, archive_path: result.archive_path });
+    } catch (err) {
+      finalized.push({ run_id: row.run_id, ok: false, error: String(err.message || err) });
+    }
+  }
+  writeRalphIndex(cwd);
+  return {
+    ok: finalized.every((row) => row.ok),
+    action: 'remediate',
+    dry_run: false,
+    count: items.length,
+    items,
+    migrated,
+    finalized
   };
 }

@@ -124,7 +124,7 @@ review（可先 working_tree）→ commit → review-record --review-scope commi
 ```
 
 - Follow `jj ralph status` `next`. `NEEDS_CHANGES`/`BLOCKED` → `review` (not `gate accept`). accept PASS + latest PASS on `working_tree` → `commit-scoped-review` (not `finalize`). accept PASS with no blocking review and no leftover resume window → `finalize`. COMPLETED in `completed/` → no next.
-- After accept PASS, `finalize` = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `$jj-end` is Git only and does not write the run.
+- After accept PASS, **MUST `finalize`** = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `status` / `ralph_ops status` print `next: finalize` until `run.archive` exists. `phase=ARCHIVE` while the run is still on the live root (including the resume→rollback window) prints a second warning: `phase=ARCHIVE 未完成收尾——先跑 gate/status 核对`. `locate` rows carry the same `next` / `closeout`; leftover runs: `jj ralph remediate` (dry-run) then `--yes`. `$jj-end` is Git only and does not write the run.
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again. After resume, leftover `run.archive` is **not** an immediate finalize MUST (`next=check`).
 - Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated.

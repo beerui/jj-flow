@@ -12,4 +12,4 @@
 
 ## 相关
 
-[ralph](command-jj-ralph.html) · [目录](concepts-paths.html)
+[ralph](commands/jj-ralph.md) · [目录](concepts-paths.md)

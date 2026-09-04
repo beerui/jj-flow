@@ -38,8 +38,8 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 ## Immediate actions
 
-1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/index.md`. **Out:** bound `run.json`, or unbound.
-   Order: [report-layout.md](references/report-layout.md) Selecting a run. Unspecified: read `index.md` **活跃** first (currently working); do not glob until that table is empty or the file is missing.
+1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/index.md` + `.workflow/ralph/`. **Out:** bound `run.json`, or unbound.
+   Order: [report-layout.md](references/report-layout.md) Selecting a run. Unspecified: read `index.md` **活跃** first (currently working); do not glob until that table is empty or the file is missing. Prefer `jj ralph locate` (or `ralph_ops locate`). Then scan active `.workflow/ralph/task-*/.state/run.json`, then `completed/task-*/.state/run.json`. Still glob leftover `tasks/*/`, `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
 
    Explicit `run_id` named but missing → 🔴 `BLOCKED` (do not init).
    Unspecified and no run → **unbound**; continue. Do not init.

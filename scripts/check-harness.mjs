@@ -415,29 +415,26 @@ function checkDocumentationPolicy({ cwd, policy, addFinding, stats, manifestPath
   }
 
   const siteBuilder = resolveRepositoryPath(cwd, policy.site_builder, addFinding, 'HNS-DOC-007');
-  const siteBuilderText = readTextSurface(siteBuilder, addFinding, 'HNS-DOC-008');
+  readTextSurface(siteBuilder, addFinding, 'HNS-DOC-008');
   checkIndexedDocumentSet({
     cwd,
     config: policy.design_docs,
     kind: 'design',
     addFinding,
-    stats,
-    siteBuilderText
+    stats
   });
   checkIndexedDocumentSet({
     cwd,
     config: policy.adr_docs,
     kind: 'adr',
     addFinding,
-    stats,
-    siteBuilderText
+    stats
   });
   checkExecPlanPolicy({
     cwd,
     config: policy.exec_plans,
     addFinding,
     stats,
-    siteBuilderText,
     manifestPath
   });
   checkMaturityModels({
@@ -449,7 +446,7 @@ function checkDocumentationPolicy({ cwd, policy, addFinding, stats, manifestPath
   });
 }
 
-function checkIndexedDocumentSet({ cwd, config, kind, addFinding, stats, siteBuilderText }) {
+function checkIndexedDocumentSet({ cwd, config, kind, addFinding, stats }) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     addFinding(`HNS-${kind.toUpperCase()}-001`, cwd, `${kind} 文档策略必须是对象。`, `在 documentation_policy 中声明 ${kind} directory 和 index。`);
     return;
@@ -467,13 +464,9 @@ function checkIndexedDocumentSet({ cwd, config, kind, addFinding, stats, siteBui
     if (kind === 'design') stats.design_docs_checked += 1;
     else stats.adr_docs_checked += 1;
     const source = fs.readFileSync(file, 'utf8');
-    const htmlName = `${path.basename(file, '.md')}.html`;
-    if (!indexText.includes(htmlName)) {
-      addFinding(`HNS-${kind.toUpperCase()}-INDEX-001`, indexPath, `${displayPath(cwd, file)} 未登记到索引。`, `在索引中添加指向 ${htmlName} 的链接。`);
-    }
-    const repositoryPath = displayPath(cwd, file);
-    if (siteBuilderText !== null && !siteBuilderText.includes(repositoryPath)) {
-      addFinding(`HNS-${kind.toUpperCase()}-BUILD-001`, file, '文档未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${repositoryPath}'。`);
+    const mdName = path.basename(file);
+    if (!indexText.includes(mdName)) {
+      addFinding(`HNS-${kind.toUpperCase()}-INDEX-001`, indexPath, `${displayPath(cwd, file)} 未登记到索引。`, `在索引中添加指向 ${mdName} 的链接。`);
     }
 
     if (kind === 'design') {
@@ -481,10 +474,6 @@ function checkIndexedDocumentSet({ cwd, config, kind, addFinding, stats, siteBui
     } else if (!/^## 状态\s*$/m.test(source)) {
       addFinding('HNS-ADR-STATUS-001', file, 'ADR 缺少“## 状态”章节。', '补充 Accepted、Superseded 或 Deprecated 状态。');
     }
-  }
-  const indexRepositoryPath = displayPath(cwd, indexPath);
-  if (siteBuilderText !== null && !siteBuilderText.includes(indexRepositoryPath)) {
-    addFinding(`HNS-${kind.toUpperCase()}-BUILD-002`, indexPath, '索引未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${indexRepositoryPath}'。`);
   }
 }
 
@@ -510,7 +499,7 @@ function checkDesignStatus(source, file, config, addFinding) {
   }
 }
 
-function checkExecPlanPolicy({ cwd, config, addFinding, stats, siteBuilderText, manifestPath }) {
+function checkExecPlanPolicy({ cwd, config, addFinding, stats, manifestPath }) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     addFinding('HNS-EXEC-PLAN-001', manifestPath, 'exec plan 文档策略必须是对象。', '声明 exec plan 根目录、索引、active/completed 目录和状态。');
     return;
@@ -546,12 +535,9 @@ function checkExecPlanPolicy({ cwd, config, addFinding, stats, siteBuilderText, 
     for (const file of listMarkdownFiles(planSet.directory)) {
       stats.exec_plans_checked += 1;
       const repositoryPath = displayPath(cwd, file);
-      const relativeHtml = path.relative(paths.directory, file).replaceAll('\\', '/').replace(/\.md$/i, '.html');
-      if (!indexText.includes(relativeHtml)) {
-        addFinding('HNS-EXEC-PLAN-INDEX-001', paths.index, `${repositoryPath} 未登记到 exec plan 索引。`, `在索引中添加指向 ${relativeHtml} 的链接。`);
-      }
-      if (siteBuilderText !== null && !siteBuilderText.includes(repositoryPath)) {
-        addFinding('HNS-EXEC-PLAN-BUILD-001', file, 'exec plan 未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${repositoryPath}'。`);
+      const relativeMd = path.relative(paths.directory, file).replaceAll('\\', '/');
+      if (!indexText.includes(relativeMd)) {
+        addFinding('HNS-EXEC-PLAN-INDEX-001', paths.index, `${repositoryPath} 未登记到 exec plan 索引。`, `在索引中添加指向 ${relativeMd} 的链接。`);
       }
 
       const source = fs.readFileSync(file, 'utf8');
@@ -563,11 +549,6 @@ function checkExecPlanPolicy({ cwd, config, addFinding, stats, siteBuilderText, 
         addFinding('HNS-EXEC-PLAN-STATUS-002', file, `${planSet.location} 目录中的状态 ${status} 无效。`, `使用：${[...planSet.allowed].join(', ')}`);
       }
     }
-  }
-
-  const indexRepositoryPath = displayPath(cwd, paths.index);
-  if (siteBuilderText !== null && !siteBuilderText.includes(indexRepositoryPath)) {
-    addFinding('HNS-EXEC-PLAN-BUILD-002', paths.index, 'exec plan 索引未进入站点构建清单。', `在 documentation_policy.site_builder 中登记 source: '${indexRepositoryPath}'。`);
   }
 }
 

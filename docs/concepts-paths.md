@@ -26,4 +26,4 @@
 
 ## 相关
 
-[安装](installation.html) · [知识库](concepts-knowledge.html) · [ralph](command-jj-ralph.html)
+[安装](installation.md) · [知识库](concepts-knowledge.md) · [ralph](commands/jj-ralph.md)

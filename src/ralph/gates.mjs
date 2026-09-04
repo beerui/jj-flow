@@ -26,6 +26,7 @@ import {
   readRunEventsText,
   createEmptyAcceptLayers,
   createEmptyMap,
+  computeRalphNext,
   effectiveGateSet,
   hydrateIntensityFields,
   listRuns,
@@ -33,15 +34,14 @@ import {
   loadRun,
   collectIndexArchiveHints,
   collectSameRequirementHints,
-  computeRalphNext,
   mapPath,
-  runLayoutOf,
   normalizeIntensity,
   nowIso,
   promoteGateSetToFull,
   promotionProgressLine,
   readJson,
   runDir,
+  runLayoutOf,
   runMachineFileFor,
   runStateDir,
   runWorkspaceDir,
@@ -1182,7 +1182,7 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
     handoff: run.handoff || null,
     alias,
     gates_written: keys,
-    gate_set: run.gate_set || 'full',
+    gate_set: run.gate_set,
     promotion
   };
 }
@@ -1420,12 +1420,16 @@ export function getStatus({ runId, cwd = process.cwd() } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
     const metrics = computeRunMetrics(run, cwd);
-    const layout = runLayoutOf(run.run_id, cwd);
+    const layout = run._readonly_archive_path ? 'archive' : runLayoutOf(runId, cwd);
+    const { next, warning } = computeRalphNext(run, { layout });
     return {
       run,
       metrics,
       path: path.relative(cwd, runWorkspaceDir(run, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
-      next: computeRalphNext(run, { layout })
+      layout,
+      gate_set: run.gate_set,
+      next,
+      warning
     };
   }
   const runs = listRuns(cwd);

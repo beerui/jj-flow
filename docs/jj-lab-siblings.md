@@ -1,7 +1,7 @@
 # 实验场 sibling 仓
 
 > 产品仓 **没有** `labs/` 树。Loop gym 与 Family gym 是与 `jj-flow` **同级** 的独立 git 仓。  
-> 设计 SSOT：[实验场 Loop gym / Family gym](design-docs/jj-flow-labs.html)。本页只钉死仓名、发现根、env。
+> 设计 SSOT：[实验场 Loop gym / Family gym](design-docs/jj-flow-labs.md)。本页只钉死仓名、发现根、env。
 
 ## 仓名（钉死）
 

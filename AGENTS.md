@@ -2,7 +2,7 @@
 
 - `jj-flow` 是 **项目族编排工作流**（接入 `jj-init` + 同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch；可选会话多角色 `jj-team-coordinate` / 固定 SDLC `jj-team-lifecycle` / 对抗蚁群 `jj-team-swarm`，均不推进 checkpoint）。
 - 代码定位先读 `ARCHITECTURE.md`；跨模块目标设计从 `docs/design-docs/index.md` 进入。仓库事实以 `harness-manifest.json` 索引的 versioned 资产为准。
-- **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
+- **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands、`~/.agents/skills` + commands）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目写工作区（默认 `project-branch` 主路径，isolation 时 `exclusive-worktree`）中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。

@@ -33,9 +33,9 @@ jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target 
 jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-run] [--json]
 ```
 
-- 默认不按名称前缀扫描未知文件；只动 ownership 登记资产  
-- 本地改过或历史未登记：默认拒绝，审查后 `--force`  
-- 用户装入口仍可在 [安装](installation.html) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI  
+- 默认不按名称前缀扫描未知文件；只动 ownership 登记资产
+- 本地改过或历史未登记：默认拒绝，审查后 `--force`
+- 用户装入口仍可在 [安装](../installation.md) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI
 - `install-skill` 会在 `~/.jj-flow` 生成空 `naming.json` / `map.md` / `knowledge/`（已有文件不覆盖）
 
 ```bash
@@ -102,15 +102,15 @@ jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
 
 说明：
 
-- `intensity`：`tiny` / `standard`（默认）/ `strict`，决定预算与 accept 判断层；对话入口见 [ralph 命令](command-jj-ralph.html)
-- **对话路径 `$jj-ralph` 不要传 `--lite` / `brief` / `close`**，一律五 gate。下面 `--lite` 只给遗留机械 CLI / 旧 run 兼容
-- `gate_set`：默认 `full`（五 gate）。机械 CLI `--lite` 仍可走 `brief` → `deliver` → `close`（账本仍写五键）；任一 gate FAIL / BLOCKED 或 `scope --in` 新增路径会升 full。对话 skill **忽略** init 的 `gate_set?` 建议
+- `intensity`：`tiny` / `standard`（默认）/ `strict`，决定预算与 accept 判断层；对话入口见 [ralph 命令](jj-ralph.md)
+- `gate_set`：默认 `full`（五 gate）。`--lite` 走 `brief` → `deliver` → `close`：`brief` = analyze + plan，`close` = accept + archive，账本仍写五键，`close` 照走 accept / archive 证据门；`budget.max_deliver_loops ≤ 3`。任一 gate FAIL / BLOCKED，或 `scope --in` 新增路径，自动升 full（恢复 intensity 预算），同目录、不换 `run_id`。lite 预算到顶时只停（`BLOCKED`，`unblock` 指明出口），不自动升档；`gate deliver FAIL` 即出口，升 full 并解除该 BLOCKED。`gate_set` 与 `intensity` 正交：tiny 不等于 lite
+- 无 `--lite` / `--full` 时，init 按规模**只给建议**：改动面小（`--in` ≤ 2 个具体文件，或标题 / 目标含「小改 / 顺手 / typo / px」这类口语）、无架构词（重构 / 协议 / 鉴权 / 迁移 / schema / api …）、单一验收项，三者同时成立才建议 `lite`，拿不准即 `full`。文本模式多打一行 `gate_set? lite …`，`--json` 带 `run.gate_set_suggestion`（`applied=false`）；`run.json` 仍写 `full`。要走 lite 必须显式 `--lite`（尚未过任何 gate 时可 `--lite --force` 重 init）
 - `deliver-attempt`：DELIVER 每轮记一次是否改进；省略 `--improved` 时按工作区指纹自动判定；连续无改进 → `BLOCKED` + `STAGNATION`
 - `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`
 - `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）；`finalize` = map-merge + archive；归档原地翻转，不再复制到 `archive/`
-- `finding`：有对策才追写 `findings.md` 踩坑；索引进 `events.jsonl`，不要抄进 `progress.md`
-- `migrate`：把活跃的旧 `RALPH-*` 1:1 迁到根上 `task-<slug>/`，原目录收进 `migrated/`；根上存量 `.migrated-*` 一并收容；`tasks/` 遗留上提，COMPLETED/ABANDONED 再搬进 `completed/`。`--prune-archive --yes` 才删 1.0 `archive/`。`adopt --task` 绑定规范目录，`--absorb` 只提示、不自动合并
-- `handoff` 写 `<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
+- `finding`：按五要素（现象 / 原因 / 对策 / 适用范围 / 证据）追写 `findings.md`，并在 progress 留一行索引
+- `migrate`：把活跃的旧 `RALPH-*` 目录 1:1 迁到 `tasks/task-<slug>/`（原目录改名 `.migrated-*` 保留）；`adopt --task` 把已有 run 绑定到规范目录，`--absorb` 只提示、不自动合并
+- `handoff` 写 `tasks/<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
 - `commit-prep` 只出清单与 message，**不** git commit / push
 - 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`，`npm run ralph:sync` 同步）
 
@@ -140,7 +140,7 @@ jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [
 jj task assign --delivery DELIVERY_ID --task TASK-ID [--manifest path | --control-root dir] [--json]
 ```
 
-轻量分配展示；审计细节在 JSON / manifest。设计见 [任务分配 UX](design-docs/task-assignment-ux.html)。
+轻量分配展示；审计细节在 JSON / manifest。设计见 [任务分配 UX](../design-docs/task-assignment-ux.md)。
 
 ---
 
@@ -169,7 +169,9 @@ jj harness-gc [--json]
 ```bash
 npm run verify
 npm run lab:check
+npm run docs:dev
 npm run docs:build
+npm run docs:preview
 npm run docs:check
 npm run harness:check
 npm run harness:gc
@@ -185,5 +187,5 @@ npm 发布走 GitHub Actions `NPM Publish`，勿依赖本机 `npm publish` token
 
 ## 相关
 
-用户路径：[安装](installation.html) · [命令总览](commands.html) · [五分钟上手](usage.html)  
-维护：[维护说明](maintenance.html)
+用户路径：[安装](../installation.md) · [命令总览](../commands.md) · [五分钟上手](../usage.md)
+维护：[维护说明](../maintenance.md)

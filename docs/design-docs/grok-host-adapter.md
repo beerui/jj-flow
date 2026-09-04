@@ -7,15 +7,15 @@
 > 范围注记：Wave 2 真 Host 已由 Grok 路径关闭并升 A2；**不是** Mode S 日常路径的完成态；A3/A4 仍关闭
 >
 > 范围：真 Host attestation / Wave 2。日常 Grok 分发 Mode S skill MVP 见
-> [`skills/jj-dispatch/references/grok-dispatch-execution.md`](../../skills/jj-dispatch/references/grok-dispatch-execution.md)
+> [`skills/jj-dispatch/references/grok-dispatch-execution.md`](https://github.com/beerui/jj-flow/blob/main/skills/jj-dispatch/references/grok-dispatch-execution.md)
 > 与 [exec plan](../exec-plans/active/2026-07-30-grok-dispatch-execution.md)。
 >
-> 与 [真实 Host 验收](../milestones/real-host-acceptance.html) 并列：Grok 路径已达标并升 A2。Codex App 路径仍可选。
+> 与 [真实 Host 验收](../milestones/real-host-acceptance.md) 并列：Grok 路径已达标并升 A2。Codex App 路径仍可选。
 >
 > 关联：
 > - [真实 Host 验收（completed）](../milestones/real-host-acceptance.md)
-> - [Agent Harness 设计](harness-engineering.html)
-> - [Harness 收口计划（completed）](../exec-plans/completed/2026-07-18-harness-hardening.html)
+> - [Agent Harness 设计](harness-engineering.md)
+> - [Harness 收口计划（completed）](../exec-plans/completed/2026-07-18-harness-hardening.md)
 > - ADR 0001 薄宿主边界；dispatch host-action-contract
 >
 > 实施边界：**不** 因 skill 安装或 Mode S 日常可用而提升 `max_unattended_level`；A2 仅在里程碑 completed 后由人工审查写入 manifest

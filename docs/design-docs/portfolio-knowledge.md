@@ -73,7 +73,7 @@ map.md / business-map / wiki / specs
 
 ## 用户文档
 
-见 [记忆与知识库上手](../memory-knowledge-guide.html)。
+见 [记忆与知识库上手](../memory-knowledge-guide.md)。
 
 ## 可用性门槛
 
@@ -83,7 +83,7 @@ map.md / business-map / wiki / specs
 2. 有 active 条目可供 ralph 挂载
 3. extract → human-review → promote 闭环可走通
 4. Web 管理端可 start/stop
-5. 文档站有使用者指南（[记忆与知识库](../memory-knowledge-guide.html)）
+5. 文档站有使用者指南（[记忆与知识库](../memory-knowledge-guide.md)）
 
 ## CLI 表面（运维）
 

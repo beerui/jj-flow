@@ -20,6 +20,8 @@ export const FINDINGS_REL = 'findings.md';
 export const PROGRESS_REL = 'progress.md';
 /** full = analyze/plan/deliver/accept/archive; lite = brief/deliver/close over the same five ledger keys (P2+). */
 export const GATE_SETS = Object.freeze(['full', 'lite']);
+/** Neutral status warning when phase=ARCHIVE but the run is not parked under completed/. */
+export const ARCHIVE_CLOSEOUT_WARNING = 'phase=ARCHIVE 未完成收尾——先跑 gate/status 核对';
 /** lite budget: max_deliver_loops = min(intensity default or override, 3). */
 export const LITE_MAX_DELIVER_LOOPS = 3;
 export const SECTION_GOAL = '目标';
@@ -660,43 +662,9 @@ function gatesOf(run) {
   };
 }
 
-/**
- * Next mechanical step for status / locate. Does not write run.json.
- * Values: review | commit-scoped-review | finalize | check | migrate | resume | gate * | null
- */
-export function computeRalphNext(run, { layout = null } = {}) {
-  if (!run || typeof run !== 'object') return null;
-  const layoutName = layout || run.layout || null;
-  const parked = layoutName === 'completed';
-  const needsMigrate = Boolean(run.needs_migrate) || layoutName === 'legacy-active' || isLegacyRalphRunId(run.run_id);
-  if (needsMigrate) return 'migrate';
-  if (run.status === 'COMPLETED' && parked) return null;
-  if (run.status === 'ABANDONED') return 'resume';
-  if (run.status === 'BLOCKED' || run.status === 'PAUSED') return 'check';
-
-  const latest = peekLatestReviewSummary(run);
-  const outcome = latest?.outcome || null;
-  const scope = latest?.review_scope || null;
-  const gates = gatesOf(run);
-  const archived = Boolean(run.archive?.archived_at || run.archived_at);
-
-  if (outcome === 'NEEDS_CHANGES' || outcome === 'BLOCKED') return 'review';
-
-  if (gates.accept === 'PASS') {
-    if (outcome === 'PASS' && scope !== 'commit') return 'commit-scoped-review';
-    if (archived && run.phase !== 'ARCHIVE' && run.status === 'IN_PROGRESS') return 'check';
-    if (!parked) return 'finalize';
-  }
-
-  if (run.status === 'COMPLETED' && !parked) return 'check';
-  if (gates.analyze !== 'PASS') return 'gate analyze';
-  if (gates.plan !== 'PASS') return 'gate plan';
-  if (gates.deliver !== 'PASS') return 'gate deliver';
-  return 'gate accept';
-}
-
 function attachNext(row) {
-  return { ...row, next: computeRalphNext(row, { layout: row.layout || null }) };
+  const { next } = computeRalphNext(row, { layout: row.layout || null });
+  return { ...row, next };
 }
 
 function isIndexStale(updatedAt, now) {
@@ -935,27 +903,49 @@ export function listRuns(cwd = process.cwd()) {
 export function locateRalphRuns(cwd = process.cwd()) {
   const rows = listRuns(cwd).map((row) => ({ ...row, readonly: Boolean(row.needs_migrate) }));
   const archiveRoot = archiveDir(cwd);
-  if (!fs.existsSync(archiveRoot)) return rows.map(attachNext);
-  const stack = [archiveRoot];
-  while (stack.length) {
-    const dir = stack.pop();
-    let entries = [];
-    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) stack.push(full);
-      else if (entry.name === 'run.json') {
-        const rel = path.relative(cwd, full).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
-        const summary = summarizeRunFile(full, path.basename(path.dirname(full)), {
-          layout: 'archive',
-          readonly: true,
-          path: rel
-        });
-        rows.push(summary);
+  if (fs.existsSync(archiveRoot)) {
+    const stack = [archiveRoot];
+    while (stack.length) {
+      const dir = stack.pop();
+      let entries = [];
+      try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) stack.push(full);
+        else if (entry.name === 'run.json') {
+          const rel = path.relative(cwd, full).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+          const summary = summarizeRunFile(full, path.basename(path.dirname(full)), {
+            layout: 'archive',
+            readonly: true,
+            path: rel
+          });
+          rows.push(summary);
+        }
       }
     }
   }
-  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || ''))).map(attachNext);
+  return rows
+    .map((row) => annotateLocateRow(row, cwd))
+    .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+}
+
+function annotateLocateRow(row, cwd) {
+  if (row.needs_migrate || row.layout === 'legacy-tasks' || row.layout === 'legacy-active') {
+    return { ...row, next: 'migrate', warning: null, closeout: 'migrate' };
+  }
+  if (row.readonly || row.layout === 'archive') {
+    return { ...row, next: null, warning: null, closeout: null };
+  }
+  try {
+    const run = loadRun(row.run_id, cwd);
+    const { next, warning } = computeRalphNext(run, { layout: row.layout });
+    let closeout = null;
+    if (next === 'finalize') closeout = 'finalize';
+    else if (warning && row.layout !== 'completed') closeout = 'check';
+    return { ...row, next, warning, closeout };
+  } catch {
+    return { ...row, next: null, warning: null, closeout: null };
+  }
 }
 
 export function normalizeHostMeta(host = null) {
@@ -1171,94 +1161,146 @@ export function moveRunToActive(runId, cwd = process.cwd()) {
 }
 
 export function writeRalphIndex(cwd = process.cwd(), { now = Date.now() } = {}) {
-  const rows = listRuns(cwd);
-  const active = rows.filter((r) => r.layout === 'active' || r.layout === 'legacy-tasks');
-  const completed = rows.filter((r) => r.layout === 'completed');
-  const legacy = rows.filter((r) => r.needs_migrate);
-  const hints = collectIndexArchiveHints(active, { now });
-  const sameHints = collectSameRequirementHints(active);
-  let migratedCount = 0;
-  const mig = migratedDir(cwd);
-  if (fs.existsSync(mig)) {
-    migratedCount = fs.readdirSync(mig, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
-  }
-  let archiveCount = 0;
-  const arch = archiveDir(cwd);
-  if (fs.existsSync(arch)) {
-    archiveCount = fs.readdirSync(arch, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
-  }
-  const nl = '\n';
-  const line = (row) => '| `' + row.run_id + '` | ' + (row.status || '?') + ' | ' + (row.phase || '?') + ' | ' + (row.title || '') + ' |';
-  const hintLine = (item) => '| `' + item.run_id + '` | ' + item.reasons.join(' · ') + ' | ' + item.suggestion + ' |';
-  const hintBlock = hints.triggered
-    ? [
-      '## 归档提示',
+  const dest = indexMdPath(cwd);
+  try {
+    const rows = listRuns(cwd);
+    const active = rows.filter((r) => r.layout === 'active' || r.layout === 'legacy-tasks');
+    const completed = rows.filter((r) => r.layout === 'completed');
+    const legacy = rows.filter((r) => r.needs_migrate);
+    const hints = collectIndexArchiveHints(active, { now });
+    const sameHints = collectSameRequirementHints(active);
+    let migratedCount = 0;
+    const mig = migratedDir(cwd);
+    if (fs.existsSync(mig)) {
+      migratedCount = fs.readdirSync(mig, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
+    }
+    let archiveCount = 0;
+    const arch = archiveDir(cwd);
+    if (fs.existsSync(arch)) {
+      archiveCount = fs.readdirSync(arch, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
+    }
+    const nl = '\n';
+    const line = (row) => '| `' + row.run_id + '` | ' + (row.status || '?') + ' | ' + (row.phase || '?') + ' | ' + (row.title || '') + ' |';
+    const hintLine = (item) => '| `' + item.run_id + '` | ' + item.reasons.join(' · ') + ' | ' + item.suggestion + ' |';
+    const hintBlock = hints.triggered
+      ? [
+        '## 归档提示',
+        '',
+        '> 活跃 ' + hints.active_count + ' 条（软上限 ' + INDEX_ACTIVE_CAP + '）。超过 5 天未更新 ' + hints.stale_ids.length + ' 条。**只提示，不自动 finalize / abandon**。能确定的写出建议；其余先问用户。',
+        '',
+        '| 任务 | 原因 | 建议 |',
+        '| --- | --- | --- |',
+        ...hints.items.map(hintLine),
+        ''
+      ]
+      : [];
+    const sameBlock = sameHints.triggered
+      ? [
+        '## 同需求提示',
+        '',
+        '> 同一需求出现了两条活跃 Ralph（同会话或「审查修复」切片）。**只提示，不自动合并 / abandon**。',
+        '',
+        '| 任务 | 原因 | 建议 |',
+        '| --- | --- | --- |',
+        ...sameHints.items.map((item) => {
+          const reason = item.kind === 'same-session' ? ('同会话 ' + item.thread_id) : '审查切片不是新任务';
+          return '| `' + item.run_ids.join('` `') + '` | ' + reason + ' | ' + item.suggestion + ' |';
+        }),
+        ''
+      ]
+      : [];
+    const md = [
+      '# Ralph 工作区索引',
       '',
-      '> 活跃 ' + hints.active_count + ' 条（软上限 ' + INDEX_ACTIVE_CAP + '）。超过 5 天未更新 ' + hints.stale_ids.length + ' 条。**只提示，不自动 finalize / abandon**。能确定的写出建议；其余先问用户。',
+      '> CLI 派生视图；以各 run 的 `.state/run.json` 为准。',
       '',
-      '| 任务 | 原因 | 建议 |',
-      '| --- | --- | --- |',
-      ...hints.items.map(hintLine),
+      '## 活跃（根目录 `task-*`）',
+      '',
+      '| 任务 | 状态 | 阶段 | 标题 |',
+      '| --- | --- | --- | --- |',
+      ...(active.length ? active.map(line) : ['| （无） | | | |']),
+      '',
+      ...sameBlock,
+      ...hintBlock,
+      '## 已完成（`completed/`，含 ABANDONED）',
+      '',
+      '| 任务 | 状态 | 阶段 | 标题 |',
+      '| --- | --- | --- | --- |',
+      ...(completed.length ? completed.map(line) : ['| （无） | | | |']),
+      '',
+      '## 指针',
+      '',
+      '- 待迁移 RALPH-*：' + legacy.length,
+      '- migrated/ 残骸目录：' + migratedCount,
+      '- archive/ 1.0 快照目录：' + archiveCount + '（`jj ralph migrate --prune-archive` 可清理）',
       ''
-    ]
-    : [];
-  const sameBlock = sameHints.triggered
-    ? [
-      '## 同需求提示',
-      '',
-      '> 同一需求出现了两条活跃 Ralph（同会话或「审查修复」切片）。**只提示，不自动合并 / abandon**。',
-      '',
-      '| 任务 | 原因 | 建议 |',
-      '| --- | --- | --- |',
-      ...sameHints.items.map((item) => {
-        const reason = item.kind === 'same-session' ? ('同会话 ' + item.thread_id) : '审查切片不是新任务';
-        return '| `' + item.run_ids.join('` `') + '` | ' + reason + ' | ' + item.suggestion + ' |';
-      }),
-      ''
-    ]
-    : [];
-  const md = [
-    '# Ralph 工作区索引',
-    '',
-    '> CLI 派生视图；以各 run 的 `.state/run.json` 为准。',
-    '',
-    '## 活跃（根目录 `task-*`）',
-    '',
-    '| 任务 | 状态 | 阶段 | 标题 |',
-    '| --- | --- | --- | --- |',
-    ...(active.length ? active.map(line) : ['| （无） | | | |']),
-    '',
-    ...sameBlock,
-    ...hintBlock,
-    '## 已完成（`completed/`，含 ABANDONED）',
-    '',
-    '| 任务 | 状态 | 阶段 | 标题 |',
-    '| --- | --- | --- | --- |',
-    ...(completed.length ? completed.map(line) : ['| （无） | | | |']),
-    '',
-    '## 指针',
-    '',
-    '- 待迁移 RALPH-*：' + legacy.length,
-    '- migrated/ 残骸目录：' + migratedCount,
-    '- archive/ 1.0 快照目录：' + archiveCount + '（`jj ralph migrate --prune-archive` 可清理）',
-    ''
-  ].join(nl);
-  fs.mkdirSync(ralphRoot(cwd), { recursive: true });
-  fs.writeFileSync(indexMdPath(cwd), md, 'utf8');
-  return {
-    path: indexMdPath(cwd),
-    active: active.length,
-    completed: completed.length,
-    migrated: migratedCount,
-    archive: archiveCount,
-    hints,
-    same_requirement_hints: sameHints
-  };
+    ].join(nl);
+    fs.mkdirSync(ralphRoot(cwd), { recursive: true });
+    fs.writeFileSync(dest, md, 'utf8');
+    return {
+      ok: true,
+      path: dest,
+      active: active.length,
+      completed: completed.length,
+      migrated: migratedCount,
+      archive: archiveCount,
+      hints,
+      same_requirement_hints: sameHints
+    };
+  } catch (err) {
+    return { ok: false, degraded: true, error: String(err.message || err), path: dest };
+  }
 }
 
 /** Legacy runs without gate_set behave as full. */
 export function effectiveGateSet(run) {
   return run?.gate_set == null ? 'full' : normalizeGateSet(run.gate_set);
+}
+
+/**
+ * Next mechanical step + optional ARCHIVE closeout warning.
+ * Values: review | commit-scoped-review | finalize | check | migrate | resume | gate * | null
+ */
+export function computeRalphNext(run, { layout = null } = {}) {
+  if (!run || typeof run !== 'object') return { next: null, warning: null };
+  const layoutName = layout || run.layout || null;
+  const warning = run.phase === 'ARCHIVE' && layoutName !== 'completed' ? ARCHIVE_CLOSEOUT_WARNING : null;
+  const parked = layoutName === 'completed';
+  const needsMigrate = Boolean(run.needs_migrate) || layoutName === 'legacy-active' || isLegacyRalphRunId(run.run_id);
+  if (needsMigrate) return { next: 'migrate', warning };
+  if (run.status === 'COMPLETED' && parked) return { next: null, warning: null };
+  if (run.status === 'ABANDONED') return { next: 'resume', warning };
+  if (run.status === 'BLOCKED' || run.status === 'PAUSED') return { next: 'check', warning };
+
+  const latest = peekLatestReviewSummary(run);
+  const outcome = latest?.outcome || null;
+  const scope = latest?.review_scope || null;
+  const gates = gatesOf(run);
+  const archived = Boolean(run.archive?.archived_at || run.archived_at);
+
+  if (outcome === 'NEEDS_CHANGES' || outcome === 'BLOCKED') return { next: 'review', warning };
+
+  if (gates.accept === 'PASS') {
+    if (archived && run.status === 'IN_PROGRESS') return { next: 'check', warning };
+    if (outcome === 'PASS' && scope !== 'commit') return { next: 'commit-scoped-review', warning };
+    if (!parked) return { next: 'finalize', warning };
+  }
+
+  if (run.phase === 'ARCHIVE' && parked && run.status === 'COMPLETED' && archived) {
+    return { next: null, warning: null };
+  }
+  if (run.phase === 'ARCHIVE') return { next: 'check', warning };
+  if (run.status === 'COMPLETED' && !parked) return { next: 'check', warning };
+
+  if (effectiveGateSet(run) === 'lite') {
+    if (gates.analyze !== 'PASS' || gates.plan !== 'PASS') return { next: 'gate brief', warning };
+    if (gates.deliver !== 'PASS') return { next: 'gate deliver', warning };
+    return { next: 'gate close', warning };
+  }
+  if (gates.analyze !== 'PASS') return { next: 'gate analyze', warning };
+  if (gates.plan !== 'PASS') return { next: 'gate plan', warning };
+  if (gates.deliver !== 'PASS') return { next: 'gate deliver', warning };
+  return { next: 'gate accept', warning };
 }
 
 /**
@@ -1390,7 +1432,7 @@ export function renderRalphStatusText(payload) {
       'phase: ' + run.phase,
       'status: ' + run.status,
       'intensity: ' + (run.intensity || 'standard'),
-      'gate_set: ' + (run.gate_set || 'full'),
+      'gate_set: ' + (run.gate_set == null ? 'undefined' : run.gate_set),
       'iteration: ' + run.iteration + '/' + run.max_iterations,
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
       run.accept_layers
@@ -1404,9 +1446,10 @@ export function renderRalphStatusText(payload) {
       latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.review_scope ? (' scope=' + latestReview.review_scope) : '') + ((latestReview.fix_commit || latestReview.reviewed_commit) ? (' @' + (latestReview.fix_commit || latestReview.reviewed_commit)) : '')) : 'review: none',
       run.host ? ('host: ' + [run.host.host_id, run.host.thread_id || run.host.session_handle, run.host.model_id].filter(Boolean).join(' / ')) : 'host: none',
       run.intervention_needed ? ('intervention: ' + (run.intervention_needed.kind ? (run.intervention_needed.kind + ' ') : '') + run.intervention_needed.reason) : 'intervention: none',
-      'next: ' + (payload.next || computeRalphNext(run) || '(none)'),
-      'path: ' + (payload.path || '')
-    ].join(nl);
+      'path: ' + (payload.path || ''),
+      'next: ' + (payload.next || '(none)'),
+      payload.warning ? ('warning: ' + payload.warning) : null
+    ].filter(Boolean).join(nl);
   }
   const nl = String.fromCharCode(10);
   const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.next ? (' · next=' + item.next) : '') + (item.needs_migrate ? ' · needs_migrate' : '') + (item.title ? (' · ' + item.title) : ''))];
