@@ -7,6 +7,7 @@ npm-debug.log*
 coverage/
 dist/
 site/
+docs/.vitepress/cache/
 .tmp/
 eval/ralph-memory/generated/
 .plans
@@ -21,10 +22,6 @@ _write_*.cjs
 daji-docsjj-flow_wire*.cjs
 PLAN.md
 agent/
-# Regenerated dispatch-demo media (source: make_frames.py / generate_interactive.py)
-docs/other/dispatch-demo/frames/
-docs/other/dispatch-demo/dispatch-demo.gif
-docs/other/dispatch-demo/dispatch-demo.mp4
 
 .cursor
 # Local lab root map (absolute machine paths). Example: lab-roots.json.example

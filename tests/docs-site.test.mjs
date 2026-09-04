@@ -4,113 +4,51 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { redirects } from '../docs/.vitepress/redirects.mjs';
+import { sidebar, sidebarDocPaths } from '../docs/.vitepress/sidebar.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const checkOut = path.join(root, '.tmp', `docs-site-test-${process.pid}`);
 
-function runDocsCheck() {
-  fs.rmSync(checkOut, { recursive: true, force: true });
-  // build-docs --check writes under .tmp/docs-site-check-<pid>; we re-run build to a known dir by monkeying cwd output.
-  // Prefer public entry: docs:check validates generators; then docs:build for inspectable site/.
-  const check = spawnSync(process.execPath, ['scripts/build-docs.mjs', '--check'], {
-    cwd: root,
-    encoding: 'utf8',
-    env: process.env
-  });
-  return check;
-}
+test('sidebar keeps the five top-level groups and every link has a source file', () => {
+  assert.deepEqual(sidebar.map((group) => group.text), ['开始', '工作流', '概念', '维护者', '参考']);
+  for (const doc of sidebarDocPaths()) {
+    assert.ok(fs.existsSync(path.join(root, doc)), `sidebar links to missing ${doc}`);
+  }
+});
 
-test('docs:check exits 0 and enforces primary path + nested assets', () => {
-  const result = runDocsCheck();
+test('deep reference groups are generated from the filesystem and collapsed by default', () => {
+  const reference = sidebar.find((group) => group.text === '参考');
+  const design = reference.items.find((item) => item.text === '设计文档');
+  assert.equal(design.collapsed, true);
+  assert.ok(design.items.some((item) => item.link === '/design-docs/jj-ralph'));
+  const plans = reference.items.find((item) => item.text === '执行计划');
+  assert.ok(plans.items.some((item) => item.link.startsWith('/exec-plans/completed/')));
+  assert.ok(!plans.items.some((item) => /^Exec plan/i.test(item.text)), 'exec plan titles keep the "Exec plan —" prefix');
+});
+
+test('sidebar CLI mode prints the same coverage list as the module', () => {
+  const result = spawnSync(process.execPath, ['docs/.vitepress/sidebar.mjs'], { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), sidebarDocPaths());
+});
+
+test('legacy redirects target existing pages and never a demo page', () => {
+  for (const [from, to] of Object.entries(redirects)) {
+    assert.match(to, /\.html$/, `${from} target must end with .html`);
+    assert.doesNotMatch(to, /demo/);
+    assert.ok(fs.existsSync(path.join(root, 'docs', to.replace(/\.html$/, '.md'))), `${from} → ${to} has no source`);
+  }
+});
+
+test('docs:check builds the site into a temp dir and validates the output', () => {
+  const result = spawnSync(process.execPath, ['scripts/check-docs.mjs'], { cwd: root, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /docs site built/);
+  assert.match(result.stdout, /docs site check passed/);
 });
 
-test('built site home exposes install, usage, changelog, github header and command paths', () => {
-  const build = spawnSync(process.execPath, ['scripts/build-docs.mjs'], {
-    cwd: root,
-    encoding: 'utf8',
-    env: process.env
-  });
-  assert.equal(build.status, 0, build.stderr || build.stdout);
-
-  const home = fs.readFileSync(path.join(root, 'site', 'index.html'), 'utf8');
-  for (const required of [
-    'installation.html',
-    'usage.html',
-    'changelog.html',
-    'https://github.com/beerui/jj-flow',
-    'command-jj-same.html',
-    'command-jj-ralph.html',
-    'command-jj-dispatch.html',
-    '项目族编排'
-  ]) {
-    assert.match(home, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  }
-
-  // Header quick links: install / usage / changelog / GitHub (not same/dispatch labels)
-  const quick = home.match(/<nav class="header-quick"[^>]*>[\s\S]*?<\/nav>/);
-  assert.ok(quick, 'header-quick nav missing');
-  assert.match(quick[0], /changelog\.html/);
-  assert.match(quick[0], /github\.com\/beerui\/jj-flow/);
-  assert.doesNotMatch(quick[0], />same</);
-  assert.doesNotMatch(quick[0], />dispatch</);
-
-  for (const bad of ['command-jj-delivery.html', 'command-jj-validate.html', 'command-jj-evolve.html']) {
-    assert.doesNotMatch(home, new RegExp(`href=["'][^"']*${bad.replace('.', '\\.')}`));
-  }
-});
-
-test('nested milestone page uses depth-correct relative assets and nav', () => {
-  const nested = fs.readFileSync(path.join(root, 'site', 'milestones', 'm6-acceptance.html'), 'utf8');
-  assert.match(nested, /href="\.\.\/assets\/styles\.css"/);
-  assert.match(nested, /src="\.\.\/assets\/search\.js"/);
-  assert.match(nested, /href="\.\.\/index\.html"/);
-  assert.match(nested, /data-docs-root="\.\.\/"/);
-});
-
-test('dispatch-demo lives under milestones with root redirect', () => {
-  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'dispatch-demo.html'), 'utf8');
-  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
-  assert.match(demo, /href="\.\.\/loop-graph-guide\.html"/);
-  assert.match(demo, /href="\.\.\/command-jj-dispatch\.html"/);
-  const redirect = fs.readFileSync(path.join(root, 'site', 'dispatch-demo.html'), 'utf8');
-  assert.match(redirect, /milestones\/dispatch-demo\.html/);
-  assert.match(redirect, /http-equiv="refresh"/i);
-});
-
-test('ralph-demo lives under milestones with interactive embed and root redirect', () => {
-  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'ralph-demo.html'), 'utf8');
-  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
-  assert.match(demo, /id="ralph-demo-app"/);
-  assert.match(demo, /五段流水线|强度档|改代码循环/);
-  const redirect = fs.readFileSync(path.join(root, 'site', 'ralph-demo.html'), 'utf8');
-  assert.match(redirect, /milestones\/ralph-demo\.html/);
-  assert.match(redirect, /http-equiv="refresh"/i);
-});
-
-test('end-demo lives under milestones with interactive embed and root redirect', () => {
-  const demo = fs.readFileSync(path.join(root, 'site', 'milestones', 'end-demo.html'), 'utf8');
-  assert.match(demo, /href="\.\.\/assets\/styles\.css"/);
-  assert.match(demo, /id="end-demo-app"/);
-  assert.match(demo, /集成分支|push work|merge|dry_run/);
-  const redirect = fs.readFileSync(path.join(root, 'site', 'end-demo.html'), 'utf8');
-  assert.match(redirect, /milestones\/end-demo\.html/);
-  assert.match(redirect, /http-equiv="refresh"/i);
-});
-
-test('markdown tables and bold render in project-plan page', () => {
-  const html = fs.readFileSync(path.join(root, 'site', 'project-plan.html'), 'utf8');
-  assert.match(html, /<table>/);
-  assert.match(html, /<th>/);
-  assert.match(html, /<strong>completed<\/strong>/);
-});
-
-test('maintenance docs document docs ownership commands', () => {
+test('maintenance docs describe the VitePress workflow', () => {
   const md = fs.readFileSync(path.join(root, 'docs', 'maintenance.md'), 'utf8');
-  assert.match(md, /docs\/\*\*/);
-  assert.match(md, /npm run docs:check/);
-  assert.match(md, /npm run docs:build/);
-  assert.match(md, /build-docs\.mjs/);
-  assert.match(md, /site\//);
+  for (const needle of ['docs/.vitepress/sidebar.mjs', 'npm run docs:dev', 'npm run docs:check', 'npm run docs:build']) {
+    assert.ok(md.includes(needle), `maintenance.md missing ${needle}`);
+  }
 });

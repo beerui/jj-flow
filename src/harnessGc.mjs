@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -10,6 +11,18 @@ import { hashNormalizedTextFile } from './fileFingerprint.mjs';
 export const HARNESS_GC_REPORT_VERSION = 'jj-flow/harness-gc-report/1.0';
 
 const SEVERITY_ORDER = Object.freeze({ P0: 0, P1: 1, P2: 2, P3: 3 });
+
+/** 同步读取侧栏覆盖清单：sidebar.mjs 作为脚本运行时打印 JSON 数组（仓库相对路径） */
+function readSidebarDocs(sidebarPath) {
+  if (!fs.existsSync(sidebarPath)) return null;
+  const result = spawnSync(process.execPath, [sidebarPath], { encoding: 'utf8' });
+  if (result.status !== 0) return null;
+  try {
+    return new Set(JSON.parse(result.stdout).map((item) => normalize(item)));
+  } catch {
+    return null;
+  }
+}
 
 export function runHarnessGc({ cwd = process.cwd(), harnessCheck = checkHarnessRepository } = {}) {
   const findings = [];
@@ -37,15 +50,19 @@ export function runHarnessGc({ cwd = process.cwd(), harnessCheck = checkHarnessR
     );
   }
 
-  const builderPath = path.join(cwd, manifest.documentation_policy?.site_builder || 'scripts/build-docs.mjs');
-  const builderText = readText(builderPath);
+  const sidebarPath = path.join(cwd, manifest.documentation_policy?.site_builder || 'docs/.vitepress/sidebar.mjs');
+  const sidebarDocs = readSidebarDocs(sidebarPath);
   const excluded = (manifest.documentation_policy?.excluded_paths || []).map((item) => normalize(item));
   const currentDocs = listFiles(path.join(cwd, 'docs'), (file) => file.endsWith('.md'))
     .map((file) => relative(cwd, file))
+    .filter((file) => !file.startsWith('docs/.vitepress/'))
     .filter((file) => !excluded.some((entry) => file === entry || file.startsWith(`${entry}/`)));
-  const orphanDocs = currentDocs.filter((file) => !builderText.includes(`source: '${file}'`));
+  const orphanDocs = sidebarDocs ? currentDocs.filter((file) => !sidebarDocs.has(normalize(file))) : [];
+  if (!sidebarDocs) {
+    add('GC-DOC-SIDEBAR-001', 'P1', sidebarPath, '无法读取文档站侧栏清单。', {}, '确认 documentation_policy.site_builder 指向可执行的 docs/.vitepress/sidebar.mjs。');
+  }
   for (const file of orphanDocs) {
-    add('GC-DOC-ORPHAN-001', 'P1', file, '当前文档未进入文档站构建清单。', { builder: relative(cwd, builderPath) }, '把文档加入站点导航，或将历史目录明确加入 excluded_paths。');
+    add('GC-DOC-ORPHAN-001', 'P1', file, '当前文档未进入文档站侧栏。', { sidebar: relative(cwd, sidebarPath) }, '把文档加入 docs/.vitepress/sidebar.mjs，或将历史目录明确加入 excluded_paths。');
   }
 
   const schemaFiles = listFiles(path.join(cwd, 'schemas'), (file) => file.endsWith('.json'));

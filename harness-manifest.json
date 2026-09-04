@@ -271,35 +271,35 @@
     },
     {
       "source": "docs/index.md",
-      "contains": "design-docs/harness-engineering.html"
+      "contains": "design-docs/harness-engineering.md"
     },
     {
       "source": "docs/design-docs/index.md",
-      "contains": "harness-engineering.html"
+      "contains": "harness-engineering.md"
     },
     {
       "source": "docs/design-docs/index.md",
-      "contains": "../exec-plans/index.html"
+      "contains": "../exec-plans/index.md"
     },
     {
       "source": "docs/index.md",
-      "contains": "adr/index.html"
+      "contains": "adr/index.md"
     },
     {
       "source": "docs/index.md",
-      "contains": "milestones/m7-acceptance.html"
+      "contains": "milestones/m7-acceptance.md"
     },
     {
       "source": "docs/index.md",
-      "contains": "milestones/h5-acceptance.html"
+      "contains": "milestones/h5-acceptance.md"
     },
     {
       "source": "docs/index.md",
-      "contains": "milestones/real-host-acceptance.html"
+      "contains": "milestones/real-host-acceptance.md"
     },
     {
       "source": "docs/index.md",
-      "contains": "exec-plans/index.html"
+      "contains": "exec-plans/index.md"
     },
     {
       "source": "skills/jj-dispatch/SKILL.md",
@@ -318,7 +318,7 @@
       "skills/jj-dispatch/SKILL.md",
       "skills/jj-end/SKILL.md"
     ],
-    "site_builder": "scripts/build-docs.mjs",
+    "site_builder": "docs/.vitepress/sidebar.mjs",
     "excluded_paths": ["docs/other", "docs/evaluations", "docs/skill-zh-bridge"],
     "removed_entrypoints": [
       "$jj-delivery",
@@ -330,9 +330,9 @@
     ],
     "negative_context_markers": ["已移除", "不再", "不是", "无 ", "勿", "不要", "历史"],
     "removed_outputs": [
-      "command-jj-delivery.html",
-      "command-jj-validate.html",
-      "command-jj-evolve.html"
+      "jj-delivery.md",
+      "jj-validate.md",
+      "jj-evolve.md"
     ],
     "design_docs": {
       "directory": "docs/design-docs",

@@ -1,12 +1,12 @@
 {
   "schema_version": "jj-flow/harness-gc-report/1.0",
-  "scan_id": "sha256:284c1c4822b88c069f2810a263f1f7f5a287d5e1fe4c6036d42b4f7786ef8ac4",
+  "scan_id": "sha256:d688611c2c6b45db00c4e97d12d11d583a369a48abc4984ad008f27911a48709",
   "status": "PASS",
-  "score": 98,
+  "score": 95,
   "grade": "A",
   "read_only": true,
   "auto_fix": false,
-  "runner_sha256": "sha256:c68427d58863e0030b09d6202907da9a029a0ec7b0c4fc62c646e31414b6ff5c",
+  "runner_sha256": "sha256:06c5df9369909da11be81916d2d5cfeff5851e57e96db4988408c4072d902648",
   "categories": [
     {
       "id": "record-integrity",
@@ -30,7 +30,7 @@
     },
     {
       "id": "maintenance-hygiene",
-      "score": 13,
+      "score": 10,
       "maximum": 15
     }
   ],
@@ -39,21 +39,116 @@
       "rule_id": "GC-REPEATED-HELPER-001",
       "severity": "P3",
       "path": "src/dispatchControlPlane.mjs",
-      "reason": "局部 helper isNonEmptyString 在 3 个位置重复定义。",
+      "reason": "局部 helper isNonEmptyString 在 7 个位置重复定义。",
       "evidence": {
         "helper": "isNonEmptyString",
         "definitions": [
           {
             "file": "src/dispatchControlPlane.mjs",
-            "line": 2413
+            "line": 3075
+          },
+          {
+            "file": "src/dispatchHostContract.mjs",
+            "line": 308
           },
           {
             "file": "src/dispatchRuntime.mjs",
-            "line": 633
+            "line": 661
+          },
+          {
+            "file": "src/dispatchWorkspaceMode.mjs",
+            "line": 317
+          },
+          {
+            "file": "src/grokHostAdapter.mjs",
+            "line": 310
+          },
+          {
+            "file": "src/grokHostTrialRunner.mjs",
+            "line": 790
           },
           {
             "file": "scripts/check-harness.mjs",
-            "line": 1008
+            "line": 1405
+          }
+        ]
+      },
+      "next_action": "仅在能减少真实维护成本时提取共享 helper；保持独立更清晰时记录为接受的局部重复。",
+      "auto_fix_eligible": false
+    },
+    {
+      "rule_id": "GC-REPEATED-HELPER-001",
+      "severity": "P3",
+      "path": "src/dispatchWorktree.mjs",
+      "reason": "局部 helper git 在 4 个位置重复定义。",
+      "evidence": {
+        "helper": "git",
+        "definitions": [
+          {
+            "file": "src/dispatchWorktree.mjs",
+            "line": 154
+          },
+          {
+            "file": "src/grokHostAdapter.mjs",
+            "line": 301
+          },
+          {
+            "file": "src/grokHostTrialRunner.mjs",
+            "line": 715
+          },
+          {
+            "file": "src/hostTrialRunner.mjs",
+            "line": 479
+          }
+        ]
+      },
+      "next_action": "仅在能减少真实维护成本时提取共享 helper；保持独立更清晰时记录为接受的局部重复。",
+      "auto_fix_eligible": false
+    },
+    {
+      "rule_id": "GC-REPEATED-HELPER-001",
+      "severity": "P3",
+      "path": "src/grokHostTrialRunner.mjs",
+      "reason": "局部 helper normalizePath 在 3 个位置重复定义。",
+      "evidence": {
+        "helper": "normalizePath",
+        "definitions": [
+          {
+            "file": "src/grokHostTrialRunner.mjs",
+            "line": 786
+          },
+          {
+            "file": "src/hostTrialRunner.mjs",
+            "line": 531
+          },
+          {
+            "file": "src/projectMap.mjs",
+            "line": 36
+          }
+        ]
+      },
+      "next_action": "仅在能减少真实维护成本时提取共享 helper；保持独立更清晰时记录为接受的局部重复。",
+      "auto_fix_eligible": false
+    },
+    {
+      "rule_id": "GC-REPEATED-HELPER-001",
+      "severity": "P3",
+      "path": "src/grokHostTrialRunner.mjs",
+      "reason": "局部 helper writeJson 在 3 个位置重复定义。",
+      "evidence": {
+        "helper": "writeJson",
+        "definitions": [
+          {
+            "file": "src/grokHostTrialRunner.mjs",
+            "line": 728
+          },
+          {
+            "file": "src/homeKnowledge.mjs",
+            "line": 15
+          },
+          {
+            "file": "src/hostTrialRunner.mjs",
+            "line": 492
           }
         ]
       },
@@ -64,17 +159,29 @@
       "rule_id": "GC-REPEATED-HELPER-001",
       "severity": "P3",
       "path": "src/harnessDoctor.mjs",
-      "reason": "局部 helper readJson 在 3 个位置重复定义。",
+      "reason": "局部 helper readJson 在 6 个位置重复定义。",
       "evidence": {
         "helper": "readJson",
         "definitions": [
           {
             "file": "src/harnessDoctor.mjs",
-            "line": 132
+            "line": 268
           },
           {
             "file": "src/harnessGc.mjs",
-            "line": 225
+            "line": 243
+          },
+          {
+            "file": "src/homeKnowledge.mjs",
+            "line": 6
+          },
+          {
+            "file": "src/jjInit.mjs",
+            "line": 22
+          },
+          {
+            "file": "src/portfolioKnowledge.mjs",
+            "line": 17
           },
           {
             "file": "src/scenarioRunner.mjs",
@@ -87,12 +194,12 @@
     }
   ],
   "scanned": {
-    "current_docs": 23,
-    "schemas": 5,
+    "current_docs": 68,
+    "schemas": 8,
     "invariants": 11,
-    "active_exec_plans": 1,
-    "code_files": 24,
+    "active_exec_plans": 3,
+    "code_files": 51,
     "host_action_types": 2
   },
-  "summary": "无阻断漂移；2 个低优先级维护候选。"
+  "summary": "无阻断漂移；5 个低优先级维护候选。"
 }

@@ -51,8 +51,8 @@ swarm:      对抗搜索   → TAS-* best-solution
 
 | 已关闭 | 仍 open |
 |--------|---------|
-| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、Mode P 机械 opt-in 子会话、Grok Wave 2 / A2、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.html)、[机械实验场](design-docs/jj-flow-labs.html)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | A3/A4、Codex App 并列试跑、evaluated 完整 LLM 回放闭环、实验场 Live Agent、Mode P live 多会话 |
+| M6 / M7 半真实 / H5 GC / Mode S 日常 / Mode W 机械 isolation worktree、Mode P 机械 opt-in 子会话、Grok Wave 2 / A2、[AI-native SDLC 翻译](design-docs/ai-native-sdlc.md)、[机械实验场](design-docs/jj-flow-labs.md)（`lab:check` 进 `verify`；`evidence_class` 硬门；`lab-harness` gym host） | A3/A4、Codex App 并列试跑、evaluated 完整 LLM 回放闭环、实验场 Live Agent、Mode P live 多会话 |
 
 ## ADR
 
-[ADR 索引](adr/index.html) · [0001 外部工具边界](adr-0001-external-tool-boundary.html) · [0002 控制面](adr-0002-project-family-control-plane.html)
+[ADR 索引](adr/index.md) · [0001 外部工具边界](adr/0001-external-tool-boundary.md) · [0002 控制面](adr/0002-project-family-control-plane.md)

@@ -65,7 +65,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。`src/memoryHotLayer.mjs` 是用户级热层（`~/.jj-flow/memory/<project_key>.md`）：findings `## 可复用结论` 在 archive 晋升，init/resume/dispatch 词法注入，confirmed 置顶；0 命中保持 empty。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
-- `scripts/check-project.mjs` 检查仓库资产不变量；`scripts/build-docs.mjs` 把 `docs/` 下的 Markdown 构建为文档站。
+- `scripts/check-project.mjs` 检查仓库资产不变量；`docs/.vitepress/` 声明 VitePress 文档站（配置 / 侧栏 / 旧地址跳转），`scripts/check-docs.mjs` 校验侧栏覆盖并做临时构建。
 - `harness-manifest.json` 是 Agent 的机器可读仓库地图；它同时登记 scenario registry、运行命令、预期状态和无副作用策略。`scripts/check-harness.mjs` 校验权威资产、导航、能力、自主等级、协议 parity、scenario/schema parity 和禁止的本地状态路径；`src/harnessDoctor.mjs` 只读汇总 Git、Harness 和 host capabilities，供 `jj doctor` 使用。
 - `src/harnessGc.mjs` 是只读 gardener：把 Harness 漂移、文档/schema 覆盖、规则 owner 和维护重复转换为分级 findings 与质量分。`docs/milestones/h5-gc-baseline.json` 保存与当前 runner fingerprint 匹配的验收基线；首版不自动修复。
 
@@ -128,7 +128,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | 修改安装或 CLI 维护命令 | `src/cli.mjs`、`src/installSkill.mjs` |
 | 修改证据结构或 guard 判断 | `src/evidence.mjs`、`src/guards.mjs` |
 | 修改用户文档 | `docs/` |
-| 修改文档生成逻辑 | `scripts/build-docs.mjs` |
+| 修改文档站配置 / 侧栏 | `docs/.vitepress/config.mjs`、`docs/.vitepress/sidebar.mjs` |
 | 对齐 AI-native SDLC（intent / 审查政策 / 配置评测） | `docs/design-docs/ai-native-sdlc.md` |
 | 实验场 loop-gym / family-gym（sibling 仓） | `docs/design-docs/jj-flow-labs.md`、`docs/jj-lab-siblings.md`、`scripts/lab-check.mjs`、`.github/actions/prepare-lab-roots/` |
 
