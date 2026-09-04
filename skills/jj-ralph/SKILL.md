@@ -27,7 +27,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 
 1. **Locate run (natural language first):**
    - User named `task-…` (or leftover `RALPH-…`) → use that id (uncommon); leftover active dirs → migrate first
-   - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED)
+   - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED under `completed/`). Prefer `jj ralph locate`.
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
@@ -42,7 +42,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
    - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
    - Task/approach/MUST change (incl. resume after archive): move live `task_plan.md` **### 当前** → **### 已落地** or **### 已取代**, then write new 当前. Active write path no longer treats `## Current` / `## Tasks` as current. Shape: [artifact-layout.md](references/artifact-layout.md)
-5. After accept PASS, default `finalize` (L1 map-merge + archive + hot-memory promote from `findings.md`). `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
+5. After accept PASS, **MUST finalize** (L1 map-merge + archive + hot-memory promote from `findings.md`). `status` prints `next: finalize`; `phase=ARCHIVE` still on the live root (incl. after resume, before rollback) warns `未完成收尾`. `knowledge-contribution.json` is **degraded** (hot layer replaced home ingest). Process STAGNATION goes into `process_lessons`; durable lessons only with explicit `--lessons`.
 6. Completion report (short): local CAP id, hot-memory promote status.
 7. **Idle offer (after the completion report, never during DELIVER):** archive already promoted `## 可复用结论` into `~/.jj-flow/memory/`. Ask **once** whether to also feed the opt-in portfolio KB. Write only after yes: `jj ralph knowledge-contribute --run-id … --hook` (current `project_key` only; P1b hook is skipped/degraded). User speech **「投喂知识库 / 补充全局知识」** also runs the hook. Map join / first-time KB bootstrap → `$jj-init`. Do not auto-write on finalize.
 8. 🔴 **CHECKPOINT (irreversible):** push / merge / release / delete data → prepare only (`commit-prep` / report); **do not execute** until the user explicitly asks.
@@ -51,7 +51,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 
 | Step | In | Out (durable) |
 | --- | --- | --- |
-| 1 Locate | user speech + `.workflow/ralph/*` | chosen `run_id` or “none → init” |
+| 1 Locate | user speech + `.workflow/ralph/*` + `completed/` (`jj ralph locate`) | chosen `run_id` or “none → init” |
 | 2 intensity | user speech | `tiny` \| `standard` \| `strict` on run |
 | 2 gate_set | user speech (小改 / 顺手修 vs 完整走一遍); init `gate_set?` advisory is a hint only | `full` (default) \| `lite` on run — only via explicit `--lite` / `--full`; lite budget `max_deliver_loops ≤ 3`; `promoted lite→full` progress line if the tier was wrong |
 | 3 map-find | title/goal/keywords | CAP hits (may be empty). Portfolio attach uses CJK lexical retrieve (min related 5, cap 5); empty is valid — do not pad with unrelated same-project rows. Init/resume also inject up to 5 hot-memory one-liners from `~/.jj-flow/memory/<project_key>.md` into progress (`hot_memory:`); empty is valid |
@@ -65,7 +65,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 map-find → init | resume
 → short analyze/plan (tiny: see tiny-example) → edit files
 → deliver-attempt → gate deliver PASS → gate accept PASS
-→ finalize → completion report
+→ MUST finalize → completion report
 # strict only: accept-layer judgment PASS before gate accept
 # lite (user said 小改 / 顺手修): init --lite → gate brief PASS → edit files
 #   → deliver-attempt → gate deliver PASS → gate close PASS (accept+archive evidence gates) → finalize
@@ -116,6 +116,8 @@ node <resolved>/ralph_ops.mjs gate --run-id task-x --gate accept --status PASS
 node <resolved>/ralph_ops.mjs gate --run-id task-x --gate brief|close --status PASS   # lite only: brief=analyze+plan, close=accept+archive
 node <resolved>/ralph_ops.mjs scope --run-id task-x --in src/extra.js               # new scope.in on lite → promoted lite→full
 node <resolved>/ralph_ops.mjs metrics --run-id task-x [--persist]
+node <resolved>/ralph_ops.mjs status --run-id task-x
+node <resolved>/ralph_ops.mjs locate [--run-id task-x]
 node <resolved>/ralph_ops.mjs finalize --run-id task-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id task-x [--hook]
 node <resolved>/ralph_ops.mjs finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]

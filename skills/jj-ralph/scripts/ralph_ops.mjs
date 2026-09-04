@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
+ *   node ralph_ops.mjs <init|status|locate|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -73,6 +73,7 @@ Commands:
                  (gate_set defaults to full; --lite = brief→deliver→close with max_deliver_loops≤3, auto-promotes to full on FAIL/BLOCKED or scope growth;
                   without a flag the output carries gate_set_suggestion — advisory only, run.json stays full)
   status [--run-id task-x] [--cwd DIR]
+  locate [--run-id task-x] [--cwd DIR]
   metrics --run-id task-x [--persist] [--cwd DIR]
   archive --run-id task-x [--slug name] [--cwd DIR]
   finalize --run-id task-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
@@ -195,6 +196,7 @@ async function main() {
   const {
     initRun,
     getStatus,
+    locateRalphRuns,
     archiveRun,
     finalizeRun,
     mapMergeFromRun,
@@ -268,7 +270,22 @@ async function main() {
 
     if (cmd === 'status') {
       const payload = getStatus({ runId: args['run-id'], cwd });
-      printJson({ ok: true, action: 'status', ...payload, resolved });
+      printJson({
+        ok: true,
+        action: 'status',
+        ...payload,
+        next: payload.next ?? null,
+        warning: payload.warning ?? null,
+        resolved
+      });
+      return;
+    }
+
+    if (cmd === 'locate') {
+      if (typeof locateRalphRuns !== 'function') die('locateRalphRuns missing from ralph library');
+      const runs = locateRalphRuns(cwd);
+      const filtered = args['run-id'] ? runs.filter((row) => row.run_id === args['run-id']) : runs;
+      printJson({ ok: true, action: 'locate', runs: filtered, run_id: args['run-id'] || null, resolved });
       return;
     }
 
@@ -407,7 +424,7 @@ async function main() {
         gate,
         status,
         gates_written: result.gates_written || [gate],
-        gate_set: result.gate_set || result.run?.gate_set || 'full',
+        gate_set: result.gate_set,
         promotion: result.promotion || null,
         phase: result.phase,
         run_status: result.run?.status,

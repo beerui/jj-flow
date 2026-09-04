@@ -67,7 +67,9 @@ $jj-ralph
 说清 → 改代码 → 收                      # 小改 / 顺手修（lite，见下）
 ```
 
-验收通过后会默认归档。要迁仓时说：
+验收通过后 **MUST finalize**（地图合并 + 归档进 `completed/`）。只翻 archive 门、或不跑 finalize，任务会留在活跃层；`status` 会写 `next: finalize`，`phase=ARCHIVE` 未进 `completed/` 时提示「未完成收尾」（resume 拉回后、rollback 前也是这句，先跑 `gate`/`status` 核对）。也可用 `jj ralph locate` 找活跃和 `completed/` 里的任务。
+
+要迁仓时说：
 
 ```text
 交接到 项目B 项目C

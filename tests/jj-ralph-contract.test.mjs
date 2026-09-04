@@ -59,6 +59,9 @@ import {
   adoptRun,
   getStatus,
   writeHandoffPackage,
+  writeRalphIndex,
+  computeRalphNext,
+  ARCHIVE_CLOSEOUT_WARNING,
   renderRalphStatusText,
   GATE_ALIASES,
   GATE_SET_HEURISTIC,
@@ -76,6 +79,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'ACCEPT_LAYER_STATUSES',
+  'ARCHIVE_CLOSEOUT_WARNING',
   'EVENTS_JSONL_REL',
   'FINDINGS_REL',
   'FINDING_HINT',
@@ -152,6 +156,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'collectGitDeletedPaths',
   'collectGitDiffPaths',
   'commitPrep',
+  'computeRalphNext',
   'computeRunMetrics',
   'confirmProjectHotMemory',
   'createEmptyAcceptLayers',
@@ -351,7 +356,10 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '顺手修',
     '完整走一遍',
     'promoted lite→full',
-    'gate_set\\?'
+    'gate_set\\?',
+    'MUST finalize',
+    '未完成收尾',
+    'jj ralph locate'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -373,7 +381,10 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '顺手修',
     '完整走一遍',
     '不会自作主张切换',
-    '自动升回 full'
+    '自动升回 full',
+    'MUST finalize',
+    '未完成收尾',
+    'jj ralph locate'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -2898,6 +2909,130 @@ test('migrate --prune-archive dry-run by default; --yes deletes 1.0 archive/ sna
     assert.equal(deleted.prune_archive.dry_run, false);
     assert.equal(deleted.prune_archive.count, 1);
     assert.ok(!fs.existsSync(snap));
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Ralph auto-closeout: next / warning / gate_set=undefined / index degrade / locate
+// ---------------------------------------------------------------------------
+
+test('auto-closeout: accept PASS next=finalize; ARCHIVE warning; completed has none; resume stays neutral', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-closeout-'));
+  try {
+    const runId = 'task-closeout-next';
+    initRun({ run_id: runId, title: 'closeout', goal: 'next field', attach_knowledge: false }, cwd);
+    const fresh = getStatus({ runId, cwd });
+    assert.equal(fresh.next, 'gate analyze');
+    assert.equal(fresh.warning, null);
+    assert.equal(fresh.layout, 'active');
+    assert.match(renderRalphStatusText(fresh), /next: gate analyze/);
+    assert.doesNotMatch(renderRalphStatusText(fresh), /warning:/);
+
+    for (const gate of ['analyze', 'plan', 'deliver', 'accept']) {
+      setGate(runId, { gate, status: 'PASS', cwd });
+    }
+    const ready = getStatus({ runId, cwd });
+    assert.equal(ready.run.gates.accept, 'PASS');
+    assert.equal(ready.next, 'finalize');
+    assert.equal(ready.warning, null);
+    assert.match(renderRalphStatusText(ready), /next: finalize/);
+
+    const liteId = 'task-closeout-lite';
+    initRun({ run_id: liteId, title: 'lite close', goal: 'close is not finalize', attach_knowledge: false, gate_set: 'lite' }, cwd);
+    setGate(liteId, { gate: 'brief', status: 'PASS', cwd });
+    setGate(liteId, { gate: 'deliver', status: 'PASS', cwd });
+    fs.writeFileSync(
+      path.join(cwd, '.workflow', 'ralph', liteId, TASK_PLAN_REL),
+      liteAcceptanceTable('write_then_read:mock_ok'),
+      'utf8'
+    );
+    setGate(liteId, { gate: 'close', status: 'PASS', cwd });
+    const closed = getStatus({ runId: liteId, cwd });
+    assert.equal(closed.run.phase, 'ARCHIVE');
+    assert.equal(closed.layout, 'active');
+    assert.equal(closed.next, 'finalize');
+    assert.equal(closed.warning, ARCHIVE_CLOSEOUT_WARNING);
+    assert.match(renderRalphStatusText(closed), /warning: phase=ARCHIVE 未完成收尾——先跑 gate\/status 核对/);
+
+    const finalized = withoutLocalPortfolio(() => finalizeRun(runId, { cwd, modules: ['src/a.js'] }));
+    assert.equal(finalized.run.status, 'COMPLETED');
+    const parked = getStatus({ runId, cwd });
+    assert.equal(parked.layout, 'completed');
+    assert.equal(parked.next, null);
+    assert.equal(parked.warning, null);
+    assert.match(renderRalphStatusText(parked), /next: \(none\)/);
+    assert.doesNotMatch(renderRalphStatusText(parked), /warning:/);
+
+    resumeRun(runId, { reason: 'continue after archive', cwd });
+    const resumed = getStatus({ runId, cwd });
+    assert.equal(resumed.layout, 'active');
+    assert.equal(resumed.run.phase, 'ARCHIVE');
+    assert.equal(resumed.run.status, 'IN_PROGRESS');
+    assert.equal(resumed.warning, ARCHIVE_CLOSEOUT_WARNING);
+    assert.equal(resumed.next, 'check');
+
+    const chunks = [];
+    assert.equal(runCli(['ralph', 'status', '--run-id', liteId, '--json'], { cwd, stdout: { write: (t) => chunks.push(t) } }), 0);
+    const cliStatus = JSON.parse(chunks.join(''));
+    assert.equal(cliStatus.next, 'finalize');
+    assert.equal(cliStatus.warning, ARCHIVE_CLOSEOUT_WARNING);
+
+    const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
+    const opsResult = spawnSync(process.execPath, [ops, 'status', '--run-id', liteId, '--cwd', cwd], { encoding: 'utf8' });
+    assert.equal(opsResult.status, 0, opsResult.stderr || opsResult.stdout);
+    const opsStatus = JSON.parse(opsResult.stdout);
+    assert.equal(opsStatus.next, 'finalize');
+    assert.equal(opsStatus.warning, ARCHIVE_CLOSEOUT_WARNING);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('auto-closeout: missing gate_set renders undefined; writeRalphIndex degrades; locate finds completed/', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-closeout-gate-'));
+  try {
+    const runId = 'task-closeout-undef';
+    initRun({ run_id: runId, title: 'legacy gate', goal: 'no gate_set key', attach_knowledge: false }, cwd);
+    const run = loadRun(runId, cwd);
+    delete run.gate_set;
+    saveRun(run, cwd);
+    const status = getStatus({ runId, cwd });
+    assert.equal(status.gate_set, undefined);
+    assert.equal(status.run.gate_set, undefined);
+    assert.match(renderRalphStatusText(status), /gate_set: undefined/);
+    assert.doesNotMatch(renderRalphStatusText(status), /gate_set: full/);
+    assert.equal(computeRalphNext(status.run, { layout: 'active' }).next, 'gate analyze');
+
+    const indexPath = path.join(cwd, '.workflow', 'ralph', 'index.md');
+    fs.rmSync(indexPath, { force: true });
+    fs.mkdirSync(indexPath);
+    const degraded = writeRalphIndex(cwd);
+    assert.equal(degraded.ok, false);
+    assert.equal(degraded.degraded, true);
+    assert.ok(degraded.error);
+
+    for (const gate of ['analyze', 'plan', 'deliver', 'accept']) {
+      setGate(runId, { gate, status: 'PASS', cwd });
+    }
+    const archived = archiveRun(runId, { cwd });
+    assert.equal(archived.run.status, 'COMPLETED');
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'completed', runId, '.state', 'run.json')));
+
+    const located = locateRalphRuns(cwd);
+    assert.equal(located.filter((row) => row.run_id === runId && row.layout === 'completed').length, 1);
+
+    const chunks = [];
+    assert.equal(runCli(['ralph', 'locate', '--run-id', runId], { cwd, stdout: { write: (t) => chunks.push(t) } }), 0);
+    assert.match(chunks.join(''), /completed/);
+
+    const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
+    const opsLocate = spawnSync(process.execPath, [ops, 'locate', '--run-id', runId, '--cwd', cwd], { encoding: 'utf8' });
+    assert.equal(opsLocate.status, 0, opsLocate.stderr || opsLocate.stdout);
+    const payload = JSON.parse(opsLocate.stdout);
+    assert.equal(payload.action, 'locate');
+    assert.equal(payload.runs[0].layout, 'completed');
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }
