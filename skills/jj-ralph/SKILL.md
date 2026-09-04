@@ -27,7 +27,7 @@ Git closeout only? → $jj-end (orthogonal to run status)
 
 1. **Locate run (natural language first):**
    - User named `task-…` (or leftover `RALPH-…`) → use that id (uncommon); leftover active dirs → migrate first
-   - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED under `completed/`). Prefer `jj ralph locate`.
+   - Else: session-linked run / latest `updated_at` / title·goal·scope semantic match (include COMPLETED/ABANDONED under `completed/`). Prefer `jj ralph locate` (rows carry `next` / `closeout`). Leftover closeouts: `jj ralph remediate` then `--yes` (finalize/migrate only).
    - **Same requirement → `resume`/continue; never default to init**; `init` only when nothing matches
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
@@ -118,6 +118,7 @@ node <resolved>/ralph_ops.mjs scope --run-id task-x --in src/extra.js           
 node <resolved>/ralph_ops.mjs metrics --run-id task-x [--persist]
 node <resolved>/ralph_ops.mjs status --run-id task-x
 node <resolved>/ralph_ops.mjs locate [--run-id task-x]
+node <resolved>/ralph_ops.mjs remediate [--yes] [--force]
 node <resolved>/ralph_ops.mjs finalize --run-id task-x --modules src/a.js --keywords a,b --lessons "durable rule"
 node <resolved>/ralph_ops.mjs knowledge-contribute --run-id task-x [--hook]
 node <resolved>/ralph_ops.mjs finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"]

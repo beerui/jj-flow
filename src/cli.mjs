@@ -4,6 +4,8 @@ import process from 'node:process';
 import { buildDispatch, MODE_CHOICES, renderMarkdown } from './dispatch.mjs';
 import {
   installSkill,
+  projectAgentsCommandsTarget,
+  projectAgentsSkillsTarget,
   projectClaudeSkillsTarget,
   projectClaudeTarget,
   projectCodexAgentsTarget,
@@ -56,6 +58,7 @@ import {
   pruneProjectHotMemory,
   migrateRuns,
   adoptRun,
+  remediateCloseout,
   updateRunScope
 } from './ralph.mjs';
 import {
@@ -772,9 +775,9 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
     }
     if (arg === '--platform') {
       const platform = rest.shift();
-      if (!platform) throw new Error('--platform requires codex, claude, qoder, grok, or all');
-      if (!['codex', 'claude', 'qoder', 'grok', 'all'].includes(platform)) {
-        throw new Error('--platform must be codex, claude, qoder, grok, or all');
+      if (!platform) throw new Error('--platform requires codex, claude, qoder, grok, agents, or all');
+      if (!['codex', 'claude', 'qoder', 'grok', 'agents', 'all'].includes(platform)) {
+        throw new Error('--platform must be codex, claude, qoder, grok, agents, or all');
       }
       if (options.targetDir && platform === 'all') {
         throw new Error('--platform all cannot be used with --target');
@@ -791,6 +794,8 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
       options.claudeTargetDir = projectClaudeTarget({ cwd });
       options.qoderTargetDir = projectQoderTarget({ cwd });
       options.grokTargetDir = projectGrokTarget({ cwd });
+      options.agentsSkillsTargetDir = projectAgentsSkillsTarget({ cwd });
+      options.agentsCommandsTargetDir = projectAgentsCommandsTarget({ cwd });
       continue;
     }
     if (arg === '--force') {
@@ -812,7 +817,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
-  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj home init [--json]\n  jj init preview|join|ingest [--json]\n  jj map lookup|add [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics|migrate|adopt [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-init / $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-init / /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认（control_root / map.md / knowledge/）；可用 $JJ_GLOBAL_CONFIG_DIR/naming.json 覆盖。install-skill 会生成空 map 与知识结构。地图写入与知识建库走 $jj-init / jj init（须用户同意）。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
+  stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj home init [--json]\n  jj init preview|join|ingest [--json]\n  jj map lookup|add [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics|migrate|adopt [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-init / $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-init / /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认（control_root / map.md / knowledge/）；可用 $JJ_GLOBAL_CONFIG_DIR/naming.json 覆盖。install-skill 会生成空 map 与知识结构。地图写入与知识建库走 $jj-init / jj init（须用户同意）。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
 
@@ -857,9 +862,14 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       : { runs };
     if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
     else {
-      const lines = ['Ralph locate:', ...(payload.runs || []).map((item) =>
-        '- ' + item.run_id + ' · ' + (item.layout || '?') + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.path ? (' · ' + item.path) : '')
-      )];
+      const lines = ['Ralph locate:', ...(payload.runs || []).map((item) => {
+        let line = '- ' + item.run_id + ' · ' + (item.layout || '?') + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?');
+        if (item.next) line += ' · next=' + item.next;
+        if (item.closeout) line += ' · closeout=' + item.closeout;
+        if (item.warning) line += ' · warning=' + item.warning;
+        if (item.path) line += ' · ' + item.path;
+        return line;
+      })];
       stdout.write(lines.join('\n') + '\n');
     }
     return 0;
@@ -1179,6 +1189,25 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`knowledge-prune dropped=${result.dropped} kept=${result.kept}\n`);
     return 0;
+  }
+
+  if (command === 'remediate') {
+    const yes = args.includes('--yes');
+    const force = args.includes('--force');
+    const result = remediateCloseout({ cwd, yes, force });
+    if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+    else {
+      stdout.write(`remediate dry_run=${result.dry_run} count=${result.count}\n`);
+      for (const item of result.items || []) {
+        stdout.write(`  ${item.run_id} · closeout=${item.closeout || '?'} · next=${item.next || '(none)'}\n`);
+      }
+      if (!result.dry_run) {
+        for (const row of result.finalized || []) {
+          stdout.write(`  finalize ${row.run_id} ok=${row.ok}${row.archive_path ? (' -> ' + row.archive_path) : ''}${row.error ? (' ' + row.error) : ''}\n`);
+        }
+      }
+    }
+    return result.ok === false ? 1 : 0;
   }
 
   if (command === 'migrate') {
@@ -1617,12 +1646,13 @@ function parseRalphHotMemoryArgs(args, commandName, { requireNeedle = false } = 
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--json]\n  jj ralph locate [--run-id task-…] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--json]\n  jj ralph locate [--run-id task-…] [--json]\n  jj ralph remediate [--yes] [--force] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
   jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
   jj ralph host-record --run-id task-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
+  jj ralph remediate [--yes] [--force] [--json]
   jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
-  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  无 --lite/--full 时 init 按规模只做建议（改动面小 / 无架构词 / 单一验收项才建议 lite；拿不准即 full）：文本模式打印 gate_set? 行，--json 带 run.gate_set_suggestion；run.json 仍写 full，不自动改档。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,events.jsonl,reviews/,handoff.json}；archive/abandon 迁入 completed/；机器事件进 events.jsonl，progress 按轮次追加。migrate --prune-archive 默认 dry-run，加 --yes 删除 1.0 archive/ 快照。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
+  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  无 --lite/--full 时 init 按规模只做建议（改动面小 / 无架构词 / 单一验收项才建议 lite；拿不准即 full）：文本模式打印 gate_set? 行，--json 带 run.gate_set_suggestion；run.json 仍写 full，不自动改档。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,events.jsonl,reviews/,handoff.json}；archive/abandon 迁入 completed/；机器事件进 events.jsonl，progress 按轮次追加。migrate --prune-archive 默认 dry-run，加 --yes 删除 1.0 archive/ 快照。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  remediate 默认 dry-run，列出 closeout=finalize|migrate；--yes 先 migrate 再对 next=finalize 的 run 调 finalize。resume 窗口（closeout=check）不自动动。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }
 
 function printDoctorHelp(stdout) {
@@ -1650,9 +1680,9 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，agents 安装 ~/.agents/skills + commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
 }
 
 function printUninstallHelp(stdout) {
-  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/skills 与 .claude/commands，qoder 处理 .qoder/skills，grok 处理 .grok/skills，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills 或 .grok/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
+  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/skills 与 .claude/commands，qoder 处理 .qoder/skills，grok 处理 .grok/skills，agents 处理 ~/.agents/skills 与 commands，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
 }

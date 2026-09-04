@@ -57,6 +57,7 @@ import {
   locateRalphRuns,
   migrateRuns,
   adoptRun,
+  remediateCloseout,
   getStatus,
   writeHandoffPackage,
   writeRalphIndex,
@@ -224,6 +225,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'recordFinding',
   'recordHostMeta',
   'recordReview',
+  'remediateCloseout',
   'renderRalphStatusText',
   'resolveGateKeys',
   'resolveKnowledgeContributeHookConfig',
@@ -359,7 +361,8 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'gate_set\\?',
     'MUST finalize',
     '未完成收尾',
-    'jj ralph locate'
+    'jj ralph locate',
+    'jj ralph remediate'
   ]) {
     assert.match(skill, new RegExp(marker));
   }
@@ -384,7 +387,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '自动升回 full',
     'MUST finalize',
     '未完成收尾',
-    'jj ralph locate'
+    'jj ralph locate',
+    'jj ralph remediate',
+    '~/.agents/skills'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -3033,6 +3038,59 @@ test('auto-closeout: missing gate_set renders undefined; writeRalphIndex degrade
     const payload = JSON.parse(opsLocate.stdout);
     assert.equal(payload.action, 'locate');
     assert.equal(payload.runs[0].layout, 'completed');
+    assert.equal(payload.runs[0].closeout, null);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('auto-closeout: locate annotates next; remediate dry-run then --yes finalizes', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-remediate-'));
+  try {
+    const runId = 'task-closeout-remediate';
+    initRun({ run_id: runId, title: 'remediate', goal: 'finalize leftover', attach_knowledge: false }, cwd);
+    for (const gate of ['analyze', 'plan', 'deliver', 'accept']) {
+      setGate(runId, { gate, status: 'PASS', cwd });
+    }
+    const located = locateRalphRuns(cwd).filter((row) => row.run_id === runId);
+    assert.equal(located.length, 1);
+    assert.equal(located[0].next, 'finalize');
+    assert.equal(located[0].closeout, 'finalize');
+    assert.equal(located[0].layout, 'active');
+
+    const preview = remediateCloseout({ cwd, yes: false });
+    assert.equal(preview.dry_run, true);
+    assert.equal(preview.count, 1);
+    assert.equal(preview.items[0].run_id, runId);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json')));
+
+    const applied = withoutLocalPortfolio(() => remediateCloseout({ cwd, yes: true }));
+    assert.equal(applied.dry_run, false);
+    assert.equal(applied.ok, true);
+    assert.equal(applied.finalized[0].ok, true);
+    assert.ok(fs.existsSync(path.join(cwd, '.workflow', 'ralph', 'completed', runId, '.state', 'run.json')));
+    assert.equal(fs.existsSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'run.json')), false);
+
+    const parked = locateRalphRuns(cwd).find((row) => row.run_id === runId);
+    assert.equal(parked.layout, 'completed');
+    assert.equal(parked.closeout, null);
+    assert.equal(parked.next, null);
+
+    const empty = remediateCloseout({ cwd, yes: false });
+    assert.equal(empty.count, 0);
+
+    const chunks = [];
+    assert.equal(runCli(['ralph', 'remediate', '--json'], { cwd, stdout: { write: (t) => chunks.push(t) } }), 0);
+    const cli = JSON.parse(chunks.join(''));
+    assert.equal(cli.dry_run, true);
+    assert.equal(cli.count, 0);
+
+    const ops = path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs');
+    const opsResult = spawnSync(process.execPath, [ops, 'remediate', '--cwd', cwd], { encoding: 'utf8' });
+    assert.equal(opsResult.status, 0, opsResult.stderr || opsResult.stdout);
+    const opsPayload = JSON.parse(opsResult.stdout);
+    assert.equal(opsPayload.action, 'remediate');
+    assert.equal(opsPayload.dry_run, true);
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

@@ -13,7 +13,7 @@
 npx @brewer/jj-flow@latest install-skill --platform all --project
 ```
 
-会装进本项目的 Codex / Claude / Grok / Qoder 配置目录。
+会装进本项目的 Codex / Claude / Grok / Qoder / AGENTS 配置目录。
 
 | 平台 | 装到哪里 |
 | --- | --- |
@@ -21,6 +21,7 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 | **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（薄入口） |
 | Grok | `.grok/skills` |
 | Qoder | `.qoder/skills` |
+| AGENTS | `.agents/skills` + `.agents/commands` |
 
 skill 正文在 npm 包顶层的 `skills/`；Claude 的薄斜杠命令在 `claude-commands/`。
 
@@ -31,9 +32,10 @@ npx @brewer/jj-flow@latest install-skill
 npx @brewer/jj-flow@latest install-skill --platform claude
 npx @brewer/jj-flow@latest install-skill --platform grok
 npx @brewer/jj-flow@latest install-skill --platform qoder
+npx @brewer/jj-flow@latest install-skill --platform agents
 ```
 
-不加 `--project` 时，装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`）。
+不加 `--project` 时，装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`；AGENTS：`~/.agents/skills` + `~/.agents/commands`）。
 
 ## 卸载（先预览）
 

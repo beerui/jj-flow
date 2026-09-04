@@ -176,7 +176,8 @@ export {
 export {
   archiveRun,
   defaultArchiveDirName,
-  finalizeRun
+  finalizeRun,
+  remediateCloseout
 } from './ralph/archive.mjs';
 
 export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';

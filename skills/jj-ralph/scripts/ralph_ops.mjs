@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|locate|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|adopt> [options]
+ *   node ralph_ops.mjs <init|status|locate|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|remediate|adopt> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -74,6 +74,7 @@ Commands:
                   without a flag the output carries gate_set_suggestion — advisory only, run.json stays full)
   status [--run-id task-x] [--cwd DIR]
   locate [--run-id task-x] [--cwd DIR]
+  remediate [--yes] [--force] [--cwd DIR]
   metrics --run-id task-x [--persist] [--cwd DIR]
   archive --run-id task-x [--slug name] [--cwd DIR]
   finalize --run-id task-x [--slug name] [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--no-contribution-package] [--cwd DIR]
@@ -218,6 +219,7 @@ async function main() {
     pruneProjectHotMemory,
     migrateRuns,
     adoptRun,
+    remediateCloseout,
     RALPH_MAP_REL,
   } = mod;
 
@@ -766,6 +768,20 @@ async function main() {
         ...result,
         resolved,
       });
+      return;
+    }
+
+    if (cmd === 'remediate') {
+      if (typeof remediateCloseout !== 'function') {
+        die('resolved ralph.mjs has no remediateCloseout; upgrade jj-ralph skill / npm run ralph:sync');
+      }
+      const result = remediateCloseout({
+        cwd,
+        yes: Boolean(args.yes),
+        force: Boolean(args.force)
+      });
+      printJson({ ok: result.ok !== false, ...result, resolved });
+      if (result.ok === false) process.exitCode = 1;
       return;
     }
 

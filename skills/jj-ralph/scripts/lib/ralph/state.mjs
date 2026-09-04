@@ -706,27 +706,49 @@ export function listRuns(cwd = process.cwd()) {
 export function locateRalphRuns(cwd = process.cwd()) {
   const rows = listRuns(cwd).map((row) => ({ ...row, readonly: Boolean(row.needs_migrate) }));
   const archiveRoot = archiveDir(cwd);
-  if (!fs.existsSync(archiveRoot)) return rows;
-  const stack = [archiveRoot];
-  while (stack.length) {
-    const dir = stack.pop();
-    let entries = [];
-    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) stack.push(full);
-      else if (entry.name === 'run.json') {
-        const rel = path.relative(cwd, full).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
-        const summary = summarizeRunFile(full, path.basename(path.dirname(full)), {
-          layout: 'archive',
-          readonly: true,
-          path: rel
-        });
-        rows.push(summary);
+  if (fs.existsSync(archiveRoot)) {
+    const stack = [archiveRoot];
+    while (stack.length) {
+      const dir = stack.pop();
+      let entries = [];
+      try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) stack.push(full);
+        else if (entry.name === 'run.json') {
+          const rel = path.relative(cwd, full).replaceAll(String.fromCharCode(92), String.fromCharCode(47));
+          const summary = summarizeRunFile(full, path.basename(path.dirname(full)), {
+            layout: 'archive',
+            readonly: true,
+            path: rel
+          });
+          rows.push(summary);
+        }
       }
     }
   }
-  return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+  return rows
+    .map((row) => annotateLocateRow(row, cwd))
+    .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+}
+
+function annotateLocateRow(row, cwd) {
+  if (row.needs_migrate || row.layout === 'legacy-tasks' || row.layout === 'legacy-active') {
+    return { ...row, next: 'migrate', warning: null, closeout: 'migrate' };
+  }
+  if (row.readonly || row.layout === 'archive') {
+    return { ...row, next: null, warning: null, closeout: null };
+  }
+  try {
+    const run = loadRun(row.run_id, cwd);
+    const { next, warning } = computeRalphNext(run, { layout: row.layout });
+    let closeout = null;
+    if (next === 'finalize') closeout = 'finalize';
+    else if (warning && row.layout !== 'completed') closeout = 'check';
+    return { ...row, next, warning, closeout };
+  } catch {
+    return { ...row, next: null, warning: null, closeout: null };
+  }
 }
 
 export function normalizeHostMeta(host = null) {

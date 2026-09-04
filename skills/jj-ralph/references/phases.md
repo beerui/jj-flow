@@ -124,7 +124,7 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 
 ## Closeout
 
-- After accept PASS, **MUST `finalize`** = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `status` / `ralph_ops status` print `next: finalize` until `run.archive` exists. `phase=ARCHIVE` while the run is still on the live root (including the resume→rollback window) prints a second warning: `phase=ARCHIVE 未完成收尾——先跑 gate/status 核对`.
+- After accept PASS, **MUST `finalize`** = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `status` / `ralph_ops status` print `next: finalize` until `run.archive` exists. `phase=ARCHIVE` while the run is still on the live root (including the resume→rollback window) prints a second warning: `phase=ARCHIVE 未完成收尾——先跑 gate/status 核对`. `locate` rows carry the same `next` / `closeout`; leftover runs: `jj ralph remediate` (dry-run) then `--yes`.
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again.
 - Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated (`gate --gate close` is only the lite accept+archive alias).
