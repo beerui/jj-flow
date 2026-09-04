@@ -32,7 +32,7 @@
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| Immediate actions | 立即动作 | 定位 run、intensity、gate、finalize |
+| Immediate actions | 立即动作 | 定位 run（含 `completed/` / `jj ralph locate`）、intensity、gate、**MUST finalize**；status 带 `next` 与 ARCHIVE 未完成收尾告警 |
 | Handoff | 交接 | 真相源 `run.handoff` |
 | Scripts | 脚本 | `ralph_ops.mjs` 子命令清单 |
 | Rollback & continue (summary) | 回退与续作（摘要） | 含 archive 后再做、abandon |
@@ -75,7 +75,7 @@
 | PLAN | 计划实施 | `plan.md`、任务表 |
 | DELIVER | 实施验证 | 代码、`progress.md`、聚焦验证 |
 | ACCEPT | 验收 | `acceptance.md` |
-| ARCHIVE | 归档 | 原地 COMPLETED + `run.json` `archive` / `archive_history`、`business-map.json` 合并 |
+| ARCHIVE | 归档 | **MUST finalize** 后迁入 `completed/`；`run.json` `archive` / `archive_history`、`business-map.json` 合并 |
 
 ## intensity
 
@@ -92,6 +92,7 @@
 3. 证据层级不得低于 MUST 的 `evidence_class`；禁 write-then-read 仅用静态 diff 假绿 → `must-evidence.md`  
 4. product-consistency 在 accept/archive gate 机械执行 → `phases.md` § gate  
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
+5b. accept PASS 后 MUST finalize；`status` 的 `next` 与「未完成收尾」告警是机械提示，不是聊天推进检查点
 6. `$jj-end` 只做 Git，与 run status 正交  
 7. 可选多角色实施：`jj-team-coordinate`（`TC-*`）；可选对抗搜索：`jj-team-swarm`（`TAS-*`）— 均不推进 gate；**嵌套时**一句提示即可，直接调用不打 banner  
 8. 任务/方案变更：init 写 `## Current`；旧 run 若仍是 `## Tasks` 则先改名再挪到 Landed/Superseded；禁止整文件覆盖 → `artifact-layout.md`  

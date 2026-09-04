@@ -38,7 +38,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 ## Immediate actions
 
 1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/`. **Out:** `run.json`.  
-   Prefer `tasks/*/ .state/run.json`. Still glob leftover `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
+   Prefer `jj ralph locate` (or `ralph_ops locate`). Scan active `.workflow/ralph/task-*/.state/run.json`, then `completed/task-*/.state/run.json`. Still glob leftover `tasks/*/`, `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
 
    🔴 CHECKPOINT · 🛑 STOP — **no run** (do not init):
 

@@ -110,6 +110,7 @@ const DEEP_PAGES = [
   { title: 'AI-native SDLC 对齐', source: 'docs/design-docs/ai-native-sdlc.md', output: 'design-docs/ai-native-sdlc.html', group: '设计文档' },
   { title: '实验场 Loop gym / Family gym', source: 'docs/design-docs/jj-flow-labs.md', output: 'design-docs/jj-flow-labs.html', group: '设计文档' },
   { title: '实验场 sibling 仓', source: 'docs/jj-lab-siblings.md', output: 'jj-lab-siblings.html', group: '维护者' },
+  { title: 'Ralph 自动结案执行', source: 'docs/exec-plans/active/2026-09-04-ralph-auto-closeout.md', output: 'exec-plans/active/2026-09-04-ralph-auto-closeout.html', group: '执行计划' },
   { title: 'Ralph 工作区 P2+ lite 执行', source: 'docs/exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md', output: 'exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.html', group: '执行计划' },
   { title: 'Ralph 工作区 P2 执行', source: 'docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md', output: 'exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.html', group: '执行计划' },
   { title: 'Ralph 工作区 P1 执行', source: 'docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md', output: 'exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.html', group: '执行计划' },

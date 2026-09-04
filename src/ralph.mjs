@@ -67,6 +67,8 @@ export {
   moveRunToActive,
   readEvents,
   writeRalphIndex,
+  ARCHIVE_CLOSEOUT_WARNING,
+  computeRalphNext,
   applyLiteBudget,
   archiveDir,
   buildBudgetForIntensity,

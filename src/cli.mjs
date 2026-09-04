@@ -39,6 +39,7 @@ import {
   commitPrep,
   getStatus,
   initRun,
+  locateRalphRuns,
   mapFind,
   mapMergeFromRun,
   knowledgeContribute,
@@ -848,6 +849,22 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     return 0;
   }
 
+  if (command === 'locate') {
+    const options = parseRalphRunArgs(args, { requireRunId: false });
+    const runs = locateRalphRuns(cwd);
+    const payload = options.runId
+      ? { runs: runs.filter((row) => row.run_id === options.runId), run_id: options.runId }
+      : { runs };
+    if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else {
+      const lines = ['Ralph locate:', ...(payload.runs || []).map((item) =>
+        '- ' + item.run_id + ' · ' + (item.layout || '?') + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.path ? (' · ' + item.path) : '')
+      )];
+      stdout.write(lines.join('\n') + '\n');
+    }
+    return 0;
+  }
+
   if (command === 'archive') {
     const options = parseRalphRunArgs(args, { requireRunId: true });
     const result = archiveRun(options.runId, { cwd, slug: options.slug });
@@ -1600,7 +1617,7 @@ function parseRalphHotMemoryArgs(args, commandName, { requireNeedle = false } = 
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--json]\n  jj ralph locate [--run-id task-…] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
   jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
   jj ralph host-record --run-id task-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
