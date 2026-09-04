@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **CI：loop gym L1-S7a overlay（lean 合同）**：`77f5a6b` 合入 lean `task_plan` 后，pin `ed72b08` 的 L1-S7a 仍要 live plan 长出 `已落地`/`Landed`，`verify` / `lab-windows` 报 `LAB-ORACLE-FAIL`。产品仓无权推 `jj-lab-loop`，故 `lab-check` 在旧 marker 存在时拷贝 `scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a/`（改写 Goal，历史进 `progress.md` 的 `## YYYY-MM-DD — approach change`）。gym 合入同逻辑并升 pin 后 overlay 自动 no-op。合约：`tests/lab-check.test.mjs`。
 - **Dispatch 同会话复用 Ralph（已批准）**：同一 delivery + 同会话 / 唯一审查切片走 `reuse-sibling`，禁止再 init 空壳；`same` 先复用目标仓 live run，不调 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。回归：`evals/regression/EP-20260904-h5-enter-dual-ralph.json`。
 - **jj-end 完成回复**：落地或回退结束只回两行——`合并状态：已合并到：<目标>` / `已回退：<原因>`，加 `当前分支：<HEAD>`。合约：`tests/jj-end-contract.test.mjs`。
 - **审查保持只读**：`$jj-review` / `/review` 只出 findings，不在同一轮改代码；等用户说「按审查改」再 DELIVER。合约：`tests/jj-ralph-contract.test.mjs`、`tests/jj-review-contract.test.mjs`。
