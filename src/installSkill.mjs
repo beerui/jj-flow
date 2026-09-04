@@ -117,6 +117,25 @@ export function projectGrokTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.grok', 'skills');
 }
 
+/** AGENTS.md user-level discovery path (~/.agents/skills). */
+export function defaultAgentsSkillsTarget({ homeDir = os.homedir(), agentsHome = process.env.AGENTS_HOME } = {}) {
+  const root = agentsHome || path.join(homeDir, '.agents');
+  return path.join(root, 'skills');
+}
+
+export function defaultAgentsCommandsTarget({ homeDir = os.homedir(), agentsHome = process.env.AGENTS_HOME } = {}) {
+  const root = agentsHome || path.join(homeDir, '.agents');
+  return path.join(root, 'commands');
+}
+
+export function projectAgentsSkillsTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.agents', 'skills');
+}
+
+export function projectAgentsCommandsTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.agents', 'commands');
+}
+
 export function installSkill({
   platform = 'codex',
   sourceDir,
@@ -132,11 +151,14 @@ export function installSkill({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  agentsSkillsTargetDir,
+  agentsCommandsTargetDir,
   homeDir,
   codexHome,
   claudeHome,
   qoderHome,
   grokHome,
+  agentsHome,
   force = false,
   dryRun = false
 } = {}) {
@@ -155,11 +177,14 @@ export function installSkill({
     claudeTargetDir,
     qoderTargetDir,
     grokTargetDir,
+    agentsSkillsTargetDir,
+    agentsCommandsTargetDir,
     homeDir,
     codexHome,
     claudeHome,
     qoderHome,
-    grokHome
+    grokHome,
+    agentsHome
   });
   const summary = summarizeInstallJobs(jobs, platforms);
 
@@ -199,6 +224,7 @@ export function installSkill({
         });
       }
       writeInstallManifest(job);
+      if (job.platform === 'agents') removeRetiredAssets(job.target, job.asset);
     }
     home = ensureJjFlowHome({ homeDir: homeDir || os.homedir() });
   }
@@ -238,11 +264,14 @@ export function uninstallSkill({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  agentsSkillsTargetDir,
+  agentsCommandsTargetDir,
   homeDir,
   codexHome,
   claudeHome,
   qoderHome,
   grokHome,
+  agentsHome,
   force = false,
   dryRun = false
 } = {}) {
@@ -261,11 +290,14 @@ export function uninstallSkill({
     claudeTargetDir,
     qoderTargetDir,
     grokTargetDir,
+    agentsSkillsTargetDir,
+    agentsCommandsTargetDir,
     homeDir,
     codexHome,
     claudeHome,
     qoderHome,
-    grokHome
+    grokHome,
+    agentsHome
   });
   const summary = summarizeInstallJobs(jobs, platforms);
   const scans = jobs.map(scanUninstallJob);
@@ -414,11 +446,14 @@ function buildAssetJobs({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  agentsSkillsTargetDir,
+  agentsCommandsTargetDir,
   homeDir,
   codexHome,
   claudeHome,
   qoderHome,
-  grokHome
+  grokHome,
+  agentsHome
 }) {
   return platforms.flatMap((name) => {
     if (name === 'codex') {
@@ -470,6 +505,37 @@ function buildAssetJobs({
         entries: collectCodexSkillSources(skillSource),
         label: 'Grok skills'
       }];
+    }
+
+    if (name === 'agents') {
+      const skillSource = path.resolve(codexSourceDir);
+      const commandSource = path.resolve(claudeSourceDir);
+      const skillTarget = path.resolve(
+        agentsSkillsTargetDir || targetDir || defaultAgentsSkillsTarget({ homeDir, agentsHome })
+      );
+      const commandTarget = path.resolve(
+        agentsCommandsTargetDir
+        || inferClaudeCommandsTarget(skillTarget)
+        || defaultAgentsCommandsTarget({ homeDir, agentsHome })
+      );
+      return [
+        {
+          platform: 'agents',
+          asset: 'skills',
+          source: skillSource,
+          target: skillTarget,
+          entries: collectCodexSkillSources(skillSource),
+          label: 'AGENTS skills'
+        },
+        {
+          platform: 'agents',
+          asset: 'commands',
+          source: commandSource,
+          target: commandTarget,
+          entries: collectClaudeCommandSources(commandSource),
+          label: 'AGENTS commands'
+        }
+      ];
     }
 
     // Claude Code: full skills (~/.claude/skills) + thin slash commands (~/.claude/commands)
@@ -705,11 +771,18 @@ function summarizeInstallJobs(jobs, platforms) {
 
 function normalizePlatforms(platform) {
   const normalized = String(platform || 'codex').trim().toLowerCase();
-  if (normalized === 'all') return ['codex', 'claude', 'qoder', 'grok'];
-  if (normalized === 'codex' || normalized === 'claude' || normalized === 'qoder' || normalized === 'grok') {
+  if (normalized === 'all') return ['codex', 'claude', 'qoder', 'grok', 'agents'];
+  if (normalized === 'codex' || normalized === 'claude' || normalized === 'qoder' || normalized === 'grok' || normalized === 'agents') {
     return [normalized];
   }
   throw new Error(`Unknown install platform: ${platform}`);
+}
+
+function removeRetiredAssets(target, asset) {
+  for (const name of RETIRED_ASSETS[asset] || []) {
+    const dest = resolveTargetEntry(target, name);
+    if (fs.existsSync(dest)) fs.rmSync(dest, { recursive: true, force: true });
+  }
 }
 
 function collectCodexSkillSources(sourceDir) {

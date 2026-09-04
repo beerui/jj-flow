@@ -32,7 +32,7 @@
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| Immediate actions | 立即动作 | 定位 run（含 `completed/` / `jj ralph locate`）、intensity、gate、**MUST finalize**；status 带 `next` 与 ARCHIVE 未完成收尾告警 |
+| Immediate actions | 立即动作 | 定位 run（含 `completed/` / `jj ralph locate`）、intensity、gate、**MUST finalize**；status / locate 带 `next`；存量用 `jj ralph remediate`；`~/.agents/skills` 由 install-skill `--platform agents` 分发 |
 | Handoff | 交接 | 真相源 `run.handoff` |
 | Scripts | 脚本 | `ralph_ops.mjs` 子命令清单 |
 | Rollback & continue (summary) | 回退与续作（摘要） | 含 archive 后再做、abandon |

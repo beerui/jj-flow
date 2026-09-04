@@ -13,7 +13,7 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [Ralph 自动结案](active/2026-09-04-ralph-auto-closeout.html) | §4.1–§4.8 实施中；不做 §4.9 步骤 4/5 | 按 §4.1 → §4.4 → §4.6+§4.7 → §4.2/§4.3 |
+| [Ralph 自动结案](active/2026-09-04-ralph-auto-closeout.html) | 主路径已合入 PR #30；本批补 §4.5 + §4.9 步骤 4/5 + 设计文档补录 | locate 带 next；`~/.agents` 分发；`jj ralph remediate` |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.html) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.html) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 

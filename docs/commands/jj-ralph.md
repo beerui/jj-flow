@@ -67,7 +67,7 @@ $jj-ralph
 说清 → 改代码 → 收                      # 小改 / 顺手修（lite，见下）
 ```
 
-验收通过后 **MUST finalize**（地图合并 + 归档进 `completed/`）。只翻 archive 门、或不跑 finalize，任务会留在活跃层；`status` 会写 `next: finalize`，`phase=ARCHIVE` 未进 `completed/` 时提示「未完成收尾」（resume 拉回后、rollback 前也是这句，先跑 `gate`/`status` 核对）。也可用 `jj ralph locate` 找活跃和 `completed/` 里的任务。
+验收通过后 **MUST finalize**（地图合并 + 归档进 `completed/`）。只翻 archive 门、或不跑 finalize，任务会留在活跃层；`status` 会写 `next: finalize`，`phase=ARCHIVE` 未进 `completed/` 时提示「未完成收尾」（resume 拉回后、rollback 前也是这句，先跑 `gate`/`status` 核对）。也可用 `jj ralph locate` 找活跃和 `completed/` 里的任务（行内带 `next` / `closeout`）。存量收尾先 `jj ralph remediate` 看名单，确认后再 `--yes`（只处理 finalize 与 migrate，不自动动 resume 窗口）。宿主旧副本：`jj install-skill --platform agents --force` 写入 `~/.agents/skills`。
 
 要迁仓时说：
 
