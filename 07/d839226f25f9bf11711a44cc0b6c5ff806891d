@@ -1,0 +1,50 @@
+src/skillInventory.mjs
+  s_f0dd05c9ca12f6::t_47d956d5b7281d 248-267
+CHANGELOG.md
+  s_f0dd05c9ca12f6::t_ee5392aff9da94 7
+  s_f0dd05c9ca12f6::t_b78d0108bc2e54 8
+src/installSkill.mjs
+  s_f0dd05c9ca12f6::t_d6b46526db46d0 271-273
+  s_f0dd05c9ca12f6::t_25b651ecaa172e 261,263-269,285
+  s_f0dd05c9ca12f6::t_781ceab94d6429 27-35,44-45,242,828-829,832-833,841
+  s_f0dd05c9ca12f6::t_e005dfe6dd13c5 211-221,224-228,231-238,247-255,260,262,270,277,279-280
+docs/commands/cli.md
+  s_f0dd05c9ca12f6::t_e3099e6494c1ac 37
+package.json
+  s_f0dd05c9ca12f6::t_32fe17073aa719 16-26
+tests/install-skill.test.mjs
+  s_f0dd05c9ca12f6::t_61af2aaae2582d 56-61,65-67
+  s_f0dd05c9ca12f6::t_eb04d39d977291 343-348,360,368-372,378,681,685,691-693,781-798,819-822,825-828,830-836
+  s_f0dd05c9ca12f6::t_9fc8e3630af293 20,30-31,62-64,799-818
+docs/pitfalls.md
+  s_f0dd05c9ca12f6::t_c6e2bd4088ee7d 101,117,137,147,157,176
+  s_f0dd05c9ca12f6::t_96208308972112 69-85
+src/cli.mjs
+  s_f0dd05c9ca12f6::t_2115837288e720 1688
+  s_f0dd05c9ca12f6::t_018c13353e277e 610
+skill-inventory.json
+  s_f0dd05c9ca12f6::t_fb0fe0604ac5cc 5,23
+docs/skill-zh-bridge/skill-en-zh-rewrite/README.zh.md
+  s_f0dd05c9ca12f6::t_52ec806ec7d63e 17-19
+docs/installation.md
+  s_f0dd05c9ca12f6::t_311bfe6be28a29 48-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "07d839226f25f9bf11711a44cc0b6c5ff806891d",
+  "prompts": {},
+  "sessions": {
+    "s_f0dd05c9ca12f6": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07b5c-252d-7d52-a51a-943f89fb07dd",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
