@@ -29,6 +29,18 @@ test('jj-review unbound when no ralph run; never init', () => {
   assert.match(host, /unbound\s+→ chat only/)
 })
 
+test('jj-review follow-up on same run is delta; no second full reviewer spawn', () => {
+  const host = fs.readFileSync(path.join(root, 'skills/jj-review/references/host-review.md'), 'utf8')
+  assert.match(skill, /G-review-1/)
+  assert.match(skill, /Follow-up \/ delta/)
+  assert.match(skill, /Do \*\*not\*\* spawn a fresh full-repo reviewer subagent/)
+  assert.match(skill, /EP-20260907/)
+  assert.match(skill, /Spawn a second full-repo reviewer subagent/)
+  assert.match(host, /delta review/)
+  assert.match(host, /must not be re-invoked/)
+  assert.match(host, /Follow-up must not re-call `\/review`/)
+})
+
 test('jj-review locates unspecified run from index.md 活跃 first', () => {
   const layout = fs.readFileSync(path.join(root, 'skills/jj-review/references/report-layout.md'), 'utf8')
   assert.match(skill, /index\.md/)

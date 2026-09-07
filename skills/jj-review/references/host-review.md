@@ -32,6 +32,8 @@ Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill p
 
 One `$jj-review` invocation runs **only one** host review path; do not chain multiple full review engines.
 
+**Across invocations in the same thread for the same bound run:** a follow-up `$jj-review` (typical after 「按审查改」) is a **delta review**. Reuse the latest `REV-*` / host `<review_file>`; inspect files changed since last `reviewed_commit`. Do **not** spawn a second full-repo reviewer subagent with empty context (`effective_context_source=new`). Hosts whose review skill always one-shots a new subagent (Grok `/review`: “The reviewer is not resumed; this is a one-shot review”) **must not be re-invoked** for that follow-up. Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review. First review of the run in this thread may still call the host entry once. See SKILL.md step 3b / G-review-1 / EP-20260907.
+
 ## Host discovery matrix (Codex / Grok / Claude)
 
 Discover entries by **capability name**, not marketing product pages. Search tools / skills / slash / agents already loaded in the session:
@@ -39,7 +41,7 @@ Discover entries by **capability name**, not marketing product pages. Search too
 | Host | Prefer (capability / entry shape) | How to confirm available | Typical artifact or output |
 | --- | --- | --- | --- |
 | **Codex** | skill / command name or description contains `review`, `code-review`, `code review`; read-only reviewer agent | session callable list / skill dirs; user `@` or `$` review entry | structured findings text or review artifact path |
-| **Grok** | installed skill with review/code-review; Build read-only subagent / reviewer role | current session skill list; role-spec declaring read-only reviewer | findings list, session attachment paths |
+| **Grok** | installed skill with review/code-review; Build read-only subagent / reviewer role. **First review of the bound run only.** Follow-up must not re-call `/review` (it always fresh-spawns `[reviewer] local changes`) | current session skill list; role-spec declaring read-only reviewer | findings list, session attachment paths |
 | **Claude** | slash or skill: `/review`, commands named with review/code-review; read-only subagent | `.claude/commands` / loaded Skill; `/help` or tool list | report Markdown / structured findings |
 
 Shared rules (all hosts):
@@ -49,6 +51,7 @@ Shared rules (all hosts):
 3. Subagents must be **read-only**; they must not change business code.
 4. No discoverable entry → only after SKILL.md 🔴 fallback checkpoint (user OK or paste) → `source=fallback_inline`; record the reason in `host_review.note`.
 5. 🔴 Discovery hard-stop: if the user requires “must use host review” and no entry exists → `BLOCKED`, name the missing entry; do not silent-fallback; do not init ralph.
+6. Same-thread follow-up of a bound run that already has `REV-*` / a host review file → delta (SKILL.md 3b). Do not take the fresh-subagent path again.
 
 ## Context to pass when invoking host review
 

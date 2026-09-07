@@ -1,0 +1,14 @@
+{
+  "id": "EP-20260907-grok-review-subagent-waves",
+  "source_episode": "docs/evaluations/EP-20260907-grok-review-subagent-waves-report.md",
+  "skill_or_path": "skills/jj-review/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-review-1" },
+    { "type": "contains", "text": "Follow-up / delta" },
+    { "type": "contains", "text": "Do **not** spawn a fresh full-repo reviewer subagent" },
+    { "type": "contains", "text": "EP-20260907" },
+    { "type": "file_exists", "path": "skills/jj-review/references/host-review.md" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260907-grok-review-subagent-waves.episode.json" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260907-grok-review-subagent-waves-report.md" }
+  ]
+}

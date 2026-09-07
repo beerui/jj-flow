@@ -23,6 +23,7 @@ Produce a **read-only review**. Prefer the **host built-in** review engine; bind
 | 6 | Drop `source` / `host_review` on persist | Need provenance |
 | 7 | Advance dispatch VERIFIED / write control-plane manifests | Use `$jj-dispatch` |
 | 8 | Bind steps to one host product marketing name | Capability discovery only |
+| 9 | Spawn a second full-repo reviewer subagent for the same bound run in the same thread when a prior `REV-*` or host review artifact exists | EP-20260907: three Grok `[reviewer] local changes` with `effective_context_source=new` (~23 min). Follow-up is delta |
 
 ## Inputs → outputs
 
@@ -53,10 +54,21 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 3. **User-provided first** (`source=user_provided`) — artifact path / pasted findings / named review session → map → step 5 (no host call).  
    Discovery step 1: [host-review.md](references/host-review.md).
 
+3b. **Follow-up / delta** (same thread + same bound run) — **In:** prior `reviews/REV-*.json` or host review artifact from this conversation. **Out:** delta scope → step 5, or first-review → step 4.
+
+   This invocation is a **follow-up** when a bound run already has a `REV-*` / `run.json.review` from this thread (typical: user said 「按审查改」 then `$jj-review` again).
+
+   - Scope = files changed since last `reviewed_commit` (or current dirty vs that commit). Do **not** re-scan the whole tree.
+   - Re-check prior OPEN findings against the new diff. Do not rubber-stamp.
+   - Do **not** spawn a fresh full-repo reviewer subagent (`[reviewer] local changes` or equivalent) with empty context.
+   - If the host review entry **always** one-shots a new subagent (Grok `/review`: reviewer is not resumed) → **do not re-invoke it** for this follow-up. Map from the last host `<review_file>` / `REV-*` plus the current delta (`source=host_builtin`, `host_review.note=follow-up delta`). Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review.
+   - First review of this run in this thread (no prior REV/host artifact): go to step 4.
+
 4. **Else host built-in** — [host-review.md](references/host-review.md). **Out:** verdict + findings + paths → `source=host_builtin`.  
    - Invoke explicit **review / code-review** only (not test/CI verify).  
    - Do not full self-review first then “compare” to host.  
    - Collect verdict, findings, summary, artifact paths.
+   - At most **one** full reviewer subagent per `$jj-review` invocation. Follow-ups use step 3b, not a second spawn.
 
    🔴 CHECKPOINT · 🛑 STOP — **must-use-host but no entry**: `BLOCKED`; name missing capability; **no silent fallback** (user may paste findings or allow fallback).
 
@@ -104,6 +116,12 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    This adapter stays **read-only**. Do not change business code or start a fix in the same turn. Wait for the user to say 「按审查改」 / `$jj-ralph` before DELIVER.
    `BLOCKED` / host missing / write fail: STOP template + missing evidence.
 
+### Golden Q&A — G-review-1 (must not regress)
+
+**Q:** Same thread, bound run `task-buyer-enter-dynamic` already has `REV-n` from a host `[reviewer]` subagent. User says `/jj-review` again after 「按审查改」. Spawn another `[reviewer] local changes` with empty context?
+
+**A:** No. This is a **delta review** (step 3b). Reuse the latest `REV-*` / host findings as the checklist; inspect only files changed since last `reviewed_commit`. Re-check prior OPEN items; do not rubber-stamp. Do **not** spawn a second full-repo reviewer subagent unless the user explicitly asks for a fresh whole-tree review. Regression: `EP-20260907-grok-review-subagent-waves`.
+
 ## Fallback (host unavailable only)
 
 `source=fallback_inline` only when: no discoverable review entry; **or** host failed **and** user explicitly continues.
@@ -130,6 +148,7 @@ Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `h
 | bound PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
 | OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
 | Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |
+| Follow-up `$jj-review` on same bound run, prior REV/host artifact exists | Step 3b delta; reuse findings; re-check OPEN | Do not spawn a second full-repo reviewer |
 
 ## Examples
 

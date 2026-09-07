@@ -1,0 +1,17 @@
+{
+  "episode_id": "EP-20260907-grok-review-subagent-waves",
+  "search": [
+    {
+      "id": "EP-20260907-grok-review-subagent-waves",
+      "notes": "Only sample of same-thread follow-up /jj-review spawning a fresh full-repo Grok reviewer subagent three times."
+    }
+  ],
+  "holdout": [],
+  "regression": [
+    {
+      "id": "G-review-1",
+      "notes": "Immutable: same-thread follow-up /jj-review on a bound run with prior REV-* is delta; no second full-repo reviewer spawn. Locked in evals/regression/EP-20260907-grok-review-subagent-waves.json."
+    }
+  ],
+  "notes": "n=1. Holdout empty until a second independent same-thread review-wave episode exists. Do not score candidates on invented holdout."
+}
