@@ -8,9 +8,15 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const LAB_ORACLE_REPORT_VERSION = 'jj-flow/lab-oracle-report/1.0';
+export const LOOP_L1_S7A_OLD_MARKER = 'task_plan.md/plan.md has no Landed/Superseded after rewrite';
+export const LOOP_L1_S7A_LEAN_MARKER = 'lean task_plan.md grew Landed/已落地 after rewrite';
+export const LOOP_L1_S7A_OVERLAY_REL = 'scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a';
+
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const LOOP_L1_S7A_OVERLAY_DIR = path.join(SCRIPT_DIR, 'lab-overlays', 'jj-lab-loop', 'ed72b08-lean-l1-s7a');
 
 const LAB_IDS = Object.freeze(['loop-gym', 'family-gym']);
 const ROOT_ENV = Object.freeze({
@@ -110,6 +116,37 @@ export function resolveLabRoots({
   };
 }
 
+/**
+ * Pin ed72b08 still checks leftover Current→Landed. Lean init no longer writes
+ * those headings, so CI/local lab:check copies the product overlay onto the
+ * loop gym working tree when the old marker is present. No-op once gym lands
+ * the lean oracle (marker gone). Never invent sibling paths.
+ */
+export function applyLoopLeanL1S7aOverlay(loopRoot) {
+  const ledger = path.join(loopRoot, 'scripts', 'oracles', 'run-ledger.mjs');
+  const lab = path.join(loopRoot, 'scripts', 'lab.mjs');
+  const manifest = path.join(loopRoot, 'lab-manifest.json');
+  if (!fs.existsSync(ledger) || !fs.existsSync(lab)) {
+    return { applied: false, reason: 'missing-oracle' };
+  }
+  const current = fs.readFileSync(ledger, 'utf8');
+  if (current.includes(LOOP_L1_S7A_LEAN_MARKER) || !current.includes(LOOP_L1_S7A_OLD_MARKER)) {
+    return { applied: false, reason: 'already-aligned' };
+  }
+  const srcLedger = path.join(LOOP_L1_S7A_OVERLAY_DIR, 'run-ledger.mjs');
+  const srcLab = path.join(LOOP_L1_S7A_OVERLAY_DIR, 'lab.mjs');
+  const srcManifest = path.join(LOOP_L1_S7A_OVERLAY_DIR, 'lab-manifest.json');
+  if (!fs.existsSync(srcLedger) || !fs.existsSync(srcLab)) {
+    return { applied: false, reason: 'missing-overlay' };
+  }
+  fs.copyFileSync(srcLedger, ledger);
+  fs.copyFileSync(srcLab, lab);
+  if (fs.existsSync(srcManifest) && fs.existsSync(manifest)) {
+    fs.copyFileSync(srcManifest, manifest);
+  }
+  return { applied: true, reason: 'lean-l1-s7a' };
+}
+
 export function assertLabPin(labRoot) {
   const manifestPath = path.join(labRoot, 'lab-manifest.json');
   if (!fs.existsSync(manifestPath)) {
@@ -192,6 +229,7 @@ export function runLabCheck({
       });
       continue;
     }
+    if (id === 'loop-gym') applyLoopLeanL1S7aOverlay(root);
     const runner = path.join(root, 'scripts', 'lab.mjs');
     if (!fs.existsSync(runner)) {
       findings.push({
