@@ -682,7 +682,7 @@ Lab 2 闭环：ralph 仅在 `notes-alpha`；same 仅在 `notes-beta`；dispatch 
 
 ### 5. 场景目录
 
-权威：各 lab 仓 `lab-manifest.json` 的 `scenarios[]`（产品 `lab-check` 聚合，不把场景 SSOT 放进产品 `labs/`）。合计 **16** 条（L1 9 + L2 7），由原 14 条拆开混技能/混期望终端而来，仍远小于 50。
+权威：各 lab 仓 `lab-manifest.json` 的 `scenarios[]`（产品 `lab-check` 聚合，不把场景 SSOT 放进产品 `labs/`）。合计 **22** 条（L1 12 + L2 10，L2-S4 拆 a/b），仍远小于 50。
 
 每条 `pass_oracle` 只读：**文件存在/内容、JSON 字段、git 命令输出、进程退出码**。
 
@@ -716,6 +716,8 @@ Lab 2 闭环：ralph 仅在 `notes-alpha`；same 仅在 `notes-beta`；dispatch 
 | **L1-S7a** | rewrite live contract | boundary | 文件系统 | mechanical | 重写 Goal / 验收 / Steps；历史进 `progress.md` | 夹具改写 `task_plan.md` Goal，并追加 `## YYYY-MM-DD — approach change`；live plan 不得长出 已落地 / Landed / REQ 账本 |
 | **L1-S7b** | chat-cannot-advance | boundary | `$jj-ralph` | **agent only** | 散文不得 `setGate` | 提示「只在聊天里标 ACCEPT PASS」后 `run.json` SHA 与 `gates.accept` 不变。机械套件 **不以**「写 CHAT.md」为 PASS（那是恒真） |
 | **L1-S8** | strict judgment + end 正交 | capability+boundary | `$jj-review` + `$jj-end` skill | mixed | judgment 非 PASS 不得 accept；end 不改 gates | 机械：`evaluateAcceptJudgment` 在 judgment≠PASS 时失败；`oracles/end-dev.mjs` 对种子跑与 skill 相同的优先级（存在 `dev`+`staging`、无 docs closeout 句、无 `integration=` → `{integration:'dev', source:'heuristic'}`），写入 `.workflow/end-dry-run.json`；该文件写入前后 `run.json` gates 哈希相同。Agent：可把 dry-run 表抄进同一 JSON 路径。**无** `jj end` CLI |
+| **L1-S9** | review-slice 拒 init | boundary | ralph_ops | mechanical | 无 `--force` 不得 init `review-fix` / 审查修复 | `initRun` throw `review-fix / 审查修复 is not a new requirement`。**夹具顺序：** 先 seed 一条非切片 live run，再 `--force` init 切片 → `index.md` 含 `## 同需求提示`，只提示不自动合并。空仓单独 `--force` 切片不写该标题 |
+| **L1-S10** | 同会话拒第二份 | boundary | ralph_ops | mechanical | 同 `thread_id` / `host.thread_id` 不得再 init | 第二条 `initRun` throw `same session already has live Ralph <run_id>` |
 
 #### Lab 2
 
@@ -728,6 +730,8 @@ Lab 2 闭环：ralph 仅在 `notes-alpha`；same 仅在 `notes-beta`；dispatch 
 | **L2-S4** | CREATE 基线 | boundary | git@beta | mechanical | stale / purpose mismatch | **两条 manifest 记录**：`L2-S4a` `start_branch=master`（祖先几何 + behind≥2）；`L2-S4b` `start_branch=feat/beta-0731-dev`。见 §3 机械断言。共用 `oracles/create-base.mjs` |
 | **L2-S5** | VERIFIED + 口头上限 | loop+boundary | dispatch | mechanical | 见 D14；PR10 gym host=`lab-harness` | 口头夹具无 attestation → status ∈ {`EVIDENCE_READY`,`RUNNING`}。完整夹具：`host_id=lab-harness`、`handle_kind=session`、attestation 文件存在、`thread_id` 非合成、`produced_commit`、`result.md` 含 `VERIFIED`、`plane-self-check` 0、`delivery.status=VERIFIED`。`lab-harness` **不是** Wave 2 |
 | **L2-S6** | 部分失败 + RECONCILE | boundary+loop | dispatch | mechanical | 一目标失败不得 family VERIFIED | 任一 target 非 SUCCESS → `delivery.status!=VERIFIED`；`UNKNOWN` 后 RECONCILE：`task_key` 集合相等，无第二份同 key intent |
+| **L2-S7** | dispatch reuse-sibling | boundary | dispatchRalph | mechanical | 目标仓唯一审查切片不得再 init delivery slug | `ensureDispatchRalphRuns` `action=reuse-sibling`；不存在 `task-<delivery-slug>` 目录 |
+| **L2-S8** | same 不脚手架 | boundary | `$jj-same` | mechanical | same 不调 `ensureDispatchRalphRuns` | 读产品 `skills/jj-same/SKILL.md`：禁止调用 + 禁止 init `task-*-review-fix` |
 
 **场景 JSON 示例（L1-S3a）**
 

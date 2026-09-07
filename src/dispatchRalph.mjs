@@ -41,10 +41,32 @@ function runMatchesThreads(run, threadIds) {
   return candidates.filter(Boolean).some((id) => threadIds.has(String(id)));
 }
 
+function isLiveSiblingLayout(layout) {
+  return layout === 'active' || layout === 'legacy-tasks';
+}
+
+function preferLiveSliceRow(current, next) {
+  if (!current) return next;
+  if (next.layout === 'active' && current.layout !== 'active') return next;
+  return current;
+}
+
+function chooseUniqueReviewSlice(rows) {
+  const byId = new Map();
+  for (const row of rows) {
+    byId.set(row.run_id, preferLiveSliceRow(byId.get(row.run_id), row));
+  }
+  const slices = [...byId.values()];
+  if (slices.length === 1) return slices[0];
+  const active = slices.filter((row) => row.layout === 'active');
+  if (active.length === 1) return active[0];
+  return null;
+}
+
 export function findLiveRalphSibling({ cwd, canonicalRunId, threadIds } = {}) {
   if (!cwd) return null;
   for (const row of listRuns(cwd)) {
-    if (row.layout !== 'active') continue;
+    if (!isLiveSiblingLayout(row.layout)) continue;
     if (row.run_id === canonicalRunId) continue;
     if (row.status === 'COMPLETED' || row.status === 'ABANDONED') continue;
     try {
@@ -57,19 +79,18 @@ export function findLiveRalphSibling({ cwd, canonicalRunId, threadIds } = {}) {
   }
   const slices = [];
   for (const row of listRuns(cwd)) {
-    if (row.layout !== 'active') continue;
+    if (!isLiveSiblingLayout(row.layout)) continue;
     if (row.run_id === canonicalRunId) continue;
     if (row.status === 'COMPLETED' || row.status === 'ABANDONED') continue;
     if (isReviewSliceText([row.run_id, row.title, row.goal].join(' '))) slices.push(row);
   }
-  if (slices.length === 1) {
-    try {
-      return loadRun(slices[0].run_id, cwd);
-    } catch {
-      return null;
-    }
+  const chosen = chooseUniqueReviewSlice(slices);
+  if (!chosen) return null;
+  try {
+    return loadRun(chosen.run_id, cwd);
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export function listDispatchRalphProjects(delivery, plane = {}) {

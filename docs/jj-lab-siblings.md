@@ -86,7 +86,7 @@ CI 不跟 gym 的 `main`，而是钉在 `.github/actions/prepare-lab-roots/actio
 
 - `README.md`
 - `.gitignore`（必须含 `_materialized/`）
-- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；pin `0.1.3` / PR2 commit）
+- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；当前 gym `0.1.4`，声明兼容产品 `77f5a6b`）
 - `seed/`、`scripts/lab.mjs`、`scripts/oracles/`、`scenarios/`
 
 `git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）必须命中 ignore。物化 git 只存在于本地 `_materialized/`，不进 lab 仓历史。

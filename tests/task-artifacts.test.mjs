@@ -251,3 +251,123 @@ test('dispatch Ralph reuses a sibling bound only via host.thread_id', () => {
     fs.rmSync(target, { recursive: true, force: true });
   }
 });
+
+test('dispatch Ralph reuses a leftover tasks/ review-slice', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-legacy-slice-'));
+  try {
+    initRun({
+      run_id: 'task-h5-enter-review-fix',
+      title: '供应商H5入驻审查三点修复',
+      goal: '同一入驻交接',
+      project_key: 'daji-merchants-mobile',
+      attach_knowledge: false,
+      write_intent: false,
+      force: true
+    }, target);
+    const live = path.join(target, '.workflow', 'ralph', 'task-h5-enter-review-fix');
+    const leftover = path.join(target, '.workflow', 'ralph', 'tasks', 'task-h5-enter-review-fix');
+    fs.mkdirSync(path.dirname(leftover), { recursive: true });
+    fs.renameSync(live, leftover);
+    const bound = ensureDispatchRalphRuns({
+      delivery: {
+        delivery_id: 'DEL-enter-form-h5-20260904',
+        title: '动态入驻表单交接到 H5',
+        task_mode: 'standard',
+        lead_project: 'daji-merchants-mobile',
+        origin_project: 'daji-merchants-mobile',
+        lead_responsibilities: [{ name: 'development', attempt: 1, depends_on: [] }],
+        targets: []
+      },
+      plane: { projects: [{ id: 'daji-merchants-mobile', path: target }] },
+      attach_knowledge: false
+    });
+    assert.deepEqual(bound.runs.map((row) => row.action), ['reuse-sibling']);
+    assert.equal(bound.runs[0].run_id, 'task-h5-enter-review-fix');
+    assert.equal(fs.existsSync(path.join(target, '.workflow', 'ralph', 'task-enter-form-h5')), false);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('dispatch Ralph reuses a dual-layout review-slice by run_id', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-dual-slice-'));
+  try {
+    initRun({
+      run_id: 'task-h5-enter-review-fix',
+      title: '供应商H5入驻审查三点修复',
+      goal: '同一入驻交接',
+      project_key: 'daji-merchants-mobile',
+      attach_knowledge: false,
+      write_intent: false,
+      force: true
+    }, target);
+    const live = path.join(target, '.workflow', 'ralph', 'task-h5-enter-review-fix');
+    const leftover = path.join(target, '.workflow', 'ralph', 'tasks', 'task-h5-enter-review-fix');
+    fs.mkdirSync(path.dirname(leftover), { recursive: true });
+    fs.cpSync(live, leftover, { recursive: true });
+    const bound = ensureDispatchRalphRuns({
+      delivery: {
+        delivery_id: 'DEL-enter-form-h5-20260904',
+        title: '动态入驻表单交接到 H5',
+        task_mode: 'standard',
+        lead_project: 'daji-merchants-mobile',
+        origin_project: 'daji-merchants-mobile',
+        lead_responsibilities: [{ name: 'development', attempt: 1, depends_on: [] }],
+        targets: []
+      },
+      plane: { projects: [{ id: 'daji-merchants-mobile', path: target }] },
+      attach_knowledge: false
+    });
+    assert.deepEqual(bound.runs.map((row) => row.action), ['reuse-sibling']);
+    assert.equal(bound.runs[0].run_id, 'task-h5-enter-review-fix');
+    assert.equal(fs.existsSync(path.join(target, '.workflow', 'ralph', 'task-enter-form-h5')), false);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('dispatch Ralph prefers the unique active review-slice over leftover slices', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-mixed-slice-'));
+  try {
+    initRun({
+      run_id: 'task-h5-enter-review-fix',
+      title: '供应商H5入驻审查三点修复',
+      goal: '同一入驻交接',
+      project_key: 'daji-merchants-mobile',
+      attach_knowledge: false,
+      write_intent: false,
+      force: true
+    }, target);
+    const leftoverLive = path.join(target, '.workflow', 'ralph', 'task-h5-enter-review-fix');
+    const leftover = path.join(target, '.workflow', 'ralph', 'tasks', 'task-h5-enter-review-fix');
+    fs.mkdirSync(path.dirname(leftover), { recursive: true });
+    fs.renameSync(leftoverLive, leftover);
+    initRun({
+      run_id: 'task-enter-review-fix',
+      title: '供应商H5入驻审查修复',
+      goal: '同一入驻交接',
+      project_key: 'daji-merchants-mobile',
+      attach_knowledge: false,
+      write_intent: false,
+      force: true
+    }, target);
+    const bound = ensureDispatchRalphRuns({
+      delivery: {
+        delivery_id: 'DEL-enter-form-h5-20260904',
+        title: '动态入驻表单交接到 H5',
+        task_mode: 'standard',
+        lead_project: 'daji-merchants-mobile',
+        origin_project: 'daji-merchants-mobile',
+        lead_responsibilities: [{ name: 'development', attempt: 1, depends_on: [] }],
+        targets: []
+      },
+      plane: { projects: [{ id: 'daji-merchants-mobile', path: target }] },
+      attach_knowledge: false
+    });
+    assert.deepEqual(bound.runs.map((row) => row.action), ['reuse-sibling']);
+    assert.equal(bound.runs[0].run_id, 'task-enter-review-fix');
+    assert.equal(fs.existsSync(path.join(target, '.workflow', 'ralph', 'task-enter-form-h5')), false);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});

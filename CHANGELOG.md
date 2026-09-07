@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **实验场钉死新不变量**：Loop gym L1-S9/S10（审查切片拒 init、同会话 `thread_id` 拒第二份）；Family gym L2-S7/S8（`reuse-sibling`、same 不调 `ensureDispatchRalphRuns`）。`findLiveRalphSibling` 同时认 `active` 与 leftover `tasks/`，按 `run_id` 去重，布局混杂时优先唯一 `active` 切片。L1-S9 `--force` 同需求提示须先 seed 非切片 live run。合约：`tests/task-artifacts.test.mjs`；本地 `npm run lab:check`。
 - **Dispatch 同会话复用 Ralph（已批准）**：同一 delivery + 同会话 / 唯一审查切片走 `reuse-sibling`，禁止再 init 空壳；`same` 先复用目标仓 live run，不调 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。回归：`evals/regression/EP-20260904-h5-enter-dual-ralph.json`。
 - **jj-end 完成回复**：落地或回退结束只回两行——`合并状态：已合并到：<目标>` / `已回退：<原因>`，加 `当前分支：<HEAD>`。合约：`tests/jj-end-contract.test.mjs`。
 - **审查保持只读**：`$jj-review` / `/review` 只出 findings，不在同一轮改代码；等用户说「按审查改」再 DELIVER。合约：`tests/jj-ralph-contract.test.mjs`、`tests/jj-review-contract.test.mjs`。
