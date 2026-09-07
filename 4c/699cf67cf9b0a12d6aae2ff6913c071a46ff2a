@@ -1,0 +1,46 @@
+docs/jj-lab-siblings.md
+  s_2e87ff540b1937::t_3bc082179d48e6 89
+CHANGELOG.md
+  s_73ed81795f9863::t_c1ba0dcc157061 7
+tests/task-artifacts.test.mjs
+  s_2e87ff540b1937::t_a3860d05b9f889 254-290
+  s_73ed81795f9863::t_46905402dba42b 291-373
+src/dispatchRalph.mjs
+  s_73ed81795f9863::t_019b6d2c45f4e6 48-65,87-92
+  s_2e87ff540b1937::t_9ef67ec3b30ec1 44-47,69,82
+docs/design-docs/jj-flow-labs.md
+  s_73ed81795f9863::t_fe0e1691e413f1 719
+  s_2e87ff540b1937::t_8e270a879f8528 685
+  s_2e87ff540b1937::t_8437b1cd792eef 720
+  s_2e87ff540b1937::t_7b014c2920e8cb 733-734
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "4c699cf67cf9b0a12d6aae2ff6913c071a46ff2a",
+  "prompts": {},
+  "sessions": {
+    "s_2e87ff540b1937": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "13ba4e07-d5e9-4ebc-9664-0e27538c5771",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_73ed81795f9863": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07964-46b1-7a91-8321-48f3504e61aa",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
