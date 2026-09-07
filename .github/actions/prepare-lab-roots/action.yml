@@ -5,11 +5,11 @@ inputs:
   loop_ref:
     description: Pin SHA for beerui/jj-lab-loop (must understand the P2 tasks/<task-*>/.state layout)
     required: false
-    default: 'ed72b08499b3c50c6949c702b3be60aa1ac4b52f'
+    default: '75461e1b6b61d721d437e55fc9e67fbde4507acc'
   family_ref:
     description: Pin SHA for beerui/jj-lab-family (must understand the P2 tasks/<task-*>/.state layout)
     required: false
-    default: '0b8ec50be82301173cb7cd63e4989e72d428f215'
+    default: '652d1f5099814c070bdf48ba3d32be4d7d309916'
 
 runs:
   using: composite

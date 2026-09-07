@@ -80,7 +80,7 @@ CI 不跟 gym 的 `main`，而是钉在 `.github/actions/prepare-lab-roots/actio
 
 注意区分：`action.yml` 里的 pin 是 **gym 仓的 commit**；gym 自己 `lab-manifest.json` 的 `jj_flow_commit` 是 gym **声明兼容的产品 commit**。CI 红的原因是前者过旧。
 
-**lean L1-S7a 过渡 overlay：** pin `ed72b08` 的机械夹具仍要求改写后 live `task_plan.md` 长出 `已落地` / `Landed`。产品 `initRun` 已收成 Goal / 验收 / Steps，历史进 `progress.md`。在 gym 仓合入同一 oracle 并升 pin 之前，`scripts/lab-check.mjs` 若检测到旧 finding 文案，会把 `scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a/` 拷进 loop 工作树再跑 oracle（幂等；新 oracle 无该文案则跳过）。不要把 `loop_ref` 升到未推送的 gym SHA。
+**lean L1-S7a 过渡 overlay：** pin `ed72b08` 的机械夹具仍要求改写后 live `task_plan.md` 长出 `已落地` / `Landed`。当前 pin loop `75461e1` / family `652d1f5` 已合入 lean oracle，`scripts/lab-check.mjs` overlay no-op。若检出旧 pin，仍会把 `scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a/` 拷进 loop 工作树再跑。不要把 `loop_ref` 升到未推送的 gym SHA。
 
 ## 各仓里有什么
 
@@ -88,7 +88,7 @@ CI 不跟 gym 的 `main`，而是钉在 `.github/actions/prepare-lab-roots/actio
 
 - `README.md`
 - `.gitignore`（必须含 `_materialized/`）
-- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；当前 gym `0.1.4`，声明兼容产品 `77f5a6b`）
+- `lab-manifest.json`（`id` + 非空 `harness_version` 和/或 `jj_flow_commit`；当前 gym `0.2.0`，声明兼容产品 `9feffc1`）
 - `seed/`、`scripts/lab.mjs`、`scripts/oracles/`、`scenarios/`
 
 `git check-ignore -v _materialized/loop-gym/.git`（loop）与 `_materialized/family-gym/notes-alpha/.git`（family）必须命中 ignore。物化 git 只存在于本地 `_materialized/`，不进 lab 仓历史。

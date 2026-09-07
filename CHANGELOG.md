@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **CI：gym pin 升到 L1-S7a lean 合同**：loop `75461e1`（Goal 改写进 progress，禁 live Landed；含 L1-S9/S10）、family `652d1f5`（L2-S7/S8）。`ed72b08` overlay 在新 pin 上 no-op。合约：`tests/lab-check.test.mjs`。
 - **CI：loop gym L1-S7a overlay（lean 合同）**：`77f5a6b` 合入 lean `task_plan` 后，pin `ed72b08` 的 L1-S7a 仍要 live plan 长出 `已落地`/`Landed`，`verify` / `lab-windows` 报 `LAB-ORACLE-FAIL`。产品仓无权推 `jj-lab-loop`，故 `lab-check` 在旧 marker 存在时拷贝 `scripts/lab-overlays/jj-lab-loop/ed72b08-lean-l1-s7a/`（改写 Goal，历史进 `progress.md` 的 `## YYYY-MM-DD — approach change`）。gym 合入同逻辑并升 pin 后 overlay 自动 no-op。合约：`tests/lab-check.test.mjs`。
 
 ## 0.2.0 — 2026-09-07 17:02
