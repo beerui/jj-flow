@@ -1,0 +1,47 @@
+tests/jj-review-contract.test.mjs
+  s_73ed81795f9863::t_c5557fc2825cdb 32-43
+claude-commands/jj-review.md
+  s_73ed81795f9863::t_1ac37bfffbbeac 20
+docs/commands/jj-review.md
+  s_73ed81795f9863::t_19a2b2c266a493 41
+docs/evaluations/EP-20260907-grok-review-subagent-waves.episode.json
+  s_73ed81795f9863::t_7702ef22008dcb 1-164
+evals/regression/EP-20260907-grok-review-subagent-waves.json
+  s_73ed81795f9863::t_56ea9e962c9bb0 1-14
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_73ed81795f9863::t_083a3cc82e86fa 32
+docs/evaluations/EP-20260907-grok-review-subagent-waves.split.json
+  s_73ed81795f9863::t_d6282fc0dfaacd 1-9,17
+  s_73ed81795f9863::t_2a1b3ddebeeb7d 10-16
+docs/evaluations/EP-20260907-grok-review-subagent-waves-report.md
+  s_73ed81795f9863::t_2c4405cc774eaf 58,112
+  s_73ed81795f9863::t_807477615f0591 95,116
+  s_73ed81795f9863::t_953b4fa3fbeb0c 1-57,59-94,96-111,113-115,117-141
+skills/jj-review/SKILL.md
+  s_73ed81795f9863::t_9f5989e1b8c0de 63
+  s_73ed81795f9863::t_eef928e60686af 119-124
+  s_73ed81795f9863::t_32d77c66e6d68b 26,57-62,64-66,71,151
+skills/jj-review/references/host-review.md
+  s_73ed81795f9863::t_c7df31aeb47e88 35-36,44,54
+CHANGELOG.md
+  s_73ed81795f9863::t_b275a0844753a2 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "07d13b61e329231abf6beb32e8237f8f4ae6f7dc",
+  "prompts": {},
+  "sessions": {
+    "s_73ed81795f9863": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07964-46b1-7a91-8321-48f3504e61aa",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
