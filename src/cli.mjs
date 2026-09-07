@@ -607,7 +607,7 @@ function runInstallSkill(rawArgs, { cwd = process.cwd(), stdout } = {}) {
 
   const options = parseInstallArgs(rawArgs, cwd);
   const result = installSkill(options);
-  if (result.ok && ['installed', 'updated'].includes(result.status)) {
+  if (result.ok && ['installed', 'updated', 'added'].includes(result.status)) {
     Object.assign(result, loadCurrentReleaseLog());
   }
 
@@ -1685,7 +1685,7 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，agents 安装 ~/.agents/skills + commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       任一目标资产已存在时覆盖整组安装文件。\n  --dry-run     显示 skills、agents 与 commands 的目标和冲突，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，agents 安装 ~/.agents/skills + commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       覆盖已存在的安装文件。不加时仍会补上缺失 skill（例如新版本的 jj-init），不覆盖已有文件。\n  --dry-run     显示 skills、agents 与 commands 的目标、将写入的缺失项和将跳过的已有文件，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
 }
 
 function printUninstallHelp(stdout) {

@@ -13,7 +13,17 @@
     "jj-flow": "bin/jj.mjs"
   },
   "files": [
-    "skills/",
+    "skills/jj/",
+    "skills/jj-dispatch/",
+    "skills/jj-end/",
+    "skills/jj-evaluated/",
+    "skills/jj-init/",
+    "skills/jj-ralph/",
+    "skills/jj-review/",
+    "skills/jj-same/",
+    "skills/jj-team-coordinate/",
+    "skills/jj-team-lifecycle/",
+    "skills/jj-team-swarm/",
     "agents/",
     "claude-commands/",
     "bin/",

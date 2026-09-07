@@ -245,6 +245,26 @@ export function checkSkillInventory({ cwd = PROJECT_ROOT } = {}) {
         '把 skills/ 加入 package.json files。'
       );
     }
+    const normalizedFiles = files.map((item) => String(item).replace(/\\/g, '/'));
+    if (normalizedFiles.includes('skills/') || normalizedFiles.includes('skills')) {
+      add(
+        'SKI-PKG-005',
+        'package.json',
+        'package.json files 用整棵 skills/ 会把仓库维护 skill 打进 npm。',
+        '按清单逐个列入 skills/<id>/，不要用 skills/ 通配。'
+      );
+    }
+    for (const skill of inventory.skills) {
+      const prefix = 'skills/' + skill.id;
+      if (!normalizedFiles.some((item) => item === prefix || item === prefix + '/' || item.startsWith(prefix + '/'))) {
+        add(
+          'SKI-PKG-006',
+          'package.json',
+          'package.json files 未包含清单 skill：' + skill.id,
+          '把 skills/' + skill.id + '/ 加入 package.json files。'
+        );
+      }
+    }
     if (!files.some((item) => {
       const n = String(item).replace(/\\/g, '/');
       return n.includes('claude-commands') || n.includes('.claude/commands');

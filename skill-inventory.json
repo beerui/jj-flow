@@ -2,7 +2,7 @@
   "schema_version": "jj-flow/skill-inventory/1.0",
   "$schema": "schemas/skill-inventory.schema.json",
   "canonical_skills_root": "skills",
-  "canonical_skills_root_note": "Top-level skills/ is the universal skill SSOT in the repo and npm package. install-skill distributes into host skill dirs (~/.codex/skills, ~/.qoder/skills, ~/.grok/skills, ~/.claude/skills). Claude also gets thin slash wrappers under ~/.claude/commands. Do not edit install outputs as source.",
+  "canonical_skills_root_note": "Top-level skills/ is the repo skill SSOT. install-skill and npm pack only distribute inventory jj-* skills into host dirs. Repo-local tooling (skill-en-zh-rewrite) stays in skills/ but is not published. Claude also gets thin slash wrappers under ~/.claude/commands. Do not edit install outputs as source.",
   "claude_commands_root": "claude-commands",
   "install_targets": {
     "codex": { "skills": "~/.codex/skills (or project .codex/skills)", "agents": "~/.codex/agents", "source": "canonical_skills_root + agents/" },
@@ -20,6 +20,7 @@
     "Edit Codex agent profiles under agents/; Claude slash wrappers under claude-commands/ only.",
     "Claude install receives full skills under .claude/skills plus thin wrappers under .claude/commands — do not fork full procedures into commands.",
     "After skill/command changes: node src/cli.mjs install-skill --platform all --force (or per-platform).",
+    "Do not inventory or pack repo-local maintenance skills (skill-en-zh-rewrite). install-skill copies jj-* only and removes leftover unpublished copies from host dirs.",
     "Never treat host install dirs (.claude, .codex, .cursor, .grok, .qoder) as edit sources or git SSOT.",
     "Repo SSOT: skills/ + agents/ + claude-commands/. Host dirs .claude/.codex/.cursor are gitignored install outputs."
   ],

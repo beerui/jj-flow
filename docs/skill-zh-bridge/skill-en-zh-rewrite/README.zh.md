@@ -14,9 +14,9 @@
 | 项 | 说明 |
 | --- | --- |
 | 编辑源 | 顶层 `skills/skill-en-zh-rewrite/` |
-| 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
-| 宿主安装目录 | 如 `~/.codex/skills/skill-en-zh-rewrite`、`~/.grok/skills/skill-en-zh-rewrite` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| 发布 | **不进 npm、不分发到用户宿主**。仅仓库维护用；`install-skill` 只拷 `jj-*` |
+| 宿主安装目录 | 不应出现。若旧安装残留，再跑 `install-skill` 会删掉 |
+| Claude | 无薄入口（未进 skill-inventory） |
 
 ## 英文化状态
 

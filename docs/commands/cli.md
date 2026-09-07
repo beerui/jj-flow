@@ -34,6 +34,7 @@ jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-
 ```
 
 - 默认不按名称前缀扫描未知文件；只动 ownership 登记资产
+- 再跑 `install-skill` 会补上缺失 skill（如 `jj-init`），不覆盖已有文件；刷新旧副本才加 `--force`
 - 本地改过或历史未登记：默认拒绝，审查后 `--force`
 - 用户装入口仍可在 [安装](../installation.md) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI
 - `install-skill` 会在 `~/.jj-flow` 生成空 `naming.json` / `map.md` / `knowledge/`（已有文件不覆盖）

@@ -17,6 +17,7 @@ import {
   INSTALL_MANIFEST_FILENAME,
   INSTALL_MANIFEST_VERSION,
   installSkill,
+  isDistributedSkillName,
   projectClaudeSkillsTarget,
   projectClaudeTarget,
   projectCodexAgentsTarget,
@@ -26,7 +27,8 @@ import {
   projectGrokTarget,
   projectQoderTarget,
   projectSkillTarget,
-  uninstallSkill
+  uninstallSkill,
+  UNPUBLISHED_SKILL_DIRS
 } from '../src/installSkill.mjs';
 import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs';
 
@@ -51,9 +53,18 @@ function withJjHome(fn) {
 }
 
 test('published package includes skills SSOT, agents, and Claude command wrappers', () => {
-  assert.ok(packageJson.files.includes('skills/'));
-  assert.ok(packageJson.files.includes('agents/'));
-  assert.ok(packageJson.files.includes('claude-commands/'));
+  const files = packageJson.files.map((item) => String(item).replace(/\\/g, '/'));
+  assert.equal(files.includes('skills/'), false);
+  assert.ok(files.includes('skills/jj/'));
+  assert.ok(files.includes('skills/jj-init/'));
+  assert.ok(files.includes('agents/'));
+  assert.ok(files.includes('claude-commands/'));
+  assert.equal(isDistributedSkillName('jj-init'), true);
+  assert.equal(isDistributedSkillName('skill-en-zh-rewrite'), false);
+  assert.ok(UNPUBLISHED_SKILL_DIRS.includes('skill-en-zh-rewrite'));
+  for (const name of UNPUBLISHED_SKILL_DIRS) {
+    assert.equal(files.some((item) => item === 'skills/' + name || item === 'skills/' + name + '/'), false);
+  }
 });
 
 test('jj-same docs describe the complete handoff lifecycle', () => {
@@ -329,11 +340,12 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   );
   assert.doesNotMatch(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /jj-same\s+"/);
 
-  const blocked = install({ targetDir: target });
-  assert.equal(blocked.ok, false);
-  assert.equal(blocked.status, 'target-exists');
-  assert.ok(blocked.conflicts.some((file) => file.endsWith(path.join('skills', 'jj'))));
-  assert.ok(blocked.conflicts.some((file) => file.endsWith(path.join('agents', 'jj-workflow-reviewer.toml'))));
+  const again = install({ targetDir: target });
+  assert.equal(again.ok, true);
+  assert.equal(again.status, 'up-to-date');
+  assert.ok(again.skipped.some((file) => file.endsWith(path.join('skills', 'jj'))));
+  assert.ok(again.skipped.some((file) => file.endsWith(path.join('agents', 'jj-workflow-reviewer.toml'))));
+  assert.equal(again.added.length, 0);
 
   const preview = install({ targetDir: target, dryRun: true });
   assert.equal(preview.ok, true);
@@ -345,7 +357,7 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(updated.status, 'updated');
 });
 
-test('an agent-only conflict blocks the whole Codex install until force is used', () => {
+test('an agent-only conflict still installs missing skills and leaves the agent file until force', () => {
   const workspace = makeWorkspace('jj-flow-install-agent-conflict-');
   const skillsTarget = path.join(workspace, 'skills');
   const agentsTarget = path.join(workspace, 'agents');
@@ -353,17 +365,17 @@ test('an agent-only conflict blocks the whole Codex install until force is used'
   fs.mkdirSync(agentsTarget, { recursive: true });
   fs.writeFileSync(reviewerTarget, 'local = true\n');
 
-  const blocked = install({ targetDir: skillsTarget });
-  assert.equal(blocked.ok, false);
-  assert.equal(blocked.status, 'target-exists');
-  assert.ok(blocked.conflicts.includes(reviewerTarget));
-  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), false);
+  const partial = install({ targetDir: skillsTarget });
+  assert.equal(partial.ok, true);
+  assert.equal(partial.status, 'added');
+  assert.ok(partial.skipped.includes(reviewerTarget));
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), true);
   assert.equal(fs.readFileSync(reviewerTarget, 'utf8'), 'local = true\n');
 
   const preview = install({ targetDir: skillsTarget, dryRun: true });
   assert.equal(preview.ok, true);
   assert.ok(preview.conflicts.includes(reviewerTarget));
-  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), false);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj', 'SKILL.md')), true);
 
   const updated = install({ targetDir: skillsTarget, force: true });
   assert.equal(updated.ok, true);
@@ -666,18 +678,19 @@ test('CLI install-skill prints latest version log after install and update', () 
   });
 });
 
-test('CLI install-skill omits version log for dry run and failed install', () => {
+test('CLI install-skill omits version log for dry run and up-to-date reinstall', () => {
   const workspace = makeWorkspace('jj-flow-install-no-log-');
   const target = path.join(workspace, 'skills');
   const previewStdout = createStdout();
-  const failedStdout = createStdout();
+  const againStdout = createStdout();
 
   assert.equal(runCli(['install-skill', '--target', target, '--dry-run'], { stdout: previewStdout }), 0);
   assert.doesNotMatch(previewStdout.output, /版本日志/);
 
   install({ targetDir: target });
-  assert.equal(runCli(['install-skill', '--target', target], { stdout: failedStdout }), 1);
-  assert.doesNotMatch(failedStdout.output, /版本日志/);
+  assert.equal(runCli(['install-skill', '--target', target], { stdout: againStdout }), 0);
+  assert.match(againStdout.output, /Already installed/);
+  assert.doesNotMatch(againStdout.output, /版本日志/);
 });
 
 test('CLI install-skill can install Claude skills and command assets', () => {
@@ -765,16 +778,62 @@ test('CLI help keeps user-facing labels in Chinese', () => {
   assert.match(uninstallStdout.output, /不会按 jj-\* 前缀/);
 });
 
-test('CLI install-skill exits non-zero when target exists without force', () => {
-  const workspace = makeWorkspace('jj-flow-install-cli-');
+test('CLI install-skill adds missing skills without force', () => {
+  withJjHome(() => {
+    const workspace = makeWorkspace('jj-flow-install-cli-');
+    const target = path.join(workspace, 'skills');
+    install({ targetDir: target });
+    fs.rmSync(path.join(target, 'jj-init'), { recursive: true, force: true });
+
+    const stdout = createStdout();
+    const status = runCli(['install-skill', '--target', target, '--json'], { stdout });
+    const parsed = JSON.parse(stdout.output);
+
+    assert.equal(status, 0);
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.status, 'added');
+    assert.ok(parsed.added.some((file) => file.endsWith(path.join('jj-init'))));
+    assert.equal(fs.existsSync(path.join(target, 'jj-init', 'SKILL.md')), true);
+    assert.match(stdout.output, /jj-init/);
+  });
+});
+
+test('installSkill does not distribute skill-en-zh-rewrite and removes leftover copies', () => {
+  const workspace = makeWorkspace('jj-flow-install-unpublished-');
+  const skillsTarget = path.join(workspace, '.grok', 'skills');
+  const leftover = path.join(skillsTarget, 'skill-en-zh-rewrite', 'SKILL.md');
+  fs.mkdirSync(path.dirname(leftover), { recursive: true });
+  fs.writeFileSync(leftover, '---\nname: skill-en-zh-rewrite\n---\n', 'utf8');
+
+  const installed = install({
+    platform: 'grok',
+    grokTargetDir: skillsTarget,
+    force: true
+  });
+
+  assert.equal(installed.ok, true);
+  assert.equal(installed.skills.includes('skill-en-zh-rewrite'), false);
+  assert.equal(fs.existsSync(path.dirname(leftover)), false);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-ralph', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-init', 'SKILL.md')), true);
+});
+
+test('installSkill adds a missing skill without overwriting local edits', () => {
+  const workspace = makeWorkspace('jj-flow-install-additive-');
   const target = path.join(workspace, 'skills');
   install({ targetDir: target });
+  fs.rmSync(path.join(target, 'jj-init'), { recursive: true, force: true });
+  const ralphPath = path.join(target, 'jj-ralph', 'SKILL.md');
+  fs.appendFileSync(ralphPath, '\n# local-edit\n');
+  const ralphEdited = fs.readFileSync(ralphPath, 'utf8');
 
-  const stdout = createStdout();
-  const status = runCli(['install-skill', '--target', target], { stdout });
-
-  assert.equal(status, 1);
-  assert.match(stdout.output, /Target jj asset already exists/);
+  const result = install({ targetDir: target });
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'added');
+  assert.equal(fs.existsSync(path.join(target, 'jj-init', 'SKILL.md')), true);
+  assert.equal(fs.readFileSync(ralphPath, 'utf8'), ralphEdited);
+  assert.ok(result.added.some((file) => file.endsWith(path.join('jj-init'))));
+  assert.ok(result.skipped.some((file) => file.endsWith(path.join('jj-ralph'))));
 });
 
 function createStdout() {

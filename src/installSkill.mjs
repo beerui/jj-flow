@@ -24,6 +24,15 @@ const PACKAGE_JSON = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package
 export const INSTALL_MANIFEST_FILENAME = '.jj-flow-install.json';
 export const INSTALL_MANIFEST_VERSION = 'jj-flow/install-manifest/1.0';
 
+/** Repo-local maintenance skills: stay under skills/ but are not installed or packed. */
+export const UNPUBLISHED_SKILL_DIRS = Object.freeze(['skill-en-zh-rewrite']);
+
+const PRODUCT_SKILL_ID = /^jj(-[a-z0-9]+)*$/;
+
+export function isDistributedSkillName(name) {
+  return PRODUCT_SKILL_ID.test(name) && !UNPUBLISHED_SKILL_DIRS.includes(name);
+}
+
 const RETIRED_ASSETS = Object.freeze({
   skills: Object.freeze([
     'jj-auto',
@@ -32,7 +41,8 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-feat',
     'jj-fix',
     'jj-knowhow',
-    'jj-validate'
+    'jj-validate',
+    ...UNPUBLISHED_SKILL_DIRS
   ]),
   agents: Object.freeze([]),
   commands: Object.freeze([
@@ -198,53 +208,81 @@ export function installSkill({
     };
   }
 
-  const conflicts = jobs
-    .flatMap((job) => job.entries.map((entry) => path.join(job.target, entry.targetName)))
-    .filter((target) => fs.existsSync(target));
-
-  if (conflicts.length && !force && !dryRun) {
-    return {
-      ...summary,
-      ok: false,
-      status: 'target-exists',
-      conflicts,
-      message: `Target jj asset already exists: ${conflicts.join(', ')}. Re-run with --force to overwrite files.`
-    };
+  const planned = [];
+  for (const job of jobs) {
+    for (const entry of job.entries) {
+      const dest = path.join(job.target, entry.targetName);
+      planned.push({
+        job,
+        entry,
+        dest,
+        exists: fs.existsSync(dest)
+      });
+    }
   }
+
+  const conflicts = planned.filter((item) => item.exists).map((item) => item.dest);
+  const toWrite = force ? planned : planned.filter((item) => !item.exists);
+  const skipped = force ? [] : planned.filter((item) => item.exists).map((item) => item.dest);
+  const added = toWrite.map((item) => item.dest);
 
   let home = null;
   if (!dryRun) {
+    for (const item of toWrite) {
+      fs.mkdirSync(item.job.target, { recursive: true });
+      fs.cpSync(item.entry.source, item.dest, {
+        recursive: item.entry.kind === 'directory',
+        force: true,
+        errorOnExist: false
+      });
+    }
     for (const job of jobs) {
       fs.mkdirSync(job.target, { recursive: true });
-      for (const entry of job.entries) {
-        fs.cpSync(entry.source, path.join(job.target, entry.targetName), {
-          recursive: entry.kind === 'directory',
-          force: true,
-          errorOnExist: false
-        });
-      }
       writeInstallManifest(job);
-      if (job.platform === 'agents') removeRetiredAssets(job.target, job.asset);
+      removeRetiredAssets(job.target, job.asset);
     }
     home = ensureJjFlowHome({ homeDir: homeDir || os.homedir() });
   }
 
-  const action = dryRun ? 'Would install' : conflicts.length ? 'Updated' : 'Installed';
+  const status = dryRun
+    ? 'dry-run'
+    : force && conflicts.length
+      ? 'updated'
+      : toWrite.length && skipped.length
+        ? 'added'
+        : toWrite.length
+          ? 'installed'
+          : 'up-to-date';
   const details = jobs.map((job) => {
     const names = job.entries.map((entry) => entry.targetName).join(', ');
     return `${job.label} at ${job.target}: ${names}`;
   }).join('; ');
+  const addedNames = [...new Set(toWrite.map((item) => item.entry.targetName))].join(', ');
+  const skipHint = skipped.length ? '; skipped existing (use --force to overwrite)' : '';
+  let action;
+  if (dryRun && toWrite.length && skipped.length) action = `Would install missing jj assets: ${addedNames}`;
+  else if (dryRun && toWrite.length) action = `Would install jj assets: ${details}`;
+  else if (dryRun) action = 'Would skip existing jj assets (use --force to overwrite)';
+  else if (status === 'updated') action = `Updated jj assets: ${details}`;
+  else if (status === 'added') action = `Added missing jj assets: ${addedNames}`;
+  else if (status === 'up-to-date') action = 'Already installed';
+  else action = `Installed jj assets: ${details}`;
 
+  const showSkip = skipped.length && (
+    status === 'added' || status === 'up-to-date' || (dryRun && toWrite.length)
+  );
   return {
     ...summary,
     ok: true,
-    status: dryRun ? 'dry-run' : conflicts.length ? 'updated' : 'installed',
+    status,
     conflicts,
+    added,
+    skipped,
     manifest_paths: jobs.map((job) => path.join(job.target, INSTALL_MANIFEST_FILENAME)),
     jj_flow_home: home ? home.root : null,
     map_path: home ? home.map_path : null,
     knowledge_root: home ? home.knowledge_root : null,
-    message: `${action} jj assets: ${details}`
+    message: `${action}${showSkip ? skipHint : ''}`
       + (home ? `; home ${home.root}` : '')
   };
 }
@@ -787,10 +825,12 @@ function removeRetiredAssets(target, asset) {
 
 function collectCodexSkillSources(sourceDir) {
   if (fs.existsSync(path.join(sourceDir, 'SKILL.md'))) {
+    const name = path.basename(sourceDir);
+    if (!isDistributedSkillName(name)) return [];
     return [{
       kind: 'directory',
-      name: path.basename(sourceDir),
-      targetName: path.basename(sourceDir),
+      name,
+      targetName: name,
       source: sourceDir
     }];
   }
@@ -798,7 +838,7 @@ function collectCodexSkillSources(sourceDir) {
   if (!fs.existsSync(sourceDir)) return [];
 
   return fs.readdirSync(sourceDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.isDirectory() && isDistributedSkillName(entry.name))
     .map((entry) => ({
       kind: 'directory',
       name: entry.name,
