@@ -20,6 +20,7 @@ Same requirement (incl. COMPLETED/ABANDONED)? → resume
 Index `## 同需求提示` (same session or review-slice next to another live run) → ask; do **not** auto-merge / abandon. Same session includes `review.task_thread_id` and CLI `--thread-id` / `host.thread_id`.
 No matching run? → init with the **requirement** title (not a review-slice slug)
 「先不写代码 / 先理解需求 / 先分析」 → ANALYZE only; do not gate PASS / DELIVER
+Cannot confirm the requirement / open product question → ask first; stay in the current phase; do not invent / gate PASS / implement the guess
 Mid-flight drop / 「撤回修改 / 本次不需要了 / 产品砍了」 → abandon (no map)
 Truly new requirement only? → init new run_id
 Cross-repo port? → handoff; if ready → $jj-same
@@ -40,15 +41,16 @@ Conversational path **never** uses `--lite` / `gate brief` / `gate close`. Alway
    - 🔴 **CHECKPOINT:** multiple candidates and no safe inference → list candidate titles in one sentence (run_id optional) for the user to pick — do not make them type the id from memory
    - Naming and map: product default `~/.jj-flow` (`naming.json`, `map.md`, `knowledge/`). Missing home → `jj home init`, then continue. Map join / first-time KB bootstrap → `$jj-init`. `jj doctor` to the user = the short Chinese `user_view`. Never paste doctor JSON.
 2. **intensity** (user speech first): single-point / `tiny` / 文案两字 / 单像素 → `tiny`; auth·protocol / `strict` / review-before-archive → `strict`; else `standard`.
-   - Optional intent is the Goal paragraph in `task_plan.md`. `tiny` skips `## 存疑` unless `--intent`. Analyze-hold answers open questions under `## 存疑`.
+   - Optional intent is the Goal paragraph in `task_plan.md`. `tiny` skips empty `## 存疑` at init unless `--intent`. Open questions (analyze-hold or unconfirmed requirement) go under `## 存疑`.
    - **No second tier.** Do not pass `--lite` / `--full`. Do not take `gate_set?` advisory. Five gates always.
 3. `map-find` **CLI only** — do not Read `business-map.json`. Empty hits are fine. Single-point: [tiny-example.md](references/tiny-example.md).
-4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate), **except** analyze-hold below.
+4. Phases [phases.md](references/phases.md): ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE. **Default mechanical advance: `gate`** (`--no-advance` only flips the gate), **except** unconfirmed requirement and analyze-hold below.
    - MUST/ACCEPT evidence shape: [must-evidence.md](references/must-evidence.md) (`evidence_class`; ban write-then-read false green via static diff only)
    - After every DELIVER verify: `deliver-attempt`. If `improved=false` or `rollback-phase`, the CLI may print a soft hint to record the failure with `ralph_ops.mjs finding` (does **not** block the gate). Prefill 现象/原因 from progress `failed_must` / `over_claimed`; you still write 对策 + 适用范围.
    - **strict** before accept: `accept-layer --layer judgment --status PASS --mode review|recheck`
    - 🔴 **CHECKPOINT (strict):** judgment layer not PASS → do not `gate accept PASS` / `finalize`; fix review or ask user
-   - Once target files are known, go DELIVER; do not re-walk the tree for completeness theater
+   - 🔴 **CHECKPOINT (unconfirmed requirement):** during ANALYZE, or later when a MUST / scope / acceptance fact cannot be confirmed → **ask first**. Write the question under `## 存疑`. Stay in the current phase (or `set-status BLOCKED`); do **not** rollback-phase to ANALYZE. **Do not** invent, **do not** pick a side, **do not** implement the unconfirmed fact, **do not** `gate` the current or next phase (`analyze` / `plan` / `deliver` / `accept` / `archive`) until the user answers in writing
+   - Once target files are known **and the requirement is confirmed**, go DELIVER; do not re-walk the tree for completeness theater
    - 🔴 **CHECKPOINT (analyze-hold):** user said 「先不写代码 / 先理解需求 / 先分析 / 先不改代码」 → write Goal + `## 存疑`; **do not** `gate analyze PASS`, **do not** PLAN/DELIVER, **do not** edit business files, until they say 「开始做吧 / 我认可 / 按这个做 / 继续改」
    - **Same-session continue** (never init): 「继续」 → next unfinished phase of the session-linked run; 「按审查改 / resume 按 review 修」 → DELIVER against latest `NEEDS_CHANGES` (do not re-analyze from scratch); 「改坏了」 → resume, rewrite Steps/验收, append a dated progress section, `deliver-attempt --improved false` (STAGNATION if the same strategy already failed twice); 「修完」 → finish current MUST / verify, do not start a new run
    - Task/approach change (incl. resume after archive): rewrite live Goal / 验收 / Steps to the new contract; leftover `### 当前` → `### 已落地` / `### 已取代` then write new 当前. Do not grow REQ/TASK history in the plan. Active write path no longer treats `## Current` / `## Tasks` as current. Shape: [artifact-layout.md](references/artifact-layout.md)
@@ -85,9 +87,10 @@ map-find → init | resume
 # strict only: accept-layer judgment PASS before gate accept
 # stop only at 🔴 CHECKPOINT or failure table
 # 「先不写代码」: write ANALYZE then STOP (do not auto-advance)
+# unconfirmed requirement: ask + 存疑 then STOP in the current phase (do not invent / pick a side / gate)
 ```
 
-After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. Only stop at 🔴 CHECKPOINTs or the failure table below. Analyze-hold is a CHECKPOINT.
+After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. Only stop at 🔴 CHECKPOINTs or the failure table below. Analyze-hold and unconfirmed requirement are CHECKPOINTs.
 
 ## Tool use (speed)
 
@@ -115,6 +118,7 @@ Batch independent reads in one turn. Target ~15–20 rounds, not 40 serial hops.
 | User wants cross-repo port with uncommitted work | `handoff` → `ready=false`; list blockers | Do not call `$jj-same` as if ready |
 | `close` spoken | Map to `abandon` (drop) or `finalize` (archive) | Never invent a conversational `close` command; never `gate --gate close` |
 | User said 先不写代码 / 先理解需求 / 先分析 | Stay ANALYZE; keep `## 存疑` open; no `gate analyze PASS` | Do not auto-advance into PLAN/DELIVER |
+| Requirement / MUST / scope / acceptance cannot be confirmed | 🔴 ask first; write `## 存疑`; stay in the current phase (or BLOCKED); no `gate` on a guess | Do not invent; do not pick a side; do not PLAN/DELIVER/ACCEPT/ARCHIVE the guess; do not rollback-phase to ANALYZE |
 | Screenshot / 「这里」 present but files still unknown | Read the image; use visible labels as search keys; bind session-linked run | Do not ask the user to retype what the image already shows |
 | 「继续 / 按审查改 / 改坏了」 with a session-linked run | `resume`; do not init | If several candidates, 🔴 list titles — still never demand a typed run_id |
 | Review `NEEDS_CHANGES` / OPEN findings in a write session | Same-turn DELIVER against those findings | Do not wait for the user to say 「修」 |
@@ -229,6 +233,7 @@ User-level append-only rules at `~/.jj-flow/memory/<project_key>.md`. Not a busi
 | 24 | Read `business-map.json` or pad keywords with title/goal sentences | `map-find` CLI; empty is valid |
 | 25 | Call MasterGo MCP on Grok without a MasterGo URL | Skip it. Enable only when the user pasted a MasterGo link |
 | 26 | Write empty F-00N shells (对策/适用范围 blank) | Skip, or write one pitfall with a 对策 |
+| 27 | Guess an unconfirmed requirement / MUST / scope / API path and proceed | Ask first; write `## 存疑`; wait for a written answer |
 
 ## Completion report
 

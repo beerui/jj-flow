@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-07 17:02
+
+- **Ralph 需求确认不了先问**：ANALYZE 以及 MUST / 范围 / 验收事后仍确认不了时禁止猜着做。写 `## 存疑`，停在当前阶段（或 BLOCKED），不 `gate` 当前/下一阶段，不回滚到 ANALYZE。tiny init 只跳过空存疑；确认不了仍写存疑。合约：`tests/jj-ralph-contract.test.mjs`。
 - **jj-review 同会话 follow-up 只审 delta**：同一 bound run 已有 `REV-*` / 宿主审查文件时，禁止再 spawn 全量 reviewer 子代理（Grok `/review` 每次都是 `effective_context_source=new`）。复用上一份 findings，只审相对 `reviewed_commit` 的改动。G-review-1。样本：`docs/evaluations/EP-20260907-grok-review-subagent-waves-report.md`。合约：`tests/jj-review-contract.test.mjs`；回归：`evals/regression/EP-20260907-grok-review-subagent-waves.json`。
 - **实验场钉死新不变量**：Loop gym L1-S9/S10（审查切片拒 init、同会话 `thread_id` 拒第二份）；Family gym L2-S7/S8（`reuse-sibling`、same 不调 `ensureDispatchRalphRuns`）。`findLiveRalphSibling` 同时认 `active` 与 leftover `tasks/`，按 `run_id` 去重，布局混杂时优先唯一 `active` 切片。L1-S9 `--force` 同需求提示须先 seed 非切片 live run。合约：`tests/task-artifacts.test.mjs`；本地 `npm run lab:check`。
 - **Dispatch 同会话复用 Ralph（已批准）**：同一 delivery + 同会话 / 唯一审查切片走 `reuse-sibling`，禁止再 init 空壳；`same` 先复用目标仓 live run，不调 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。回归：`evals/regression/EP-20260904-h5-enter-dual-ralph.json`。

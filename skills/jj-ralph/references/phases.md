@@ -4,7 +4,7 @@ Chat text cannot advance checkpoints. Facts come from `run.json`, phase artifact
 
 | Stage (gloss) | phase | Required artifacts | gates.* PASS conditions |
 | --- | --- | --- | --- |
-| Requirements analysis | `ANALYZE` | `task_plan.md` `## Goal` (+ optional `## 存疑`) | Goal + 验收 checklist; `write-then-read`/`cross-path` still need a real write→read verify (see [must-evidence.md](must-evidence.md)); analyze-hold keeps `## 存疑` open |
+| Requirements analysis | `ANALYZE` | `task_plan.md` `## Goal` (+ optional `## 存疑`) | Goal + 验收 checklist; `write-then-read`/`cross-path` still need a real write→read verify (see [must-evidence.md](must-evidence.md)); analyze-hold / unconfirmed requirement keeps `## 存疑` open |
 | Implementation plan | `PLAN` | `task_plan.md` `## Steps` | Every Step names a file in backticks; 验收 items stay current |
 | Implement & verify | `DELIVER` | Code, dated `progress.md` section, focused verification | Steps done and verification not FAIL; rework loops allowed; `deliver-attempt` (events.jsonl) matches the verify you ran |
 | Acceptance | `ACCEPT` | `task_plan.md` `## 验收` | Checklist items checked with real evidence; ban write-then-read PASS via diff only; **product-consistency**: deliver already PASS; latest review must not be `NEEDS_CHANGES`/`BLOCKED`; `## Steps` paths vs current diff |
@@ -82,7 +82,7 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 ## Lean execution
 
 - Single-point / single-file: shortest Goal + file list + 验收; follow [tiny-example.md](tiny-example.md); prefer `intensity=tiny`.
-- Once files are located, go DELIVER; do not re-search the whole tree for completeness theater.
+- Once files are located **and the requirement is confirmed**, go DELIVER; do not re-search the whole tree for completeness theater. Unconfirmed requirement is a CHECKPOINT (User intervention item 1).
 - Batch independent reads; `offset`/`limit`; do not re-read injected files; do not Read `business-map.json`.
 - Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify; second unchanged attempt writes `instruction-correction.md`.
 - Parallel capacity: one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only.
@@ -106,7 +106,7 @@ Host-level only — not a jj-flow dependency. Same pattern as optional team engi
 
 ## User intervention (only these)
 
-1. Affects MUST/acceptance/scope and cannot be safely inferred
+1. Unconfirmed requirement — 🔴 CHECKPOINT: **ask first**. Do not invent, do not pick a side, do not treat a guess as the spec. Write the question under `## 存疑`. Stay in the current phase (or BLOCKED); do not rollback-phase to ANALYZE. Do not implement the unconfirmed fact or `gate` analyze/plan/deliver/accept/archive until a written answer
 2. Irreversible ops (push, merge, release, delete data) — prepare only, do not execute
 3. Missing secrets/permissions
 4. Human UAT required and static evidence insufficient
@@ -114,7 +114,7 @@ Host-level only — not a jj-flow dependency. Same pattern as optional team engi
 6. User said 先不写代码 / 先理解需求 / 先分析 — stay ANALYZE; no `gate analyze PASS` until 「开始做吧 / 我认可 / 继续改」
 7. Screenshot / 「这里」 / `[Image]` — read the image before searching; it is the spec
 
-After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. **Exception:** analyze-hold (item 6).
+After a phase PASS, auto-advance to the next phase by default; do not ask “continue?”. **Exception:** unconfirmed requirement (item 1) and analyze-hold (item 6).
 
 ## Closeout
 

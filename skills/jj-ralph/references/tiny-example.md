@@ -9,7 +9,7 @@ Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”
 
 - Change exactly 1 business file (plus at most 1 reference implementation file, read-only)
 - No long background; no whole-repo search
-- **No `## 存疑`** unless the user passed `--intent`. `artifact_refs.intent` stays `null`
+- No empty `## 存疑` at init unless `--intent`. `artifact_refs.intent` stays `null` when skipped. Unconfirmed requirement or 「先不写代码」 → write `## 存疑` and ask first (tiny is not exempt)
 - After every DELIVER verification, record `deliver-attempt --improved true|false` (events.jsonl; prevents empty loops)
 
 ## task_plan.md (example)

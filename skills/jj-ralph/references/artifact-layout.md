@@ -29,7 +29,7 @@
 4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
 5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. Live runs sit at `.workflow/ralph/task-*`. `archive` / `abandon` rename into `completed/`; `resume` lifts back and opens a new progress round. Leftover `archive/` folders are historical 1.0 snapshots — `jj ralph migrate --prune-archive` dry-runs removal, `--yes` deletes. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
-7. Intent is the Goal paragraph. `tiny` skips `## 存疑`. Same requirement resume keeps Goal; a truly new requirement may get a new run
+7. Intent is the Goal paragraph. `tiny` skips empty `## 存疑` at init unless `--intent`. Unconfirmed requirement / analyze-hold still write `## 存疑` and ask first. Same requirement resume keeps Goal; a truly new requirement may get a new run
 8. Claimed implementation paths read `task_plan.md` **## Steps** (leftover runs: `## 计划 → ### 当前`). Do not put `#` fragments in `artifact_refs`
 
 ## Current contract vs history
@@ -69,7 +69,7 @@ One paragraph: what changes and for whom.
 2. [ ] `src/router/index.ts` wire beforeEach
 ```
 
-Optional `## 存疑` only for analyze-hold (「先不写代码」). Do not add 分析 / 必须项 / 已落地 / evidence_class tables unless a leftover run already has them.
+Optional `## 存疑` for analyze-hold (「先不写代码」) and for an unconfirmed requirement (ask first; do not invent). Do not add 分析 / 必须项 / 已落地 / evidence_class tables unless a leftover run already has them.
 
 ### File shape (`progress.md`)
 

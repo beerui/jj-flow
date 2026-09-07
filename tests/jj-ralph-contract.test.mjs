@@ -391,7 +391,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'MUST finalize',
     '未完成收尾',
     'jj ralph locate',
-    'jj ralph remediate'
+    'jj ralph remediate',
+    'CHECKPOINT (unconfirmed requirement)',
+    'ask first'
   ]) {
     assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -422,7 +424,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'MUST finalize',
     '未完成收尾',
     'jj ralph locate',
-    'jj ralph remediate'
+    'jj ralph remediate',
+    '确认不了',
+    '不要猜着做'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -438,6 +442,8 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /## Gate set \(deprecated\)/);
   assert.match(phases, /\*\*never\*\* uses `--lite`/);
   assert.match(phases, /先不写代码/);
+  assert.match(phases, /Unconfirmed requirement/);
+  assert.match(phases, /ask first/);
   assert.match(phases, /commit-scoped-review/);
   assert.match(phases, /归档提示/);
   assert.match(read('claude-commands/jj-ralph.md'), /不要.*`--lite`/);
@@ -504,6 +510,45 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(layout, /ralph\/ralphs\//);
   assert.doesNotMatch(layout, /ralphs\/RALPH/);
   assert.doesNotMatch(layout, /ralph\/runs\//);
+});
+
+test('ralph asks first when requirement cannot be confirmed', () => {
+  const skill = read('skills/jj-ralph/SKILL.md');
+  const phases = read('skills/jj-ralph/references/phases.md');
+  const layout = read('skills/jj-ralph/references/artifact-layout.md');
+  const tiny = read('skills/jj-ralph/references/tiny-example.md');
+  const command = read('claude-commands/jj-ralph.md');
+  const userCmd = read('docs/commands/jj-ralph.md');
+  const usage = read('docs/usage.md');
+  assert.match(skill, /CHECKPOINT \(unconfirmed requirement\)/);
+  assert.match(skill, /ask first/);
+  assert.match(skill, /\*\*Do not\*\* invent/);
+  assert.match(skill, /pick a side/);
+  assert.match(skill, /and the requirement is confirmed/);
+  assert.match(skill, /skips empty `## 存疑` at init/);
+  assert.match(skill, /Guess an unconfirmed requirement/);
+  assert.match(skill, /cannot be confirmed/);
+  assert.match(skill, /stay in the current phase \(or BLOCKED\)/);
+  assert.match(skill, /do not rollback-phase to ANALYZE/);
+  assert.match(skill, /ACCEPT\/ARCHIVE the guess/);
+  assert.match(phases, /Unconfirmed requirement/);
+  assert.match(phases, /ask first/);
+  assert.match(phases, /Do not invent, do not pick a side/);
+  assert.match(phases, /do not treat a guess as the spec/);
+  assert.match(phases, /do not rollback-phase to ANALYZE/);
+  assert.match(phases, /gate` analyze\/plan\/deliver\/accept\/archive/);
+  assert.doesNotMatch(skill, /cannot be safely inferred/);
+  assert.doesNotMatch(phases, /cannot be safely inferred/);
+  assert.match(layout, /tiny` skips empty `## 存疑` at init/);
+  assert.match(layout, /unconfirmed requirement \(ask first; do not invent\)/);
+  assert.doesNotMatch(layout, /`tiny` skips `## 存疑`\./);
+  assert.match(tiny, /No empty `## 存疑` at init/);
+  assert.match(tiny, /tiny is not exempt/);
+  assert.doesNotMatch(tiny, /\*\*No `## 存疑`\*\*/);
+  assert.match(command, /需求确认不了先问/);
+  assert.match(userCmd, /确认不了（先问，不要猜着做）/);
+  assert.match(userCmd, /MUST \/ 范围 \/ 验收事后仍确认不了/);
+  assert.match(usage, /MUST \/ 范围 \/ 验收事后仍确认不了/);
 });
 
 test('sample run and business map validate', () => {
