@@ -233,7 +233,7 @@ When this task has uncommitted changes:
 
 If the working tree is already clean for this task, skip commit.
 
-**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → **Final Response** (`已合并到` + current branch) and stop.
+**Nothing to close out**: clean + no unpushed commits + already on integration + already synced with remote → **Final Response** (`已合并：<integration> · 当前在 <integration>`) and stop.
 
 > Commit before sync: avoid a dirty tree that cannot pull. Commit only this task’s files.
 
@@ -365,7 +365,7 @@ git log -1 --oneline <integration>   # if resolvable
 - [ ] Already `merge work` (or explained skip when same branch)
 - [ ] Already push **integration**
 - [ ] Already switched per `return_to`
-- [ ] Final reply follows **Final Response** (two status lines; classify / dry_run tables only on STOP / dry_run)
+- [ ] Final reply follows **Final Response** (one status line; classify / dry_run tables only on STOP / dry_run)
 
 If any item is missing and it is **not** hard-stop / 🔴 CHECKPOINT / **unhandleable** conflict → **finish it**; do not reply with only a plan.
 If hard-stop or 🔴 CHECKPOINT hit → **stay stopped**; do not “finish it”.
@@ -373,25 +373,37 @@ All-`self-merge` conflicts are **not** a stop; classify → resolve → continue
 
 ## Final Response
 
-Closeout finish (landed, already synced, or aborted after `merge --abort` / return to work): **exactly two Chinese lines**. No hash dump, no pushed-branch list, no extra prose.
+Closeout finish (landed, already synced, or aborted after `merge --abort` / return to work): **exactly one Chinese line**. No hash dump, no pushed-branch list, no extra prose.
+
+Default (`return_to=work`, work ≠ integration):
 
 ```text
-合并状态：已合并到：<integration>
-当前分支：<HEAD after return>
+已合并：<work_branch> → <integration> · 当前在 <HEAD after return>（合完默认回到工作分支）
 ```
 
-or, when the merge was rolled back (`merge --abort`, unhandleable, or other closeout abort that left dest unlanded):
+When `return_to=integration` (stay on dest after land), drop the parenthetical:
 
 ```text
-合并状态：已回退：<one-line reason>
-当前分支：<HEAD after return>
+已合并：<work_branch> → <integration> · 当前在 <HEAD after return>
 ```
 
-`当前分支` is `git rev-parse --abbrev-ref HEAD` after step 7 (or after abort return). All-`self-merge` that continued to land uses `已合并到`. Abort is **not** closeout success — use `已回退` plus the classify table when unhandleable.
+Same-branch closeout (`work_branch == integration`):
+
+```text
+已合并：<integration> · 当前在 <integration>
+```
+
+When the merge was rolled back (`merge --abort`, unhandleable, or other closeout abort that left dest unlanded):
+
+```text
+已回退：<one-line reason> · 当前在 <HEAD after return>
+```
+
+`<HEAD after return>` is `git rev-parse --abbrev-ref HEAD` after step 7 (or after abort return). All-`self-merge` that continued to land uses `已合并`. Abort is **not** closeout success — use `已回退` plus the classify table when unhandleable.
 
 The pre-execution `work→integration` plan line still prints before steps 4–6.
 
-**dry_run / user forbade push/merge / hard-stop before merge:** keep the field table / blockers. Do not pretend `已合并到`. If HEAD is known, still print `当前分支：<HEAD>`.
+**dry_run / user forbade push/merge / hard-stop before merge:** keep the field table / blockers. Do not pretend `已合并`. If HEAD is known, still print `当前分支：<HEAD>` in the table (not as the finish line).
 
 ## Boundaries
 

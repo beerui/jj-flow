@@ -48,13 +48,16 @@ test('jj-end asks when task, merge, or requirement is unclear', () => {
   assert.match(skill, /cannot name both/)
 })
 
-test('jj-end finish reply is merge status plus current branch', () => {
+test('jj-end finish reply is one-line merge arrow plus current HEAD', () => {
   assert.match(skill, /## Final Response/)
-  assert.match(skill, /exactly two Chinese lines/)
-  assert.match(skill, /合并状态：已合并到：/)
-  assert.match(skill, /合并状态：已回退：/)
-  assert.match(skill, /当前分支：/)
+  assert.match(skill, /exactly one Chinese line/)
+  assert.match(skill, /已合并：<work_branch> → <integration>/)
+  assert.match(skill, /当前在 <HEAD after return>/)
+  assert.match(skill, /合完默认回到工作分支/)
+  assert.match(skill, /已回退：<one-line reason> · 当前在/)
   assert.match(skill, /Classify table is user-visible only on STOP/)
   assert.match(skill, /do not list auto-resolved files/)
-  assert.doesNotMatch(skill, /\*\*one line\*\* in Chinese/)
+  assert.doesNotMatch(skill, /exactly two Chinese lines/)
+  assert.doesNotMatch(skill, /合并状态：已合并到：/)
+  assert.doesNotMatch(skill, /合并状态：已回退：/)
 })

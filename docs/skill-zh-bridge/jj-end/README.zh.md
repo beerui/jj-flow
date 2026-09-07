@@ -28,7 +28,7 @@ fetch → 解析分支 →（可选）提交 → 同步 work → 推送 work
 | --- | --- |
 | 一次跑完 | 不得中途「只 commit / 只 push」后停等用户（Hard-stop/冲突除外） |
 | 主动收尾 | 实现完成且未禁止 push/merge 时，先打印 `work→integration` 计划再执行到底 |
-| 完成回复 | 两行：`合并状态：已合并到：<目标>` 或 `已回退：<原因>`，加 `当前分支：<HEAD>`；分类表只在合不了 / dry_run 时出现 |
+| 完成回复 | 一行：`已合并：<工作分支> → <目标> · 当前在 <HEAD>（合完默认回到工作分支）` 或 `已回退：<原因> · 当前在 <HEAD>`；分类表只在合不了 / dry_run 时出现 |
 | dry_run / 禁止 push | 只报告计划，不 merge/push |
 | 不写控制面 | 不读/推进 dispatch；调度闭环用 `$jj-dispatch` |
 | end ≠ 关仓 | 只做 Git 落地；ralph 归档/resume 仍走 `$jj-ralph` |

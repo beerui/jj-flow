@@ -31,4 +31,4 @@ Mandatory order:
 
 On conflict: default self-merge — inventory both parents and keep both. Never merge `dev` into the work branch. Never `--ours/--theirs`. Unclear task / merge / requirement → ask first (do not invent or pick a side). Abort only if unhandleable. Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push.
 
-Finish reply: two Chinese lines — `合并状态：已合并到：<integration>` or `合并状态：已回退：<reason>`, then `当前分支：<HEAD>`. Classify table / blockers only on STOP / dry_run / unhandleable abort.
+Finish reply: one Chinese line — `已合并：<work> → <integration> · 当前在 <HEAD>（合完默认回到工作分支）` or `已回退：<reason> · 当前在 <HEAD>`. Classify table / blockers only on STOP / dry_run / unhandleable abort.
