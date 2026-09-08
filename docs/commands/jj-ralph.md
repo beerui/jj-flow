@@ -59,7 +59,7 @@ $jj-ralph 先改项目A：登录成功后如果密码过期要弹提示，只做
 | `progress.md` | 按日期追加的过程记录：做了什么、卡在哪 |
 | `findings.md` | 改动摘要、真踩过的坑、可复用的结论 |
 
-**怎样算做完：** 验收通过并归档——目录已在 `.workflow/ralph/completed/` 下，Agent 给你一段短报告（任务名、验收结果、可复用结论）。归档时可复用结论会记到你本机 `~/.jj-flow/memory/`，下次同一项目开任务会自动带上；要不要再投喂到全局知识库，Agent 只会问你一次，你点头才写。
+**怎样算做完：** 验收通过并归档——目录已在 `.workflow/ralph/completed/` 下，Agent 给你一段短报告（任务名、验收结果、可复用结论）。归档时可复用结论会记到你本机 `~/.jj-flow/memory/`，下次同一项目开任务会自动带上。投喂全局知识库只在你主动提出时进行。
 
 > 聊天里说“做完了”不算数。算数的是任务目录里的记录和 `git diff`。
 
@@ -90,13 +90,13 @@ $jj-ralph 我认可你的方案，开始做吧
 **小改**——分析和计划写短，仍走五步：
 
 ```text
-$jj-ralph tiny：tip 的 bottom 从 4px 改成 6px
+$jj-ralph tip 的 bottom 从 4px 改成 6px
 ```
 
-**严一点**——鉴权、协议这类改动，验收前多一道审查/复检：
+**明确验收要求**——直接说清要达到什么结果：
 
 ```text
-$jj-ralph strict：刷新 token 失败要重登，审查过再归档
+$jj-ralph 刷新鉴权 token 失败要重登，审查过再归档
 ```
 
 ## 做完之后
@@ -117,23 +117,11 @@ $jj-ralph strict：刷新 token 失败要重登，审查过再归档
 
 ## 进阶
 
-### 强度档
-
-口语里点名即可，不说就是 standard。
-
-| 档 | 什么时候 | 差别 |
-|----|----------|------|
-| **tiny** | 单文件、单像素、改个文案 | 分析和计划写得很短 |
-| **standard** | 正常做完一个功能 | 默认 |
-| **strict** | 鉴权、协议、做完要迁仓怕迁歪 | 验收前多一道审查或复检，没过不归档 |
-
-三档都走完整五步，tiny 不是少走步骤，只是少写字。
-
 ### CLI `--lite` 与旧记录
 
-对话路径**不用** `--lite`。CLI 仍保留该开关兼容旧记录：只适合小范围任务，验收和归档仍然完整走一遍；范围变大、验收失败或证据不足会**自动升回 full**。普通 `tiny` **不会**切到该档。
+对话路径**不用** `--lite`。机械 CLI 保留该开关兼容旧记录；普通对话沿用同一条流程，仍走五步。
 
-旧任务或维护记录里可能看到 `intensity`、`CAP-login-reminder`、`DEL-password`、`task-login-reminder` 等机器标识；它们只是记录用的名字，不需要你记，也不是新的输入格式。`控制项目`只负责多项目调度，单仓 ralph 仍应在业务仓里运行。
+旧任务或维护记录里可能看到 `CAP-login-reminder`、`DEL-password`、`task-login-reminder` 等机器标识；它们只是记录用的名字，不需要你记，也不是新的输入格式。`控制项目`只负责多项目调度，单仓 ralph 仍应在业务仓里运行。
 
 ### 卡住时
 
@@ -164,6 +152,8 @@ $jj-ralph task-login-reminder 继续
 ### 收尾与存量任务
 
 验收通过后 **MUST finalize**：它会合并地图、提升可复用结论，并把任务目录归档进 `completed/`。只翻 archive 门或不跑 finalize，任务会留在活跃层；`status` 会提示 `next: finalize`，如果 `phase=ARCHIVE` 仍在活跃目录，就提示“未完成收尾”，先跑 `gate` / `status` 核对。
+
+默认验收后直接归档。你要求审查或门禁需要审查证据时，Agent 才跟进审查；提交代码仍需要你的授权。若已有工作区审查需要补提交后的审查，Agent 会先准备改动清单并说明缺少的证据。
 
 需要查活跃或已归档任务时，可以用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。要更新宿主旧副本，可用 `jj install-skill --platform agents --force`。
 

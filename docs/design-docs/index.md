@@ -17,6 +17,7 @@
 |------|------|
 | [Agent Harness](harness-engineering.md) | Implemented（H0–H5；Grok Wave 2 / A2 已关闭） |
 | [jj-ralph](jj-ralph.md) | Implemented |
+| [Ralph 对话协议瘦身](ralph-skill-slim.md) | Implemented（入口精简、静默推断、CAP 检索、交付折叠与合约拆分） |
 | [任务分配 UX](task-assignment-ux.md) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.md) | Implemented |
 | [Ralph → 知识库贡献](ralph-knowledge-contribute.md) | Proposed（归档投喂全局 KB） |

@@ -26,7 +26,7 @@
 1. Handoff source of truth: `run.handoff`
 2. Do not write external `.workflow/handoffs/` or csv-wave HOF bulk packages
 3. Naming follows naming config (`jj doctor` / `JJ_GLOBAL_CONFIG_DIR`; **never** hard-code host-local paths)
-4. Scripts: `scripts/ralph_ops.mjs` (includes `deliver-attempt` / `accept-layer` / `resume` / `abandon`)
+4. Scripts: `scripts/ralph_ops.mjs`; syntax and conditional mechanical operations live in [ops.md](ops.md)
 5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. Live runs sit at `.workflow/ralph/task-*`. `archive` / `abandon` rename into `completed/`; `resume` lifts back and opens a new progress round. Leftover `archive/` folders are historical 1.0 snapshots — `jj ralph migrate --prune-archive` dry-runs removal, `--yes` deletes. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
 7. Intent is the Goal paragraph. `tiny` skips empty `## 存疑` at init unless `--intent`. Unconfirmed requirement / analyze-hold still write `## 存疑` and ask first. Same requirement resume keeps Goal; a truly new requirement may get a new run
@@ -90,7 +90,7 @@ Dated human narrative. Read the last ~30 lines on resume. Do not paste ISO `gate
 - 单测 13 PASS
 ```
 
-`resume` / approach change: append `## YYYY-MM-DD — <reason>`. Never rewrite an earlier date section.
+`resume` / approach change: append `## YYYY-MM-DD — resume` plus the reason. Do not stamp a stub `进行中` — progress is append-only, so a placeholder can never be filled in. Write a result line only when there is a real outcome. Never rewrite an earlier date section.
 
 ### File shape (`findings.md`)
 

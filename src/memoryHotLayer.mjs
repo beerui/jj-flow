@@ -377,6 +377,10 @@ export function appendFindingsEntry(text, {
   evidence = '',
   rule = ''
 } = {}) {
+  const remedy = String(action || '').trim();
+  const appliesTo = String(scope || '').trim();
+  if (!remedy) throw new Error('finding 对策不能为空 (--action)');
+  if (!appliesTo) throw new Error('finding 适用范围不能为空 (--scope)');
   let body = String(text || '');
   if (!body.trim()) body = defaultFindingsStub();
   const findingId = id || nextFindingId(body);
@@ -385,8 +389,8 @@ export function appendFindingsEntry(text, {
     `### ${heading}`,
     `- 现象: ${String(phenomenon || '').trim()}`,
     `- 原因: ${String(cause || '').trim()}`,
-    `- 对策: ${String(action || '').trim()}`,
-    `- 适用范围: ${String(scope || '').trim()}`,
+    `- 对策: ${remedy}`,
+    `- 适用范围: ${appliesTo}`,
     ...(String(cost || '').trim() ? [`- 代价: ${String(cost).trim()}`] : []),
     `- 证据: ${String(evidence || '').trim()}`,
     ''

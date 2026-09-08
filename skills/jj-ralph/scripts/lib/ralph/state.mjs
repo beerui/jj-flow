@@ -609,10 +609,14 @@ export function loadRun(runId, cwd = process.cwd()) {
 export function saveRun(run, cwd = process.cwd()) {
   assertWritableRun(run);
   if (isLegacyRalphRunId(run.run_id)) throw new Error(migrateHint(run.run_id));
-  const errors = validateRun(run);
-  if (errors.length) throw new Error('invalid run: ' + errors.join('; '));
   const copy = { ...run };
-  delete copy._readonly_archive_path;
+  // init results may be saved again by dispatch after binding family metadata.
+  // These annotations belong to responses/events, not the versioned run schema.
+  for (const key of ['_readonly_archive_path', 'reuse_suggestions', 'gate_set_suggestion', 'intensity_inference', 'map_find']) {
+    delete copy[key];
+  }
+  const errors = validateRun(copy);
+  if (errors.length) throw new Error('invalid run: ' + errors.join('; '));
   const saved = runJsonPath(copy.run_id, cwd);
   writeJson(saved, copy);
   try {
@@ -1115,12 +1119,13 @@ export function appendProgressRound(runId, cwd, { title, goal, result = null, fi
   const at = nowIso();
   const day = at.slice(0, 10);
   const heading = title ? ('## ' + day + ' — ' + title) : ('## ' + day);
+  const resultText = result == null ? '' : String(result).trim();
   const block = [
     '',
     heading,
     '',
     goal ? ('- ' + goal) : null,
-    '- ' + (result || '进行中'),
+    resultText ? ('- ' + resultText) : null,
     findingHint ? ('> finding 软提示：' + findingHint) : null,
     ''
   ].filter((row) => row !== null).join(nl);

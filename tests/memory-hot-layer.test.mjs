@@ -186,6 +186,19 @@ test('appendFindingsEntry numbers F-00N and can add reusable rule', () => {
   assert.equal(rules.length, 2);
 });
 
+test('appendFindingsEntry rejects empty remedies and applicable scope before creating a shell', () => {
+  const source = defaultFindingsStub();
+  for (const empty of [undefined, null, '', '  ', '\n\t']) {
+    assert.throws(() => appendFindingsEntry(source, { action: empty, scope: '登录表单' }), /对策不能为空.*--action/);
+    assert.throws(() => appendFindingsEntry(source, { action: '先确认字段', scope: empty }), /适用范围不能为空.*--scope/);
+  }
+  const result = appendFindingsEntry(source, { action: '  先确认字段  ', scope: '  登录表单  ' });
+  assert.match(result.text, /- 对策: 先确认字段\n/);
+  assert.match(result.text, /- 适用范围: 登录表单\n/);
+  assert.equal(result.id, 'F-001');
+  assert.equal(countFindingHeadings(source), 0);
+});
+
 test('parseProgressDraft keeps the latest complete failed_must / over_claimed pair', () => {
   const draft = parseProgressDraft([
     '- failed_must: old',
@@ -364,10 +377,13 @@ test('deliver-attempt improved=false and rollback emit finding_hint until an F e
 
 test('ralph and dispatch skills mention hot memory injection', () => {
   const ralph = fs.readFileSync(path.join(root, 'skills/jj-ralph/SKILL.md'), 'utf8');
+  const integrations = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/integrations.md'), 'utf8');
+  const ops = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/ops.md'), 'utf8');
   const dispatch = fs.readFileSync(path.join(root, 'skills/jj-dispatch/SKILL.md'), 'utf8');
-  assert.match(ralph, /ralph_ops\.mjs finding/);
-  assert.match(ralph, /~\/\.jj-flow\/memory/);
-  assert.match(ralph, /knowledge-confirm/);
+  assert.match(ralph, /\[integrations\.md\]\(references\/integrations\.md\)/);
+  assert.match(ops, /ralph_ops\.mjs finding/);
+  assert.match(integrations, /~\/\.jj-flow\/memory/);
+  assert.match(integrations, /knowledge-confirm/);
   assert.match(dispatch, /~\/\.jj-flow\/memory/);
   assert.match(dispatch, /Hot memory/);
 });

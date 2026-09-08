@@ -22,6 +22,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [Ralph 对话协议瘦身](completed/2026-09-07-ralph-skill-slim.md) | 22 项完成；77 行入口、静默推断、自动 CAP、交付折叠、9 模块合约拆分与五宿主安装。Ralph 76/76；全量 422/422 |
 | [Ralph 自动结案](completed/2026-09-04-ralph-auto-closeout.md) | 主路径 PR #30；后续补录设计文档（非修订 10）、`locate` next、`~/.agents` 分发与 retired 清理、`jj ralph remediate`。合约 56/56；全量 381/381 |
 | [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.md) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；收口批已升 gym pin（`lab:check` 回绿）并修复 lite 预算出口残留 BLOCKED |
 | [文档站 VitePress 迁移与文案改版](completed/2026-09-03-docs-site-vitepress.md) | VitePress 站点、侧栏自动索引、旧地址跳转、`docs:check` / Harness 对齐，以及 init / ralph / same / dispatch / review / end / team / evaluated 新手文档已完成；`npm run verify`、`npm run docs:build` 通过 |

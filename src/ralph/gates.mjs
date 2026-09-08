@@ -391,6 +391,84 @@ export function readRunArtifactText(run, key, cwd) {
   throw new Error('artifact_refs.' + key + ' missing file: ' + normalized);
 }
 
+/** Ignore examples/comments so a quoted plan cannot satisfy the live contract. */
+function visiblePlanText(text) {
+  let fence = null;
+  return String(text || '').replace(/<!--[\s\S]*?(?:-->|$)/g, '').split(/\r?\n/).filter((line) => {
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length) fence = null;
+      return false;
+    }
+    return !fence;
+  }).join('\n');
+}
+
+function planItems(section) {
+  const items = [];
+  let current = null;
+  for (const raw of section.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || /^#{1,6}\s/.test(line)) continue;
+    const list = /^(\s*)(?:[-*+]|\d+[.)、])(?:\s+|$)(.*)$/.exec(raw);
+    const indent = /^\s*/.exec(raw)[0].length;
+    if (!list && current && indent > current.indent) {
+      current.body += '\n' + line;
+      continue;
+    }
+    const body = list ? list[2].trim() : line;
+    const checkbox = /^\[([ xX])\](?:\s+|$)/.exec(body);
+    current = {
+      body: checkbox ? body.slice(checkbox[0].length).trim() : body,
+      checked: Boolean(checkbox && checkbox[1].toLowerCase() === 'x'),
+      unchecked: Boolean(checkbox && checkbox[1] === ' '),
+      list: Boolean(list),
+      indent
+    };
+    items.push(current);
+  }
+  return items;
+}
+
+function isStepFileRef(value, cwd) {
+  const file = value.trim().replaceAll('\\', '/').replace(/:\d+(?::\d+)?$/, '');
+  if (!file || file.includes('://') || /[=`|<>*?()]/.test(file)) return false;
+  if (!/\s/.test(file) && (classifyScopeEntry(file) === 'file' || /(?:^|\/)(?:Dockerfile|Makefile|LICENSE|\.gitignore|\.npmrc|\.nvmrc)$/.test(file))) return true;
+  try {
+    return fs.statSync(path.resolve(cwd, file)).isFile();
+  } catch {
+    return false;
+  }
+}
+
+/** Conversational preflight only; mechanical setGate deliberately does not inspect artifacts. */
+export function inspectAnalyzePlanArtifacts(run, cwd = process.cwd()) {
+  let text;
+  try {
+    text = readRunArtifactText(run, 'plan', cwd);
+  } catch (error) {
+    if (!/^artifact_refs\.plan missing file:/.test(error.message)) throw error;
+    text = '';
+  }
+  text = visiblePlanText(text);
+  const meaningful = (item) => /[\p{L}\p{N}]/u.test(item.body);
+  const goalOk = planItems(extractMarkdownSection(text, 'Goal')).some(meaningful);
+  const acceptanceOk = planItems(extractMarkdownSection(text, '验收')).some(meaningful);
+  const stepItems = planItems(extractMarkdownSection(text, 'Steps'));
+  const steps = stepItems.some((item) => item.list) ? stepItems.filter((item) => item.list) : stepItems;
+  const planOk = steps.length > 0 && steps.every((item) => meaningful(item)
+    && [...item.body.matchAll(/`([^`\n]+)`/g)].some((match) => isStepFileRef(match[1], cwd)));
+  const unanswered = planItems(extractMarkdownSection(text, '存疑'))
+    .filter((item) => !item.checked && (item.unchecked || meaningful(item)))
+    .map((item) => item.body || '[ ]');
+  const missing = [];
+  if (!goalOk) missing.push('Goal');
+  if (!acceptanceOk) missing.push('验收');
+  if (!planOk) missing.push('Step file backticks');
+  return { unanswered_open_questions: unanswered, goal_ok: goalOk, acceptance_ok: acceptanceOk, plan_ok: planOk, missing };
+}
+
 export function collectClaimedImplementationPaths(run, cwd = process.cwd()) {
   const claimed = [];
   if (Array.isArray(run?.scope?.in)) {
@@ -563,7 +641,7 @@ export function evaluateAcceptJudgment(run, { force = false } = {}) {
       reasons.push(
         'strict intensity requires accept_layers.judgment=PASS (current='
         + (layers.judgment || 'missing')
-        + '); use setAcceptLayer --layer judgment --status PASS after review/recheck'
+        + '); record a passing review (review-record), then retry gate accept'
       );
     }
   }
@@ -1107,6 +1185,54 @@ export function suggestGateSet({ title = '', goal = '', scope = null, capability
   };
 }
 
+/** Engine-only init inference. The legacy gate-set heuristic remains advisory and unchanged. */
+export const INTENSITY_HEURISTIC = Object.freeze({
+  max_scope_in: 1,
+  extra_small_terms: /两字/i,
+  review_before_archive: /审查过再归档|先审查再归档|审查后再归档|审查过再|review-before-archive|review before archive/i
+});
+
+export function suggestIntensity({ title = '', goal = '', scope = null, capability_ids = [] } = {}) {
+  const wording = [title, goal].map((part) => String(part == null ? '' : part)).join(' ').trim();
+  const scopeIn = (Array.isArray(scope?.in) ? scope.in : [])
+    .map((entry) => String(entry == null ? '' : entry).trim()).filter(Boolean);
+  const smallWording = GATE_SET_HEURISTIC.small_change_terms.test(wording)
+    || INTENSITY_HEURISTIC.extra_small_terms.test(wording);
+  const narrow = scopeIn.length <= INTENSITY_HEURISTIC.max_scope_in
+    && scopeIn.every((entry) => classifyScopeEntry(entry) === 'file');
+  const surface = !narrow ? 'wide' : (smallWording ? 'small' : 'unknown');
+  const architectureTerms = unique(
+    (wording + ' ' + scopeIn.join(' ')).match(new RegExp(GATE_SET_HEURISTIC.architecture_terms.source, 'gi')) || []
+  ).map((term) => term.toLowerCase());
+  const capabilityCount = Array.isArray(capability_ids)
+    ? capability_ids.filter((id) => id != null && String(id).trim()).length : 0;
+  const acceptanceItems = Math.max(countAcceptanceItems(goal), capabilityCount);
+  const reviewRequired = INTENSITY_HEURISTIC.review_before_archive.test(wording);
+  const tinyCandidate = surface === 'small' && acceptanceItems === 1;
+  const strict = architectureTerms.length > 0 || reviewRequired;
+  const intensity = strict ? 'strict' : (tinyCandidate ? 'tiny' : 'standard');
+  const reasons = [
+    'surface:' + surface + ' (scope.in=' + scopeIn.length + '; small_wording=' + smallWording + ')',
+    architectureTerms.length ? 'architecture:' + architectureTerms.join(',') : 'architecture:none',
+    acceptanceItems === 1 ? 'acceptance:single' : 'acceptance:multiple (' + acceptanceItems + ')'
+  ];
+  if (reviewRequired) reasons.push('review:before-archive');
+  if (tinyCandidate && strict) reasons.push('precedence:strict (tiny∧strict)');
+  return {
+    intensity,
+    applied: true,
+    reasons,
+    signals: {
+      surface,
+      scope_in: scopeIn.length,
+      small_wording: smallWording,
+      architecture_terms: architectureTerms,
+      acceptance_items: acceptanceItems,
+      review_before_archive: reviewRequired
+    }
+  };
+}
+
 /** One ledger key, in memory. close PASS reuses this for accept then archive, so no evidence gate is skipped. */
 function applyGateKey(run, gate, status, { cwd, advance, force, diff_paths, deleted_paths }) {
   if (status === 'PASS' && (gate === 'accept' || gate === 'archive')) {
@@ -1152,6 +1278,12 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
   if (!GATE_STATUS.includes(status)) throw new Error('invalid gate status: ' + status);
   const run = hydrateIntensityFields(loadRun(runId, cwd));
   const { alias, keys } = resolveGateKeys(gate, run);
+  return persistGateTransition(run, { gate, status, keys, alias, cwd, advance, force, diff_paths, deleted_paths });
+}
+
+/** One ledger save after all in-memory gate checks; index/events remain derived, separate writes. */
+function persistGateTransition(run, { gate, status, keys, alias = null, cwd, advance, force = false, diff_paths = null, deleted_paths = null }) {
+  const runId = run.run_id;
   for (const key of keys) {
     applyGateKey(run, key, status, { cwd, advance, force, diff_paths, deleted_paths });
   }
@@ -1185,6 +1317,19 @@ export function setGate(runId, { gate, status, cwd = process.cwd(), advance = tr
     gate_set: run.gate_set,
     promotion
   };
+}
+
+/** Used only by the conversational wrapper. Does not change setGate or legacy aliases. */
+export function passDeliverGates(runId, { cwd = process.cwd(), advance = true } = {}) {
+  const run = hydrateIntensityFields(loadRun(runId, cwd));
+  assertWritableRun(run);
+  const inspection = inspectAnalyzePlanArtifacts(run, cwd);
+  const reasons = inspection.missing.map((item) => 'missing ' + item + ' in task_plan.md');
+  if (inspection.unanswered_open_questions.length) reasons.push('unanswered ## 存疑 in task_plan.md: ' + inspection.unanswered_open_questions.join('; '));
+  if (reasons.length) throw new Error('deliver artifact check blocked PASS: ' + reasons.join('; '));
+  const keys = ['analyze', 'plan'].filter((key) => run.gates[key] !== 'PASS');
+  keys.push('deliver');
+  return { ...persistGateTransition(run, { gate: 'deliver', status: 'PASS', keys, cwd, advance }), folded: true };
 }
 
 /** Apbacent phase rollback edges (ARCHIVE → ACCEPT allowed for same-run resume after soft archive). */

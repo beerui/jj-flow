@@ -23,7 +23,7 @@ Same requirement always prefers the same `run_id`. New run only for a truly new 
 ## Autonomy loop
 
 ```text
-Read run.json + last 30 lines of progress.md + Git (map-find CLI, not the JSON)
+Read run.json + last 30 lines of progress.md + Git (never Read business-map.json)
   → do next Step
   → append a dated progress section
   → verify FAIL and iteration < max → stay in DELIVER
@@ -36,13 +36,13 @@ Read run.json + last 30 lines of progress.md + Git (map-find CLI, not the JSON)
 
 ## Intensity
 
-`init --intensity tiny|standard|strict` writes `run.intensity` plus default `budget` / `stagnation` / `accept_layers`. Missing intensity and legacy runs = `standard`.
+`run.intensity` is an engine field (`tiny|standard|strict`) driving `budget` / `stagnation` / `accept_layers`. Init infers it before creating the skeleton unless a mechanical override is present; resume never re-infers. Legacy missing fields still hydrate to `standard`. The conversational wrapper rejects `--intensity`; mechanical overrides remain `jj ralph init --intensity` / `initRun({ intensity })`. See [ops.md](ops.md).
 
 | intensity | max_iterations | PLAN | DELIVER | ACCEPT judgment layer |
 | --- | --- | --- | --- | --- |
 | `tiny` | 8 | Shortest (see tiny-example) | Single track; early stop on stagnant `deliver-attempt` | Default SKIPPED allowed |
 | `standard` | 20 | Normal short plan | Same | Honor review if present; else SKIPPED |
-| `strict` | 12 | Prefer 2–3 options in `plan_options` | Tighter budget | **Must** `accept_layers.judgment=PASS` (review/recheck) |
+| `strict` | 12 | Optional `plan_options` remains supported | Tighter budget | **Must** `accept_layers.judgment=PASS` (review/recheck) |
 
 Mechanical steps:
 
@@ -65,7 +65,7 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 
 ## Gate set (deprecated)
 
-Conversational `$jj-ralph` **never** uses `--lite` / `brief` / `close`. Always ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE. Ignore init `gate_set?` text. `tiny` only shortens the plan.
+Conversational `$jj-ralph` **never** uses `--lite` / `brief` / `close`. Always ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE. Text init no longer prints `gate_set?`; JSON may carry the advisory without changing the ledger. `tiny` only shortens the plan.
 
 CLI `--lite` may still exist for leftover runs. Do **not** start a new conversational run with it. If you load `gate_set=lite`, walk the five gates (or let any FAIL / `scope --in` promote to full). Do not teach the user a second tier.
 
@@ -81,7 +81,7 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 
 ## Lean execution
 
-- Single-point / single-file: shortest Goal + file list + 验收; follow [tiny-example.md](tiny-example.md); prefer `intensity=tiny`.
+- Single-point / single-file: shortest Goal + file list + 验收; follow the [single-point example](tiny-example.md).
 - Once files are located **and the requirement is confirmed**, go DELIVER; do not re-search the whole tree for completeness theater. Unconfirmed requirement is a CHECKPOINT (User intervention item 1).
 - Batch independent reads; `offset`/`limit`; do not re-read injected files; do not Read `business-map.json`.
 - Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify; second unchanged attempt writes `instruction-correction.md`.
@@ -106,7 +106,7 @@ Host-level only — not a jj-flow dependency. Same pattern as optional team engi
 
 ## User intervention (only these)
 
-1. Unconfirmed requirement — 🔴 CHECKPOINT: **ask first**. Do not invent, do not pick a side, do not treat a guess as the spec. Write the question under `## 存疑`. Stay in the current phase (or BLOCKED); do not rollback-phase to ANALYZE. Do not implement the unconfirmed fact or `gate` analyze/plan/deliver/accept/archive until a written answer
+1. Unconfirmed requirement — 🔴 CHECKPOINT: **ask first** when a requirement / MUST / scope / acceptance cannot be confirmed. Do not invent, do not pick a side, do not treat a guess as the spec. Write the question under `## 存疑`; stay in the current phase (or BLOCKED), do not rollback-phase to ANALYZE. Do not implement the unconfirmed fact or `gate` analyze/plan/deliver/accept/archive until a written answer; never ACCEPT/ARCHIVE the guess.
 2. Irreversible ops (push, merge, release, delete data) — prepare only, do not execute
 3. Missing secrets/permissions
 4. Human UAT required and static evidence insufficient
@@ -119,15 +119,38 @@ After a phase PASS, auto-advance to the next phase by default; do not ask “con
 ## Closeout
 
 ```text
-review（可先 working_tree）→ commit → review-record --review-scope commit
-→ gate accept PASS → MUST finalize → $jj-end
+deliver-attempt → ralph_ops gate deliver PASS (checks Goal / 验收 / Steps, folds analyze + plan)
+→ gate accept PASS → MUST finalize
 ```
 
+- Conversational `gate deliver PASS` must use `ralph_ops`: it checks actual Goal / 验收 content, a file in backticks in every Step, and unanswered `## 存疑`. Empty checkbox stubs are not artifacts; empty 存疑 and checked answers do not block. It applies analyze/plan/deliver in memory before one ledger save. Failed checks write no gates; interrupted event/index writes are recoverable from the ledger, not a cross-file transaction.
+- Mechanical `setGate` / `jj ralph gate --gate deliver` still write only the requested gate. Falling back to this command is **degraded unfold**: analyze/plan remain unchanged, so do not finalize through that conversational fallback; restore `ralph_ops`. Explicit analyze/plan remain available for mechanical recovery, not as the default chain.
+- CAP lookup is built into init/resume (cap 5); use the returned `map_find` hits or leave empty hits empty. The lookup is not a separate Agent command, and its results are not ledger fields.
+- Default closeout is accept → finalize. Review / `review-record` is a follow-up only when the user requests it, `next=review` / `commit-scoped-review`, or a gate error asks for a passing review. `$jj-end` is not part of this chain.
+- `next=commit-scoped-review` requires commit evidence, not permission to commit. Use existing session authorization; otherwise prepare `commit-prep` and explain the missing approval/evidence. Never present a working-tree review as commit-scoped or bypass the archive gate.
 - Follow `jj ralph status` `next`. `NEEDS_CHANGES`/`BLOCKED` → `review` (not `gate accept`). accept PASS + latest PASS on `working_tree` → `commit-scoped-review` (not `finalize`). accept PASS with no blocking review and no leftover resume window → `finalize`. COMPLETED in `completed/` → no next.
 - After accept PASS, **MUST `finalize`** = map-merge + in-place archive (re-archive allowed; appends `archive_history`). `status` / `ralph_ops status` print `next: finalize` until `run.archive` exists. `phase=ARCHIVE` while the run is still on the live root (including the resume→rollback window) prints a second warning: `phase=ARCHIVE 未完成收尾——先跑 gate/status 核对`. `locate` rows carry the same `next` / `closeout`; leftover runs: `jj ralph remediate` (dry-run) then `--yes`. `$jj-end` is Git only and does not write the run.
 - Stepwise: `map-merge` then `archive`; do not archive without map.
 - Further edits: `resume` same run → re-verify → may `finalize` again. After resume, leftover `run.archive` is **not** an immediate finalize MUST (`next=check`).
 - Drop mid-flight: `abandon`; can `resume` later. Conversational `close` is deprecated.
+
+## Failure modes
+
+| Signal | Recovery |
+| --- | --- |
+| Missing `~/.jj-flow` | `jj home init`, then continue; map join / first-time bootstrap uses `$jj-init`. |
+| Empty CAP or portfolio results | Continue with focused source exploration; keep empty hits empty, never Read `business-map.json` or pad unrelated history. |
+| Verify FAIL below the iteration ceiling | Stay DELIVER, rework and record `deliver-attempt`; at MAX_ITERATIONS report the blocker. |
+| Same strategy fails twice | Change strategy; honor STAGNATION and `instruction-correction.md`, do not repeat a third unchanged attempt. |
+| Dirty work would be overwritten | Preserve user changes and resolve the conflict; no silent stash/reset. |
+| Handoff `ready=false` | Report `blocked_reasons`; do not start a port as if the source were ready. |
+| Spoken “close” | Resolve intent to `abandon` or `finalize`; no conversational `gate close`. |
+| Review findings in an authorized write task | Resume the same feature run and fix findings; do not create a review-fix task. A review-only invocation remains read-only. |
+| User changes approach or says 改坏了 | Rewrite Goal / 验收 / Steps, append dated progress, then re-verify; keep history out of the live plan. |
+| Judgment gate asks for a passing review | Follow `review-record` instructions, then retry `gate accept`; never invent a PASS or a commit SHA. |
+| Unconfirmed requirement or analyze-hold | Apply the User intervention checkpoints above before any gate or implementation. |
+
+Use [ops.md](ops.md) for conditional `rollback-phase` / `set-status` / review operations. Batch independent reads; use `offset`/`limit`, and read only the last ~30 progress lines. Tool integrations and knowledge rules live in [integrations.md](integrations.md).
 - Truly new requirement only → `init` a new run.
 - `index.md` `## 归档提示`: live `task-*` **> 5** or any live `updated_at` **≥ 5 days** → prompt only. Never auto finalize/abandon. Certain (accept PASS, no blocking review) may suggest `finalize`; PAUSED / BLOCKED / mid-flight / cannot tell finalize vs abandon → **ask the user**.
 

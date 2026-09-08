@@ -36,6 +36,11 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
     if (a.startsWith('--')) {
+      const equals = a.indexOf('=');
+      if (equals !== -1) {
+        out[a.slice(2, equals)] = a.slice(equals + 1);
+        continue;
+      }
       const key = a.slice(2);
       const next = argv[i + 1];
       if (!next || next.startsWith('--')) out[key] = true;
@@ -69,9 +74,7 @@ Resolve library:
   5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
 
 Commands:
-  init --run-id task-x --title "..." --goal "..." [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
-                 (gate_set defaults to full; --lite = brief→deliver→close with max_deliver_loops≤3, auto-promotes to full on FAIL/BLOCKED or scope growth;
-                  without a flag the output carries gate_set_suggestion — advisory only, run.json stays full)
+  init --run-id task-x --title "..." --goal "..." [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
   status [--run-id task-x] [--cwd DIR]
   locate [--run-id task-x] [--cwd DIR]
   remediate [--yes] [--force] [--cwd DIR]
@@ -83,8 +86,7 @@ Commands:
   finding --run-id task-x --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--title "…"] [--cost "…"] [--evidence "…"] [--cwd DIR]
   knowledge-confirm --needle "…" [--project KEY] [--cwd DIR]
   knowledge-prune [--project KEY] [--cwd DIR]
-  gate --run-id task-x --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|... [--no-advance] [--cwd DIR]
-                 (brief/close are lite-only aliases; they still write the five ledger keys and close runs the accept/archive evidence gates)
+  gate --run-id task-x --gate analyze|plan|deliver|accept|archive --status PASS|FAIL|... [--no-advance] [--cwd DIR]
   scope --run-id task-x [--in a,b] [--out c,d] [--cwd DIR]
                  (append scope entries; new --in paths on a lite run promote gate_set to full)
   deliver-attempt --run-id task-x [--improved true|false|auto] [--signal text] [--cwd DIR]
@@ -101,6 +103,8 @@ Commands:
   review-record --run-id task-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
   migrate [--all-projects] [--cwd DIR]
   adopt --task task-x [--from RALPH-x] [--absorb task-y] [--cwd DIR]
+
+Mechanical compatibility controls: use jj ralph; see references/ops.md.
 `);
 }
 
@@ -192,6 +196,14 @@ async function main() {
     process.exit(cmd ? 1 : 0);
   }
 
+  for (const flag of ['lite', 'full', 'intensity']) {
+    if (Object.hasOwn(args, flag)) {
+      die('对话包装不接受 --' + flag + '；机械覆写请用 jj ralph init --' + flag + '（详见 references/ops.md）');
+    }
+  }
+  if (cmd === 'gate' && (args.gate || args.phase) && !['analyze', 'plan', 'deliver', 'accept', 'archive'].includes(args.gate || args.phase)) {
+    die('对话包装 gate 只接受 analyze|plan|deliver|accept|archive 五键；遗留别名请用 jj ralph gate');
+  }
   const cwd = path.resolve(args.cwd || process.cwd());
   const { mod, resolved } = await loadRalph(cwd);
   const {
@@ -207,6 +219,7 @@ async function main() {
     commitPrep,
     recordReview,
     setGate,
+    passDeliverGates,
     rollbackPhase,
     setRunStatus,
     resumeRun,
@@ -237,10 +250,6 @@ async function main() {
         scope: { in: splitList(args.in), out: splitList(args.out) },
         capability_ids: splitList(args.capability),
       };
-      if (args.intensity) initOpts.intensity = args.intensity;
-      if (args.lite && args.full) die('init: use --lite or --full, not both');
-      if (args.lite) initOpts.gate_set = 'lite';
-      if (args.full) initOpts.gate_set = 'full';
       if (args['max-iterations'] != null && args['max-iterations'] !== true) {
         initOpts.max_iterations = Number(args['max-iterations']);
       }
@@ -263,7 +272,9 @@ async function main() {
         max_iterations: run.max_iterations,
         max_deliver_loops: run.budget?.max_deliver_loops ?? null,
         gate_set_suggestion: run.gate_set_suggestion || null,
-        path: path.relative(cwd, path.join(cwd, '.workflow', 'ralph', 'tasks', run.run_id)).replaceAll('\\', '/'),
+        intensity_inference: run.intensity_inference || null,
+        map_find: run.map_find,
+        path: path.relative(cwd, mod.runDir(run.run_id, cwd)).replaceAll('\\', '/'),
         reuse_suggestions: run.reuse_suggestions || [],
         resolved,
       });
@@ -413,7 +424,9 @@ async function main() {
       const status = args.status;
       if (!runId || !gate || !status) die('gate needs --run-id --gate --status');
       if (typeof setGate !== 'function') die('resolved ralph.mjs has no setGate; upgrade jj-ralph skill / npm run ralph:sync');
-      const result = setGate(runId, {
+      const fold = gate === 'deliver' && status === 'PASS';
+      if (fold && typeof passDeliverGates !== 'function') die('resolved ralph.mjs has no passDeliverGates; upgrade jj-ralph skill / npm run ralph:sync before conversational delivery');
+      const result = (fold ? passDeliverGates : setGate)(runId, {
         gate,
         status,
         cwd,
@@ -426,6 +439,7 @@ async function main() {
         gate,
         status,
         gates_written: result.gates_written || [gate],
+        folded: Boolean(result.folded),
         gate_set: result.gate_set,
         promotion: result.promotion || null,
         phase: result.phase,
@@ -586,6 +600,8 @@ async function main() {
         status: result.status,
         reason: result.reason,
         hot_memory: result.hot_memory || null,
+        map_find: result.map_find,
+        reuse_suggestions: result.reuse_suggestions || [],
         resolved,
       });
       return;

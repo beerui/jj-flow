@@ -66,6 +66,7 @@ import {
   readGitSourceFacts,
   resolveReviewScope,
   suggestGateSet,
+  suggestIntensity,
   writeInstructionCorrection
 } from './gates.mjs';
 import { buildElevationFromRun, mapFind, tokenize } from './map.mjs';
@@ -81,6 +82,31 @@ function collectHotMemoryHits(run, { cwd, query = '' } = {}) {
     projectKey,
     query: query || hotMemoryQueryFrom(run)
   });
+}
+
+function lookupRunCapabilities(query, cwd) {
+  const normalizedQuery = String(query || '').trim();
+  try {
+    return { ...mapFind(normalizedQuery, { cwd, limit: 5 }), applied: true };
+  } catch (error) {
+    // Optional discovery must not block a run; expose the failure instead of inventing hits.
+    return { query: normalizedQuery, matches: [], applied: false, error: error.message };
+  }
+}
+
+function appendCapabilityLookup(runId, result, cwd) {
+  appendProgressLine(runId, cwd, '- map_find: ' + (result.matches.map((match) => match.id).join(', ') || '(none)'));
+  if (result.error) appendProgressLine(runId, cwd, '- map_find unavailable: ' + result.error);
+}
+
+function appendMapReuseSuggestions(result, suggestions, seen) {
+  for (const match of result.matches) {
+    for (const ref of match.run_refs || []) {
+      if (seen.has(ref)) continue;
+      seen.add(ref);
+      suggestions.push({ run_id: ref, title: match.title, source: 'map' });
+    }
+  }
 }
 
 export function promoteHotMemoryFromRun(run, { cwd = process.cwd() } = {}) {
@@ -196,6 +222,14 @@ export function initRun(options, cwd = process.cwd()) {
     if (conflict) throw new Error(conflict.message);
   }
   const runOptions = { ...options };
+  const explicitIntensity = options.intensity != null && String(options.intensity).trim() !== '';
+  const intensityInference = explicitIntensity ? null : suggestIntensity({
+    title: options.title,
+    goal: options.goal,
+    scope: options.scope,
+    capability_ids: options.capability_ids
+  });
+  if (intensityInference) runOptions.intensity = intensityInference.intensity;
   if (!runOptions.project_key) {
     runOptions.project_key = options.project || options.project_key || resolveProjectKeyFromCwd(cwd);
   }
@@ -244,6 +278,8 @@ export function initRun(options, cwd = process.cwd()) {
     ? ('- gate_set_suggestion: lite (advisory; run.json stays full — explicit --lite only) reasons=' + gateSetSuggestion.reasons.join('; '))
     : '';
   const today = nowIso().slice(0, 10);
+  const intensityLine = '- intensity: ' + run.intensity
+    + (intensityInference ? (' (inferred: ' + intensityInference.reasons.join('; ') + ')') : '');
   const goalBlock = ['## Goal', '', run.goal || '', ''];
   if (writeIntent) goalBlock.push('## 存疑', '');
   const taskPlan = [
@@ -266,7 +302,7 @@ export function initRun(options, cwd = process.cwd()) {
     [PROGRESS_REL]: '# ' + run.run_id + ' — progress' + nl + nl
       + '## ' + today + nl + nl
       + '- init: ' + (run.title || run.run_id) + nl
-      + '- intensity: ' + (run.intensity || 'standard') + nl,
+      + intensityLine + nl,
     [FINDINGS_REL]: defaultFindingsStub({ taskKey: run.run_id })
   };
   for (const [name, bodyText] of Object.entries(stubs)) {
@@ -274,7 +310,7 @@ export function initRun(options, cwd = process.cwd()) {
     if (!fs.existsSync(filePath) || options.force) fs.writeFileSync(filePath, bodyText, 'utf8');
   }
   appendProgressLine(run.run_id, cwd, '- ' + nowIso() + ' init ' + run.run_id);
-  appendProgressLine(run.run_id, cwd, '- intensity: ' + (run.intensity || 'standard'));
+  appendProgressLine(run.run_id, cwd, intensityLine);
   appendProgressLine(
     run.run_id,
     cwd,
@@ -307,20 +343,13 @@ export function initRun(options, cwd = process.cwd()) {
     });
     seen.add(row.run_id);
   }
-  try {
-    const hits = mapFind(run.title || run.goal || '', { cwd, limit: 5 });
-    for (const match of hits.matches || []) {
-      for (const ref of match.run_refs || []) {
-        if (seen.has(ref)) continue;
-        seen.add(ref);
-        reuse_suggestions.push({ run_id: ref, title: match.title, source: 'map' });
-      }
-    }
-  } catch {
-    /* missing map is not fatal */
-  }
+  const mapResult = lookupRunCapabilities(options.knowledge_query || run.title || run.goal, cwd);
+  appendMapReuseSuggestions(mapResult, reuse_suggestions, seen);
+  appendCapabilityLookup(run.run_id, mapResult, cwd);
   if (reuse_suggestions.length) run.reuse_suggestions = reuse_suggestions.slice(0, 5);
   if (gateSetSuggestion) run.gate_set_suggestion = gateSetSuggestion;
+  if (intensityInference) run.intensity_inference = intensityInference;
+  run.map_find = mapResult;
   return run;
 }
 
@@ -845,11 +874,14 @@ export function resumeRun(runId, { reason, cwd = process.cwd() } = {}) {
   appendProgressRound(runId, cwd, {
     title: 'resume',
     goal: reason.trim(),
-    result: '进行中',
     findingHint: null
   });
   const hotPack = collectHotMemoryHits(result.run, { cwd, query: reason.trim() });
   appendProgressLine(runId, cwd, formatHotMemoryProgressLine(hotPack.hits || []));
+  const mapResult = lookupRunCapabilities(reason.trim() || result.run.title || result.run.goal, cwd);
+  const reuseSuggestions = [];
+  appendMapReuseSuggestions(mapResult, reuseSuggestions, new Set([runId]));
+  appendCapabilityLookup(runId, mapResult, cwd);
   writeRalphIndex(cwd);
-  return { ...result, action: 'resume', moved, hot_memory: hotPack };
+  return { ...result, action: 'resume', moved, hot_memory: hotPack, map_find: mapResult, reuse_suggestions: reuseSuggestions.slice(0, 5) };
 }

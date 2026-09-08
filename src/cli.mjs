@@ -841,11 +841,11 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     if (json) stdout.write(`${JSON.stringify({ run }, null, 2)}\n`);
     else {
       stdout.write(`initialized ${run.run_id}\n`);
+      stdout.write(`intensity: ${run.intensity}\n`);
+      stdout.write(`map_find: ${run.map_find.matches.map((match) => match.id).join(', ') || '(none)'}\n`);
+      if (run.map_find.error) stdout.write(`map_find unavailable: ${run.map_find.error}\n`);
       for (const item of run.reuse_suggestions || []) {
         stdout.write(`reuse? ${item.run_id}${item.needs_migrate ? ' (needs_migrate)' : ''}${item.title ? (' · ' + item.title) : ''}\n`);
-      }
-      if (run.gate_set_suggestion?.gate_set === 'lite') {
-        stdout.write(`gate_set? lite (advisory; gate_set stays ${run.gate_set || 'full'} — pass --lite explicitly to take it) · ${run.gate_set_suggestion.reasons.join('; ')}\n`);
       }
     }
     return 0;
@@ -1102,7 +1102,11 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     const options = parseRalphResumeAbandonArgs(args, 'resume');
     const result = resumeRun(options.runId, { reason: options.reason, cwd });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-    else stdout.write(`resume ${result.from}→${result.status} (${options.runId})\n`);
+    else {
+      stdout.write(`resume ${result.from}→${result.status} (${options.runId})\n`);
+      stdout.write(`map_find: ${result.map_find.matches.map((match) => match.id).join(', ') || '(none)'}\n`);
+      if (result.map_find.error) stdout.write(`map_find unavailable: ${result.map_find.error}\n`);
+    }
     return 0;
   }
 
@@ -1657,7 +1661,7 @@ function printRalphHelp(stdout) {
   jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
   jj ralph remediate [--yes] [--force] [--json]
   jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
-  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：tiny/standard/strict 控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  无 --lite/--full 时 init 按规模只做建议（改动面小 / 无架构词 / 单一验收项才建议 lite；拿不准即 full）：文本模式打印 gate_set? 行，--json 带 run.gate_set_suggestion；run.json 仍写 full，不自动改档。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,events.jsonl,reviews/,handoff.json}；archive/abandon 迁入 completed/；机器事件进 events.jsonl，progress 按轮次追加。migrate --prune-archive 默认 dry-run，加 --yes 删除 1.0 archive/ 快照。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  remediate 默认 dry-run，列出 closeout=finalize|migrate；--yes 先 migrate 再对 next=finalize 的 run 调 finalize。resume 窗口（closeout=check）不自动动。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
+  jj ralph init ... [--host-id …] [--thread-id …] [--model-id …] [--session-export path]\n\n说明：\n  单仓闭环的机械步骤。对话入口是 $jj-ralph / /jj-ralph。\n  intensity：init 静默记录的引擎字段（tiny/standard/strict），机械覆写用 jj ralph init --intensity；控制预算与 accept 判断层；deliver-attempt 做停滞早停；accept-layer 写双层验收。\n  gate_set：默认 full（五 gate）。--lite 走 brief→deliver→close（别名仍写 analyze/plan/accept/archive 五键；close 照走 accept/archive 证据门），budget.max_deliver_loops≤3；任一 gate FAIL/BLOCKED 或 scope --in 新增路径 → 自动升 full，同目录不换 run_id。intensity 与 gate_set 正交（tiny 不等于 lite）。\n  无 --lite/--full 时 init 按规模只做建议（改动面小 / 无架构词 / 单一验收项才建议 lite；拿不准即 full）：--json 保留 run.gate_set_suggestion；run.json 仍写 full，不自动改档。\n  archive 要求 gates.accept=PASS；finalize = map-merge + archive；map-merge 默认要求 accept=PASS（--force 可覆盖）；gate 更新 gates 并可推进 phase。\n  新 run 写 .workflow/ralph/<task_key>/{task_plan,progress,findings}.md 与 .state/{run.json,events.jsonl,reviews/,handoff.json}；archive/abandon 迁入 completed/；机器事件进 events.jsonl，progress 按轮次追加。migrate --prune-archive 默认 dry-run，加 --yes 删除 1.0 archive/ 快照。\n  活跃 RALPH-* 目录须先 jj ralph migrate（1:1）或 adopt --task；adopt --absorb 不自动合并。\n  remediate 默认 dry-run，列出 closeout=finalize|migrate；--yes 先 migrate 再对 next=finalize 的 run 调 finalize。resume 窗口（closeout=check）不自动动。\n  commit-prep 只生成清单与 message，不执行 git commit/push。\n  review-record 把审查结论与任务/审查会话 ID 关联写入 .state/reviews/ 并更新 run.json；可选 --source / --host-review-json 写入溯源。\n`);
 }
 
 function printDoctorHelp(stdout) {

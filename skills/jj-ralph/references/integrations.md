@@ -19,8 +19,8 @@ The **control project** only records schedule state; do not use ralph there as a
 2. User only says: 「交接到 项目B」 / 「交接到 项目B 项目C」 / “hand off to ProjectB ProjectC”
 3. same reads the current session run/handoff then ports to targets; does not re-do source analysis
 4. Target implementation **is** a full Ralph run in **that target repo** (`.workflow/ralph/task-<slug>/`). same ports protocol into it; it does not replace Ralph
-5. If source repo `intensity=strict`, handoff must / do_not_port / targets should be more complete (easier for ProjectB·ProjectC reuse)
-6. After archive, same-run edits: should **commit + re-accept/handoff**, refresh `source_head` / must; handoff ready tracks accept + git stability
+5. Handoff fields: `ready` / `blocked_reasons` / `source_head` / `must` / `do_not_port` / `targets` / `mode`; `run.handoff` is the only source of truth. Uncommitted work keeps `ready=false`.
+6. After archive, same-run edits refresh acceptance and handoff evidence. Commit only with existing user authorization; a portable handoff needs a stable source commit.
 
 ## jj-dispatch
 
@@ -94,10 +94,34 @@ Orthogonal accelerator for **code location**, not a workflow identity or gate.
 
 | Capability | Owner |
 | --- | --- |
-| Single-repo loop + run.handoff + intensity | jj-ralph |
+| Single-repo loop + run.handoff | jj-ralph |
 | Cross-repo migration | jj-same |
 | Schedule identity `DEL-*` / task_key | jj-dispatch |
 | Session multi-role execution (`TC-*`) | jj-team-coordinate (optional) |
 | Fixed SDLC session engine (`TLV4-*`) | jj-team-lifecycle (optional) |
 | Adversarial ACO search (`TAS-*`) | jj-team-swarm (optional) |
 | Semantic code graph (host MCP) | CodeGraph (optional; not shipped by jj-flow) |
+
+## Host tools
+
+Grok: MasterGo MCP is off by default. Use it only when the user supplied a MasterGo URL. Screenshots are already input evidence; read them before searching and do not ask the user to restate visible UI.
+
+## Hot memory and portfolio knowledge
+
+User-level hot rules live at `~/.jj-flow/memory/<project_key>.md`, separate from repository instructions. Do not write AGENTS.md / CLAUDE.md as a side effect of this workflow.
+
+| Stage | Behavior |
+| --- | --- |
+| DELIVER | Record a real pitfall with `finding` only when 对策 and 适用范围 are known. `## 可复用结论` points back to a pitfall id. |
+| ARCHIVE | `finalize` promotes `## 可复用结论`; absent findings silently skip. `knowledge-contribution.json` remains degraded (P1b). |
+| init / resume | Lexical `hot_memory` injection, cap 5, confirmed `[x]` first; events record `hot_memory:`. Zero hits stay empty. |
+| Mechanical maintenance | `knowledge-confirm` confirms a rule; `knowledge-prune` removes oldest unconfirmed rules over the cap. Syntax: [ops.md](ops.md). |
+| Portfolio KB | Opt-in overlay; unavailable or unrelated results stay empty. It is separate from local CAP lookup and hot memory. |
+
+Durable contributions must pass Gate B and future reuse: 换一张卡还得遵守才收录. Process narration, task restatements, one-off details and field-howto without a durable rule remain in `extract_audit`. The locked examples are in `tests/fixtures/extract-future-reuse.golden.json`.
+
+### Idle offer (retired from the default chain)
+
+Do not offer or run knowledge contribution automatically after completion. If the user explicitly requests 「投喂知识库 / 补充全局知识」, use mechanical `knowledge-contribute --hook` for the current project. First-time map/KB bootstrap goes through `$jj-init`.
+
+Hook configuration remains `naming.json` → `ralph.knowledge_contribute` (`hook: none|cli`, substitutions `{package}` / `{project}` / `{run_id}`), or `RALPH_KNOWLEDGE_HOOK` / `RALPH_KNOWLEDGE_HOOK_CMD`. The hook is fail-open and does not run on finalize by default.

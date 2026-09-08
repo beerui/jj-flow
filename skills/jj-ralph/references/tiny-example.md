@@ -1,7 +1,7 @@
-# Tiny single-point example
+# Single-point example
 
 Use when the user already gave `@file:line` or a clear single-field / single-interaction change.  
-Intensity: `init --intensity tiny` (or user says “tiny / single-point quick”).
+Write the shortest confirmed Goal, acceptance and file list; use the same conversational chain as any requirement.
 
 `tiny` is the intensity tier only; it does **not** drop gates. Conversational path never `--lite`. A tiny run still walks ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE, with the shortest Goal + file list.
 

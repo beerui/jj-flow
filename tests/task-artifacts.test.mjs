@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { buildTaskArtifacts, writeTaskArtifacts } from '../src/taskArtifacts.mjs';
-import { initRun, saveRun } from '../src/ralph.mjs';
+import { initRun, saveRun, validateRun } from '../src/ralph.mjs';
 import { ensureDispatchRalphRuns, ralphRunIdFromDelivery } from '../src/dispatchRalph.mjs';
 
 test('standard delivery scaffolds task documents under .workflow/tasks', () => {
@@ -100,6 +100,15 @@ test('dispatch Ralph slug strips DEL- and date; each project gets a full run', (
     for (const cwd of [lead, target]) {
       const runDir = path.join(cwd, '.workflow', 'ralph', 'task-enter-form-h5');
       assert.ok(fs.existsSync(path.join(runDir, '.state', 'run.json')));
+      const disk = JSON.parse(fs.readFileSync(path.join(runDir, '.state', 'run.json'), 'utf8'));
+      const schema = JSON.parse(fs.readFileSync(new URL('../schemas/ralph-run.schema.json', import.meta.url), 'utf8'));
+      assert.equal(schema.additionalProperties, false);
+      assert.deepEqual(validateRun(disk), []);
+      for (const key of Object.keys(disk)) assert.ok(Object.hasOwn(schema.properties, key), `unknown ledger field ${key}`);
+      for (const key of schema.required) assert.ok(Object.hasOwn(disk, key), `missing ledger field ${key}`);
+      for (const key of ['reuse_suggestions', 'gate_set_suggestion', 'intensity_inference', 'map_find']) {
+        assert.equal(Object.hasOwn(disk, key), false, `dispatch must not persist ${key}`);
+      }
       assert.ok(fs.existsSync(path.join(runDir, 'task_plan.md')));
       assert.ok(fs.existsSync(path.join(runDir, 'progress.md')));
       assert.ok(fs.existsSync(path.join(runDir, 'findings.md')));

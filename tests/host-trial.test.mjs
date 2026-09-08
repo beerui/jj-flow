@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import { runCli } from '../src/cli.mjs';
 import { HOST_TRIAL_REPORT_VERSION, runHostTrial } from '../src/hostTrialRunner.mjs';
@@ -31,10 +32,28 @@ test('host trial is deterministic apart from its runner fingerprint', () => {
 
 test('host-trial CLI emits structured JSON', () => {
   const stdout = captureStdout();
-  assert.equal(runCli(['host-trial', 'run', '--json'], { stdout }), 0);
+  assert.equal(runCli(['host-trial', 'run', '--json'], { stdout }), 0, stdout.value);
   const report = JSON.parse(stdout.value);
   assert.equal(report.status, 'PASS');
   assert.equal(report.cleanup.status, 'PASS');
+});
+
+test('host trial keeps inherited Trace2 consumers outside its temporary Git fixture', () => {
+  const traceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-flow-host-trace-'));
+  const tracePath = path.join(traceDir, 'external-trace.jsonl');
+  const previousTrace = process.env.GIT_TRACE2_EVENT;
+  process.env.GIT_TRACE2_EVENT = tracePath;
+  try {
+    const report = runHostTrial();
+    assert.equal(report.status, 'PASS', JSON.stringify(report.earliest_violation));
+    assert.equal(report.cleanup.temporary_root_removed, true);
+    assert.equal(fs.existsSync(tracePath), false, 'temporary trial must not notify external Trace2 consumers');
+    assert.equal(process.env.GIT_TRACE2_EVENT, tracePath, 'caller tracing configuration stays intact');
+  } finally {
+    if (previousTrace === undefined) delete process.env.GIT_TRACE2_EVENT;
+    else process.env.GIT_TRACE2_EVENT = previousTrace;
+    fs.rmSync(traceDir, { recursive: true, force: true });
+  }
 });
 
 function hostTrialTempRoots() {

@@ -480,7 +480,9 @@ function git(cwd, args, extraEnv = {}) {
   const commandArgs = cwd ? ['-C', cwd, ...args] : args;
   return execFileSync('git', commandArgs, {
     encoding: 'utf8',
-    env: { ...process.env, ...extraEnv },
+    // External Trace2 consumers may asynchronously recreate .git files during cleanup.
+    // This synthetic fixture owns its evidence; keep those consumers out of its Git processes.
+    env: { ...process.env, ...extraEnv, GIT_TRACE2_EVENT: '0' },
     stdio: ['ignore', 'pipe', 'pipe']
   }).trim();
 }
