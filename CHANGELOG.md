@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.2.1 — 2026-09-08 09:41
+
 - **install-skill 升级补缺失 skill**：已有 `jj-ralph` 等文件时不再整组 `target-exists` 拒绝。默认补上新 skill（如 `jj-init`），不覆盖已有文件；`--force` 才刷新旧副本。现场：全平台装过旧版后对话里没有 `/jj-init`。合约：`tests/install-skill.test.mjs`。
 - **skill-en-zh-rewrite 不进用户端**：仓库维护 skill，不进 npm 包、不随 `install-skill` 分发；重装时清掉宿主目录残留。合约：`tests/install-skill.test.mjs`。
 - **CI：gym pin 升到 L1-S7a lean 合同**：loop `75461e1`（Goal 改写进 progress，禁 live Landed；含 L1-S9/S10）、family `652d1f5`（L2-S7/S8）。`ed72b08` overlay 在新 pin 上 no-op。合约：`tests/lab-check.test.mjs`。
