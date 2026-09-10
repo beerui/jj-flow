@@ -40,7 +40,10 @@ import {
   TASK_PLAN_REL,
   appendProgressLine,
   appendProgressRound,
+  beginAssignmentRound,
   createEmptyAcceptLayers,
+  effectiveGateSet,
+  isParkedAssignmentStatus,
   createRunSkeleton,
   findRalphInitConflict,
   hydrateIntensityFields,
@@ -320,7 +323,14 @@ export function initRun(options, cwd = process.cwd()) {
       + (run.gate_set === 'lite' ? (' (brief→deliver→close; max_deliver_loops=' + run.budget.max_deliver_loops + ')') : '')
   );
   if (gateSetSuggestionLine) appendProgressLine(run.run_id, cwd, gateSetSuggestionLine);
-  appendProgressLine(run.run_id, cwd, '- max_iterations: ' + run.max_iterations);
+  appendProgressLine(
+    run.run_id,
+    cwd,
+    '- max_iterations: ' + run.max_iterations
+      + (effectiveGateSet(run) === 'lite'
+        ? ' (lite BLOCK cap / budget.max_deliver_loops)'
+        : ' (schema default; full has no lifetime BLOCK)')
+  );
   appendProgressLine(run.run_id, cwd, '- intent: ' + (run.artifact_refs.intent || '(none)'));
   appendProgressLine(run.run_id, cwd, '- knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'));
   appendProgressLine(run.run_id, cwd, formatHotMemoryProgressLine(hotPack.hits || []));
@@ -892,8 +902,16 @@ export function resumeRun(runId, { reason, cwd = process.cwd() } = {}) {
   if (!reason || typeof reason !== 'string' || !reason.trim()) {
     throw new Error('reason is required for resumeRun');
   }
+  const prior = loadRun(runId, cwd);
+  const parked = isParkedAssignmentStatus(prior.status);
   const moved = runLayoutOf(runId, cwd) === 'completed' ? moveRunToActive(runId, cwd) : { moved: false };
   const result = setRunStatus(runId, { status: 'IN_PROGRESS', reason: reason.trim(), cwd });
+  if (parked) {
+    const run = loadRun(runId, cwd);
+    beginAssignmentRound(run);
+    saveRun(run, cwd);
+    result.run = run;
+  }
   appendProgressRound(runId, cwd, {
     title: 'resume',
     goal: reason.trim(),

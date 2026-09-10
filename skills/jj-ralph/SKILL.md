@@ -30,7 +30,7 @@ Conversational path never uses --lite: no `--lite`, `gate brief`, or `gate close
 
 1. Known/session-linked run: `ralph_ops context --run-id <id>` directly (includes `completed/`); use its current Goal/Steps/验收, verification tail and next action. Unknown id: `.workflow/ralph/index.md`, then `jj ralph locate` (8 compact candidates; `--details` shows all). Confirm goal/scope in `task_plan.md`. `## 归档提示` is prompt-only: uncertain → **询问用户**, never auto-archive. Legacy runs and leftover closeouts → phases.
 2. **Screenshot / `[Image]` / 「这里」:** read the image before searching; use visible UI and the session-linked run.
-3. For confirmed work, use the context packet and edit; only if that phase needs clarification, read [phases.md](references/phases.md) at the relevant DELIVER/ACCEPT section. Do not load all references at startup. Write the short current contract, verify, and record each verification with `deliver-attempt`. Do not Read `business-map.json`; empty CAP hits are valid.
+3. For confirmed work, use the context packet and edit; only if that phase needs clarification, read [phases.md](references/phases.md) at the relevant DELIVER/ACCEPT section. Do not load all references at startup. This turn does the **next unchecked Step** only (客服 assignment). Do not start later Steps unless the user asked for the remaining work in this message. Rewrite the short current contract to that slice, verify, and record each verification with `deliver-attempt`. Do not Read `business-map.json`; empty CAP hits are valid.
 4. Follow the gate chain below. For `next=review` / `commit-scoped-review`, or a gate error requiring a passing review, follow `review-record` guidance in phases. `next` requests evidence; it does not authorize Git operations. Keep the review-only boundary above.
 5. `next=finalize` → **MUST finalize**; `next=check` → inspect the resume/blocked state. Report run, acceptance evidence, archive/CAP result and any blocker briefly.
 
@@ -42,7 +42,7 @@ locate → init | resume → short Goal/验收/Steps → edit → verify
 → gate accept PASS → MUST finalize
 ```
 
-Use `ralph_ops` for conversational deliver PASS. Initial `next=gate analyze` / `gate plan` is not a separate happy-path step: the wrapper records both from the checked plan. Follow `next=review` / `commit-scoped-review` / `finalize` / `check` as above; review/commit remain conditional. Do not ask to continue after a successful step.
+Use `ralph_ops` for conversational deliver PASS. Initial `next=gate analyze` / `gate plan` is not a separate happy-path step: the wrapper records both from the checked plan. Follow `next=review` / `commit-scoped-review` / `finalize` / `check` as above; review/commit remain conditional. Do not ask to continue after a successful step. Conversational full has no lifetime `max_iterations` stop; `STAGNATION` still blocks the same strategy twice. Mechanical `--lite` still caps `max_deliver_loops`.
 If the script is unavailable, `jj ralph gate --gate deliver` is **degraded unfold**: it does not fill analyze/plan; do not finalize through that fallback. Restore the wrapper first.
 
 Before scoped review/acceptance, refresh `context --review --output .workflow/ralph/<id>/.state/review-context.json`. It separates task paths from other dirty files and flags stale/missing claims. Never hand-edit its file list. Pass `--context-file` to review-record / gate accept / finalize; stale code or contract requires a new packet and delta review. If the current approach replaced old scope, use explicit `scope --replace-in … --reason …`; history stays in events. `scope.out` never hides dirty files.
@@ -71,6 +71,12 @@ Before scoped review/acceptance, refresh `context --review --output .workflow/ra
 | `commit-prep` | Prepare the scoped Git change list. |
 
 Resolve `ralph_ops.mjs`: repo skill scripts → current host's installed skill scripts (`$CODEX_HOME/skills/jj-ralph/scripts/` on Codex) → `jj ralph`. Full syntax and conditional operations: [ops.md](references/ops.md).
+
+### Golden Q&A — G-ralph-1 (must not regress)
+
+**Q:** Same `run_id`, complex work, `iteration` already 20. Does `deliver-attempt` BLOCK `MAX_ITERATIONS`? Raise the ceiling with `set-status`, or `init` a new run?
+
+**A:** No. Conversational `$jj-ralph` (`gate_set=full`) has no lifetime iteration stop — one requirement, one folder, many assignments (客服). Rewrite live Steps to the current slice; `scope --replace-in` opens a new progress round, resets the attempt counter, and lifts leftover `STAGNATION` from the previous slice. This turn does the **next unchecked Step** only. `STAGNATION` still BLOCKS if the same strategy fails twice **in the current slice**. Resume from `STAGNATION` without a rewrite keeps counters. Mechanical `--lite` still caps `max_deliver_loops` at 3. Do not `set-status` to fake a higher ceiling. Sample: `EP-20260910` `task-260911-risk-setting`.
 
 ## Read when needed
 

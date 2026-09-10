@@ -666,7 +666,8 @@ export function fingerprintDeliverState(cwd = process.cwd(), { signal = null, pa
 
 /**
  * Record a DELIVER attempt for stagnation / budget tracking.
- * On no improvement for `stagnation.patience` attempts, or budget/max_iterations hit → BLOCKED.
+ * On no improvement for `stagnation.patience` attempts → BLOCKED (STAGNATION).
+ * Mechanical lite also BLOCKS at budget.max_deliver_loops. Conversational full does not.
  *
  * @param {boolean|null|undefined} improved - explicit true/false; if omitted, auto-compare fingerprint
  */
@@ -712,22 +713,17 @@ export function recordDeliverAttempt(runId, {
   const sameCap = Math.min(maxSame, stag.patience || maxSame);
   let blocked = false;
   let intervention = null;
+  const liteCap = effectiveGateSet(run) === 'lite';
 
-  if (run.iteration >= run.max_iterations) {
-    blocked = true;
-    intervention = {
-      kind: 'MAX_ITERATIONS',
-      reason: 'iteration ' + run.iteration + ' reached max_iterations ' + run.max_iterations,
-      unblock: 'Raise max_iterations, revise plan, or open a new run',
-      at: nowIso()
-    };
-  } else if (run.iteration >= maxLoops) {
+  // Conversational full runs match 客服: one folder for the requirement, no lifetime loop stop.
+  // Mechanical --lite still caps max_deliver_loops (default 3). STAGNATION stays for every gate_set.
+  if (liteCap && run.iteration >= maxLoops) {
     blocked = true;
     intervention = {
       kind: 'MAX_ITERATIONS',
       reason: 'iteration ' + run.iteration + ' reached budget.max_deliver_loops ' + maxLoops,
       unblock: 'Raise budget.max_deliver_loops or change approach'
-        + (effectiveGateSet(run) === 'lite' ? '; lite run: gate deliver FAIL (or scope growth) promotes to full, restores the intensity budget and lifts this block' : ''),
+        + '; lite run: gate deliver FAIL (or scope growth) promotes to full, restores the intensity budget and lifts this block',
       at: nowIso()
     };
   } else if (!resolvedImproved && stag.unchanged_count >= sameCap) {

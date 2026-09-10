@@ -1,0 +1,231 @@
+{
+  "episode_id": "EP-20260910-ralph-fastpath-time",
+  "skill": "jj-ralph",
+  "host": "Grok",
+  "model": "grok-4.6",
+  "reasoning_effort": "high",
+  "captured_at": "2026-09-10T14:13:45.591Z",
+  "notes": "Post-fastpath (2026-09-09) Grok live samples from 2026-09-10. Role omitted: not 项目A/B/C. Raw chat/reasoning not copied. Do not treat file mtime or lone run.json duration as authority. Live session files may grow after captured_at; hashes are of the bytes at freeze. No speedup percentage.",
+  "artifact_refs": [
+    {
+      "file": "today-focus.json",
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\eval-20260910\\today-focus.json",
+      "sha256": "a85a8634f0ee12fb773b6758d88ab2f4d40e210d222a93449a19c3323158db0b",
+      "bytes": 124690
+    },
+    {
+      "file": "today-trace2.json",
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\eval-20260910\\today-trace2.json",
+      "sha256": "19b0a329d1024380f319f88c75b16613d8fce4fd2178eedfe8cdb23955a1a59a",
+      "bytes": 58338
+    },
+    {
+      "file": "manifest.json",
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\eval-20260910\\manifest.json"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "ralph-seo-template-t0",
+      "episode_id": "EP-20260910-ralph-fastpath-time",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-10T02:36:36.100Z",
+      "ended_at": "2026-09-10T02:43:31.886Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a088eb-0f71-73f1-a692-6fb357f576b7/events.jsonl",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a088eb-0f71-73f1-a692-6fb357f576b7/summary.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [
+        "redundant_analysis"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": 101.414,
+        "tokens": null,
+        "tool_calls": 72
+      },
+      "timing": {
+        "wall_seconds": 415.786,
+        "model_loops": 31,
+        "first_edit_seconds": 261.9,
+        "waiting_for_model": 101.414,
+        "streaming_reasoning": 262.719,
+        "streaming_text": 36.556,
+        "tool_execution": 15.086,
+        "thread_id": "01a088eb-0f71-73f1-a692-6fb357f576b7",
+        "run_id": "task-buyer-enter-template-login",
+        "project_path": "D:/2025/seo-daji-web"
+      },
+      "notes": "New-run /jj-ralph. Still read SKILL+jj+index+ops+tiny+layout+must+phases×2; locate --details; one node --test. context used for accept/finalize. First source edit 261.9s."
+    },
+    {
+      "event_id": "ralph-seo-mainsite-t1",
+      "episode_id": "EP-20260910-ralph-fastpath-time",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-10T02:48:51.574Z",
+      "ended_at": "2026-09-10T02:58:52.324Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a088eb-0f71-73f1-a692-6fb357f576b7/events.jsonl"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [
+        "validation_wait"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": 210.879,
+        "tokens": null,
+        "tool_calls": 128
+      },
+      "timing": {
+        "wall_seconds": 600.75,
+        "model_loops": 40,
+        "first_edit_seconds": 241.4,
+        "waiting_for_model": 210.879,
+        "streaming_reasoning": 346.335,
+        "streaming_text": 14.212,
+        "tool_execution": 29.32,
+        "thread_id": "01a088eb-0f71-73f1-a692-6fb357f576b7",
+        "run_id": "task-enter-dynamic-mainsite-country",
+        "project_path": "D:/2025/seo-daji-web"
+      },
+      "notes": "Second /jj-ralph in same thread. node --test twice. context/finalize used. First edit 241.4s."
+    },
+    {
+      "event_id": "ralph-scsk-pdf-t0",
+      "episode_id": "EP-20260910-ralph-fastpath-time",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-10T02:51:23.945Z",
+      "ended_at": "2026-09-10T03:03:10.640Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cscsk-admin/01a08938-03cd-7441-aadf-95d3ab08a595/events.jsonl",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cscsk-admin/01a08938-03cd-7441-aadf-95d3ab08a595/summary.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [
+        "redundant_analysis",
+        "validation_wait"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": 196.929,
+        "tokens": null,
+        "tool_calls": 148
+      },
+      "timing": {
+        "wall_seconds": 706.695,
+        "model_loops": 41,
+        "first_edit_seconds": 349.1,
+        "waiting_for_model": 196.929,
+        "streaming_reasoning": 442.51,
+        "streaming_text": 35.358,
+        "tool_execution": 31.89,
+        "thread_id": "01a08938-03cd-7441-aadf-95d3ab08a595",
+        "run_id": "task-enter-form-license-pdf",
+        "project_path": "D:/2025/scsk-admin"
+      },
+      "notes": "Same host/model as EP-20260908 ralph baseline, different requirement. locate --details; full refs; fixtures then eslint/prettier then fixtures again. First edit 349.1s vs 09-08 594.8s."
+    },
+    {
+      "event_id": "ralph-seo-image-t0",
+      "episode_id": "EP-20260910-ralph-fastpath-time",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-10T09:33:05.810Z",
+      "ended_at": "2026-09-10T09:45:46.997Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a08aa9-6f39-7f10-8fac-018260d0c61d/events.jsonl",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a08aa9-6f39-7f10-8fac-018260d0c61d/summary.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [
+        "redundant_analysis",
+        "tool_unavailable"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": 220.864,
+        "tokens": null,
+        "tool_calls": 119
+      },
+      "timing": {
+        "wall_seconds": 761.187,
+        "model_loops": 48,
+        "first_edit_seconds": 253.2,
+        "waiting_for_model": 220.864,
+        "streaming_reasoning": 427.908,
+        "streaming_text": 36.043,
+        "tool_execution": 76.361,
+        "thread_id": "01a08aa9-6f39-7f10-8fac-018260d0c61d",
+        "run_id": "task-enter-dynamic-image-row",
+        "project_path": "D:/2025/seo-daji-web"
+      },
+      "notes": "CSS layout. Evidence via rg not node --test. finalize rename EPERM then retry finalize/archive/remediate/finalize. tool_execution 76s is the process tax."
+    },
+    {
+      "event_id": "ralph-h5-phone-t0",
+      "episode_id": "EP-20260910-ralph-fastpath-time",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-10T06:23:36.774Z",
+      "ended_at": "2026-09-10T06:36:12.560Z",
+      "timestamp_provenance": "thread",
+      "clock_quality": "derived",
+      "parent_event_id": null,
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Ctrade-exhibition-mobile/01a089f8-3f97-78d1-a813-8a67b7a0d502/events.jsonl",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Ctrade-exhibition-mobile/01a089f8-3f97-78d1-a813-8a67b7a0d502/summary.json"
+      ],
+      "input_hash": null,
+      "output_hash": null,
+      "labels": [
+        "redundant_analysis",
+        "validation_wait"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": 227.542,
+        "tokens": null,
+        "tool_calls": 134
+      },
+      "timing": {
+        "wall_seconds": 755.786,
+        "model_loops": 49,
+        "first_edit_seconds": 373.2,
+        "waiting_for_model": 227.542,
+        "streaming_reasoning": 474.368,
+        "streaming_text": 16.678,
+        "tool_execution": 37.189,
+        "thread_id": "01a089f8-3f97-78d1-a813-8a67b7a0d502",
+        "run_id": "task-enter-phone-code-select",
+        "project_path": "D:/2025/trade-exhibition-mobile"
+      },
+      "notes": "H5 dialing-code select. Full refs on first turn; test then prettier/eslint. context/finalize used."
+    }
+  ]
+}

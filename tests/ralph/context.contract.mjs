@@ -102,7 +102,7 @@ test('compact status reports the same review, blockers and iteration as detailed
   };
   const compact = render([]);
   const detailed = render(['--details']);
-  for (const pattern of [/iteration: 2\/20/, /review: REV-1 NEEDS_CHANGES/, /intervention: STAGNATION verification still fails/, /host: codex \/ status-probe-thread/]) {
+  for (const pattern of [/^iteration: 2$/m, /review: REV-1 NEEDS_CHANGES/, /intervention: STAGNATION verification still fails/, /host: codex \/ status-probe-thread/]) {
     assert.match(compact, pattern);
     assert.match(detailed, pattern);
   }

@@ -1284,6 +1284,29 @@ export function effectiveGateSet(run) {
   return run?.gate_set == null ? 'full' : normalizeGateSet(run.gate_set);
 }
 
+const PARKED_ASSIGNMENT_STATUSES = Object.freeze(['COMPLETED', 'ABANDONED', 'PAUSED']);
+
+export function isParkedAssignmentStatus(status) {
+  return PARKED_ASSIGNMENT_STATUSES.includes(status);
+}
+
+/** New 客服-style assignment on the same run_id: attempt counter restarts; leftover BLOCK from the previous slice is lifted. STAGNATION resume (not this helper) keeps counters. */
+export function beginAssignmentRound(run) {
+  if (!run || typeof run !== 'object') return run;
+  run.iteration = 0;
+  if (run.stagnation && typeof run.stagnation === 'object') {
+    run.stagnation = { ...run.stagnation, unchanged_count: 0 };
+  }
+  const leftover = run.intervention_needed?.kind;
+  const liftMax = leftover === 'MAX_ITERATIONS' && effectiveGateSet(run) !== 'lite';
+  const liftStag = leftover === 'STAGNATION';
+  if (liftMax || liftStag) {
+    run.status = 'IN_PROGRESS';
+    run.intervention_needed = null;
+  }
+  return run;
+}
+
 /**
  * Next mechanical step + optional ARCHIVE closeout warning.
  * Values: review | commit-scoped-review | finalize | check | migrate | resume | gate * | null
@@ -1337,8 +1360,9 @@ export function computeRalphNext(run, { layout = null } = {}) {
  *
  * lift_budget_stop: when the run is BLOCKED only because deliver-attempt hit the lite cap
  * (intervention MAX_ITERATIONS) and the restored cap now exceeds the iterations used, the
- * block is lifted so the run really can "continue with the five gates". A STAGNATION block,
- * a max_iterations ceiling, or a gate the caller is writing BLOCKED still stands.
+ * block is lifted so the run really can "continue with the five gates". Full has no
+ * lifetime max_iterations BLOCK. A STAGNATION block, or a gate the caller is writing
+ * BLOCKED, still stands.
  */
 export function promoteGateSetToFull(run, { reason = null, lift_budget_stop = false } = {}) {
   if (!run || typeof run !== 'object') throw new Error('run required');
@@ -1356,7 +1380,6 @@ export function promoteGateSetToFull(run, { reason = null, lift_budget_stop = fa
     && run.status === 'BLOCKED'
     && run.intervention_needed?.kind === 'MAX_ITERATIONS'
     && used < run.budget.max_deliver_loops
-    && used < run.max_iterations
   ) {
     run.status = 'IN_PROGRESS';
     run.intervention_needed = null;
@@ -1408,13 +1431,20 @@ export function updateRunScope(runId, { add_in = [], add_out = [], replace_in = 
   const promotion = addedIn.length
     ? promoteGateSetToFull(run, { reason: 'scope.in expanded: ' + addedIn.join(', '), lift_budget_stop: true })
     : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
+  if (replacing) beginAssignmentRound(run);
   run.updated_at = nowIso();
   saveRun(run, cwd);
-  if (replacing) appendEvent(runId, cwd, {
-    ts: run.updated_at, type: 'scope-replaced', reason: String(reason).trim(),
-    message: 'scope-replaced: ' + JSON.stringify({ previous: { in: currentIn, out: currentOut }, current: run.scope }) + ' reason=' + String(reason).trim(),
-    previous: { in: currentIn, out: currentOut }, current: run.scope
-  });
+  if (replacing) {
+    appendEvent(runId, cwd, {
+      ts: run.updated_at, type: 'scope-replaced', reason: String(reason).trim(),
+      message: 'scope-replaced: ' + JSON.stringify({ previous: { in: currentIn, out: currentOut }, current: run.scope }) + ' reason=' + String(reason).trim(),
+      previous: { in: currentIn, out: currentOut }, current: run.scope
+    });
+    appendProgressRound(runId, cwd, {
+      title: 'assignment',
+      goal: String(reason).trim()
+    });
+  }
   appendProgressLine(
     runId,
     cwd,
@@ -1471,7 +1501,9 @@ export function renderRalphStatusText(payload) {
       'status: ' + run.status,
       'intensity: ' + (run.intensity || 'standard'),
       'gate_set: ' + (run.gate_set == null ? 'undefined' : run.gate_set),
-      'iteration: ' + run.iteration + '/' + run.max_iterations,
+      'iteration: ' + (effectiveGateSet(run) === 'lite'
+        ? (run.iteration + '/' + (run.budget?.max_deliver_loops || run.max_iterations))
+        : String(run.iteration)),
       'gates: analyze=' + run.gates.analyze + ' plan=' + run.gates.plan + ' deliver=' + run.gates.deliver + ' accept=' + run.gates.accept + ' archive=' + run.gates.archive,
       run.accept_layers
         ? ('accept_layers: mechanical=' + run.accept_layers.mechanical + ' judgment=' + run.accept_layers.judgment + ' mode=' + (run.accept_layers.judgment_mode || 'none'))

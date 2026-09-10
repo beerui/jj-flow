@@ -31,7 +31,8 @@ import {
   resumeRun,
   abandonRun,
   suggestReopenAsNew,
-  loadRun
+  loadRun,
+  updateRunScope
 } from '../../src/ralph.mjs';
 import { ledgerText } from './helpers.mjs';
 
@@ -468,6 +469,150 @@ test('recordDeliverAttempt stagnates then BLOCKED with STAGNATION', () => {
     r = recordDeliverAttempt(runId, { improved: true, signal: 'tests_green', cwd });
     assert.equal(r.blocked, false);
     assert.equal(r.stagnation.unchanged_count, 0);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('full conversational run does not BLOCK on max_iterations; lite still does', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-no-lifetime-cap-'));
+  try {
+    const fullId = 'task-full-cap';
+    initRun({
+      run_id: fullId,
+      title: 'full',
+      goal: 'complex same requirement',
+      attach_knowledge: false,
+      intensity: 'tiny'
+    }, cwd);
+    setGate(fullId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(fullId, { gate: 'plan', status: 'PASS', cwd });
+    let last = null;
+    for (let i = 0; i < 9; i += 1) {
+      last = recordDeliverAttempt(fullId, { improved: true, signal: 'verify:' + i, cwd });
+    }
+    assert.equal(last.blocked, false);
+    assert.equal(last.iteration, 9);
+    assert.equal(loadRun(fullId, cwd).status, 'IN_PROGRESS');
+    assert.equal(loadRun(fullId, cwd).intervention_needed, null);
+
+    const liteId = 'task-lite-cap';
+    initRun({
+      run_id: liteId,
+      title: 'lite',
+      goal: 'cap at 3',
+      attach_knowledge: false,
+      gate_set: 'lite'
+    }, cwd);
+    setGate(liteId, { gate: 'brief', status: 'PASS', cwd });
+    recordDeliverAttempt(liteId, { improved: true, signal: 'a', cwd });
+    recordDeliverAttempt(liteId, { improved: true, signal: 'b', cwd });
+    const third = recordDeliverAttempt(liteId, { improved: true, signal: 'c', cwd });
+    assert.equal(third.blocked, true);
+    assert.equal(third.intervention_needed.kind, 'MAX_ITERATIONS');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('scope --replace-in opens a new assignment round and resets iteration', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-assignment-round-'));
+  try {
+    const runId = 'task-assignment-round';
+    initRun({
+      run_id: runId,
+      title: 'risk',
+      goal: 'whole settings page',
+      attach_knowledge: false,
+      scope: { in: ['src/a.vue', 'src/b.vue'], out: [] }
+    }, cwd);
+    setGate(runId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(runId, { gate: 'plan', status: 'PASS', cwd });
+    for (let i = 0; i < 5; i += 1) {
+      recordDeliverAttempt(runId, { improved: true, signal: 'verify:' + i, cwd });
+    }
+    assert.equal(loadRun(runId, cwd).iteration, 5);
+    const replaced = updateRunScope(runId, {
+      replace_in: ['src/a.vue'],
+      reason: 'current contract is the scan dialog click fix',
+      cwd
+    });
+    assert.equal(replaced.run.iteration, 0);
+    assert.equal(replaced.run.stagnation.unchanged_count, 0);
+    const progress = fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, 'progress.md'), 'utf8');
+    assert.match(progress, /## \d{4}-\d{2}-\d{2} — assignment/);
+    assert.match(progress, /current contract is the scan dialog click fix/);
+    const next = recordDeliverAttempt(runId, { improved: true, signal: 'verify:slice', cwd });
+    assert.equal(next.blocked, false);
+    assert.equal(next.iteration, 1);
+
+    const stagId = 'task-replace-stagnation';
+    initRun({
+      run_id: stagId,
+      title: 'stag then rewrite',
+      goal: 'same strategy then new slice',
+      attach_knowledge: false,
+      intensity: 'tiny',
+      scope: { in: ['src/a.vue', 'src/b.vue'], out: [] }
+    }, cwd);
+    setGate(stagId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(stagId, { gate: 'plan', status: 'PASS', cwd });
+    recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    const stagnated = recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    assert.equal(stagnated.intervention_needed.kind, 'STAGNATION');
+    const rewritten = updateRunScope(stagId, {
+      replace_in: ['src/a.vue'],
+      reason: 'new slice after stagnation',
+      cwd
+    });
+    assert.equal(rewritten.run.status, 'IN_PROGRESS');
+    assert.equal(rewritten.run.iteration, 0);
+    assert.equal(rewritten.run.stagnation.unchanged_count, 0);
+    assert.equal(rewritten.run.intervention_needed, null);
+    const after = recordDeliverAttempt(stagId, { improved: true, signal: 'verify:new-slice', cwd });
+    assert.equal(after.blocked, false);
+    assert.equal(after.iteration, 1);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('resume from COMPLETED resets iteration; STAGNATION resume does not', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-resume-round-'));
+  try {
+    const doneId = 'task-resume-completed';
+    initRun({ run_id: doneId, title: 'done', goal: 'parked then resume', attach_knowledge: false }, cwd);
+    setGate(doneId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(doneId, { gate: 'plan', status: 'PASS', cwd });
+    recordDeliverAttempt(doneId, { improved: true, signal: 'a', cwd });
+    recordDeliverAttempt(doneId, { improved: true, signal: 'b', cwd });
+    setRunStatus(doneId, { status: 'COMPLETED', reason: 'archived for now', cwd });
+    resumeRun(doneId, { reason: '按审查改 REV-1', cwd });
+    assert.equal(loadRun(doneId, cwd).iteration, 0);
+
+    const stagId = 'task-resume-stagnation';
+    initRun({ run_id: stagId, title: 'stag', goal: 'keep 3-strike', attach_knowledge: false, intensity: 'tiny' }, cwd);
+    setGate(stagId, { gate: 'analyze', status: 'PASS', cwd });
+    setGate(stagId, { gate: 'plan', status: 'PASS', cwd });
+    recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    const blocked = recordDeliverAttempt(stagId, { improved: false, signal: 'same', cwd });
+    assert.equal(blocked.intervention_needed.kind, 'STAGNATION');
+    assert.equal(loadRun(stagId, cwd).iteration, 2);
+    resumeRun(stagId, { reason: 'continue after block', cwd });
+    assert.equal(loadRun(stagId, cwd).iteration, 2);
+    assert.equal(loadRun(stagId, cwd).stagnation.unchanged_count, 2);
+
+    for (const [parkedId, parkedStatus] of [['task-resume-paused', 'PAUSED'], ['task-resume-abandoned', 'ABANDONED']]) {
+      initRun({ run_id: parkedId, title: parkedStatus, goal: 'parked resume', attach_knowledge: false }, cwd);
+      setGate(parkedId, { gate: 'analyze', status: 'PASS', cwd });
+      setGate(parkedId, { gate: 'plan', status: 'PASS', cwd });
+      recordDeliverAttempt(parkedId, { improved: true, signal: 'a', cwd });
+      recordDeliverAttempt(parkedId, { improved: true, signal: 'b', cwd });
+      setRunStatus(parkedId, { status: parkedStatus, reason: 'park ' + parkedStatus, cwd });
+      resumeRun(parkedId, { reason: 'resume ' + parkedStatus, cwd });
+      assert.equal(loadRun(parkedId, cwd).iteration, 0, parkedStatus);
+      assert.equal(loadRun(parkedId, cwd).stagnation.unchanged_count, 0, parkedStatus);
+    }
   } finally {
     fs.rmSync(cwd, { recursive: true, force: true });
   }

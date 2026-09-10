@@ -73,6 +73,7 @@ export {
   ARCHIVE_CLOSEOUT_WARNING,
   computeRalphNext,
   applyLiteBudget,
+  beginAssignmentRound,
   archiveDir,
   buildBudgetForIntensity,
   collectIndexArchiveHints,

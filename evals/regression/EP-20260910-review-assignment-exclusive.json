@@ -1,0 +1,14 @@
+{
+  "id": "EP-20260910-review-assignment-exclusive",
+  "source_episode": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md",
+  "skill_or_path": "skills/jj-review/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-review-2" },
+    { "type": "contains", "text": "exclusive input" },
+    { "type": "contains", "text": "task_paths" },
+    { "type": "contains", "text": "Do **not** invoke Grok `/review`" },
+    { "type": "contains", "text": "[reviewer] local changes" },
+    { "type": "file_exists", "path": "skills/jj-review/references/host-review.md" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md" }
+  ]
+}

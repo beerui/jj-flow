@@ -18,7 +18,8 @@
 1. **定位 run**：未点名时先读 `.workflow/ralph/index.md` 的「活跃」表（正在做的任务，不要先 glob）；没有活跃行再扫 live `task-*` / leftover。无 run → 无绑定，审工作区/HEAD，禁止 init；点名的 `run_id` 不存在才 `BLOCKED`
 2. **确定审查范围**：有 run 时读 `task_plan.md` + `progress.md` 末约 30 行；无绑定则脏工作区否则 HEAD；缺 commit/diff → `BLOCKED`
 3. **用户已提供结果** → `source=user_provided`，直接映射落盘
-4. **否则宿主内置 review** → `source=host_builtin`
+4. **有 run 的首次审查（客服派单）** → 只审 packet `task_paths`；直接 spawn 只读 reviewer；禁止 Grok `/review` 扫脏树。用户明确「当前的全部改动 / 重新全量审查」→ 4b（即使 bound）。G-review-2
+4b. **无绑定 / 用户明确全部改动** → 宿主 `/review`，`source=host_builtin`
 5. **映射** outcome：`PASS` / `NEEDS_CHANGES` / `BLOCKED`；compliance 对照 `## Steps`
 6. **落盘** 仅有 run 时：`reviews/REV-n.json` + 回写 `run.json` + `.state/events.jsonl`（不要把 ISO review 行写入 `progress.md`）；无绑定不落盘
 7. **最终回复**：无问题回 `通过。` + 一句总结；有问题列出每条问题 + 修改意见；`BLOCKED` 才用 STOP 模板
@@ -28,8 +29,9 @@
 | 规则 | 说明 |
 | --- | --- |
 | 只读 | 不改业务代码、不 init、不建 fix 任务 |
-| 宿主优先 | 有内置 review 时禁止跳过改做平行自审 |
+| 宿主优先 | 有宿主路径时禁止聊天里平行自审；bound 首次列文件 spawn **就是**宿主路径（G-review-2），不是跳过 |
 | 同会话 follow-up | 同一 bound run 已有 `REV-*` / 宿主审查文件时只审 delta，禁止再 spawn 全量 reviewer（G-review-1 / EP-20260907） |
+| bound 首次 | 客服派单：exclusive `task_paths`，禁止 Grok `/review` / `[reviewer] local changes`（G-review-2） |
 | 落盘 | 有 run 时 `REV-*.json` 是事实源；无绑定则只回聊天 |
 | PASS/NEEDS_CHANGES | 有 run 时必须有 `reviewed_commit`（≥7 位）；无绑定用 HEAD |
 | 证据不足 | `BLOCKED` |

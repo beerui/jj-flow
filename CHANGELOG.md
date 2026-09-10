@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **Review 对话路径按客服派单**：bound 首次 `$jj-review` 只审当前切片（`review-context.json` + 任务 diff + `task_paths`），直接 spawn 只读 reviewer；禁止走 Grok `/review` 扫整棵脏树。`/review` 仅 unbound 或用户明确「当前的全部改动」。G-review-1 follow-up delta 不变。G-review-2。样本：`EP-20260910` bound 首次 52–96 tools。合约：`tests/jj-review-contract.test.mjs`。
+- **Ralph 对话路径按客服派单**：full run 不再用终身 `max_iterations` 卡死同一 `run_id`。当前这一刀 = 下一个未勾 Step；`scope --replace-in` / 从 COMPLETED·ABANDONED·PAUSED `resume` 开新 progress 轮并重置 attempt 计数，顺带抬起上一刀遗留 `STAGNATION`。`STAGNATION` 仍挡同一切片连败。机械 `--lite` 仍封顶 `max_deliver_loops`。禁止 `set-status` 假装抬上限。G-ralph-1。样本：`EP-20260910` `task-260911-risk-setting`。合约：`tests/ralph/gates.contract.mjs`、`tests/jj-ralph-contract.test.mjs`。
 - **工作流执行优化**：已知 run 直接定位；Ralph 默认输出当前合同、阶段提示、验证尾部与范围预检；review 一次交接并从文件写回；end 固定步骤收敛为 `preview` / `execute`。不宣称端到端提速百分比。合约：`tests/ralph/context.contract.mjs`、`tests/end/runner.contract.mjs`、`tests/jj-ralph-contract.test.mjs`、`tests/jj-end-contract.test.mjs`。计划：`docs/exec-plans/completed/2026-09-09-workflow-execution-fastpath.md`。
 - **Host-trial 隔离外部 Trace2**：临时 Git 子进程禁用外部 Trace2 消费，避免 Git AI 等后台进程在清理期间重建 `.git` 导致 EBUSY/ENOTEMPTY。真实 Git/worktree 验证及清理门禁保留，CLI 测试失败展示完整报告。合约：`tests/host-trial.test.mjs`。
 - **Ralph resume 不再写「进行中」占位**：`progress.md` 只追加，占位无法回填。`resume` 只记原因；`appendProgressRound` 有真实 result 才写结果行。合约：`tests/jj-ralph-contract.test.mjs`。

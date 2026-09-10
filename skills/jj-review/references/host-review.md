@@ -1,17 +1,24 @@
 # Prefer host built-in review
 
-`jj-review` is an **adapter**: prefer the review engine already available on the current host; persist `REV-*.json` only when a ralph run is bound.
+`jj-review` is an **adapter**: persist `REV-*.json` only when a ralph run is bound.
+
+Bound first `$jj-review` **is** the host path: spawn a read-only reviewer with exclusive `task_paths` (SKILL.md step 4 / G-review-2). That listed-file spawn is not “skipping host”. Do **not** call Grok `/review` (or any entry that auto-collects the dirty tree) for bound first. `/review` only when unbound, or the user explicitly asks 当前的全部改动 / 重新全量审查.
 
 Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `task_plan.md` ## Steps).
 
-Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose. Choose the entry via **capability discovery**.
+Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose except to forbid a known dirty-tree entry (Grok `/review`). Choose other entries via **capability discovery**.
 
-## Discovery order (first match wins)
+## Discovery order
+
+Not first-match-wins when a ralph run is bound. Bound first never enters the host-callable `/review` step unless the user explicitly asks 当前的全部改动 / 重新全量审查.
 
 1. **User-specified**  
    User gives a review artifact path, pastes findings, or names a completed review session → parse and map directly, `source=user_provided`.
 
-2. **Host-callable review skill / command**  
+2. **Bound first (G-review-2)** — when a ralph run is bound, this thread has no prior `REV-*` / host review artifact, **and** the user did **not** ask 当前的全部改动 / 重新全量审查: exclusive assignment spawn (packet + `task_paths` + task diff). Stop here. Do **not** match host `/review` / `code-review` commands.
+   Exception: user explicitly asked 当前的全部改动 / 重新全量审查 → skip to step 3 even when bound.
+
+3. **Host-callable review skill / command** — **unbound or explicit 当前的全部改动 / 重新全量审查 only.**
    Among skills / slash / commands loaded or callable in this session, **match only explicit review entries**:
    - name or description contains `review`, `code-review`, `code review` (prefer these)
    - read-only reviewer subagent / review persona (see next)
@@ -22,17 +29,17 @@ Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill p
 
    Use such an entry only when the user **explicitly** asks to review with it **and** it outputs **structured findings** (file/line/severity/description). If it is a “fix until pass” loop, take only the **first-round read-only review verdict**; do not auto-start fixes inside jj-review. Tests passing ≠ `outcome=PASS`.
 
-3. **Read-only reviewer subagent / role**  
+4. **Read-only reviewer subagent / role**
    When the host provides a read-only reviewer / review persona / read-only subagent, use it to produce findings for the agreed diff/commit.  
-   Constraint: subagent is read-only; it must not change business code.
+   Constraint: subagent is read-only; it must not change business code. Bound first already used this shape in step 2.
 
-4. **Unavailable → fallback**  
+5. **Unavailable → fallback**
    None of the above, or the call failed and the user asks to continue → `source=fallback_inline` for minimal inline review (see SKILL.md).  
    Note: `user_provided` is step 1, **not** fallback.
 
 One `$jj-review` invocation runs **only one** host review path; do not chain multiple full review engines.
 
-**Across invocations in the same thread for the same bound run:** a follow-up `$jj-review` (typical after 「按审查改」) is a **delta review**. Reuse the latest `REV-*` / host `<review_file>`; inspect files changed since last `reviewed_commit`. Do **not** spawn a second full-repo reviewer subagent with empty context (`effective_context_source=new`). Hosts whose review skill always one-shots a new subagent (Grok `/review`: “The reviewer is not resumed; this is a one-shot review”) **must not be re-invoked** for that follow-up. Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review. First review of the run in this thread may still call the host entry once. See SKILL.md step 3b / G-review-1 / EP-20260907.
+**Across invocations in the same thread for the same bound run:** a follow-up `$jj-review` (typical after 「按审查改」) is a **delta review**. Reuse the latest `REV-*` / host `<review_file>`; inspect files changed since last `reviewed_commit`. Do **not** spawn a second full-repo reviewer subagent with empty context (`effective_context_source=new`). Hosts whose review skill always one-shots a new subagent (Grok `/review`: “The reviewer is not resumed; this is a one-shot review”) **must not be re-invoked** for that follow-up. Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review. Bound first review is exclusive assignment spawn (SKILL.md step 4 / G-review-2), not `/review` local. See SKILL.md step 3b / G-review-1 / EP-20260907.
 
 ## Host discovery matrix (Codex / Grok / Claude)
 
@@ -41,7 +48,7 @@ Discover entries by **capability name**, not marketing product pages. Search too
 | Host | Prefer (capability / entry shape) | How to confirm available | Typical artifact or output |
 | --- | --- | --- | --- |
 | **Codex** | skill / command name or description contains `review`, `code-review`, `code review`; read-only reviewer agent | session callable list / skill dirs; user `@` or `$` review entry | structured findings text or review artifact path |
-| **Grok** | installed skill with review/code-review; Build read-only subagent / reviewer role. **First review of the bound run only.** Follow-up must not re-call `/review` (it always fresh-spawns `[reviewer] local changes`) | current session skill list; role-spec declaring read-only reviewer | findings list, session attachment paths |
+| **Grok** | Bound first: spawn a read-only reviewer with exclusive packet / `task_paths`. Do **not** call `/review` (it always fresh-spawns `[reviewer] local changes` on the dirty tree). `/review` only unbound or 当前的全部改动. Follow-up must not re-call `/review` | current session skill list; role-spec declaring read-only reviewer | findings list, session attachment paths |
 | **Claude** | slash or skill: `/review`, commands named with review/code-review; read-only subagent | `.claude/commands` / loaded Skill; `/help` or tool list | report Markdown / structured findings |
 
 Shared rules (all hosts):
@@ -52,19 +59,31 @@ Shared rules (all hosts):
 4. No discoverable entry → only after SKILL.md 🔴 fallback checkpoint (user OK or paste) → `source=fallback_inline`; record the reason in `host_review.note`.
 5. 🔴 Discovery hard-stop: if the user requires “must use host review” and no entry exists → `BLOCKED`, name the missing entry; do not silent-fallback; do not init ralph.
 6. Same-thread follow-up of a bound run that already has `REV-*` / a host review file → delta (SKILL.md 3b). Do not take the fresh-subagent path again.
+7. Bound first `$jj-review` (G-review-2): exclusive assignment spawn. Do not invoke a host entry that auto-collects the whole dirty tree, unless the user explicitly asks 当前的全部改动 / 重新全量审查.
 
 ## Context to pass when invoking host review
 
-At minimum provide:
+Bound first review (客服 assignment) is **exclusive**, not a minimum list. Pass only:
 
 | Item | Content |
 | --- | --- |
-| Scope | ralph `run_id`, Goal / 验收 / Steps (from `task_plan.md`; leftover 分析/计划) |
-| Target | `reviewed_commit` or working tree / specified paths |
-| Constraints | read-only; do not fix code; do not init ralph |
+| Packet | `.workflow/ralph/<id>/.state/review-context.json` |
+| `task_paths` | packet `task_paths` — the current slice |
+| Task diff | diff of those paths only |
+| Constraints | read-only; do not fix code; do not init ralph; do not locate ralph; do not read jj-review/jj-ralph SKILL; do not grep the whole repo |
 | Expectation | structured findings (file/line/severity/description) + overall verdict |
 
-Host review’s target diff should cover ralph-related changes; reduce whole-repo noise via plan `scope.in` when helpful.
+Direct-import listed files only. `other_paths` are noise, not review targets.
+
+Grok bound first review **must not call `/review`**. Spawn the read-only reviewer yourself with the exclusive list above. `/review` remains for unbound review, or when the user explicitly asks 当前的全部改动 / 重新全量审查.
+
+Unbound / explicit whole-tree may still pass:
+
+| Item | Content |
+| --- | --- |
+| Scope | working tree / HEAD / user paths |
+| Constraints | read-only; do not fix code; do not init ralph |
+| Expectation | structured findings (file/line/severity/description) + overall verdict |
 
 ## Verdict mapping → outcome
 

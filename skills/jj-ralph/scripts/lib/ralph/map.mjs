@@ -37,7 +37,7 @@ export function deriveAutoLessonsFromRun(run, cwd = process.cwd()) {
     );
   }
   if (kind === 'MAX_ITERATIONS') {
-    out.push('MAX_ITERATIONS on ' + run.run_id + ': raise budget or split scope');
+    out.push('MAX_ITERATIONS on ' + run.run_id + ': lite budget cap; split remaining Steps or promote to full');
   }
   if (run.intensity === 'strict') {
     out.push('intensity=strict on ' + run.run_id + ': required judgment layer before accept');

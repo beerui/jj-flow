@@ -24,25 +24,27 @@ Same requirement always prefers the same `run_id`. New run only for a truly new 
 
 ```text
 context --run-id <id> (current contract + verification tail + Git; never Read business-map.json)
-  → do next Step
+  → do the next unchecked Step only
   → append a dated progress section
-  → verify FAIL and iteration < max → stay in DELIVER
+  → verify FAIL → stay in DELIVER (STAGNATION still stops a repeated strategy)
   → needs human decision → BLOCKED / READY_FOR_USER_TEST (stop clock)
   → accept PASS → finalize (map-merge + in-place archive) → COMPLETED (can resume)
   → drop mid-flight → abandon → ABANDONED (can resume)
 ```
 
-`max_iterations` defaults to 20; on ceiling write `intervention_needed.kind=MAX_ITERATIONS`.
+Conversational full (`gate_set=full`) does **not** BLOCK on `max_iterations`. Same requirement stays on this `run_id`; rewrite Steps to the current slice (客服 assignment). `scope --replace-in` / resume from COMPLETED·ABANDONED·PAUSED opens a new progress round, resets the attempt counter, and lifts leftover `STAGNATION` / full `MAX_ITERATIONS` from the previous slice. Resume from `STAGNATION` without a rewrite keeps counters. Mechanical `--lite` still BLOCKS at `budget.max_deliver_loops` (`MAX_ITERATIONS`); promote to full to continue.
 
 ## Intensity
 
 `run.intensity` is an engine field (`tiny|standard|strict`) driving `budget` / `stagnation` / `accept_layers`. Init infers it before creating the skeleton unless a mechanical override is present; resume never re-infers. Legacy missing fields still hydrate to `standard`. The conversational wrapper rejects `--intensity`; mechanical overrides remain `jj ralph init --intensity` / `initRun({ intensity })`. See [ops.md](ops.md).
 
-| intensity | max_iterations | PLAN | DELIVER | ACCEPT judgment layer |
+| intensity | max_iterations (schema default; BLOCK only on `--lite`) | PLAN | DELIVER | ACCEPT judgment layer |
 | --- | --- | --- | --- | --- |
 | `tiny` | 8 | Shortest (see tiny-example) | Single track; early stop on stagnant `deliver-attempt` | Default SKIPPED allowed |
 | `standard` | 20 | Normal short plan | Same | Honor review if present; else SKIPPED |
 | `strict` | 12 | Optional `plan_options` remains supported | Tighter budget | **Must** `accept_layers.judgment=PASS` (review/recheck) |
+
+`max_iterations` is stored on every run (schema). Conversational full does **not** BLOCK on 8 / 20 / 12. `--lite` BLOCKS at `budget.max_deliver_loops` (falls back to this field). Compact `status` still exposes the schema field; it is not a full-run stop. Do not add `set-budget`.
 
 Mechanical steps:
 
@@ -58,7 +60,7 @@ ralph_ops.mjs gate --run-id … --gate accept --status PASS
 - Consecutive `improved=false` reaching `stagnation.patience` (default 2) and/or `budget.max_same_strategy_failures` → `BLOCKED` + `intervention_needed.kind=STAGNATION`, and write run-local `instruction-correction.md`. Reviewer stays read-only; Developer may later land a durable rule under business-repo `AGENTS.md` ## Agent corrections
 - Soft hint only: `deliver-attempt --improved false` or `rollback-phase` may print `这次失败的原因记下来了吗（ralph_ops finding）`. **Does not block** the gate. Record a pitfall only when you have a 对策.
 - `jj ralph metrics` / `ralph_ops metrics` derives clocks from progress timestamps; missing clocks stay `null` and **never** block ACCEPT
-- Hit `max_iterations` / `budget.max_deliver_loops` → `MAX_ITERATIONS`
+- Hit `budget.max_deliver_loops` on **lite** → `MAX_ITERATIONS` (conversational full has no lifetime cap)
 - `review-record` outcome=PASS/NEEDS_CHANGES → auto-write `accept_layers.judgment` (strict may gate accept directly)
 - `map-merge` / finalize auto-write STAGNATION, strict, etc. into capability `lessons` (weak pheromone for map-find)
 - **ABANDONED** forbids `map-merge` / `archive` (resume first)
@@ -81,7 +83,8 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 
 ## Lean execution
 
-- Start from `context --run-id`; `status` is compact by default (`--details` keeps the full mechanical output). Read only the missing section of a reference; the reference list is not a startup checklist.
+- Start from `context --run-id`; `status` is compact by default (`--details` keeps the full mechanical output). Read only the missing section of a reference; the reference list is not a startup checklist. After compaction, use the packet (Goal / Steps / 验收 + last ~30 progress lines).
+- This turn: the **next unchecked Step** only. Do not start later Steps unless the user asked for the remaining work in this message. `scope --replace-in` rewrites the current assignment; it does not create a new `run_id`.
 - Before review/accept/finalize with concurrent dirt, use `context --review --output .workflow/ralph/<id>/.state/review-context.json`. `task_paths`, `other_paths`, `scope_preflight` and real Git hashes are one packet. Pass that file with `--context-file`; it is recomputed before persistence/gates. Empty/missing task diffs cannot become PASS. Committed work uses `--review-scope commit --base-commit <actual-base>` (default base is HEAD's first parent; root commit uses the empty tree).
 - A rewritten current plan may need `scope --replace-in <current-files> --reason "current contract changed"`. This is explicit and recorded with the old scope; it is not automatic scope deletion. `scope.out` does not filter away unrelated Git changes.
 - Single-point / single-file: shortest Goal + file list + 验收; follow the [single-point example](tiny-example.md).
@@ -143,7 +146,7 @@ deliver-attempt → ralph_ops gate deliver PASS (checks Goal / 验收 / Steps, f
 | --- | --- |
 | Missing `~/.jj-flow` | `jj home init`, then continue; map join / first-time bootstrap uses `$jj-init`. |
 | Empty CAP or portfolio results | Continue with focused source exploration; keep empty hits empty, never Read `business-map.json` or pad unrelated history. |
-| Verify FAIL below the iteration ceiling | Stay DELIVER, rework and record `deliver-attempt`; at MAX_ITERATIONS report the blocker. |
+| Verify FAIL | Stay DELIVER, rework and record `deliver-attempt`; STAGNATION still BLOCKS a repeated strategy. Lite budget cap remains `MAX_ITERATIONS`. |
 | Same strategy fails twice | Change strategy; honor STAGNATION and `instruction-correction.md`, do not repeat a third unchanged attempt. |
 | Dirty work would be overwritten | Preserve user changes and resolve the conflict; no silent stash/reset. |
 | Handoff `ready=false` | Report `blocked_reasons`; do not start a port as if the source were ready. |

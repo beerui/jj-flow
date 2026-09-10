@@ -81,6 +81,7 @@ const RALPH_PUBLIC_EXPORTS = Object.freeze([
   'applyHandoffState',
   'applyLiteBudget',
   'archiveDir',
+  'beginAssignmentRound',
   'archiveRun',
   'assertStrictRalphRunId',
   'buildArchiveDirNameFromRunId',
@@ -271,7 +272,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'MUST finalize',
     'jj ralph locate',
     'CHECKPOINT (unconfirmed requirement)',
-    'ask first'
+    'ask first',
+    'Golden Q&A — G-ralph-1',
+    'next unchecked Step'
   ]) {
     assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }

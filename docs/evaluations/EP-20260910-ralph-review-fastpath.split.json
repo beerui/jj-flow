@@ -1,0 +1,16 @@
+{
+  "search": [
+    "EP-20260910-ralph-fastpath-time",
+    "EP-20260910-review-fastpath-time"
+  ],
+  "holdout": [],
+  "regression": [
+    "EP-20260907-grok-review-subagent-waves",
+    "EP-20260910-ralph-assignment-rounds",
+    "EP-20260910-review-assignment-exclusive"
+  ],
+  "group_by": [
+    "thread_id"
+  ],
+  "notes": "Today's post-fastpath Grok sessions are diagnosis/search. Holdout empty: no generalization score. G-review-1 remains. Ralph C-ralph-round-budget-v1 landed: EP-20260910-ralph-assignment-rounds. Review C-reviewer-exclusive-input-v1 landed as 客服 assignment (G-review-2): EP-20260910-review-assignment-exclusive. EP-20260908 samples stay prior search evidence, not this split."
+}

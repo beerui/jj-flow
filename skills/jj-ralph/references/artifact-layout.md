@@ -90,7 +90,7 @@ Dated human narrative. Read the last ~30 lines on resume. Do not paste ISO `gate
 - 单测 13 PASS
 ```
 
-`resume` / approach change: append `## YYYY-MM-DD — resume` plus the reason. Do not stamp a stub `进行中` — progress is append-only, so a placeholder can never be filled in. Write a result line only when there is a real outcome. Never rewrite an earlier date section.
+`resume` / approach change: append `## YYYY-MM-DD — resume` plus the reason. `scope --replace-in` appends `## YYYY-MM-DD — assignment` and resets the deliver-attempt counter (new 客服 slice on the same `run_id`). Do not stamp a stub `进行中` — progress is append-only, so a placeholder can never be filled in. Write a result line only when there is a real outcome. Never rewrite an earlier date section.
 
 ### File shape (`findings.md`)
 
@@ -130,4 +130,4 @@ Change summary + behavior + real pitfalls + verify. Skip empty F-00N shells. `##
 
 ### When the task / approach changes
 
-Same `run_id`. Rewrite live Goal / 验收 / Steps to the new contract. Append a dated progress section with what was wrong and what you will do instead. Put the pitfall in findings if it will recur. Leftover runs that still have `### 当前` may move that block to `### 已落地` / `### 已取代` — new runs do not grow those sections.
+Same `run_id`. Rewrite live Goal / 验收 / Steps to the new contract (the current assignment). Append a dated progress section with what was wrong and what you will do instead. `scope --replace-in` is the mechanical new-assignment signal. Put the pitfall in findings if it will recur. Leftover runs that still have `### 当前` may move that block to `### 已落地` / `### 已取代` — new runs do not grow those sections.

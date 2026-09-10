@@ -102,6 +102,7 @@
 11. 截图 / 「这里」先读图当需求；同会话「继续 / 按审查改 / 改坏了」→ resume，禁止 init
 12. `index.md` 活跃超过 5 条或 5 天未动 → 「归档提示」；不自动归档；不确定先问用户
 13. 需求确认不了先问，不臆造、不挑一边、不停在猜上过 gate（含事后 MUST / 验收）→ `phases.md` User intervention #1
+14. 对话路径 full 不按终身 `max_iterations` 停；同一 `run_id` 拆成当前未勾 Step（客服派单）；`STAGNATION` 仍挡同一策略连败；机械 `--lite` 仍封顶。G-ralph-1
 
 ## 刻意不对照的内容
 

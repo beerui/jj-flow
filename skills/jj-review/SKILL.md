@@ -1,11 +1,11 @@
 ---
 name: jj-review
-description: Single-repo read-only review adapter. Prefer host built-in review/code-review. If a ralph run exists, map to reviews/REV-*.json and write back run.json; if not, review the working tree or HEAD and do not init. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions, or recording a review on the latest ralph run (incl. after soft-archive). Cross-project VERIFIED → jj-dispatch. Does not replace the host review engine; does not change business code.
+description: Single-repo read-only review adapter. Bound first review spawns a read-only reviewer with exclusive task_paths (客服 assignment); that is the host path. Unbound or 当前的全部改动 may use host /review. If a ralph run exists, map to reviews/REV-*.json and write back run.json; if not, review the working tree or HEAD and do not init. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions, or recording a review on the latest ralph run (incl. after soft-archive). Cross-project VERIFIED → jj-dispatch. Does not replace the host review engine; does not change business code.
 ---
 
 # jj-review
 
-Produce a **read-only review**. Prefer the **host built-in** review engine; bind a ralph run when one exists, otherwise review the working tree or HEAD. **Do not** init a run to hold a review.
+Produce a **read-only review**. Bound first review is a 客服 assignment: spawn a read-only reviewer with exclusive `task_paths` — that **is** the host path, not a skip. Unbound, or the user asks 当前的全部改动, may use the host `/review` entry. Bind a ralph run when one exists, otherwise review the working tree or HEAD. **Do not** init a run to hold a review.
 
 **Happy path in one pass** (locate → scope → user/host map → persist if bound → finish reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
 
@@ -17,13 +17,14 @@ Produce a **read-only review**. Prefer the **host built-in** review engine; bind
 |---|-----------|-----|
 | 1 | Change business code / open fix tasks / enter dispatch | Read-only adapter |
 | 2 | Init or hand-build a ralph run to hold a review | Unbound review instead; never init |
-| 3 | Skip host review for parallel self-review when host exists | Host-first; chat ≠ fact source |
+| 3 | Skip host review for parallel chat self-review when a host path exists | Host-first; a listed-file read-only spawn **is** the bound-first host path (G-review-2), not a skip |
 | 4 | Treat `npm test` / `npm run verify` / CI green as `PASS` | Verify ≠ review |
 | 5 | Chain multiple full review engines in one invocation | One host path only |
 | 6 | Drop `source` / `host_review` on persist | Need provenance |
 | 7 | Advance dispatch VERIFIED / write control-plane manifests | Use `$jj-dispatch` |
 | 8 | Bind steps to one host product marketing name | Capability discovery only |
 | 9 | Spawn a second full-repo reviewer subagent for the same bound run in the same thread when a prior `REV-*` or host review artifact exists | EP-20260907: three Grok `[reviewer] local changes` with `effective_context_source=new` (~23 min). Follow-up is delta |
+| 10 | Bound first `$jj-review` via Grok `/review` / `[reviewer] local changes` without 当前的全部改动 | 客服 assignment: exclusive `task_paths`, not the dirty tree (G-review-2) |
 
 ## Inputs → outputs
 
@@ -47,7 +48,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    Unspecified and no run → **unbound**; continue. Do not init.
 
 2. **Determine scope** — **In:** run artifacts (if bound) + user target. **Out:** commit and/or paths.
-   Bound: generate one `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json`. It includes current Goal / Steps / 验收, the last 30 progress lines, recent verification events, prior review findings and real task/other diff paths. Supply this packet once to the host reviewer; avoid asking it to rediscover the run and reread every reference. For committed work use `--review-scope commit --base-commit <actual-base>` (default HEAD's first parent; root commit compares to the empty tree). Require `scope_preflight.ok`; fix scope ambiguity before dispatching review.
+   Bound: generate one `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json`. It includes current Goal / Steps / 验收, the last 30 progress lines, recent verification events, prior review findings and real task/other diff paths. Bound first review uses this packet as **exclusive** spawn input (step 4); do not also invoke Grok `/review`. For committed work use `--review-scope commit --base-commit <actual-base>` (default HEAD's first parent; root commit compares to the empty tree). Require `scope_preflight.ok`; fix scope ambiguity before dispatching review.
    Unbound: dirty working tree, else `HEAD`, else user paths. Skip `## Steps` compliance when there is no `task_plan.md`.
 
    🔴 CHECKPOINT · 🛑 STOP — **no commit/diff/scope**: `BLOCKED`; list missing evidence; do not invent SHA; do not call host.
@@ -65,12 +66,24 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    - If the host review entry **always** one-shots a new subagent (Grok `/review`: reviewer is not resumed) → **do not re-invoke it** for this follow-up. Map from the last host `<review_file>` / `REV-*` plus the current delta (`source=host_builtin`, `host_review.note=follow-up delta`). Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review.
    - First review of this run in this thread (no prior REV/host artifact): go to step 4.
 
-4. **Else host built-in** — [host-review.md](references/host-review.md). **Out:** verdict + findings + paths → `source=host_builtin`.  
-   - Invoke explicit **review / code-review** only (not test/CI verify).  
-   - Do not full self-review first then “compare” to host.  
+4. **Else bound first review (客服 assignment)** — **In:** packet from step 2. **Out:** verdict + findings → `source=host_builtin`.
+
+   If the user explicitly asked 当前的全部改动 / 重新全量审查 → **4b** (even when a run is bound).
+
+   Same as 客服 `ASSIGNMENT-REVIEW`: explicit file list, read-only source, findings only. Current slice = packet `task_paths` + task diff, not the dirty tree.
+
+   - Packet missing → generate `ralph_ops context --review --output …` first, then spawn.
+   - Spawn **one** read-only reviewer. Description names `run_id` and `task_paths`. Never `[reviewer] local changes`.
+   - **exclusive input** = `review-context.json` + task diff + `task_paths`. Direct-import listed files only. Do **not** locate ralph, read jj-review/jj-ralph SKILL, or grep the whole repo.
+   - Do **not** invoke Grok `/review` (or any host entry that auto-collects the whole dirty tree) unless the user explicitly asked 当前的全部改动 / 重新全量审查.
+   - `other_paths` stay visible as noise; do not review them unless they are direct imports of `task_paths`.
+   - At most **one** reviewer subagent per `$jj-review`. Follow-ups use step 3b.
+
+4b. **Else unbound / explicit whole-tree** — [host-review.md](references/host-review.md). **Out:** `source=host_builtin`.
+   - Invoke explicit **review / code-review** only (not test/CI verify).
+   - Do not full self-review first then “compare” to host.
    - Collect verdict, findings, summary, artifact paths.
-   - The packet defines task scope; `other_paths` stay visible. Inspect relevant dependencies as needed. Reuse the same reviewer context on follow-up where the host permits it; do not chain discovery and another full review.
-   - At most **one** full reviewer subagent per `$jj-review` invocation. Follow-ups use step 3b, not a second spawn.
+   - Unbound, or the user asked 当前的全部改动 / 重新全量审查, may use the host `/review` entry.
 
    🔴 CHECKPOINT · 🛑 STOP — **must-use-host but no entry**: `BLOCKED`; name missing capability; **no silent fallback** (user may paste findings or allow fallback).
 
@@ -119,6 +132,12 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 
 **A:** No. This is a **delta review** (step 3b). Reuse the latest `REV-*` / host findings as the checklist; inspect only files changed since last `reviewed_commit`. Re-check prior OPEN items; do not rubber-stamp. Do **not** spawn a second full-repo reviewer subagent unless the user explicitly asks for a fresh whole-tree review. Regression: `EP-20260907-grok-review-subagent-waves`.
 
+### Golden Q&A — G-review-2 (must not regress)
+
+**Q:** Bound first `$jj-review` on a dirty tree that also has other tasks' files. Call Grok `/review` so it can collect local changes?
+
+**A:** No. Conversational bound first review is a 客服 assignment (step 4): exclusive input is `review-context.json` + task diff + `task_paths`. Spawn one read-only reviewer; description must not be `[reviewer] local changes`. Do **not** invoke Grok `/review` (it always scans the whole dirty tree). `/review` only when unbound, or the user explicitly asks 当前的全部改动 / 重新全量审查. Sample: `EP-20260910` bound first review 52–96 tools.
+
 ## Fallback (host unavailable only)
 
 `source=fallback_inline` only when: no discoverable review entry; **or** host failed **and** user explicitly continues.
@@ -147,6 +166,7 @@ Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `h
 | OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
 | Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |
 | Follow-up `$jj-review` on same bound run, prior REV/host artifact exists | Step 3b delta; reuse findings; re-check OPEN | Do not spawn a second full-repo reviewer |
+| Bound first `$jj-review` on a dirty tree | Step 4 exclusive assignment; spawn with `task_paths` | Do not invoke Grok `/review` unless the user asked 当前的全部改动 |
 
 ## Examples
 
