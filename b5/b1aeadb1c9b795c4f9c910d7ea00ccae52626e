@@ -1,0 +1,116 @@
+tests/ralph/assets.contract.mjs
+  s_64c418359cd940::t_731fdbcfe46701 84,275-277
+evals/regression/EP-20260910-review-assignment-exclusive.json
+  s_64c418359cd940::t_80219353be0a0c 1-14
+src/ralph/state.mjs
+  s_64c418359cd940::t_aebef04648d789 1293,1300-1303,1363-1365
+  s_64c418359cd940::t_4b3d8b2eef66bd 1287-1292,1294-1299,1304-1309,1434,1437-1447,1504-1506
+skills/jj-ralph/references/phases.md
+  s_64c418359cd940::t_e17f9bafc05b06 27,29,48,63,86-87,149
+  s_64c418359cd940::t_a0300792c1ca28 35,41,47
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_64c418359cd940::t_9868f666652ecd 21
+  s_64c418359cd940::t_10ced110f16863 22,34
+  s_64c418359cd940::t_a2f9edf9b98991 32
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_64c418359cd940::t_8c11f23509b64b 45,326-333
+  s_64c418359cd940::t_5753924c62241e 43,46,905-906,909-914
+src/ralph/map.mjs
+  s_64c418359cd940::t_e8bdaea5a1157a 40
+evals/regression/EP-20260910-ralph-assignment-rounds.json
+  s_64c418359cd940::t_b23ebd98a13823 1-13
+docs/evaluations/EP-20260910-review-fastpath-time.episode.json
+  s_64c418359cd940::t_993350f4d9726a 1-484
+skills/jj-ralph/SKILL.md
+  s_64c418359cd940::t_44b845ec3f64c3 33,45,75-78,80
+  s_64c418359cd940::t_a1bd31e5f08cdb 79
+docs/exec-plans/index.md
+  s_64c418359cd940::t_94e7b6497c5bbd 16
+skills/jj-ralph/references/artifact-layout.md
+  s_64c418359cd940::t_fe556c0bcf2716 93,133
+skills/jj-review/SKILL.md
+  s_64c418359cd940::t_828d81a8c5d40c 69-70,73-77,79-84,86,135-140
+  s_64c418359cd940::t_3ec795f25f75d5 3,8,20
+  s_64c418359cd940::t_546ad2e0c1f5b9 27,71-72,78,169
+  s_64c418359cd940::t_1a8047dcc3a2a3 51
+docs/evaluations/EP-20260910-ralph-review-fastpath.split.json
+  s_64c418359cd940::t_5fb93be4c317ad 8
+  s_64c418359cd940::t_993350f4d9726a 1-7,11-14,16
+  s_64c418359cd940::t_16d935958c724f 9-10,15
+src/ralph/knowledge.mjs
+  s_64c418359cd940::t_18b8f8a7689685 45
+  s_64c418359cd940::t_a06e3468e4585e 326-333
+  s_64c418359cd940::t_ac1377f89aaaa7 43,46,905-906,909-914
+skills/jj-ralph/scripts/lib/ralph/map.mjs
+  s_64c418359cd940::t_5753924c62241e 40
+tests/ralph/gates.contract.mjs
+  s_64c418359cd940::t_b2e1f120a436eb 548-574,604-615
+  s_64c418359cd940::t_25c46cc423e090 34-35,477-547,575-603,616-620
+docs/evaluations/EP-20260910-ralph-review-fastpath-report.md
+  s_64c418359cd940::t_512fd5fbfe366d 152
+  s_64c418359cd940::t_965d36e6a7c47c 3,111
+  s_64c418359cd940::t_4e85f43a72864e 147
+  s_64c418359cd940::t_2b28c291e010f6 150,153-154
+  s_64c418359cd940::t_fd53d415e2676c 9,115,132,138,140,146
+  s_64c418359cd940::t_ee53e757579486 1-2,4-8,10-110,112-114,117-120,122,125-127,162,164
+  s_64c418359cd940::t_ff1e4b4db23b09 116,121,123-124,128-131,133-137,139,141-145,148-149,151,155-161,163,165-167
+docs/evaluations/EP-20260910-ralph-fastpath-time.episode.json
+  s_64c418359cd940::t_993350f4d9726a 1-231
+CHANGELOG.md
+  s_64c418359cd940::t_ccc1817db3ba21 8
+  s_64c418359cd940::t_32211e437bd354 7
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_64c418359cd940::t_5753924c62241e 1287-1292,1294-1299,1304-1309,1434,1437-1447,1504-1506
+  s_64c418359cd940::t_8c11f23509b64b 1293,1300-1303,1363-1365
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_64c418359cd940::t_daeed4690d42f0 105
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_64c418359cd940::t_5753924c62241e 76
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_64c418359cd940::t_5753924c62241e 669-670,716,718-720,726
+src/ralph/gates.mjs
+  s_64c418359cd940::t_ff5799e4b1fe04 669-670,716,718-720,726
+src/ralph.mjs
+  s_64c418359cd940::t_56ecb6fa1aa173 76
+skills/jj-review/references/host-review.md
+  s_64c418359cd940::t_fafa87dc3bef33 3,5,9,11,34
+  s_64c418359cd940::t_58006b94d75614 4,10,20,42,51,66,70-73,76-86
+  s_64c418359cd940::t_6eb305f6814821 21,32,36
+  s_64c418359cd940::t_96e777f8afd7c9 13,18-19,62
+tests/ralph/context.contract.mjs
+  s_64c418359cd940::t_9e2b0de88f7e9e 105
+docs/exec-plans/active/2026-09-10-ralph-review-process-wait.md
+  s_64c418359cd940::t_44f02a1d4afbbc 67
+  s_64c418359cd940::t_25cfb788116061 46,48-52,54
+  s_64c418359cd940::t_2597ff13516fb4 28-32,41-42
+  s_64c418359cd940::t_ed440cd30b03cf 1-2,4-27,34-39,55-57,59-61,75,86-88
+  s_64c418359cd940::t_c81d8a65fcfbdb 43,45,47,53
+  s_64c418359cd940::t_245248bf31d9e4 3,40,44,58,62-66
+  s_64c418359cd940::t_0a1a76fca58db8 84
+  s_64c418359cd940::t_54571bf818cdb4 76-82,85
+  s_64c418359cd940::t_25a410b34357f2 33,68-74
+  s_64c418359cd940::t_20ecba8b37aeda 83
+tests/jj-review-contract.test.mjs
+  s_64c418359cd940::t_d0c1a76b4a2e4d 53-57,61,63-67
+  s_64c418359cd940::t_cbc51be8c7a750 44-52,58-60,62,71-72
+  s_64c418359cd940::t_05caba7c87a3bb 68-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "b5b1aeadb1c9b795c4f9c910d7ea00ccae52626e",
+  "prompts": {},
+  "sessions": {
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
