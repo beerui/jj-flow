@@ -7,6 +7,12 @@ import * as ralphApi from '../../src/ralph.mjs';
 import { root, read, readJson } from './helpers.mjs';
 
 const RALPH_PUBLIC_EXPORTS = Object.freeze([
+  'contextGateOptions',
+  'getRalphContext',
+  'getRalphSummary',
+  'readJsonInput',
+  'validateRalphContext',
+  'writeRalphContext',
   'ACCEPT_LAYER_STATUSES',
   'ARCHIVE_CLOSEOUT_WARNING',
   'EVENTS_JSONL_REL',
@@ -278,7 +284,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   }
   const conversational = skill.split('## Conversational commands')[1].split('## Read when needed')[0];
   assert.deepEqual([...conversational.matchAll(/^\| `([^`]+)` \|/gm)].map((match) => match[1]), [
-    'init', 'resume', 'locate', 'status', 'deliver-attempt', 'gate', 'finalize', 'abandon', 'finding', 'commit-prep'
+    'init', 'resume', 'locate', 'status', 'context', 'deliver-attempt', 'gate', 'finalize', 'abandon', 'finding', 'commit-prep'
   ]);
   for (const [, rel] of skill.matchAll(/\]\((references\/[^)]+)\)/g)) {
     assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph', rel)), `missing skill reference ${rel}`);
@@ -337,7 +343,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(phases, /commit-scoped-review/);
   assert.match(phases, /归档提示/);
   assert.doesNotMatch(phases, /prefer `?intensity=tiny/);
-  for (const marker of ['rollback-phase', 'instruction-correction', '2–3', 'offset', '未完成收尾', 'jj ralph remediate', 'product-consistency']) {
+  for (const marker of ['rollback-phase', 'instruction-correction', 'process/agent limit', 'offset', '未完成收尾', 'jj ralph remediate', 'product-consistency']) {
     assert.ok(phases.includes(marker), `phases owns ${marker}`);
   }
   const integrations = read('skills/jj-ralph/references/integrations.md');

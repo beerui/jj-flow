@@ -1,0 +1,355 @@
+{
+  "episode_id": "EP-20260908-grok-review-end-latency",
+  "thread_id": "01a080d3-1324-79e2-80f3-da4dd084fb9c",
+  "skills": [
+    "jj-review",
+    "jj-end"
+  ],
+  "project_path": "D:/2025/seo-daji-web",
+  "host": "Grok",
+  "model": "grok-4.6",
+  "model_usage_key": "grok-4.6-build",
+  "reasoning_effort": "high",
+  "cutoff": "2026-09-08T12:12:13.451Z",
+  "artifact_refs": [
+    {
+      "sourcePath": "C:\\Users\\motou\\.grok\\sessions\\D%3A%5C2025%5Cseo-daji-web\\01a080d3-1324-79e2-80f3-da4dd084fb9c\\events.jsonl",
+      "source_line_start": 1,
+      "source_line_end": 5145,
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\lab-baseline-grok-01a080d3-analysis\\events-through-t4.jsonl",
+      "prefix_sha256": "5af678ce05fb40a1365043d15a9b5898daed05632f2405d6ccf068aa27ac8d7d",
+      "prefix_utf8_bytes": 454605,
+      "source_snapshot_utf8_bytes": 824855
+    },
+    {
+      "sourcePath": "C:\\Users\\motou\\.grok\\sessions\\D%3A%5C2025%5Cseo-daji-web\\01a080d3-1324-79e2-80f3-da4dd084fb9c\\updates.jsonl",
+      "source_line_start": 1,
+      "source_line_end": 681,
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\lab-baseline-grok-01a080d3-analysis\\updates-through-t4.jsonl",
+      "prefix_sha256": "0a084b7873fad75e60408390fa9299e335a9eb2a8ca7c80097128d367b9ea101",
+      "prefix_utf8_bytes": 2677243,
+      "source_snapshot_utf8_bytes": 5877484
+    },
+    {
+      "sourcePath": "C:\\Users\\motou\\.grok\\sessions\\D%3A%5C2025%5Cseo-daji-web\\01a080d3-1324-79e2-80f3-da4dd084fb9c\\subagents\\01a080dc-bb6b-7650-aae7-5ca7a2534739\\meta.json",
+      "frozenPath": "D:\\daji-docs\\jj-flow\\.tmp\\lab-baseline-grok-01a080d3-analysis\\reviewer-meta.json",
+      "sha256": "1e6b060bfd079bfb12f5b9b9aa47f7f910a3d54def9d66efb28c79d8e4a66fbd",
+      "utf8_bytes": 5058
+    }
+  ],
+  "notes": "Read-only diagnosis of completed review and end turns. Raw line numbers are preserved in frozen prefixes. Later live-session requests and compaction are excluded. No model reasoning text or raw chat content is copied into this versioned episode. No new skill candidate or speedup percentage was measured.",
+  "events": [
+    {
+      "event_id": "review-turn",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "agent_turn",
+      "phase": "accept",
+      "started_at": "2026-09-08T11:49:12.453Z",
+      "ended_at": "2026-09-08T12:03:02.429Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:3426",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4425",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:381",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:557"
+      ],
+      "labels": [
+        "subagent_overhead",
+        "stale_snapshot"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 42
+      },
+      "timing": {
+        "wall_seconds": 829.976,
+        "parent_model_loops": 19,
+        "parent_phase_seconds": {
+          "waiting_for_model": 142.22,
+          "streaming_reasoning": 165.862,
+          "streaming_text": 8.67,
+          "tool_execution": 513.211,
+          "permission_prompt": 0.007
+        },
+        "reported_tool_duration_ms_sum": 507687,
+        "reported_turn_elapsed_ms": 830021
+      },
+      "observed_volume": {
+        "parent_tool_output_utf8_bytes": 93303,
+        "parent_tool_output_chars": 89656,
+        "context_tokens_first": 146111,
+        "context_tokens_last": 185220
+      },
+      "host_reported_usage": {
+        "inputTokens": 3997638,
+        "outputTokens": 37827,
+        "cachedReadTokens": 3398912,
+        "reasoningTokens": 36191,
+        "modelCalls": 34,
+        "apiDurationMs": 820278,
+        "numTurns": 19
+      },
+      "notes": "One review invocation. Parent tool_execution includes the child lifetime. Parent loops (19) differ from host aggregate modelCalls (34); do not infer parent-only token usage or child internal timing from this aggregate. Concurrent-file consistency failure is distinct from implementation defects. Ended means the chat turn ended, not that the Ralph review gate passed."
+    },
+    {
+      "event_id": "end-turn",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T12:09:10.630Z",
+      "ended_at": "2026-09-08T12:12:13.451Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4426",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:5145",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:559",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:681"
+      ],
+      "labels": [
+        "requirement_recovery",
+        "validation_wait"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 22
+      },
+      "timing": {
+        "wall_seconds": 182.821,
+        "parent_model_loops": 17,
+        "parent_phase_seconds": {
+          "waiting_for_model": 83.765,
+          "streaming_reasoning": 64.185,
+          "streaming_text": 1.653,
+          "tool_execution": 33.168,
+          "permission_prompt": 0.045
+        },
+        "reported_tool_duration_ms_sum": 24716,
+        "reported_turn_elapsed_ms": 182864
+      },
+      "observed_volume": {
+        "parent_tool_output_utf8_bytes": 54654,
+        "parent_tool_output_chars": 51025,
+        "context_tokens_first": 185577,
+        "context_tokens_last": 207334
+      },
+      "host_reported_usage": {
+        "inputTokens": 3427478,
+        "outputTokens": 4435,
+        "cachedReadTokens": 3404416,
+        "reasoningTokens": 4294,
+        "modelCalls": 17,
+        "apiDurationMs": 149578,
+        "numTurns": 17
+      },
+      "notes": "Git closeout only, excluding the 368.201-second user gap after review. Host usage contains repeated/cached input, not unique context tokens or full-rate billed input. Most time is in host-observed model phases; this is not a direct GPU timing measurement."
+    },
+    {
+      "event_id": "reviewer-child",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "subagent",
+      "phase": "accept",
+      "started_at": "2026-09-08T11:52:24.689611700Z",
+      "ended_at": "2026-09-08T12:00:49.314137Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "exact",
+      "parent_event_id": "review-turn",
+      "status": "completed",
+      "artifact_refs": [
+        "C:\\Users\\motou\\.grok\\sessions\\D%3A%5C2025%5Cseo-daji-web\\01a080d3-1324-79e2-80f3-da4dd084fb9c\\subagents\\01a080dc-bb6b-7650-aae7-5ca7a2534739\\meta.json:9",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:493"
+      ],
+      "labels": [
+        "subagent_overhead"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 65
+      },
+      "reported_duration_ms": 504627,
+      "subagent_id": "01a080dc-bb6b-7650-aae7-5ca7a2534739",
+      "effective_context_source": "new",
+      "parent_preparation_seconds": 192.236,
+      "parent_postprocessing_seconds": 133.115,
+      "parent_interval_clock_quality": "derived",
+      "notes": "duration_ms is directly recorded in reviewer meta. Millisecond-rounded parent intervals may differ slightly from nanosecond timestamps. Child tool/model phase breakdown is unavailable. This lifetime is nested within the parent review turn and must not be added to its tool phase or wall time."
+    },
+    {
+      "event_id": "review-end-tool-514",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "escalation",
+      "phase": "accept",
+      "started_at": "2026-09-08T12:01:45.400Z",
+      "ended_at": "2026-09-08T12:01:46.146Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "review-turn",
+      "status": "blocked",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:510",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:514",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4020"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 434,
+      "notes": "PowerShell inline-JSON quoting fails when persisting the host review. This event is nested within its parent turn; do not add its elapsed span again."
+    },
+    {
+      "event_id": "review-end-tool-526",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "tool_call",
+      "phase": "accept",
+      "started_at": "2026-09-08T12:02:03.116Z",
+      "ended_at": "2026-09-08T12:02:03.819Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "review-turn",
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:523",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:526",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4097"
+      ],
+      "labels": [
+        "stale_snapshot"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 416,
+      "notes": "Review persistence succeeds using a JSON file; plan consistency injects a finding for concurrent auth changes. This event is nested within its parent turn; do not add its elapsed span again."
+    },
+    {
+      "event_id": "review-end-tool-546",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "escalation",
+      "phase": "accept",
+      "started_at": "2026-09-08T12:02:37.473Z",
+      "ended_at": "2026-09-08T12:02:37.917Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "review-turn",
+      "status": "blocked",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:540",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:546",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4221"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 2,
+      "notes": "Review-document search_replace has multiple matches and requires a narrower anchor. This event is nested within its parent turn; do not add its elapsed span again."
+    },
+    {
+      "event_id": "review-end-tool-590",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "escalation",
+      "phase": "archive",
+      "started_at": "2026-09-08T12:09:54.296Z",
+      "ended_at": "2026-09-08T12:09:55.210Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "end-turn",
+      "status": "blocked",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:585",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:590",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4585"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 359,
+      "notes": "Unquoted @{u} is parsed as PowerShell syntax; a quoted retry succeeds. This event is nested within its parent turn; do not add its elapsed span again."
+    },
+    {
+      "event_id": "review-end-tool-610",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "escalation",
+      "phase": "archive",
+      "started_at": "2026-09-08T12:10:32.695Z",
+      "ended_at": "2026-09-08T12:10:36.689Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "end-turn",
+      "status": "blocked",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:607",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:610",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4708"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 3662,
+      "notes": "Commit hook rejects Vue and review Markdown formatting. This event is nested within its parent turn; do not add its elapsed span again."
+    },
+    {
+      "event_id": "review-end-tool-637",
+      "episode_id": "EP-20260908-grok-review-end-latency",
+      "kind": "tool_call",
+      "phase": "archive",
+      "started_at": "2026-09-08T12:11:15.859Z",
+      "ended_at": "2026-09-08T12:11:20.105Z",
+      "timestamp_provenance": "user_export",
+      "clock_quality": "derived",
+      "parent_event_id": "end-turn",
+      "status": "completed",
+      "artifact_refs": [
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:633",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/updates.jsonl:637",
+        "C:/Users/motou/.grok/sessions/D%3A%5C2025%5Cseo-daji-web/01a080d3-1324-79e2-80f3-da4dd084fb9c/events.jsonl:4908"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 1
+      },
+      "reported_duration_ms": 3937,
+      "notes": "Commit succeeds after formatting and reinspection. The hook-failure call start to this completion spans 47.410 seconds, including necessary work. This event is nested within its parent turn; do not add its elapsed span again."
+    }
+  ]
+}

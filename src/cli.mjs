@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
+import { runEndCommand } from './endCli.mjs';
 import { buildDispatch, MODE_CHOICES, renderMarkdown } from './dispatch.mjs';
 import {
   installSkill,
@@ -40,6 +42,11 @@ import {
   abandonRun,
   commitPrep,
   getStatus,
+  getRalphSummary,
+  getRalphContext,
+  writeRalphContext,
+  contextGateOptions,
+  readJsonInput,
   initRun,
   locateRalphRuns,
   mapFind,
@@ -72,6 +79,7 @@ import { appendProjectMapRow, findProjectByCwd, loadProjectMap } from './project
 
 export function runCli(rawArgs = [], { cwd = process.cwd(), stdout = process.stdout } = {}) {
   const args = [...rawArgs];
+  if (args[0] === 'end') return runEndCommand(args.slice(1), { cwd, stdout });
 
   if (args[0] === 'install-skill') {
     return runInstallSkill(args.slice(1), { cwd, stdout });
@@ -822,6 +830,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
 }
 
 function printHelp(stdout) {
+  stdout.write('  jj end preview|execute [--help] — Git 收尾批量 runner\n');
   stdout.write(`jj-flow\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n  jj home init [--json]\n  jj init preview|join|ingest [--json]\n  jj map lookup|add [--json]\n  jj doctor [--json]\n  jj scenario list | check | run <scenario|all> [--json]\n  jj trace explain | replay <trace.json> [--json]\n  jj host-trial run [--json]\n  jj grok-trial run [--json] [--session-id ID] [--write-report] [--report-path path]\n  jj harness-gc [--json]\n  jj dispatch-tick --delivery DELIVERY_ID [--manifest path | --control-root dir] [--receipt receipt.json] [--write] [--json]\n  jj ralph init|status|archive|map-merge|map-find|handoff|dispatch-snapshot|commit-prep|review-record|host-record|metrics|migrate|adopt [options] [--json]\n\n说明：\n  npx/CLI 只负责安装、卸载和维护调试。Codex 安装同时写入 .codex/skills 与 .codex/agents；Qoder/Grok/Claude 安装写入各自 skills 目录；Claude 另装 slash commands。真实使用入口是 $jj-init / $jj-same / $jj-ralph / $jj-dispatch（Codex）与 /jj-init / /jj-same / /jj-ralph（Claude Code / Grok slash）。\n  uninstall-skill 只删除 ownership manifest 登记或包内明确声明的资产；已修改及旧版未登记资产默认拒绝删除。\n  doctor 只读取 Git、Harness manifest、路径配置（control_root/portfolio_root）和版本化仓库文件，不修复、不安装、不派发。\n  scenario 使用固定 fixture 和纯状态转换，不创建真实 task；trace replay 不执行记录的 host actions。\n  host-trial 在系统临时目录运行半真实 Git/worktree/CAS/Review 闭环，不创建 Codex App task。\n  grok-trial 绑定真实 GROK_SESSION_ID 跑 create/bind/RECONCILE/返工；默认不写里程碑 JSON，不关闭 Wave 2，不升 A2。\n  harness-gc 只读扫描文档、schema、fixture、规则 owner 和维护重复，不自动修复。\n  dispatch-tick 只执行一次可恢复调度 tick；默认预览，不启动后台进程。未给 --manifest 时从 control_root 解析 plane。\n  目录配置：~/.jj-flow 为产品默认（control_root / map.md / knowledge/）；可用 $JJ_GLOBAL_CONFIG_DIR/naming.json 覆盖。install-skill 会生成空 map 与知识结构。地图写入与知识建库走 $jj-init / jj init（须用户同意）。\n  ralph 子命令负责单仓闭环的机械步骤（init/status/archive/地图/handoff/快照/提交清单），不替代对话入口 $jj-ralph。\n\n示例：\n  npx @brewer/jj-flow@beta install-skill\n  npx @brewer/jj-flow@beta install-skill --platform grok\n  npx @brewer/jj-flow@beta uninstall-skill --dry-run\n  npx @brewer/jj-flow@beta doctor --json\n  npx @brewer/jj-flow@beta scenario run dispatch-interrupted-resume --json\n`);
   stdout.write('  jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]\n  jj task assign --delivery DELIVERY_ID --task TASK-ID [--control-root dir] [--json]\n');
 }
@@ -853,7 +862,9 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
 
   if (command === 'status') {
     const options = parseRalphRunArgs(args, { requireRunId: false });
-    const payload = getStatus({ runId: options.runId, cwd });
+    const payload = options.runId || options.details
+      ? getStatus({ runId: options.runId, cwd, details: Boolean(options.details) })
+      : getRalphSummary({ cwd, limit: options.limit });
     if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
     else stdout.write(`${renderRalphStatusText(payload)}\n`);
     return 0;
@@ -861,10 +872,7 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
 
   if (command === 'locate') {
     const options = parseRalphRunArgs(args, { requireRunId: false });
-    const runs = locateRalphRuns(cwd);
-    const payload = options.runId
-      ? { runs: runs.filter((row) => row.run_id === options.runId), run_id: options.runId }
-      : { runs };
+    const payload = getRalphSummary({ cwd, runId: options.runId, details: options.details, limit: options.limit });
     if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
     else {
       const lines = ['Ralph locate:', ...(payload.runs || []).map((item) => {
@@ -875,14 +883,27 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
         if (item.path) line += ' · ' + item.path;
         return line;
       })];
+      if (payload.omitted) lines.push(`${payload.omitted} more candidates; use --details or --run-id.`);
       stdout.write(lines.join('\n') + '\n');
     }
     return 0;
   }
 
+  if (command === 'context') {
+    const options = parseRalphRunArgs(args, { requireRunId: true });
+    const payload = getRalphContext(options.runId, {
+      cwd, review: options.review, review_scope: options.reviewScope,
+      reviewed_commit: options.reviewedCommit, base_commit: options.baseCommit
+    });
+    const file = options.output ? writeRalphContext(options.output, payload, cwd) : null;
+    if (json) stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else stdout.write(`${payload.run_id} · ${payload.phase} · next=${payload.next} · scope=${payload.scope_preflight.ok ? 'ready' : payload.scope_preflight.reasons.join('; ')}${file ? '\ncontext -> ' + file : ''}\n`);
+    return 0;
+  }
+
   if (command === 'archive') {
     const options = parseRalphRunArgs(args, { requireRunId: true });
-    const result = archiveRun(options.runId, { cwd, slug: options.slug });
+    const result = archiveRun(options.runId, { cwd, slug: options.slug, ...contextGateOptions(options.runId, options.contextFile, cwd) });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`archived ${options.runId} -> ${result.manifest.archive_path}\n`);
     return 0;
@@ -892,6 +913,7 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
     const options = parseRalphRunArgs(args, { requireRunId: true });
     const result = finalizeRun(options.runId, {
       cwd,
+      ...contextGateOptions(options.runId, options.contextFile, cwd),
       slug: options.slug,
       modules: options.modules || [],
       keywords: options.keywords || [],
@@ -985,7 +1007,7 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
   }
 
   if (command === 'review-record') {
-    const options = parseRalphReviewArgs(args);
+    const options = parseRalphReviewArgs(args, cwd);
     const result = recordReview(options.runId, {
       cwd,
       outcome: options.outcome,
@@ -998,7 +1020,8 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       findings: options.findings,
       evidence_refs: options.evidenceRefs,
       source: options.source || null,
-      host_review: options.hostReview || null
+      host_review: options.hostReview || null,
+      context: options.contextFile ? readJsonInput(options.contextFile, cwd) : null
     });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else stdout.write(`review-record ${result.report.review_id} ${result.report.outcome} -> ${result.path}\n`);
@@ -1011,6 +1034,7 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
       gate: options.gate,
       status: options.status,
       cwd,
+      ...contextGateOptions(options.runId, options.contextFile, cwd),
       advance: options.advance
     });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -1027,7 +1051,10 @@ function runRalphCommand(rawArgs, { cwd = process.cwd(), stdout = process.stdout
 
   if (command === 'scope') {
     const options = parseRalphScopeArgs(args);
-    const result = updateRunScope(options.runId, { add_in: options.addIn, add_out: options.addOut, cwd });
+    const result = updateRunScope(options.runId, {
+      add_in: options.addIn, add_out: options.addOut,
+      replace_in: options.replaceIn, replace_out: options.replaceOut, reason: options.reason, cwd
+    });
     if (json) stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     else {
       stdout.write(`scope in+=[${result.added_in.join(', ')}] out+=[${result.added_out.join(', ')}] gate_set=${result.gate_set} (${options.runId})\n`);
@@ -1367,16 +1394,19 @@ function parseRalphInitArgs(args) {
 }
 
 function parseRalphScopeArgs(args) {
-  const options = { addIn: [], addOut: [] };
+  const options = { addIn: [], addOut: [], replaceIn: null, replaceOut: null };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--run-id') { options.runId = args[++i]; continue; }
     if (arg === '--in') { options.addIn.push(args[++i]); continue; }
     if (arg === '--out') { options.addOut.push(args[++i]); continue; }
+    if (arg === '--replace-in') { (options.replaceIn ||= []).push(args[++i]); continue; }
+    if (arg === '--replace-out') { (options.replaceOut ||= []).push(args[++i]); continue; }
+    if (arg === '--reason') { options.reason = args[++i]; continue; }
     throw new Error(`Unknown ralph scope option: ${arg}`);
   }
   if (!options.runId) throw new Error('scope requires --run-id');
-  if (!options.addIn.length && !options.addOut.length) throw new Error('scope requires at least one --in or --out');
+  if (!options.addIn.length && !options.addOut.length && options.replaceIn === null && options.replaceOut === null) throw new Error('scope requires at least one --in or --out or replacement');
   return options;
 }
 
@@ -1384,6 +1414,14 @@ function parseRalphRunArgs(args, { requireRunId = false } = {}) {
   const options = { targets: [], modules: [], keywords: [], lessons: [], acceptance: [] };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
+    if (arg === '--details') { options.details = true; continue; }
+    if (arg === '--limit') { options.limit = Number(args[++i]); continue; }
+    if (arg === '--review') { options.review = true; continue; }
+    if (arg === '--output') { options.output = args[++i]; continue; }
+    if (arg === '--context-file') { options.contextFile = args[++i]; continue; }
+    if (arg === '--review-scope') { options.reviewScope = args[++i]; continue; }
+    if (arg === '--reviewed-commit') { options.reviewedCommit = args[++i]; continue; }
+    if (arg === '--base-commit') { options.baseCommit = args[++i]; continue; }
     if (arg === '--run-id') {
       options.runId = args[++i];
       continue;
@@ -1447,6 +1485,7 @@ function parseRalphGateArgs(args) {
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--run-id') { options.runId = args[++i]; continue; }
+    if (arg === '--context-file') { options.contextFile = args[++i]; continue; }
     if (arg === '--gate' || arg === '--phase') { options.gate = args[++i]; continue; }
     if (arg === '--status') { options.status = args[++i]; continue; }
     if (arg === '--no-advance') { options.advance = false; continue; }
@@ -1560,7 +1599,7 @@ function parseRalphHostArgs(args) {
   return options;
 }
 
-function parseRalphReviewArgs(args) {
+function parseRalphReviewArgs(args, cwd = process.cwd()) {
   const options = { findings: [], evidenceRefs: [] };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
@@ -1573,7 +1612,14 @@ function parseRalphReviewArgs(args) {
     if (arg === '--review-thread') { options.reviewThreadId = args[++i]; continue; }
     if (arg === '--summary') { options.summary = args[++i]; continue; }
     if (arg === '--source') { options.source = args[++i]; continue; }
+    if (arg === '--context-file') { options.contextFile = args[++i]; continue; }
+    if (arg === '--host-review-file') {
+      if (options.hostReview) throw new Error('use one host-review-file or host-review-json');
+      options.hostReview = readJsonInput(args[++i], cwd);
+      continue;
+    }
     if (arg === '--host-review-json') {
+      if (options.hostReview) throw new Error('use one host-review-file or host-review-json');
       const raw = args[++i];
       try {
         options.hostReview = JSON.parse(raw);
@@ -1588,8 +1634,7 @@ function parseRalphReviewArgs(args) {
     if (arg === '--finding-json') { options.findings.push(JSON.parse(args[++i])); continue; }
     if (arg === '--findings-file') {
       const filePath = args[++i];
-      const payload = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      if (!Array.isArray(payload)) throw new Error('--findings-file must contain a JSON array');
+      const payload = readJsonInput(filePath, cwd, 'array');
       options.findings.push(...payload);
       continue;
     }
@@ -1655,8 +1700,9 @@ function parseRalphHotMemoryArgs(args, commandName, { requireNeedle = false } = 
 }
 
 function printRalphHelp(stdout) {
-  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--json]\n  jj ralph locate [--run-id task-…] [--json]\n  jj ralph remediate [--yes] [--force] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
-  jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--json]
+  stdout.write('  scope 支持 --replace-in/--replace-out（可重复）及 --reason；gate accept/archive、archive、finalize 支持 --context-file path。\n');
+  stdout.write(`jj ralph\n\n用法：\n  jj ralph init --run-id task-… --title "…" --goal "…" [--intensity tiny|standard|strict] [--lite|--full] [--max-iterations N] [--capability CAP-…] [--in …] [--out …] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] [--intent|--no-intent] [--force] [--json]\n  jj ralph status [--run-id task-…] [--details] [--json]\n  jj ralph locate [--run-id task-…] [--limit 8] [--details] [--json]\n  jj ralph context --run-id task-… [--review] [--review-scope working_tree|commit] [--base-commit sha] [--output path] [--json]\n  jj ralph remediate [--yes] [--force] [--json]\n  jj ralph archive --run-id task-… [--slug name] [--json]\n  jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]\n  jj ralph map-merge --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--force] [--include-process-lessons] [--json]\n  jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]\n  jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]\n  jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]\n  jj ralph knowledge-prune [--project KEY] [--json]\n  jj ralph map-find --query "关键词" [--limit N] [--json]\n  jj ralph handoff --run-id task-… [--handoff-id HOF-…] [--target name] [--json]\n  jj ralph dispatch-snapshot --run-id task-… [--target name] [--json]\n  jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]\n  jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]\n  jj ralph deliver-attempt --run-id task-… --improved true|false [--signal text] [--json]\n  jj ralph accept-layer --run-id task-… --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]\n  jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]\n  jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]\n  jj ralph commit-prep --run-id task-… [--json]\n  jj ralph metrics --run-id task-… [--persist] [--json]
+  jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json | --host-review-file path] [--context-file path] [--json]
   jj ralph host-record --run-id task-… [--host-id codex|grok-build|claude|qoder|other] [--thread-id id] [--session-handle id] [--model-id id] [--export-path path] [--json]
   jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
   jj ralph remediate [--yes] [--force] [--json]
@@ -1694,4 +1740,10 @@ function printInstallHelp(stdout) {
 
 function printUninstallHelp(stdout) {
   stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/skills 与 .claude/commands，qoder 处理 .qoder/skills，grok 处理 .grok/skills，agents 处理 ~/.agents/skills 与 commands，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
+}
+
+// Also support the repository's documented `node src/cli.mjs ...` entrypoint.
+// Importing runCli from the package bin or tests must remain side-effect free.
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  process.exitCode = runCli(process.argv.slice(2));
 }

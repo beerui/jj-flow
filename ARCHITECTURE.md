@@ -30,7 +30,8 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `skills/jj-init/` 定义全局地图接入与知识库建库。机械步骤由 `src/jjInit.mjs` + `jj init preview|join|ingest` 提供；ralph / same / dispatch 只读地图。
 - `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
-- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,knowledge,archive}.mjs` + `jj ralph *` 提供。
+- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,context,knowledge,archive,migrate}.mjs` + `jj ralph *` 提供。`context` 读取当前合同、阶段与 Git 快照，供一次性 review 交接及任务范围校验；依赖 state/gates，knowledge 只消费其验证结果。
+- `src/gitSnapshot.mjs` 采集只读 Git 状态和提交范围指纹；`src/end.mjs` + `src/endCli.mjs` 提供经授权的 Git preview/execute，不写 Ralph/dispatch 账本。`skills/jj-end/scripts/end_ops.mjs` 与 Ralph 一样携带可独立安装的库，分别由 `end:sync/check`、`ralph:sync/check` 保持一致。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
 - `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-init`、`jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
 - `skills/jj-team-coordinate/` 是会话内多角色**执行引擎**（动态 role-spec / `TC-*` session），不是交付主路径；不得推进 ralph / dispatch checkpoint。设计见 `docs/design-docs/jj-team-coordinate.md`。

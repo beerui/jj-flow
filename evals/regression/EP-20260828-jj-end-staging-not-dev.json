@@ -1,7 +1,7 @@
 {
   "id": "EP-20260828-jj-end-staging-not-dev",
   "source_episode": "docs/evaluations/EP-20260828-jj-end-staging-not-dev.md",
-  "skill_or_path": "skills/jj-end/SKILL.md",
+  "skill_or_path": "skills/jj-end/references/git-policy.md",
   "invariants": [
     { "type": "contains", "text": "Golden Q&A — G-end-1" },
     { "type": "contains", "text": "Land where?" },

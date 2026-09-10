@@ -16,6 +16,7 @@
 | `home init` / `init preview\|join\|ingest` / `map lookup` / `map add` | 生成用户主目录；接入地图与补知识（`$jj-init` 对话入口，须用户同意）；`map lookup` 只读 |
 | `doctor` | 只读诊断 Git / Harness / 路径 / capabilities |
 | `ralph *` | 单仓 run 机械步骤（不替代对话） |
+| `end preview` / `end execute` | Git 收尾预览和批量执行；不写任务账本 |
 | `dispatch-tick` | 单次调度 tick 预览或 CAS 写入 |
 | `task scaffold` / `task assign` | 任务脚手架与轻量分配展示 |
 | `scenario` | 确定性场景 list / check / run |
@@ -72,9 +73,12 @@ jj ralph init --run-id task-… --title "…" --goal "…" \
   [--capability CAP-…] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--no-knowledge-refs] \
   [--intent|--no-intent] [--host-id …] [--thread-id …] [--model-id …] [--session-export path] [--force] [--json]
 
-jj ralph status [--run-id task-…] [--json]
+jj ralph status [--run-id task-…] [--details] [--json]
+jj ralph locate [--run-id task-…] [--limit 8] [--details] [--json]
+jj ralph context --run-id task-… [--review] [--review-scope working_tree|commit] [--base-commit sha] [--output path] [--json]
 jj ralph gate --run-id task-… --gate analyze|plan|deliver|accept|archive|brief|close --status PASS|FAIL|… [--no-advance] [--json]
 jj ralph scope --run-id task-… [--in path]… [--out path]… [--json]
+jj ralph scope --run-id task-… --replace-in path [--replace-in path]… --reason "当前合同变更原因" [--json]
 jj ralph deliver-attempt --run-id task-… [--improved true|false] [--signal text] [--json]
 jj ralph accept-layer --run-id task-… --layer mechanical|judgment \
   --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]
@@ -114,6 +118,33 @@ jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
 - `handoff` 写 `tasks/<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
 - `commit-prep` 只出清单与 message，**不** git commit / push
 - 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`，`npm run ralph:sync` 同步）
+
+定位与审查可用短路径：已知编号直接 `context --run-id`；`locate` 默认只返回 8 个简明候选及省略数量，`--details` 返回全部。`status --details` 保留完整 run 和指标。`context --review` 一次汇集当前 Goal / 验收 / Steps、验证记录尾部、上一份审查及真实 Git 范围；不推进门禁、不读完整业务地图。路径按仓库根匹配，同名文件不互相替代，其他脏文件另列。
+
+```text
+jj ralph context --run-id task-demo --review --output .workflow/ralph/task-demo/.state/review-context.json --json
+jj ralph review-record --run-id task-demo --outcome PASS --source host_builtin --context-file .workflow/ralph/task-demo/.state/review-context.json --findings-file .workflow/findings.json --host-review-file .workflow/host-review.json --json
+jj ralph gate --run-id task-demo --gate accept --status PASS --context-file .workflow/ralph/task-demo/.state/review-context.json --json
+```
+
+`findings.json` 为审查结果数组，`host-review.json` 为真实宿主元数据对象；文件支持 UTF-8 BOM，路径相对 cwd，避免 PowerShell 内联 JSON 转义。`finalize` / `archive` 同样接受 `--context-file`。空范围、缺失计划文件、修改过的快照不能变成通过；代码、index、HEAD、当前合同变化后，刷新材料并审查增量。已记录的快照也在后续门禁自动核对，省略参数不会让旧审查重新有效。已提交内容须用 commit 范围，`--base-commit` 缺省为 HEAD 第一父提交，根提交与空树比较；任务文件仍脏时不能宣称提交范围审查完成。
+
+`scope --replace-in` / `--replace-out` 用于方案已明确替换旧范围的续办，必须给 `--reason`，旧范围保留在事件中。它不自动删历史要求，`scope.out` 也不隐藏 Git 改动。
+
+## end 批量执行
+
+日常入口仍是 `$jj-end` / `/jj-end`。技能优先运行随安装分发的 `scripts/end_ops.mjs`，不要求业务仓安装 jj-flow；包内对应入口为：
+
+```text
+jj end preview --work-branch feature/demo --paths-file ../task-paths.json --message-file ../commit-message.txt --output ../end-preview.json
+jj end execute --plan-file ../end-preview.json
+```
+
+上述三个输入/预览文件放在仓库外；Agent 通常使用系统临时目录。路径文件是精确路径 JSON 数组（rename 同时包含旧、新路径），提交信息首行是中文 Conventional Commit。支持重复 `--path`、`--integration`、`--remote`、`--return-to work|integration` 和 `--cwd`；干净工作区可省略路径和提交信息。`--convention-file` 接收 `{branch, source_path, excerpt}`，只接受源文件中明确写出的收尾分支约定，并校验其内容是否变化。
+
+preview 不 fetch、不写 Git 索引；显式 `--output` 只允许写仓库外。execute 在已有提交/推送/合并授权下执行，保留正常 hooks，并校验预览、分支、文件、远程身份。它按 fetch → commit → sync/push work → sync/merge/push integration → return 执行，遇错停止后续步骤。未选的脏文件和脏子模块明确阻止批量执行；不自动 stash、reset、force push、删分支或改配置。
+
+冲突输出双方 commit/blob 和文件路径，回滚本次未完成合并，交给宿主按双方意图解冲突、验证并提交，再生成新预览继续。推送失败返回实际完成步骤，第二次运行跳过已合入的部分。返回值包含每步耗时和两个分支的推送状态；只有两个分支均完成才报告收工。合并树校验要求 Git 2.38 以上。
 
 ---
 

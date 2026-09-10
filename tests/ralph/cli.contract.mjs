@@ -8,6 +8,15 @@ import { runCli } from '../../src/cli.mjs';
 import { initRun, INTENSITY_DEFAULTS, loadRun, listRuns } from '../../src/ralph.mjs';
 import { root, writeConversationPlan, seedCapabilityMap } from './helpers.mjs';
 
+test('documented source CLI entrypoint executes commands as well as the package bin', () => {
+  for (const entry of ['src/cli.mjs', 'bin/jj.mjs']) {
+    const result = spawnSync(process.execPath, [path.join(root, entry), 'end', '--help'], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /execute --plan-file/);
+    assert.match(result.stdout, /preview/);
+  }
+});
+
 test('cli ralph archive, handoff, dispatch-snapshot and commit-prep work end-to-end', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-cli-'));
   const chunks = [];
@@ -168,7 +177,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(scriptsDir, 'lib', 'ralph.mjs')
     );
     fs.mkdirSync(path.join(scriptsDir, 'lib', 'ralph'), { recursive: true });
-    for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs']) {
+    for (const name of ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs', 'context.mjs']) {
       const src = path.join(root, 'skills/jj-ralph/scripts/lib/ralph', name);
       assert.ok(fs.existsSync(src), `portable lib missing ralph/${name}; run npm run ralph:sync`);
       fs.copyFileSync(src, path.join(scriptsDir, 'lib', 'ralph', name));
@@ -189,7 +198,7 @@ test('skill portable lib works without jj-flow in business cwd', () => {
       path.join(root, 'skills/jj-ralph/scripts/lib/memoryExtract.mjs'),
       path.join(scriptsDir, 'lib', 'memoryExtract.mjs')
     );
-    for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs', 'memoryHotLayer.mjs']) {
+    for (const extra of ['homeLayout.mjs', 'projectMap.mjs', 'homeKnowledge.mjs', 'memoryHotLayer.mjs', 'gitSnapshot.mjs']) {
       const src = path.join(root, 'skills/jj-ralph/scripts/lib', extra);
       assert.ok(fs.existsSync(src), `portable lib missing ${extra}; run npm run ralph:sync`);
       fs.copyFileSync(src, path.join(scriptsDir, 'lib', extra));

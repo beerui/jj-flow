@@ -2,10 +2,20 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
+import './end/runner.contract.mjs'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const skill = fs.readFileSync(path.join(root, 'skills/jj-end/SKILL.md'), 'utf8')
+const entry = fs.readFileSync(path.join(root, 'skills/jj-end/SKILL.md'), 'utf8')
+const skill = entry + '\n' + fs.readFileSync(path.join(root, 'skills/jj-end/references/git-policy.md'), 'utf8')
+
+test('jj-end starts with the portable batch runner and reads detailed policy only on exceptions', () => {
+  assert.ok(entry.trimEnd().split(/\r?\n/).length <= 100)
+  assert.match(entry, /end_ops\.mjs preview/)
+  assert.match(entry, /end_ops\.mjs execute --plan-file/)
+  assert.match(entry, /Do not reread the full policy/)
+  assert.match(entry, /does not mean every conflict is unhandleable/)
+})
 
 test('jj-end does not treat staging git-log as integration convention', () => {
   assert.match(skill, /EP-20260828/)
@@ -53,7 +63,7 @@ test('jj-end finish reply is one-line merge arrow plus current HEAD', () => {
   assert.match(skill, /exactly one Chinese line/)
   assert.match(skill, /已合并：<work_branch> → <integration>/)
   assert.match(skill, /当前在 <HEAD after return>/)
-  assert.match(skill, /合完默认回到工作分支/)
+  assert.doesNotMatch(skill, /合完默认回到工作分支/)
   assert.match(skill, /已回退：<one-line reason> · 当前在/)
   assert.match(skill, /Classify table is user-visible only on STOP/)
   assert.match(skill, /do not list auto-resolved files/)

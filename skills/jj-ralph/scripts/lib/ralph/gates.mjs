@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { digest, gitStatus, snapshotGit } from '../gitSnapshot.mjs';
 import { countFindingHeadings, extractReusableRulesFromFindings } from '../memoryHotLayer.mjs';
 import {
   ACCEPT_LAYER_STATUSES,
@@ -245,7 +246,7 @@ function normalizeLedgerPathRef(value) {
   if (!value || typeof value !== 'string') return null;
   let token = value.trim().replace(/\\/g, '/');
   if (!token || token.includes('://')) return null;
-  token = token.split(/\s+/)[0].replace(/^['"]|['"]$/g, '').replace(/[,:;]+$/g, '');
+  token = token.replace(/^['"]|['"]$/g, '').replace(/[,:;]+$/g, '').replace(/:\d+(?::\d+)?$/, '');
   if (!token || token.includes('=') || token.includes('(') || token.includes(')')) return null;
   token = token.replace(/^\.\//, '');
   const base = token.split('/').pop().toLowerCase();
@@ -301,7 +302,7 @@ export function extractPlanCurrentSection(text) {
   return '';
 }
 
-function extractAcceptanceActiveText(text) {
+export function extractAcceptanceActiveText(text) {
   if (!text || typeof text !== 'string') return '';
   const accept = hasHeading(text, '验收', 2)
     ? extractMarkdownSection(text, '验收', 2)
@@ -326,7 +327,7 @@ export function extractLedgerPathRefs(text) {
   return unique(found);
 }
 
-function isWorkflowNoisePath(value) {
+export function isWorkflowNoisePath(value) {
   const normalized = String(value || '').replace(/\\/g, '/');
   return normalized.startsWith('.workflow/') || normalized.includes('/.workflow/') || normalized.startsWith('.git/');
 }
@@ -360,17 +361,7 @@ export function findImplementationPathMismatch(claimedPaths, actualPaths) {
 
 export function collectGitDiffPaths(cwd = process.cwd()) {
   try {
-    const output = execSync('git status --porcelain -uall', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const paths = [];
-    for (const line of String(output || '').split(/\r?\n/)) {
-      if (!line.trim()) continue;
-      const body = line.length >= 4 ? line.slice(3).trim() : line.trim();
-      if (!body) continue;
-      const chosen = body.includes(' -> ') ? body.split(' -> ').pop() : body;
-      const normalized = String(chosen || '').replace(/\\/g, '/').replace(/^"|"$/g, '');
-      if (normalized && !isWorkflowNoisePath(normalized)) paths.push(normalized);
-    }
-    return unique(paths);
+    return unique(gitStatus(cwd).map(entry => entry.path).filter(file => !isWorkflowNoisePath(file)));
   } catch {
     return null;
   }
@@ -389,6 +380,14 @@ export function readRunArtifactText(run, key, cwd) {
   const nested = path.join(root, STATE_REL, normalized);
   if (fs.existsSync(nested)) return fs.readFileSync(nested, 'utf8');
   throw new Error('artifact_refs.' + key + ' missing file: ' + normalized);
+}
+
+export function readRalphContract(run, cwd) {
+  return {
+    goal: run.goal, scope: run.scope,
+    plan: readRunArtifactText(run, 'plan', cwd),
+    acceptance: readRunArtifactText(run, 'acceptance', cwd)
+  };
 }
 
 /** Ignore examples/comments so a quoted plan cannot satisfy the live contract. */
@@ -507,18 +506,7 @@ export function isTestPath(file) {
 
 export function collectGitDeletedPaths(cwd = process.cwd()) {
   try {
-    const output = execSync('git status --porcelain -uall', { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const paths = [];
-    for (const line of String(output || '').split(/\r?\n/)) {
-      if (line.length < 4) continue;
-      const code = line.slice(0, 2);
-      if (!code.includes('D')) continue;
-      const body = line.slice(3).trim();
-      const chosen = body.includes(' -> ') ? body.split(' -> ')[0] : body;
-      const normalized = String(chosen || '').replace(/\\/g, '/').replace(/^"|"$/g, '');
-      if (normalized && !isWorkflowNoisePath(normalized)) paths.push(normalized);
-    }
-    return unique(paths);
+    return unique(gitStatus(cwd).filter(entry => entry.status.includes('D')).map(entry => entry.path).filter(file => !isWorkflowNoisePath(file)));
   } catch {
     return [];
   }
@@ -1012,6 +1000,20 @@ export function evaluateAcceptArchiveGate(run, { cwd = process.cwd(), force = fa
     const fixSha = latest.fix_commit || latest.reviewed_commit || null;
     details.review_scope = scope;
     details.fix_commit = fixSha;
+    // A scoped review remains bound even when a later caller omits --context-file.
+    if (latest.context_snapshot && latest.outcome === 'PASS') {
+      try {
+        const proof = latest.context_snapshot;
+        const current = snapshotGit(cwd, { include: file => !isWorkflowNoisePath(file) });
+        if (current.root !== proof.snapshot?.root || current.fingerprint !== proof.snapshot?.fingerprint
+          || proof.contract_sha256 !== digest(JSON.stringify(readRalphContract(run, cwd)))
+          || proof.review_scope !== scope || proof.reviewed_commit !== current.head) {
+          reasons.push('stale scoped review; regenerate context and review the changed contract/diff before acceptance');
+        }
+      } catch (error) {
+        reasons.push('cannot validate scoped review: ' + error.message);
+      }
+    }
     if (latest.outcome === 'NEEDS_CHANGES' || latest.outcome === 'BLOCKED') {
       reasons.push('latest review ' + latest.review_id + ' is ' + latest.outcome + '; accept/archive PASS forbidden');
     }
@@ -1561,14 +1563,21 @@ export function persistRunMetrics(runId, cwd = process.cwd()) {
   return { run, metrics: run.metrics };
 }
 
-export function getStatus({ runId, cwd = process.cwd() } = {}) {
+export function getStatus({ runId, cwd = process.cwd(), details = true } = {}) {
   if (runId) {
     const run = loadRun(runId, cwd);
-    const metrics = computeRunMetrics(run, cwd);
+    const metrics = details ? computeRunMetrics(run, cwd) : undefined;
     const layout = run._readonly_archive_path ? 'archive' : runLayoutOf(runId, cwd);
     const { next, warning } = computeRalphNext(run, { layout });
     return {
-      run,
+      run: details ? run : {
+        run_id: run.run_id, title: run.title, goal: run.goal, phase: run.phase, status: run.status,
+        intensity: run.intensity, gate_set: run.gate_set, gates: run.gates,
+        iteration: run.iteration, max_iterations: run.max_iterations,
+        stagnation: run.stagnation, intervention_needed: run.intervention_needed, host: run.host,
+        accept_layers: run.accept_layers, gate_issues: run.gate_issues,
+        latest_review: run.review?.reviews?.find(item => item.review_id === run.review.latest_review_id) || null
+      },
       metrics,
       path: path.relative(cwd, runWorkspaceDir(run, cwd)).replaceAll(String.fromCharCode(92), String.fromCharCode(47)),
       layout,

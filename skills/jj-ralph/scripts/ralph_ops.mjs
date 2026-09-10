@@ -13,7 +13,7 @@
  *   5) else exit 2 (skill incomplete; skeleton last resort)
  *
  * Usage:
- *   node ralph_ops.mjs <init|status|locate|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|remediate|adopt> [options]
+ *   node ralph_ops.mjs <init|status|locate|context|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|remediate|adopt> [options]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -75,8 +75,9 @@ Resolve library:
 
 Commands:
   init --run-id task-x --title "..." --goal "..." [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
-  status [--run-id task-x] [--cwd DIR]
-  locate [--run-id task-x] [--cwd DIR]
+  status [--run-id task-x] [--details] [--cwd DIR]
+  locate [--run-id task-x] [--limit 8] [--details] [--cwd DIR]
+  context --run-id task-x [--review] [--review-scope working_tree|commit] [--base-commit sha] [--output path] [--cwd DIR]
   remediate [--yes] [--force] [--cwd DIR]
   metrics --run-id task-x [--persist] [--cwd DIR]
   archive --run-id task-x [--slug name] [--cwd DIR]
@@ -100,10 +101,12 @@ Commands:
   handoff --run-id task-x [--handoff-id HOF-x] [--targets a,b] [--cwd DIR]
   dispatch-snapshot --run-id task-x [--targets a,b] [--cwd DIR]
   commit-prep --run-id task-x [--cwd DIR]
-  review-record --run-id task-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json] [--cwd DIR]
+  review-record --run-id task-x --outcome PASS|NEEDS_CHANGES|BLOCKED [--reviewed-commit sha] [--fix-commit sha] [--review-scope working_tree|commit] [--task-thread id] [--review-thread id] [--summary text] [--finding-json json] [--findings-file path] [--source host_builtin|user_provided|fallback_inline] [--host-review-json json | --host-review-file path] [--context-file path] [--cwd DIR]
   migrate [--all-projects] [--cwd DIR]
   adopt --task task-x [--from RALPH-x] [--absorb task-y] [--cwd DIR]
 
+scope: --replace-in/--replace-out a,b requires --reason; replacement is audited.
+gate accept/archive, archive and finalize accept --context-file (validated task diff).
 Mechanical compatibility controls: use jj ralph; see references/ops.md.
 `);
 }
@@ -209,7 +212,11 @@ async function main() {
   const {
     initRun,
     getStatus,
-    locateRalphRuns,
+    getRalphSummary,
+    getRalphContext,
+    writeRalphContext,
+    contextGateOptions,
+    readJsonInput,
     archiveRun,
     finalizeRun,
     mapMergeFromRun,
@@ -282,7 +289,9 @@ async function main() {
     }
 
     if (cmd === 'status') {
-      const payload = getStatus({ runId: args['run-id'], cwd });
+      const payload = args['run-id'] || args.details
+        ? getStatus({ runId: args['run-id'], cwd, details: Boolean(args.details) })
+        : getRalphSummary({ cwd, limit: args.limit == null ? 8 : Number(args.limit) });
       printJson({
         ok: true,
         action: 'status',
@@ -295,10 +304,20 @@ async function main() {
     }
 
     if (cmd === 'locate') {
-      if (typeof locateRalphRuns !== 'function') die('locateRalphRuns missing from ralph library');
-      const runs = locateRalphRuns(cwd);
-      const filtered = args['run-id'] ? runs.filter((row) => row.run_id === args['run-id']) : runs;
-      printJson({ ok: true, action: 'locate', runs: filtered, run_id: args['run-id'] || null, resolved });
+      const payload = getRalphSummary({ cwd, runId: args['run-id'], details: Boolean(args.details), limit: args.limit == null ? 8 : Number(args.limit) });
+      printJson({ ok: true, action: 'locate', ...payload, resolved });
+      return;
+    }
+
+    if (cmd === 'context') {
+      const runId = args['run-id'];
+      if (!runId) die('context needs --run-id');
+      const payload = getRalphContext(runId, {
+        cwd, review: Boolean(args.review), review_scope: args['review-scope'],
+        reviewed_commit: args['reviewed-commit'], base_commit: args['base-commit']
+      });
+      const file = args.output ? writeRalphContext(args.output, payload, cwd) : null;
+      printJson({ ok: true, action: 'context', ...payload, output: file, resolved });
       return;
     }
 
@@ -317,7 +336,7 @@ async function main() {
     if (cmd === 'archive') {
       const runId = args['run-id'];
       if (!runId) die('archive needs --run-id');
-      const result = archiveRun(runId, { cwd, slug: args.slug });
+      const result = archiveRun(runId, { cwd, slug: args.slug, ...contextGateOptions(runId, args['context-file'], cwd) });
       printJson({
         ok: true,
         action: 'archive',
@@ -392,6 +411,7 @@ async function main() {
       }
       const result = finalizeRun(runId, {
         cwd,
+        ...contextGateOptions(runId, args['context-file'], cwd),
         slug: args.slug,
         modules: splitList(args.modules),
         keywords: splitList(args.keywords),
@@ -430,6 +450,7 @@ async function main() {
         gate,
         status,
         cwd,
+        ...contextGateOptions(runId, args['context-file'], cwd),
         advance: args['no-advance'] ? false : true,
       });
       printJson({
@@ -454,10 +475,12 @@ async function main() {
       if (!runId) die('scope needs --run-id');
       const addIn = splitList(args.in);
       const addOut = splitList(args.out);
-      if (!addIn.length && !addOut.length) die('scope needs --in and/or --out');
+      const replaceIn = args['replace-in'] == null ? null : splitList(args['replace-in']);
+      const replaceOut = args['replace-out'] == null ? null : splitList(args['replace-out']);
+      if (!addIn.length && !addOut.length && replaceIn === null && replaceOut === null) die('scope needs --in and/or --out or replacement');
       const updateScope = mod.updateRunScope;
       if (typeof updateScope !== 'function') die('resolved ralph.mjs has no updateRunScope; upgrade jj-ralph skill / npm run ralph:sync');
-      const result = updateScope(runId, { add_in: addIn, add_out: addOut, cwd });
+      const result = updateScope(runId, { add_in: addIn, add_out: addOut, replace_in: replaceIn, replace_out: replaceOut, reason: args.reason, cwd });
       printJson({
         ok: true,
         action: 'scope',
@@ -675,6 +698,8 @@ async function main() {
       const outcome = args.outcome;
       if (!runId || !outcome) die('review-record needs --run-id --outcome');
       let hostReview = null;
+      if (args['host-review-json'] && args['host-review-file']) die('use one host-review-file or host-review-json');
+      if (args['host-review-file']) hostReview = readJsonInput(args['host-review-file'], cwd);
       if (args['host-review-json']) {
         try {
           hostReview = JSON.parse(args['host-review-json']);
@@ -694,8 +719,7 @@ async function main() {
         }
       }
       if (args['findings-file']) {
-        const payload = JSON.parse(fs.readFileSync(args['findings-file'], 'utf8'));
-        if (!Array.isArray(payload)) die('--findings-file must contain a JSON array');
+        const payload = readJsonInput(args['findings-file'], cwd, 'array');
         findings.push(...payload);
       }
       const result = recordReview(runId, {
@@ -710,6 +734,7 @@ async function main() {
         findings,
         source: args.source || null,
         host_review: hostReview,
+        context: args['context-file'] ? readJsonInput(args['context-file'], cwd) : null,
       });
       printJson({
         ok: true,

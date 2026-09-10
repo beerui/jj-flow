@@ -20,7 +20,9 @@ Run the **full** jj-end closeout (do not stop after commit-only). Authoritative 
 
 **Boundary:** end is **Git only** — does not write ralph `run.json` / does not set COMPLETED / does not kill the task. Soft-archive resume and abandon stay under `/jj-ralph`.
 
-Mandatory order:
+Use the bundled `scripts/end_ops.mjs` for `preview`, then `execute --plan-file` after checking the work → integration plan and existing authorization. Keep input/preview JSON in OS temporary files outside the repo. `dry_run=true` runs preview only, without fetch. Do not issue separate model/tool turns for each mechanical Git command. Read detailed policy only for the relevant exception.
+
+Mandatory order (executed by the runner):
 
 1. `git fetch` and resolve `work_branch` + `integration` (`dev` → `develop` → `main` unless overridden)
 2. Commit this task only if needed (Chinese Conventional Commits)
@@ -29,6 +31,8 @@ Mandatory order:
 5. Push integration
 6. Return per `return_to` (default work)
 
-On conflict: default self-merge — inventory both parents and keep both. Never merge `dev` into the work branch. Never `--ours/--theirs`. Unclear task / merge / requirement → ask first (do not invent or pick a side). Abort only if unhandleable. Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push.
+On conflict: default self-merge — inventory both parents and keep both. The runner returns commit/blob ids and aborts its own failed merge for inspection; the host resolves on the recorded branch, verifies/commits and continues with a fresh preview. Only unhandleable/unclear intent ends the task. Never merge `dev` into the work branch. Never `--ours/--theirs`. Unclear task / merge / requirement → ask first (do not invent or pick a side). Do not abort because it “looks complex”. Do not resolve a subset then abort. No force push.
 
-Finish reply: one Chinese line — `已合并：<work> → <integration> · 当前在 <HEAD>（合完默认回到工作分支）` or `已回退：<reason> · 当前在 <HEAD>`. Classify table / blockers only on STOP / dry_run / unhandleable abort.
+Finish reply: one Chinese line — `已合并：<work> → <integration> · 当前在 <HEAD>` or `已回退：<reason> · 当前在 <HEAD>`. Classify table / blockers only on STOP / dry_run / unhandleable abort.
+
+Use 已回退 only when a rollback actually happened; a rejected push reports the failed step and actual partial state. Never report an aborted batch or a work-only push as a completed closeout.

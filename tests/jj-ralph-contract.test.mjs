@@ -9,3 +9,4 @@ import './ralph/lifecycle.contract.mjs';
 import './ralph/migration.contract.mjs';
 import './ralph/lite.contract.mjs';
 import './ralph/conversation.contract.mjs';
+import './ralph/context.contract.mjs';

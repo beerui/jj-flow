@@ -28,9 +28,9 @@ Conversational path never uses --lite: no `--lite`, `gate brief`, or `gate close
 
 ## Immediate actions
 
-1. Locate via `.workflow/ralph/index.md`, then `jj ralph locate` when needed. Confirm goal/scope in `task_plan.md`; include `completed/`. `## 归档提示` is prompt-only: uncertain → **询问用户**, never auto-archive. Legacy runs and leftover closeouts → phases.
+1. Known/session-linked run: `ralph_ops context --run-id <id>` directly (includes `completed/`); use its current Goal/Steps/验收, verification tail and next action. Unknown id: `.workflow/ralph/index.md`, then `jj ralph locate` (8 compact candidates; `--details` shows all). Confirm goal/scope in `task_plan.md`. `## 归档提示` is prompt-only: uncertain → **询问用户**, never auto-archive. Legacy runs and leftover closeouts → phases.
 2. **Screenshot / `[Image]` / 「这里」:** read the image before searching; use visible UI and the session-linked run.
-3. For confirmed work, read [phases.md](references/phases.md) from DELIVER onward. Write the short current contract, edit, verify, and record each verification with `deliver-attempt`. Do not Read `business-map.json`; empty CAP hits are valid. File shapes and evidence → references below.
+3. For confirmed work, use the context packet and edit; only if that phase needs clarification, read [phases.md](references/phases.md) at the relevant DELIVER/ACCEPT section. Do not load all references at startup. Write the short current contract, verify, and record each verification with `deliver-attempt`. Do not Read `business-map.json`; empty CAP hits are valid.
 4. Follow the gate chain below. For `next=review` / `commit-scoped-review`, or a gate error requiring a passing review, follow `review-record` guidance in phases. `next` requests evidence; it does not authorize Git operations. Keep the review-only boundary above.
 5. `next=finalize` → **MUST finalize**; `next=check` → inspect the resume/blocked state. Report run, acceptance evidence, archive/CAP result and any blocker briefly.
 
@@ -44,6 +44,8 @@ locate → init | resume → short Goal/验收/Steps → edit → verify
 
 Use `ralph_ops` for conversational deliver PASS. Initial `next=gate analyze` / `gate plan` is not a separate happy-path step: the wrapper records both from the checked plan. Follow `next=review` / `commit-scoped-review` / `finalize` / `check` as above; review/commit remain conditional. Do not ask to continue after a successful step.
 If the script is unavailable, `jj ralph gate --gate deliver` is **degraded unfold**: it does not fill analyze/plan; do not finalize through that fallback. Restore the wrapper first.
+
+Before scoped review/acceptance, refresh `context --review --output .workflow/ralph/<id>/.state/review-context.json`. It separates task paths from other dirty files and flags stale/missing claims. Never hand-edit its file list. Pass `--context-file` to review-record / gate accept / finalize; stale code or contract requires a new packet and delta review. If the current approach replaced old scope, use explicit `scope --replace-in … --reason …`; history stays in events. `scope.out` never hides dirty files.
 
 ## Red checkpoints
 
@@ -60,6 +62,7 @@ If the script is unavailable, `jj ralph gate --gate deliver` is **degraded unfol
 | `resume` | Continue the same requirement. |
 | `locate` | Resolve candidate runs. |
 | `status` | Read gates, blockers and next action. |
+| `context` | Current contract, verification tail, phase hint and scope preflight; `--review` adds the review handoff. |
 | `deliver-attempt` | Record real verification and progress. |
 | `gate` | Record analyze / plan / deliver / accept / archive evidence. |
 | `finalize` | Map merge, archive and reusable-rule promotion. |

@@ -23,7 +23,7 @@ Same requirement always prefers the same `run_id`. New run only for a truly new 
 ## Autonomy loop
 
 ```text
-Read run.json + last 30 lines of progress.md + Git (never Read business-map.json)
+context --run-id <id> (current contract + verification tail + Git; never Read business-map.json)
   → do next Step
   → append a dated progress section
   → verify FAIL and iteration < max → stay in DELIVER
@@ -81,11 +81,14 @@ Contract SSOT (English): [must-evidence.md](must-evidence.md). Summary:
 
 ## Lean execution
 
+- Start from `context --run-id`; `status` is compact by default (`--details` keeps the full mechanical output). Read only the missing section of a reference; the reference list is not a startup checklist.
+- Before review/accept/finalize with concurrent dirt, use `context --review --output .workflow/ralph/<id>/.state/review-context.json`. `task_paths`, `other_paths`, `scope_preflight` and real Git hashes are one packet. Pass that file with `--context-file`; it is recomputed before persistence/gates. Empty/missing task diffs cannot become PASS. Committed work uses `--review-scope commit --base-commit <actual-base>` (default base is HEAD's first parent; root commit uses the empty tree).
+- A rewritten current plan may need `scope --replace-in <current-files> --reason "current contract changed"`. This is explicit and recorded with the old scope; it is not automatic scope deletion. `scope.out` does not filter away unrelated Git changes.
 - Single-point / single-file: shortest Goal + file list + 验收; follow the [single-point example](tiny-example.md).
 - Once files are located **and the requirement is confirmed**, go DELIVER; do not re-search the whole tree for completeness theater. Unconfirmed requirement is a CHECKPOINT (User intervention item 1).
 - Batch independent reads; `offset`/`limit`; do not re-read injected files; do not Read `business-map.json`.
 - Same tool/strategy fails twice → change approach; record `deliver-attempt` after every verify; second unchanged attempt writes `instruction-correction.md`.
-- Parallel capacity: one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only.
+- Follow the user's process/agent limit. Use independent streams only when authorized and useful; shared files stay serial. `$jj-review` reports only.
 - All steps are done by the current session reading/writing the agreed paths (host-agnostic).
 - When commit/push not requested: give commit-prep suggestions or a completion report; if still dirty after finalize, say so in the report.
 - `$jj-end` is **Git only**, orthogonal to run status, and may run multiple times.

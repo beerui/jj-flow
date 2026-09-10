@@ -31,6 +31,8 @@ Details: [host-review.md](host-review.md). Passes / nit cap / Steps: [review-pol
 
 Maintenance path and conversation path share the same schema: `jj ralph review-record --source … [--host-review-json …]` writes provenance fields; do not assume the CLI drops provenance.
 
+For a bound run, `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json` gathers scope, current plan, verification tail and prior findings once. Give this packet to the reviewer, then use `--context-file`, `--findings-file` and `--host-review-file` for persistence. File paths resolve against cwd and UTF-8 BOM is accepted. Inline JSON is still compatible. `context_snapshot` on REV records the validated contract hash, HEAD/range, task paths and other paths. It is evidence of the reviewed snapshot, not permission to reuse a verdict after a code change. A stale packet is regenerated and the delta reviewed; direct writes must not bypass validation.
+
 ## REV report fields
 
 | Field | Rule |

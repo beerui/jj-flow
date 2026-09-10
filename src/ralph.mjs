@@ -194,3 +194,4 @@ export {
 
 export { loadNamingConfig, buildArchiveDirNameFromRunId, assertStrictRalphRunId, normalizeRalphSlug, buildRalphRunId } from './namingConfig.mjs';
 export { adoptRun, migrateOneRun, migrateRuns, proposeTaskIdFromLegacy, pruneArchive, liftLegacyTasksLayout, shelterDotMigrated } from './ralph/migrate.mjs';
+export { getRalphSummary, getRalphContext, writeRalphContext, validateRalphContext, contextGateOptions, readJsonInput } from './ralph/context.mjs';

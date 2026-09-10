@@ -904,7 +904,29 @@ export function listRuns(cwd = process.cwd()) {
   return rows.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || ''))).map(attachNext);
 }
 
-export function locateRalphRuns(cwd = process.cwd()) {
+export function locateRalphRuns(cwd = process.cwd(), { runId = null } = {}) {
+  // A bound task must not enumerate every run and every historical archive.
+  if (runId) {
+    if (!isTaskRunId(runId) && !isLegacyRalphRunId(runId)) throw new Error('invalid run_id: ' + runId);
+    let file;
+    let layout;
+    if (isLegacyRalphRunId(runId)) {
+      file = legacyActiveRunJsonPath(runId, cwd);
+      layout = 'legacy-active';
+      if (!fs.existsSync(file)) { file = findArchiveRunJson(runId, cwd); layout = 'archive'; }
+    } else {
+      file = runJsonPath(runId, cwd);
+      layout = runLayoutOf(runId, cwd);
+    }
+    if (!file || !fs.existsSync(file)) return [];
+    const row = summarizeRunFile(file, runId, {
+      layout,
+      readonly: layout === 'archive' || layout.startsWith('legacy-'),
+      needs_migrate: layout.startsWith('legacy-'),
+      path: path.relative(cwd, layout === 'archive' || layout === 'legacy-active' ? file : path.dirname(path.dirname(file))).replaceAll('\\', '/')
+    });
+    return [annotateLocateRow(row, cwd)];
+  }
   const rows = listRuns(cwd).map((row) => ({ ...row, readonly: Boolean(row.needs_migrate) }));
   const archiveRoot = archiveDir(cwd);
   if (fs.existsSync(archiveRoot)) {
@@ -1368,22 +1390,31 @@ function normalizeScopeItems(items) {
  * Append scope entries (the only sanctioned scope.in writer after init).
  * On a lite run, any new scope.in entry counts as scope growth → promote to full.
  */
-export function updateRunScope(runId, { add_in = [], add_out = [], cwd = process.cwd() } = {}) {
+export function updateRunScope(runId, { add_in = [], add_out = [], replace_in = null, replace_out = null, reason = '', cwd = process.cwd() } = {}) {
   const addIn = normalizeScopeItems(add_in);
   const addOut = normalizeScopeItems(add_out);
-  if (!addIn.length && !addOut.length) throw new Error('updateRunScope needs add_in and/or add_out');
+  const replacing = replace_in !== null || replace_out !== null;
+  if (!addIn.length && !addOut.length && !replacing) throw new Error('updateRunScope needs add_in and/or add_out');
+  if (replacing && !String(reason).trim()) throw new Error('scope replacement requires a reason for the current contract change');
   const run = loadRun(runId, cwd);
   assertWritableRun(run);
   const currentIn = Array.isArray(run.scope?.in) ? run.scope.in : [];
   const currentOut = Array.isArray(run.scope?.out) ? run.scope.out : [];
-  const addedIn = addIn.filter((item) => !currentIn.includes(item));
-  const addedOut = addOut.filter((item) => !currentOut.includes(item));
-  run.scope = { in: [...currentIn, ...addedIn], out: [...currentOut, ...addedOut] };
+  const nextIn = unique([...(replace_in === null ? currentIn : normalizeScopeItems(replace_in)), ...addIn]);
+  const nextOut = unique([...(replace_out === null ? currentOut : normalizeScopeItems(replace_out)), ...addOut]);
+  const addedIn = nextIn.filter((item) => !currentIn.includes(item));
+  const addedOut = nextOut.filter((item) => !currentOut.includes(item));
+  run.scope = { in: nextIn, out: nextOut };
   const promotion = addedIn.length
     ? promoteGateSetToFull(run, { reason: 'scope.in expanded: ' + addedIn.join(', '), lift_budget_stop: true })
     : { promoted: false, gate_set: effectiveGateSet(run), reason: null };
   run.updated_at = nowIso();
   saveRun(run, cwd);
+  if (replacing) appendEvent(runId, cwd, {
+    ts: run.updated_at, type: 'scope-replaced', reason: String(reason).trim(),
+    message: 'scope-replaced: ' + JSON.stringify({ previous: { in: currentIn, out: currentOut }, current: run.scope }) + ' reason=' + String(reason).trim(),
+    previous: { in: currentIn, out: currentOut }, current: run.scope
+  });
   appendProgressLine(
     runId,
     cwd,
@@ -1429,7 +1460,9 @@ export function commitPrep(runId, cwd = process.cwd()) {
 export function renderRalphStatusText(payload) {
   if (payload.run) {
     const run = payload.run;
-    const latestReview = run.review?.latest_review_id ? run.review.reviews?.find((item) => item.review_id === run.review.latest_review_id) || null : null;
+    const compact = Object.hasOwn(run, 'latest_review');
+    const latestReview = compact ? run.latest_review
+      : run.review?.latest_review_id ? run.review.reviews?.find((item) => item.review_id === run.review.latest_review_id) || null : null;
     const nl = String.fromCharCode(10);
     return [
       'Ralph run: ' + run.run_id,
@@ -1446,8 +1479,8 @@ export function renderRalphStatusText(payload) {
       run.stagnation
         ? ('stagnation: unchanged=' + (run.stagnation.unchanged_count ?? 0) + '/' + (run.stagnation.patience ?? 2))
         : 'stagnation: (legacy)',
-      'capabilities: ' + ((run.capability_ids || []).join(', ') || '(none)'),
-      'knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'),
+      compact ? null : 'capabilities: ' + ((run.capability_ids || []).join(', ') || '(none)'),
+      compact ? null : 'knowledge_refs: ' + ((run.knowledge_refs || []).join(', ') || '(none)'),
       latestReview ? ('review: ' + latestReview.review_id + ' ' + latestReview.outcome + (latestReview.review_scope ? (' scope=' + latestReview.review_scope) : '') + ((latestReview.fix_commit || latestReview.reviewed_commit) ? (' @' + (latestReview.fix_commit || latestReview.reviewed_commit)) : '')) : 'review: none',
       run.host ? ('host: ' + [run.host.host_id, run.host.thread_id || run.host.session_handle, run.host.model_id].filter(Boolean).join(' / ')) : 'host: none',
       run.intervention_needed ? ('intervention: ' + (run.intervention_needed.kind ? (run.intervention_needed.kind + ' ') : '') + run.intervention_needed.reason) : 'intervention: none',
@@ -1458,6 +1491,7 @@ export function renderRalphStatusText(payload) {
   }
   const nl = String.fromCharCode(10);
   const lines = ['Ralph runs:', ...(payload.runs || []).map((item) => '- ' + item.run_id + ' · ' + (item.phase || '?') + ' · ' + (item.status || '?') + (item.next ? (' · next=' + item.next) : '') + (item.needs_migrate ? ' · needs_migrate' : '') + (item.title ? (' · ' + item.title) : ''))];
+  if (payload.omitted) lines.push(`${payload.omitted} more candidates; use --details or --run-id.`);
   if (payload.map_path) lines.push('business-map: ' + payload.map_path);
   if (payload.map_capabilities != null) lines.push('capabilities: ' + payload.map_capabilities);
   const hints = payload.index_hints;

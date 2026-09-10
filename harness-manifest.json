@@ -68,6 +68,21 @@
         "authority_for": ["ralph-run-ledger"]
       },
       {
+        "id": "ralph-context",
+        "path": "src/ralph/context.mjs",
+        "authority_for": ["ralph-phase-context", "review-scope-snapshot"]
+      },
+      {
+        "id": "git-end-runner",
+        "path": "src/end.mjs",
+        "authority_for": ["git-closeout-runner"]
+      },
+      {
+        "id": "git-end-policy",
+        "path": "skills/jj-end/references/git-policy.md",
+        "authority_for": ["git-conflict-recovery"]
+      },
+      {
         "id": "ralph-map-schema",
         "path": "schemas/ralph-business-map.schema.json",
         "authority_for": ["ralph-business-map"]

@@ -88,13 +88,13 @@ export function defaultArchiveDirName(runId, now = new Date()) {
  * Re-archive appends archive_history (time + git HEAD + manifest hash). No file copy.
  * `slug` is accepted for CLI compat and ignored (P1c zero-copy).
  */
-export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, force = false, diff_paths = null } = {}) {
+export function archiveRun(runId, { cwd = process.cwd(), slug: _slug = null, force = false, diff_paths = null, deleted_paths = null } = {}) {
   const run = loadRun(runId, cwd);
   if (run.status === 'ABANDONED') {
     throw new Error('archive forbidden for ABANDONED runs; resume first if work continues');
   }
   if (run.gates.accept !== 'PASS') throw new Error('archive requires gates.accept=PASS');
-  const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, gate: 'archive' });
+  const consistency = evaluateAcceptArchiveGate(run, { cwd, force, diff_paths, deleted_paths, gate: 'archive' });
   if (!consistency.ok) throw new Error('archive blocked by product-consistency gate: ' + consistency.reasons.join('; '));
   const sourceAbs = runDir(runId, cwd);
   const liveRelBefore = path.relative(cwd, sourceAbs).split(path.sep).join('/');
@@ -179,6 +179,7 @@ export function finalizeRun(runId, {
   status = 'done',
   force = false,
   diff_paths = null,
+  deleted_paths = null,
   contribution_package = true,
   include_process_lessons_in_map = false
 } = {}) {
@@ -190,7 +191,7 @@ export function finalizeRun(runId, {
   const elevOpts = { modules, lessons, keywords, acceptance, status, force, include_process_lessons_in_map };
   const merged = mapMergeFromRun(runId, elevOpts, cwd);
   persistRunMetrics(runId, cwd);
-  const archived = archiveRun(runId, { cwd, slug, force, diff_paths });
+  const archived = archiveRun(runId, { cwd, slug, force, diff_paths, deleted_paths });
   let contribution = null;
   let contribution_path = null;
   let contribute_hook = { status: 'skipped', reason: 'contribution package disabled' };

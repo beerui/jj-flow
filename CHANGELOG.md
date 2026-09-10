@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **工作流执行优化**：已知 run 直接定位；Ralph 默认输出当前合同、阶段提示、验证尾部与范围预检；review 一次交接并从文件写回；end 固定步骤收敛为 `preview` / `execute`。不宣称端到端提速百分比。合约：`tests/ralph/context.contract.mjs`、`tests/end/runner.contract.mjs`、`tests/jj-ralph-contract.test.mjs`、`tests/jj-end-contract.test.mjs`。计划：`docs/exec-plans/completed/2026-09-09-workflow-execution-fastpath.md`。
 - **Host-trial 隔离外部 Trace2**：临时 Git 子进程禁用外部 Trace2 消费，避免 Git AI 等后台进程在清理期间重建 `.git` 导致 EBUSY/ENOTEMPTY。真实 Git/worktree 验证及清理门禁保留，CLI 测试失败展示完整报告。合约：`tests/host-trial.test.mjs`。
 - **Ralph resume 不再写「进行中」占位**：`progress.md` 只追加，占位无法回填。`resume` 只记原因；`appendProgressRound` 有真实 result 才写结果行。合约：`tests/jj-ralph-contract.test.mjs`。
 - **Ralph 对话协议瘦身**：入口压至 77 行，详细操作下沉 `references/ops.md`。init 静默推断引擎预算，init/resume 自动检索最多 5 条 CAP；返回注释不会写入 ledger。对话 `gate deliver PASS` 先检查 Goal、验收、Step 文件与存疑，再一次保存 analyze/plan/deliver；机械 CLI 保留单键及遗留兼容。默认 accept→finalize，审查/提交按证据与授权跟随。Ralph 合约按职责拆分，保留 `tests/jj-ralph-contract.test.mjs` 聚合入口；设计：`docs/design-docs/ralph-skill-slim.md`。

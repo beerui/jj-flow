@@ -1,0 +1,13 @@
+{
+  "search": [
+    "EP-20260908-grok-ralph-latency",
+    "EP-20260908-grok-review-end-latency",
+    "EP-20260908-cursor-flow-comparison"
+  ],
+  "holdout": [],
+  "regression": [],
+  "group_by": [
+    "thread_id"
+  ],
+  "notes": "The two Grok sessions and one Cursor session explicitly selected by the user are diagnosis/search evidence. No holdout or candidate performance score is claimed. Existing product regression suites are unchanged."
+}

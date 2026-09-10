@@ -5,6 +5,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
+import { resolveCommit } from '../gitSnapshot.mjs';
+import { validateRalphContext } from './context.mjs';
 import { assertStrictRalphRunId, loadNamingConfig } from '../namingConfig.mjs';
 import { attachKnowledgeRefs, resolvePortfolioKbRoot } from '../portfolioKnowledge.mjs';
 import { INJECT_SOFT_CAP } from '../memoryRetrieve.mjs';
@@ -742,23 +744,40 @@ export function recordReview(runId, {
   review_id,
   source = null,
   host_review = null,
-  include_compliance = true
+  include_compliance = true,
+  context = null
 } = {}) {
   if (!REVIEW_OUTCOMES.includes(outcome)) throw new Error('outcome must be one of ' + REVIEW_OUTCOMES.join(', '));
   if (source != null && source !== '' && !REVIEW_SOURCES.includes(source)) {
     throw new Error('source must be one of ' + REVIEW_SOURCES.join(', '));
   }
   const run = hydrateIntensityFields(loadRun(runId, cwd));
+  const checkedContext = context ? validateRalphContext(runId, context, { cwd }) : null;
   const id = review_id || nextReviewId(run);
   if (review_id && run.review?.reviews?.some((item) => item.review_id === review_id)) throw new Error('review already exists: ' + review_id);
   const resolvedFix = fix_commit || null;
-  const resolvedReviewed = reviewed_commit || null;
-  const resolvedScope = resolveReviewScope({ review_scope, fix_commit: resolvedFix, reviewed_commit: resolvedReviewed });
+  const resolvedReviewed = reviewed_commit || checkedContext?.diff.reviewed_commit || null;
+  const resolvedScope = resolveReviewScope({ review_scope: review_scope || checkedContext?.diff.review_scope, fix_commit: resolvedFix, reviewed_commit: resolvedReviewed });
+  if (checkedContext) {
+    if (resolvedScope !== checkedContext.diff.review_scope
+      || (resolvedReviewed && resolveCommit(resolvedReviewed, cwd) !== checkedContext.diff.reviewed_commit)
+      || (resolvedFix && (resolvedScope !== 'commit' || resolveCommit(resolvedFix, cwd) !== checkedContext.diff.reviewed_commit))) {
+      throw new Error('review scope/commit does not match the validated context');
+    }
+  }
   const resolvedSource = source != null && source !== '' ? source : null;
   const resolvedHostReview = normalizeHostReview(host_review);
   let mergedFindings = [...(findings || [])];
-  if (include_compliance !== false) {
-    mergedFindings = mergedFindings.concat(buildPlanComplianceFindings(run, cwd));
+  if (include_compliance !== false || checkedContext) {
+    mergedFindings = mergedFindings.concat(buildPlanComplianceFindings(run, cwd, { diff_paths: checkedContext?.diff.task_paths || null }));
+  }
+  if (checkedContext && !checkedContext.scope_preflight.ok) {
+    mergedFindings.push({
+      id: 'F-CONTEXT-SCOPE', severity: 'high', pass: 'compliance', importance: 'important',
+      file: 'task_plan.md', line: 1, status: 'OPEN',
+      description: checkedContext.scope_preflight.reasons.join('; '),
+      acceptance: 'Align the current contract and actual task diff, then regenerate the context and review the delta.'
+    });
   }
   let resolvedOutcome = outcome;
   let normalizedPreview = normalizeFindings(mergedFindings);
@@ -818,6 +837,10 @@ export function recordReview(runId, {
   };
   if (resolvedSource) report.source = resolvedSource;
   if (resolvedHostReview) report.host_review = resolvedHostReview;
+  if (checkedContext) report.context_snapshot = {
+    contract_sha256: checkedContext.contract_sha256,
+    ...checkedContext.diff
+  };
   const errors = validateReviewReport(report);
   if (errors.length) throw new Error('invalid review: ' + errors.join('; '));
   const relPath = path.join('reviews', id + '.json').replaceAll(String.fromCharCode(92), String.fromCharCode(47));

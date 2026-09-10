@@ -40,13 +40,14 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
 ## Immediate actions
 
 1. **Locate the run** — **In:** `run_id`? `.workflow/ralph/index.md` + `.workflow/ralph/`. **Out:** bound `run.json`, or unbound.
+   A known/session-bound id goes directly to `ralph_ops context --run-id <id> --review`; do not enumerate history. Reuse a current packet already supplied by the parent.
    Order: [report-layout.md](references/report-layout.md) Selecting a run. Unspecified: read `index.md` **活跃** first (currently working); do not glob until that table is empty or the file is missing. Prefer `jj ralph locate` (or `ralph_ops locate`). Then scan active `.workflow/ralph/task-*/.state/run.json`, then `completed/task-*/.state/run.json`. Still glob leftover `tasks/*/`, `archive/**/run.json` and unmigrated `RALPH-*/run.json` (read-only). Explicit `run_id` wins; else latest (`updated_at` desc, then `run_id` desc). New and leftover layouts must each be locatable.
 
    Explicit `run_id` named but missing → 🔴 `BLOCKED` (do not init).
    Unspecified and no run → **unbound**; continue. Do not init.
 
 2. **Determine scope** — **In:** run artifacts (if bound) + user target. **Out:** commit and/or paths.
-   Bound: read `task_plan.md` (`## Goal` / `## Steps` / `## 验收`; leftover `## 分析` / `## 计划`) and last 30 lines of `progress.md`.
+   Bound: generate one `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json`. It includes current Goal / Steps / 验收, the last 30 progress lines, recent verification events, prior review findings and real task/other diff paths. Supply this packet once to the host reviewer; avoid asking it to rediscover the run and reread every reference. For committed work use `--review-scope commit --base-commit <actual-base>` (default HEAD's first parent; root commit compares to the empty tree). Require `scope_preflight.ok`; fix scope ambiguity before dispatching review.
    Unbound: dirty working tree, else `HEAD`, else user paths. Skip `## Steps` compliance when there is no `task_plan.md`.
 
    🔴 CHECKPOINT · 🛑 STOP — **no commit/diff/scope**: `BLOCKED`; list missing evidence; do not invent SHA; do not call host.
@@ -68,6 +69,7 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    - Invoke explicit **review / code-review** only (not test/CI verify).  
    - Do not full self-review first then “compare” to host.  
    - Collect verdict, findings, summary, artifact paths.
+   - The packet defines task scope; `other_paths` stay visible. Inspect relevant dependencies as needed. Reuse the same reviewer context on follow-up where the host permits it; do not chain discovery and another full review.
    - At most **one** full reviewer subagent per `$jj-review` invocation. Follow-ups use step 3b, not a second spawn.
 
    🔴 CHECKPOINT · 🛑 STOP — **must-use-host but no entry**: `BLOCKED`; name missing capability; **no silent fallback** (user may paste findings or allow fallback).
@@ -84,16 +86,11 @@ Schema: [report-layout.md](references/report-layout.md). Discovery/maps: [host-r
    - CLI writes the machine `review` line to `.state/events.jsonl` (not `progress.md`)
    Prefer CLI (same schema; **keep provenance**):
 
-   ```bash
-   jj ralph review-record --run-id task-login-reminder \
-     --outcome NEEDS_CHANGES --source host_builtin \
-     --reviewed-commit abcdef1 \
-     --finding-json '{"id":"F-1","severity":"high","pass":"bugs","importance":"important","file":"src/a.js","line":1,"description":"broken","status":"OPEN","acceptance":"fix"}' \
-     --host-review-json '{"method":"skill","entry":"code-review","artifact_paths":[]}'
-   # fallback script (jj-flow tree): node skills/jj-ralph/scripts/ralph_ops.mjs review-record ...
+   ```text
+   jj ralph review-record --run-id task-login-reminder --outcome NEEDS_CHANGES --source host_builtin --context-file .workflow/ralph/task-login-reminder/.state/review-context.json --findings-file .workflow/findings.json --host-review-file .workflow/host-review.json
    ```
 
-   CLI fails → direct-write skeleton. Write fails → 🔴 `BLOCKED` + paths.
+   Write findings as a JSON array and host metadata as an object from the actual review output; UTF-8 BOM is accepted. `--host-review-json` remains compatible, but prefer files to avoid PowerShell quoting. The CLI recomputes Git/contract hashes and task ownership before persisting, and retains `context_snapshot` and provenance. Stale/invalid context → refresh and review the delta; never hand-edit the packet or bypass the guard with direct JSON writes. Only an unavailable CLI permits the documented skeleton fallback. Write fails → 🔴 `BLOCKED` + paths.
 
 7. **Final reply** — Chinese, no `PASS REV-*` / `working_tree` dump, no host/source table.
 
@@ -144,7 +141,8 @@ Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `h
 | host call fails | Surface error; ask fallback? | No user OK → `BLOCKED` |
 | 🔴 fallback without user OK | Offer paste or continue | STOP until user chooses |
 | unstructured host output | Map via tables; `unknown`/`1` | Undecidable → `BLOCKED` |
-| bound `review-record` CLI fails | Direct-write skeleton | Write fails → `BLOCKED` |
+| bound `review-record` fails on a stale/invalid packet | Refresh context and review the delta | Do not bypass guards by direct-write |
+| bound CLI unavailable | Use report skeleton, retain provenance | Write fails → `BLOCKED` |
 | bound PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
 | OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
 | Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |

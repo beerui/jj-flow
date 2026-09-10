@@ -4,8 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ralphModules = ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs'];
+const ralphModules = ['state.mjs', 'gates.mjs', 'map.mjs', 'knowledge.mjs', 'archive.mjs', 'migrate.mjs', 'context.mjs'];
 const files = [
+  { src: path.join(root, 'src', 'gitSnapshot.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'gitSnapshot.mjs') },
   { src: path.join(root, 'src', 'ralph.mjs'), dest: path.join(root, 'skills', 'jj-ralph', 'scripts', 'lib', 'ralph.mjs') },
   ...ralphModules.map((name) => ({
     src: path.join(root, 'src', 'ralph', name),

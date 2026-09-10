@@ -53,9 +53,11 @@
     "docs:check": "node scripts/check-docs.mjs",
     "lab:check": "node scripts/lab-check.mjs --suite mechanical --json",
     "evaluated:check": "node skills/jj-evaluated/scripts/evaluated_ops.mjs regression --dir evals/regression --json",
-    "verify": "npm run ralph:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check && npm run evaluated:check && npm run lab:check",
+    "verify": "npm run ralph:check && npm run end:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check && npm run evaluated:check && npm run lab:check",
     "ralph:sync": "node scripts/sync-ralph-skill-lib.mjs",
-    "ralph:check": "node scripts/sync-ralph-skill-lib.mjs --check"
+    "ralph:check": "node scripts/sync-ralph-skill-lib.mjs --check",
+    "end:sync": "node scripts/sync-end-skill-lib.mjs",
+    "end:check": "node scripts/sync-end-skill-lib.mjs --check"
   },
   "keywords": [
     "project-family",

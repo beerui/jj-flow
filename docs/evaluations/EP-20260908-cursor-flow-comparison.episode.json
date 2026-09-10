@@ -1,0 +1,790 @@
+{
+  "episode_id": "EP-20260908-cursor-flow-comparison",
+  "thread_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+  "project_path": "D:/2026/daji-customer-service",
+  "workflow": "project team .plans + jj-end; no jj-ralph CLI invocation observed",
+  "host": "Cursor",
+  "model": "grok-4.6",
+  "requested_subagent_model": "cursor-grok-4.6-xhigh-fast",
+  "saved_parent_model_config": {
+    "modelName": "grok-4.6",
+    "maxMode": false,
+    "selectedModels": [
+      {
+        "modelId": "grok-4.6",
+        "parameters": [
+          {
+            "id": "effort",
+            "value": "xhigh"
+          },
+          {
+            "id": "fast",
+            "value": "true"
+          }
+        ]
+      }
+    ]
+  },
+  "captured_at": "2026-09-08T14:25:18.978126+00:00",
+  "artifact_refs": [
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\composerData.json",
+      "sha256": "a3bc9f96604c2dfd69266c67ec1d88d3c734e142d115d72987fc4c877e15eb24",
+      "bytes": 266406
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\bubbles.json",
+      "sha256": "b2f14efabd33d5790d66164b957c124cf16cd6ab743e101b2c4a30f376a6bcaa",
+      "bytes": 4209152
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\bubble-provenance.json",
+      "sha256": "ba5194a1a524e60203502a0c03def566639e9de35db55c81314b6c96dec093b5",
+      "bytes": 444113
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\children\\3da29ff5-870e-440c-9da9-808fb5ba0193\\composerData.json",
+      "sha256": "52d6f637e8dffaa5a0f5651931e405ad9ed398d7588bda987469f6eec5f10e81",
+      "bytes": 133656
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\children\\3da29ff5-870e-440c-9da9-808fb5ba0193\\bubbles.json",
+      "sha256": "ab01e9afa7b07f7f83bf2ee1d0cfac88c45355172f3b00502d624f5e169b0ca7",
+      "bytes": 1316396
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\children\\a3a5cb49-62f8-48ae-83aa-59e38a7594c4\\composerData.json",
+      "sha256": "313200495a02d122ecad682408fb040551f460ee425535da8595f2a75f0ffb7e",
+      "bytes": 97021
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\children\\a3a5cb49-62f8-48ae-83aa-59e38a7594c4\\bubbles.json",
+      "sha256": "83e8d8138daec5a520a9dd2ea0c90cf69a18cd5ecbe8387ddc3d3c9e737a161d",
+      "bytes": 915123
+    },
+    {
+      "frozen_path": "D:\\daji-docs\\jj-flow\\.tmp\\cursor-latency-635509f5\\d-2026-daji-customer-service\\635509f5-c207-4730-8b90-f6cdd92870f0.jsonl",
+      "sha256": "f292d6f0830d67ca1a86b082b1747bcaec0151f1de883312ef4c596b0c4a01e3",
+      "bytes": 214272
+    }
+  ],
+  "source_row_refs": [
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:456a8568-3d0d-4776-812e-3e3121da70af",
+      "original_sqlite_value_sha256": "74d0fc032a47baa93190fc45a780b6baa61c01edb186b7d168a860dc93367169"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:003a473c-e22d-48c9-9e39-f3fb038151af",
+      "original_sqlite_value_sha256": "2b9a3a07263bbad4fed7fdc9775506b56bccce57d17cc13e255975be20aaa31d"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:aeefd71f-23fe-4ae2-a9c9-001e0e121a24",
+      "original_sqlite_value_sha256": "961a4a53c744ac4514843bf9b80d096e26e06354192e436f6133dfab384baebf"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:407e9be4-92e4-43d3-b0f1-99f597fab78f",
+      "original_sqlite_value_sha256": "294fadc2b278c7461941f571cc71f0da5e82681a173f278f0ef5edf2fd556a2e"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8e87dda4-6bf0-4532-98f3-4db801d6e259",
+      "original_sqlite_value_sha256": "76c3784c6dd9f4d303ef20adddbcdb3d3668c5ba11b001b2af15e0ca83288784"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:23d3c4f5-f6c7-45c6-9800-bea4efd2793a",
+      "original_sqlite_value_sha256": "2210f426f88f605ee6d404859ff685f5df66ba2af464beb0dc73875a674b2d2d"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:06bf69ac-92d0-4ee9-9477-30c8e48d42b7",
+      "original_sqlite_value_sha256": "d17312f058dbf72fd620017188bee5357f34f56bc26c30f76f347c69c0040d6c"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:2930eed0-ab99-4583-a3a3-6d9240624a9a",
+      "original_sqlite_value_sha256": "50c6e7d0ad100cd893c3d196dd5a3a5ea4de940b4cf24cd41def721b636c1415"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:0fbea695-4160-4dd5-a1c6-fac1102d6301",
+      "original_sqlite_value_sha256": "39dc575bcfd45aa4546bda93ea3a47a6239f231b219db20fc0810fb2576b94be"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:5116fdb6-b0e0-4823-873f-080a27eb3fd3",
+      "original_sqlite_value_sha256": "c6dbf4395efb46ac6c7e5f8797ceec44e9777d78d970d5aee870c0a10294f66c"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:d4e0831f-9280-4f43-84fa-bca32376957e",
+      "original_sqlite_value_sha256": "69b6f473889b330b6a68e76db85fb3613ee0aaef35bd45f01250552a48dd6895"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:dfe967b9-12a3-43a0-bcd4-d6ca4eb4897c",
+      "original_sqlite_value_sha256": "a0792b960e498c451c6b5f26f00b74d9dfe2d5a169d6d70186fe7d401ba9d607"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:15557fc1-4110-441a-8448-052ca0a651da",
+      "original_sqlite_value_sha256": "9dee2efc2ca6265833dfb292ab3b176ae304de4f7ee49e3d9566762762e21a0b"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8ae7c08e-8b73-49a8-8b23-031a7ba065dd",
+      "original_sqlite_value_sha256": "1e1a4f77c8db2c4c767582a2f2013fc35c1b7746985a6e5766036dec446154f7"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8cdb435c-b28d-4114-826d-ec32ad31a807",
+      "original_sqlite_value_sha256": "0e0312bb867c99215878bca2c577417908c51c6282f715f80e14cfe9647fdb4d"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:09d236ec-7f8a-45a0-a570-3fcfe9c8cddf",
+      "original_sqlite_value_sha256": "2e7ffafafe6405aadd1bf3135ee9d3ede0c9455f88f2f77ed5705c76a81a69c7"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:249c2383-445a-43b0-8497-6ee6fe983f65",
+      "original_sqlite_value_sha256": "ee07d860f0c3e999765f7f1a06db6d78537280280a449e31da48d64b772aa521"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:7970763e-ca19-425c-9dba-529742baaa5c",
+      "original_sqlite_value_sha256": "21aa574a086b2ead7af2cffe3b19758a56a84089b45287f10037f0e8de3a86d1"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:4120c7a1-2049-4aa5-8496-6f5eed32a634",
+      "original_sqlite_value_sha256": "abb95417b4ecfed758fa24893750344e64e4659802a65cfad9086675c5957b2d"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:39922966-cda3-477b-87c5-f3352acaaedb",
+      "original_sqlite_value_sha256": "e3c9ae238a3962a9d78a6e5af6fe48dc652a468eb592b4fb9f243da07ba25bce"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:f435cdff-2143-4e7f-8e95-3ef9307c496d",
+      "original_sqlite_value_sha256": "03857971df02aa4fa8fe2909a1e630292ad52e208c2531a30bf0aa5beb56a52d"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:c99c0215-ed56-4777-95dc-a53c2f709bb7",
+      "original_sqlite_value_sha256": "1a97f1efac23c1021c7ebb201ebc1c838188ae60de5c90d04f692206014b5c9e"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:06ec2d1c-fa1f-4f1e-bb64-fe73edd78ef9",
+      "original_sqlite_value_sha256": "2e6677124a20a3473a1faae531e8131aea6b602f4e4ff7d28a82b061f6f89bc4"
+    },
+    {
+      "key": "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:011073f9-a8c0-4be9-b5a5-e93411646e04",
+      "original_sqlite_value_sha256": "aac3659b073f2cf717a0914b7dda5a2eba1244f8359cf6fe8dbe852ff3a844be"
+    },
+    {
+      "key": "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:267469e3-7e43-4c47-9ded-58feabb84f51",
+      "original_sqlite_value_sha256": "4794597d9f5701bf2ca0fc17239362bbe26aab63a3a1c83dc7ae1193c1442c61"
+    },
+    {
+      "key": "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:7cf26159-337a-4596-b433-ad0ef3f28fda",
+      "original_sqlite_value_sha256": "d9e4f218ed5ac02b7292a3e4b8c1aded39e3722d721259dd203ec37a756050c6"
+    },
+    {
+      "key": "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:997b5400-1a2d-4cf7-bc54-996876e9ba5e",
+      "original_sqlite_value_sha256": "044f6785ff8c3204bb400f07d0f47c8bdc5ada257f73e7134102ad9e8e08f452"
+    },
+    {
+      "key": "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:e6958fb8-f633-4ec9-8f63-34f0ea9f661a",
+      "original_sqlite_value_sha256": "a0c118c7614bc9f2c8ae8592acd3120b420fd3bd3df4d4a6b3c86346e749644d"
+    },
+    {
+      "key": "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:6b2915ba-663d-4d03-9602-66f831cca12f",
+      "original_sqlite_value_sha256": "aec197d2c1282c883fef1f2db211ecf34aec3411d873bd6ab86dbe77c8df35a8"
+    },
+    {
+      "key": "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:65eba6a6-3469-4329-8e7e-ebb1ddfda355",
+      "original_sqlite_value_sha256": "70648ba88f7d06604cb6e5c309b5ee821f4c84637a541b226ffccbbe72338847"
+    },
+    {
+      "key": "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:e76bda2d-16a6-4d16-8546-060461acf1a4",
+      "original_sqlite_value_sha256": "656cc293fef5bbb3f65866e8f0d817257c3517b01d8b91bc875aaf50c6b16d4e"
+    },
+    {
+      "key": "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:49509d9b-9df3-442d-b7c7-45e3e759cafe",
+      "original_sqlite_value_sha256": "29e8614e7c04876e912bf42b669345426cbdce2be5aa67d932970cc7baeae772"
+    }
+  ],
+  "source_database": "C:/Users/motou/AppData/Roaming/Cursor/User/globalStorage/state.vscdb",
+  "notes": "Read-only search sample. The raw DB was queried with mode=ro; frozen parsed bubbles preserve content, with file hashes distinct from original SQLite value hashes. Only the scoped parent and child composers were retrieved. No credentials, model reasoning text, or private encryption fields enter this versioned episode. Task sizes, context, model request parameters, shell environment and timing boundaries differ from the Grok samples. No cross-host speedup percentage or exact comparable Cursor model-loop count is claimed.",
+  "events": [
+    {
+      "event_id": "parent-turn-19",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-08T09:00:00.614Z",
+      "ended_at": "2026-09-08T09:00:40.052Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:456a8568-3d0d-4776-812e-3e3121da70af",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:003a473c-e22d-48c9-9e39-f3fb038151af"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 12
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 39234,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 39438,
+      "tool_counts": {
+        "read_file_v2": 8,
+        "ripgrep_raw_search": 1,
+        "task_v2": 1,
+        "edit_file_v2": 2
+      },
+      "notes": "Parent acknowledges dispatch. This duration excludes background developer and reviewer completion. started_at to ended_at spans user bubble creation to final reply bubble creation; host turnDurationMs has a different boundary and is preserved separately."
+    },
+    {
+      "event_id": "parent-turn-20",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:05:36.004Z",
+      "ended_at": "2026-09-08T09:05:54.588Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:aeefd71f-23fe-4ae2-a9c9-001e0e121a24",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:407e9be4-92e4-43d3-b0f1-99f597fab78f"
+      ],
+      "labels": [
+        "handoff_reuse"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 6
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 18734,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 18584,
+      "tool_counts": {
+        "read_file_v2": 1,
+        "run_terminal_command_v2": 1,
+        "task_v2": 1,
+        "edit_file_v2": 3
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-21",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:10:58.860Z",
+      "ended_at": "2026-09-08T09:11:07.287Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8e87dda4-6bf0-4532-98f3-4db801d6e259",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:23d3c4f5-f6c7-45c6-9800-bea4efd2793a"
+      ],
+      "labels": [
+        "handoff_reuse"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 2
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 8405,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 8427,
+      "tool_counts": {
+        "edit_file_v2": 2
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-22",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T09:31:51.798Z",
+      "ended_at": "2026-09-08T09:35:08.974Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:06bf69ac-92d0-4ee9-9477-30c8e48d42b7",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:2930eed0-ab99-4583-a3a3-6d9240624a9a"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 30
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 195438,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 197176,
+      "tool_counts": {
+        "read_file_v2": 11,
+        "edit_file_v2": 11,
+        "run_terminal_command_v2": 7,
+        "await": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-25",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-08T09:45:33.197Z",
+      "ended_at": "2026-09-08T09:46:07.271Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:0fbea695-4160-4dd5-a1c6-fac1102d6301",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:5116fdb6-b0e0-4823-873f-080a27eb3fd3"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 9
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 32290,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 34074,
+      "tool_counts": {
+        "ripgrep_raw_search": 3,
+        "glob_file_search": 1,
+        "read_file_v2": 2,
+        "task_v2": 1,
+        "edit_file_v2": 2
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-26",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:49:37.616Z",
+      "ended_at": "2026-09-08T09:50:10.741Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:d4e0831f-9280-4f43-84fa-bca32376957e",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:dfe967b9-12a3-43a0-bcd4-d6ca4eb4897c"
+      ],
+      "labels": [
+        "handoff_reuse"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 4
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 33105,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 33125,
+      "tool_counts": {
+        "task_v2": 1,
+        "edit_file_v2": 3
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-27",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:52:49.954Z",
+      "ended_at": "2026-09-08T09:52:56.876Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:15557fc1-4110-441a-8448-052ca0a651da",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8ae7c08e-8b73-49a8-8b23-031a7ba065dd"
+      ],
+      "labels": [
+        "handoff_reuse"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 2
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 7232,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 6922,
+      "tool_counts": {
+        "edit_file_v2": 2
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-28",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "deliver",
+      "started_at": "2026-09-08T09:53:15.486Z",
+      "ended_at": "2026-09-08T09:54:31.540Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:8cdb435c-b28d-4114-826d-ec32ad31a807",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:09d236ec-7f8a-45a0-a570-3fcfe9c8cddf"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 19
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 74948,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 76054,
+      "tool_counts": {
+        "read_file_v2": 6,
+        "ripgrep_raw_search": 1,
+        "edit_file_v2": 9,
+        "run_terminal_command_v2": 2,
+        "await": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-29",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T09:54:44.855Z",
+      "ended_at": "2026-09-08T09:55:25.471Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:249c2383-445a-43b0-8497-6ee6fe983f65",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:7970763e-ca19-425c-9dba-529742baaa5c"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 9
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 38054,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 40616,
+      "tool_counts": {
+        "read_file_v2": 4,
+        "run_terminal_command_v2": 3,
+        "edit_file_v2": 2
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-34",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T10:14:44.312Z",
+      "ended_at": "2026-09-08T10:15:38.781Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:4120c7a1-2049-4aa5-8496-6f5eed32a634",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:39922966-cda3-477b-87c5-f3352acaaedb"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 7
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 52345,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 54469,
+      "tool_counts": {
+        "read_file_v2": 1,
+        "run_terminal_command_v2": 4,
+        "ripgrep_raw_search": 1,
+        "set_active_branch": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-35",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T10:18:38.128Z",
+      "ended_at": "2026-09-08T10:20:01.214Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:f435cdff-2143-4e7f-8e95-3ef9307c496d",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:c99c0215-ed56-4777-95dc-a53c2f709bb7"
+      ],
+      "labels": [
+        "branch_correction"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 8
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 82119,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 83086,
+      "tool_counts": {
+        "read_file_v2": 3,
+        "run_terminal_command_v2": 4,
+        "set_active_branch": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "parent-turn-36",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "agent_turn",
+      "phase": "archive",
+      "started_at": "2026-09-08T10:20:15.691Z",
+      "ended_at": "2026-09-08T10:20:41.320Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:06ec2d1c-fa1f-4f1e-bb64-fe73edd78ef9",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:011073f9-a8c0-4be9-b5a5-e93411646e04"
+      ],
+      "labels": [
+        "requirement_recovery"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 2
+      },
+      "source_composer_id": "635509f5-c207-4730-8b90-f6cdd92870f0",
+      "host_reported_turn_duration_ms": 23714,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 25629,
+      "tool_counts": {
+        "run_terminal_command_v2": 2
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "developer-turn-0",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "subagent",
+      "phase": "deliver",
+      "started_at": "2026-09-08T09:00:30.268Z",
+      "ended_at": "2026-09-08T09:05:32.369Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:267469e3-7e43-4c47-9ded-58feabb84f51",
+        "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:7cf26159-337a-4596-b433-ad0ef3f28fda"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 71
+      },
+      "source_composer_id": "3da29ff5-870e-440c-9da9-808fb5ba0193",
+      "host_reported_turn_duration_ms": 302712,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 302101,
+      "tool_counts": {
+        "update_current_step": 5,
+        "read_file_v2": 27,
+        "glob_file_search": 2,
+        "ripgrep_raw_search": 13,
+        "edit_file_v2": 21,
+        "run_terminal_command_v2": 2,
+        "read_lints": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "developer-turn-1",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "subagent",
+      "phase": "deliver",
+      "started_at": "2026-09-08T09:46:00.645Z",
+      "ended_at": "2026-09-08T09:49:32.454Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:997b5400-1a2d-4cf7-bc54-996876e9ba5e",
+        "bubbleId:3da29ff5-870e-440c-9da9-808fb5ba0193:e6958fb8-f633-4ec9-8f63-34f0ea9f661a"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 36
+      },
+      "source_composer_id": "3da29ff5-870e-440c-9da9-808fb5ba0193",
+      "host_reported_turn_duration_ms": 210894,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 211809,
+      "tool_counts": {
+        "update_current_step": 4,
+        "read_file_v2": 9,
+        "ripgrep_raw_search": 2,
+        "edit_file_v2": 18,
+        "run_terminal_command_v2": 2,
+        "read_lints": 1
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "reviewer-turn-0",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "subagent",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:05:46.990Z",
+      "ended_at": "2026-09-08T09:10:53.802Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:6b2915ba-663d-4d03-9602-66f831cca12f",
+        "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:65eba6a6-3469-4329-8e7e-ebb1ddfda355"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 62
+      },
+      "source_composer_id": "a3a5cb49-62f8-48ae-83aa-59e38a7594c4",
+      "host_reported_turn_duration_ms": 306860,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 306812,
+      "tool_counts": {
+        "update_current_step": 5,
+        "read_file_v2": 31,
+        "glob_file_search": 1,
+        "run_terminal_command_v2": 3,
+        "ripgrep_raw_search": 13,
+        "edit_file_v2": 9
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "reviewer-turn-1",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "subagent",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:50:03.252Z",
+      "ended_at": "2026-09-08T09:52:44.071Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:e76bda2d-16a6-4d16-8546-060461acf1a4",
+        "bubbleId:a3a5cb49-62f8-48ae-83aa-59e38a7594c4:49509d9b-9df3-442d-b7c7-45e3e759cafe"
+      ],
+      "labels": [
+        "target_native_adaptation"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": 34
+      },
+      "source_composer_id": "a3a5cb49-62f8-48ae-83aa-59e38a7594c4",
+      "host_reported_turn_duration_ms": 161550,
+      "reported_duration_clock_quality": "exact",
+      "user_to_final_bubble_created_ms": 160819,
+      "tool_counts": {
+        "update_current_step": 5,
+        "read_file_v2": 12,
+        "ripgrep_raw_search": 5,
+        "run_terminal_command_v2": 3,
+        "edit_file_v2": 9
+      },
+      "notes": "started_at to ended_at spans request bubble creation to final reply bubble creation, not the end of final streaming. The host recorded turnDurationMs is separately preserved. Background parent and child intervals can overlap; do not add nested or overlapping intervals. Completed means the host turn has an ending response, not proof of product acceptance."
+    },
+    {
+      "event_id": "text-url-approval-to-review-response",
+      "episode_id": "EP-20260908-cursor-flow-comparison",
+      "kind": "review",
+      "phase": "accept",
+      "started_at": "2026-09-08T09:00:00.614Z",
+      "ended_at": "2026-09-08T09:11:07.287Z",
+      "timestamp_provenance": "artifact",
+      "clock_quality": "derived",
+      "status": "completed",
+      "artifact_refs": [
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:456a8568-3d0d-4776-812e-3e3121da70af",
+        "bubbleId:635509f5-c207-4730-8b90-f6cdd92870f0:23d3c4f5-f6c7-45c6-9800-bea4efd2793a"
+      ],
+      "labels": [
+        "handoff_reuse"
+      ],
+      "cost": {
+        "active_seconds": null,
+        "wait_seconds": null,
+        "tokens": null,
+        "tool_calls": null
+      },
+      "timing": {
+        "wall_to_final_response_start_seconds": 666.673
+      },
+      "notes": "Includes developer, reviewer and parent orchestration; excludes earlier requirement discussion, later user wait, LOW fixes and Git closeout. Nested events are not additive."
+    }
+  ]
+}
