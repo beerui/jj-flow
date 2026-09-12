@@ -8,7 +8,7 @@
 
 ## 主路径（交付）
 
-| 入口 | 它解决什么 | 谁能用 |
+| 入口 | 解决什么问题 | 可用平台 |
 |------|------------|--------|
 | [init](commands/jj-init.md) | 把项目接入全局地图、梳理项目、补知识库 | 全平台 |
 | [ralph](commands/jj-ralph.md) | 在当前仓库从分析做到验收、归档 | 全平台 |
@@ -17,14 +17,13 @@
 | [review](commands/jj-review.md) | 只读审查并把结论写进 ralph 任务 | 全平台 |
 | [end](commands/jj-end.md) | 提交、推送并按规则合进集成分支 | 全平台 |
 | [jj](commands/jj.md) | 说不清时帮你选上面哪个入口 | 全平台 |
-
 **快速判断：** 一个仓库 → **ralph**；要搬到别的同源仓 → **same**；好几个仓库一起批准和派发 → **dispatch**；代码已经完成只做 Git 收尾 → **end**。
 
 ## 可选协作（不推进验收）
 
 这些入口只帮你安排这一轮怎么分析、写规格或搜索方案，单独跑完不等于交付通过。验收仍看 ralph / dispatch 的记录和证据。
 
-| 入口 | 适合什么 |
+| 入口 | 适用场景 |
 |------|----------|
 | [team-coordinate](commands/jj-team-coordinate.md) | 按当前问题动态拆多角色 |
 | [team-lifecycle](commands/jj-team-lifecycle.md) | 固定角色走规格→计划→实现→测审流水线 |
@@ -66,4 +65,4 @@ $jj-ralph
 
 ## 相关
 
-[第一次使用](usage.md) · [常见踩坑](pitfalls.md) · [证据怎么算数](concepts-evidence.md)
+[第一次使用](usage.md)、[常见踩坑](pitfalls.md)、[证据怎么算数](concepts-evidence.md)
