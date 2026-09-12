@@ -55,4 +55,4 @@ swarm:      对抗搜索   → TAS-* best-solution
 
 ## ADR
 
-[ADR 索引](adr/index.md) · [0001 外部工具边界](adr/0001-external-tool-boundary.md) · [0002 控制面](adr/0002-project-family-control-plane.md)
+[ADR 索引](adr/index.md)、[0001 外部工具边界](adr/0001-external-tool-boundary.md)、[0002 控制面](adr/0002-project-family-control-plane.md)
