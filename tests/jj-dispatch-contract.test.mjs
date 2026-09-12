@@ -1735,7 +1735,7 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /host\.thread_id/);
   assert.match(skill, /ASSIGNMENT-RESEARCH/);
   assert.match(skill, /ASSIGNMENT-HANDOFF/);
-  assert.match(skill, /入职/);
+  assert.match(skill, /人设提示词/);
   assert.match(skill, /distribution_prompt` is a plane index/);
   assert.match(skill, /not\*\* the worker spec/);
   assert.match(skill, /G-same-1/);

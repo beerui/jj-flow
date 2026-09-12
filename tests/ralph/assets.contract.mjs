@@ -335,7 +335,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(happyPath, /append progress\.md/);
   assert.match(happyPath, /MUST finalize/);
   assert.match(happyPath, /ASSIGNMENT-TASK n → 派遣前端开发实现任务 → spawn/);
-  assert.match(happyPath, /派遣reviewer审查改动代码/);
+  assert.match(happyPath, /派遣 reviewer 审查改动代码/);
   assert.match(happyPath, /用户验收/);
   assert.doesNotMatch(happyPath, /ralph_ops/);
   assert.doesNotMatch(happyPath, /degraded unfold/);

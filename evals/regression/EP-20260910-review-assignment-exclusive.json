@@ -9,7 +9,7 @@
     { "type": "contains", "text": "ASSIGNMENT-REVIEW" },
     { "type": "contains", "text": "jj-reviewer" },
     { "type": "contains", "text": "派遣审查" },
-    { "type": "contains", "text": "派遣reviewer审查改动代码" },
+    { "type": "contains", "text": "派遣 reviewer 审查改动代码" },
     { "type": "contains", "text": "starts with** `[reviewer]`" },
     { "type": "contains", "text": "G-review-4" },
     { "type": "contains", "text": "01a08fa6" },

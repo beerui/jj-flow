@@ -51,7 +51,7 @@ test('jj-review parent is team-lead: spawn this turn, no startup reference dump'
   assert.match(skill, /spawn_subagent/)
   assert.match(skill, /jj-reviewer/)
   assert.match(skill, /派遣审查/)
-  assert.match(skill, /派遣reviewer审查改动代码/)
+  assert.match(skill, /派遣 reviewer 审查改动代码/)
   assert.match(skill, /description \*\*starts with\*\* `\[reviewer\]`/)
   assert.match(skill, /Do not wait silently/)
   assert.match(skill, /Before the spawn tool call/)
@@ -136,7 +136,7 @@ test('jj-review bound first review is exclusive assignment; no Grok /review dirt
   assert.match(host, /never host \/review/)
   assert.match(host, /Do \*\*not\*\* call host `\/review`/)
   assert.match(host, /派遣审查/)
-  assert.match(host, /派遣reviewer审查改动代码/)
+  assert.match(host, /派遣 reviewer 审查改动代码/)
 })
 
 test('jj-review conversational persist is documents not CLI; reply [BLOCK] first', () => {
