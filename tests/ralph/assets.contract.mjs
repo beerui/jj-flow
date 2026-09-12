@@ -362,7 +362,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'jj ralph locate',
     'jj ralph remediate',
     '确认不了',
-    '不要猜着做'
+    '不要凭猜测推进'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
@@ -374,7 +374,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(userCmd, /team-lead/);
   assert.match(userCmd, /spawn `jj-implementer`/);
   assert.match(userCmd, /派遣前端开发实现任务/);
-  assert.match(userCmd, /派遣reviewer审查改动代码/);
+  assert.match(userCmd, /派遣 reviewer 审查改动代码/);
   assert.doesNotMatch(userCmd, /ops\.md/);
   assert.doesNotMatch(userCmd, /phases\.md/);
   assert.doesNotMatch(userCmd, /artifact-layout\.md/);
@@ -532,7 +532,7 @@ test('ralph asks first when requirement cannot be confirmed', () => {
   assert.match(layout, /tiny` is not exempt/);
   assert.doesNotMatch(layout, /\*\*No `## 存疑`\*\*/);
   assert.match(command, /需求确认不了先问/);
-  assert.match(userCmd, /确认不了（先问，不要猜着做）/);
+  assert.match(userCmd, /确认不了（先问，不要凭猜测推进）/);
   assert.match(userCmd, /MUST \/ 范围 \/ 验收事后仍确认不了/);
   assert.match(usage, /MUST \/ 范围 \/ 验收事后仍确认不了/);
 });
