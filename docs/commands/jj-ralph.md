@@ -33,7 +33,7 @@
 
 安装完成后，Agents 宿主侧的技能文件位于 `~/.agents/skills`；需要刷新旧副本时运行 `jj install-skill --platform agents --force`。
 
-已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣reviewer审查改动代码」），不要干等。不要打开 skill 手册当开机清单，也不要跑 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
+已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要打开 skill 手册当开机清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
 
 ## 第一次这样用
 
@@ -47,21 +47,21 @@ $jj-ralph 先改项目A：登录成功后如果密码过期要弹提示，只做
 
 1. **对齐**——确认目标和“怎样算做完”（验收项），写入短合同。主对话是 team-lead，不在这里改业务代码
 2. **计划**——列出要改哪些文件、分几步（给派单用）
-3. **派单实施**——每刀写一份 `ASSIGNMENT-TASK`（读这些/交付必须是精确文件），spawn 前先说 **派遣前端开发实现任务**（「按审查改」则写 **派遣按审查改**），再 spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）去做；同一对话、同一仓库里上一刀实施工人已结束 → `resume_from` 那个 id，不要冷启动。换审查员或换仓库就新开。prompt 禁止 Start broad / 全库 grep。子代理先确认再开工，做完带证据回报主进程。这一刀结束后停，等下一刀，不连做 Task n+1
-4. **审查（大功能）**——验证通过后写改动摘要，spawn 前先说 **派遣reviewer审查改动代码**，再 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头）。审查还在跑时不要再派交接工人。本轮只有文案/样式、以及小改，跳过审查。审查结论写在 `findings.md`，不跑 `review-record`
+3. **派单实施**——每轮写一份 `ASSIGNMENT-TASK`（读这些/交付必须是精确文件），spawn 前先说 **派遣前端开发实现任务**（「按审查改」则写 **派遣按审查改**），再 spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）去做；同一对话、同一仓库里上一轮实施工人已结束 → `resume_from` 那个 id，不要冷启动。换审查员或换仓库就新开。prompt 禁止 Start broad / 全库 grep。子代理先确认再开工，做完带证据回报主进程。这一轮结束后停，等下一轮，不连做 Task n+1
+4. **审查（大功能）**——验证通过后写改动摘要，spawn 前先说 **派遣 reviewer 审查改动代码**，再 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头）。审查还在跑时不要再派交接工人。本轮只有文案/样式、以及小改，跳过审查。审查结论写在 `findings.md`，不执行 `review-record`
 5. **你验收**——审查 `[OK]`/`[WARN]` 之后等你测过，再对照验收项收口
-6. **归档**——记录定稿，任务目录搬进 `completed/`
+6. **归档**——记录定稿，任务目录移入 `completed/`
 
-一刀一派单，子代理汇报后停。大功能审完要等你验收，不会直接收工。还会停下来的情况：分析时或 MUST / 范围 / 验收事后仍确认不了（先问，不要猜着做）、你说了“先不写代码”、要做不可逆的事（如推送）。
+一轮一派单，子代理汇报后停。大功能审完要等你验收，不会直接收工。还会停下来的情况：分析时或 MUST / 范围 / 验收事后仍确认不了（先问，不要凭猜测推进）、你说了“先不写代码”、要做不可逆的事（如推送）。
 
-**你会看到：** 先看到聊天里的派遣进度（「派遣前端开发实现任务」「派遣reviewer审查改动代码」），然后仓库里多出一个目录 `.workflow/ralph/task-…/`，里面给人看的文件：
+**你会看到：** 先看到聊天里的派遣进度（「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），然后仓库里多出一个目录 `.workflow/ralph/task-…/`，里面给人看的文件：
 
 | 文件 | 里面是什么 |
 |------|-----------|
 | `task_plan.md` | 目标、验收项、步骤（当前版本，不堆历史） |
 | `progress.md` | 按日期追加的过程记录：做了什么、卡在哪 |
-| `findings.md` | 改动摘要、真踩过的坑、可复用的结论 |
-| `assignments/` | 每刀派单：`ASSIGNMENT-TASK` / `ASSIGNMENT-REVIEW` / `ASSIGNMENT-FIX` |
+| `findings.md` | 改动摘要、实际踩过的坑、可复用的结论 |
+| `assignments/` | 每轮派单：`ASSIGNMENT-TASK` / `ASSIGNMENT-REVIEW` / `ASSIGNMENT-FIX` |
 
 **怎样算做完：** 大功能过审且你验收通过后归档——目录已在 `.workflow/ralph/completed/` 下，Agent 给你一段短报告（任务名、验收结果、可复用结论）。归档时可复用结论会记到你本机 `~/.jj-flow/memory/`，下次同一项目开任务会自动带上。投喂全局知识库只在你主动提出时进行。
 
@@ -155,15 +155,15 @@ $jj-ralph task-login-reminder 继续
 
 ### 收尾与存量任务
 
-验收通过后 **MUST finalize**：对话路径把任务目录搬进 `completed/`，更新 `index.md`，双写 `run.json`。命令行维护仍可用 `jj ralph finalize`。只翻 archive 门或不收尾，任务会留在活跃层；机械 `status` 会提示 `next: finalize`，如果 `phase=ARCHIVE` 仍在活跃目录，就提示“未完成收尾”。
+验收通过后 **MUST finalize**：对话路径把任务目录移入 `completed/`，更新 `index.md`，双写 `run.json`。命令行维护仍可用 `jj ralph finalize`。只翻 archive 门或不收尾，任务会留在活跃层；机械 `status` 会提示 `next: finalize`，如果 `phase=ARCHIVE` 仍在活跃目录，就提示“未完成收尾”。
 
 默认验收后直接归档。你要求审查或门禁需要审查证据时，Agent 才跟进 `$jj-review`（派单 + findings，不跑 `review-record`）。提交代码仍需要你的授权。若已有工作区审查需要补提交后的审查，Agent 会再写一份 `review_scope=commit` 的 REV 文档并说明缺少的证据。
 
-对话里 Agent 读 `index.md` 活跃表，不跑 CLI。命令行维护仍可用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。要更新宿主旧副本，可用 `jj install-skill --platform agents --force`。
+对话里 Agent 读 `index.md` 活跃表，不执行 CLI。命令行维护仍可用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。要更新宿主旧副本，可用 `jj install-skill --platform agents --force`。
 
 「审查修复 / review-fix」不是新任务：对着原来那条功能任务改，不要另开 `task-*-review-fix`。说「投喂知识库」才写入 `~/.jj-flow/knowledge`（当前项目），须你点头。
 
-`index.md` 管活跃任务：超过 **5 条**还活着，或任一条 **5 天没动**，会出现「归档提示」。同一会话（含 `review.task_thread_id` 与 CLI `--thread-id` / `host.thread_id`）或一条「审查修复」和另一条活着的任务并排，会出现「同需求提示」。都只提醒，不会自动归档、合并或废弃。能确定该收的会建议 `finalize`；PAUSED / BLOCKED / 做到一半、分不清收还是弃 → **先问你**。
+`index.md` 管活跃任务：超过 **5 条**还在运行，或任一条 **5 天没动**，会出现「归档提示」。同一会话（含 `review.task_thread_id` 与 CLI `--thread-id` / `host.thread_id`）或一条「审查修复」和另一条活着的任务并排，会出现「同需求提示」。都只提醒，不会自动归档、合并或废弃。能确定该收的会建议 `finalize`；PAUSED / BLOCKED / 进行到一半、分不清收还是弃 → **先问你**。
 
 ## 记录在哪
 
@@ -192,4 +192,4 @@ $jj-ralph task-login-reminder 继续
 
 ## 相关
 
-[第一次使用](../usage.md) · [same](jj-same.md) · [dispatch](jj-dispatch.md) · [end](jj-end.md) · [review](jj-review.md) · [常见踩坑](../pitfalls.md) · [术语](../glossary.md) · [设计（深）](../design-docs/jj-ralph.md)
+[第一次使用](../usage.md)、[same](jj-same.md)、[dispatch](jj-dispatch.md)、[end](jj-end.md)、[review](jj-review.md)、[常见踩坑](../pitfalls.md)、[术语](../glossary.md)、[设计（深）](../design-docs/jj-ralph.md)

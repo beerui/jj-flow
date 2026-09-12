@@ -37,7 +37,7 @@ $jj-evaluated 对最近一次 项目A→项目B handoff 做时长与复用诊断
 
 1. 确定范围和证据来源，先校验 episode 格式。
 2. 计算带来源和质量说明的基线，再做不泄漏 holdout 的拆分检查。
-3. 针对一个明确问题提出一个有界候选，先便宜回放、再按需做更重的回归。
+3. 针对一个明确问题提出一个有界候选，先做轻量回放、再按需做更重的回归。
 4. 把结果和风险写入报告，等你明确决定“推广”或“归档”；没有人工批准不会改生产 skill。
 
 **你会看到：**
@@ -81,4 +81,4 @@ $jj-evaluated 离线评估：禁止自动 promote，只出 report
 
 ## 相关
 
-[命令总览](../commands.md) · [Harness 设计](../design-docs/harness-engineering.md) · [第一次使用](../usage.md)
+[命令总览](../commands.md)、[Harness 设计](../design-docs/harness-engineering.md)、[第一次使用](../usage.md)

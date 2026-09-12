@@ -64,7 +64,7 @@ $jj-team-swarm resume
 |------------|--------|
 | 采用推荐方案实现 | 在 [ralph](jj-ralph.md) 里引用 `best-solution.md` |
 | 继续下一轮搜索 | 说 `resume` 或调整目标后再运行 |
-| 只保存结果 | 选择归档，不把它当验收凭证 |
+| 只保存结果 | 选择归档，不把它当作验收凭证 |
 
 ## 进阶
 
@@ -82,4 +82,4 @@ Claude 可优先使用 Workflow；Codex / Grok / Qoder 通常走 agent 降级路
 
 ## 相关
 
-[coordinate](jj-team-coordinate.md) · [lifecycle](jj-team-lifecycle.md) · [ralph](jj-ralph.md) · [命令总览](../commands.md)
+[coordinate](jj-team-coordinate.md)、[lifecycle](jj-team-lifecycle.md)、[ralph](jj-ralph.md)、[命令总览](../commands.md)

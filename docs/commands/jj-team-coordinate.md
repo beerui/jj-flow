@@ -1,6 +1,6 @@
 # team-coordinate — 这一轮动态拆多角色
 
-**可选入口：** 它只帮你安排这一轮怎么分析或实现，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。
+**可选入口：** 它只帮你安排这一轮如何分析或实现，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。
 
 **它帮你做什么：** 根据当前问题临时生成角色（例如分析、实现、检查），再按角色协作完成一轮多模块工作。角色和产物都属于本次会话，不会变成交付任务身份。
 
@@ -37,7 +37,7 @@ $jj-team-coordinate 支付回调与订单状态分角色并行分析并实现
 
 1. 先分析任务，生成本轮角色和依赖关系。
 2. 创建会话记录，再按宿主能力派发角色（可并行，也可能串行降级）。
-3. 汇总各角色的实现、分析和验证产物，遇到失败会说明原因，不把缺失结果当完成。
+3. 汇总各角色的实现、分析和验证产物，遇到失败会说明原因，不把缺失结果当作完成。
 4. 结束时给出摘要和产物路径；如果它嵌在 ralph / review / dispatch 里，只提供可引用证据，不改父流程门禁。
 
 **你会看到：** 类似下面的进度与收尾：
@@ -82,4 +82,4 @@ $jj-team-coordinate resume
 
 ## 相关
 
-[ralph](jj-ralph.md) · [lifecycle](jj-team-lifecycle.md) · [swarm](jj-team-swarm.md) · [命令总览](../commands.md)
+[ralph](jj-ralph.md)、[lifecycle](jj-team-lifecycle.md)、[swarm](jj-team-swarm.md)、[命令总览](../commands.md)

@@ -1,6 +1,6 @@
 # team-lifecycle — 固定角色走一条 SDLC 流水线
 
-**可选入口：** 它只帮你安排这一轮怎么做，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。
+**可选入口：** 它只帮你安排这一轮如何做，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。
 
 **它帮你做什么：** 用固定角色和固定阶段把规格、计划、实现、测试、审查串起来，适合希望过程标准化的团队。
 
@@ -87,4 +87,4 @@ $jj-team-lifecycle recheck
 
 ## 相关
 
-[coordinate](jj-team-coordinate.md) · [swarm](jj-team-swarm.md) · [ralph](jj-ralph.md) · [命令总览](../commands.md)
+[coordinate](jj-team-coordinate.md)、[swarm](jj-team-swarm.md)、[ralph](jj-ralph.md)、[命令总览](../commands.md)
