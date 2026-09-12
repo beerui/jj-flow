@@ -1,0 +1,56 @@
+docs/concepts-evidence.md
+  s_4f95c2e3875c8c::t_d83d3964e034b9 28
+  s_4f95c2e3875c8c::t_c42b6f78b50a30 21
+  s_4f95c2e3875c8c::t_74fe1208b2959d 24
+  s_4f95c2e3875c8c::t_0408c775c587df 16,18
+  s_4f95c2e3875c8c::t_d57c0abfd01d60 14
+docs/concepts-hosts.md
+  s_4f95c2e3875c8c::t_2dcc0b175030d8 15-16
+  s_4f95c2e3875c8c::t_90f64dbe35eb0d 22
+  s_4f95c2e3875c8c::t_357ad3cb320106 28-29
+  s_4f95c2e3875c8c::t_c3de921fab0dcb 18
+  s_4f95c2e3875c8c::t_3ba2a74459c901 20
+docs/glossary.md
+  s_4f95c2e3875c8c::t_3c75d0e397eb47 10
+  s_4f95c2e3875c8c::t_6eb1945fbe8130 8
+  s_4f95c2e3875c8c::t_6549c0f4171007 30
+  s_4f95c2e3875c8c::t_5ca9dc2aad883e 17
+  s_4f95c2e3875c8c::t_c81ef70dadc3d9 16
+  s_4f95c2e3875c8c::t_2d1f0d69db8f7a 24
+  s_4f95c2e3875c8c::t_c4f14dbd526bdf 1,5
+  s_4f95c2e3875c8c::t_f43d2830310e6a 22
+  s_4f95c2e3875c8c::t_341439de84fb80 13
+  s_4f95c2e3875c8c::t_3ff9125e8fb13a 25-28
+  s_4f95c2e3875c8c::t_48e67714a6eafb 19
+docs/commands.md
+  s_4f95c2e3875c8c::t_d83a6631d84e45 68
+  s_4f95c2e3875c8c::t_85c1e917e7d66c 26
+  s_4f95c2e3875c8c::t_1b6bb95f1e9a34 11
+docs/concepts-paths.md
+  s_4f95c2e3875c8c::t_264d7051dcb5a4 29
+  s_4f95c2e3875c8c::t_3bf843a615d543 5,7
+  s_4f95c2e3875c8c::t_f3e4de9eafc80c 12
+docs/concepts-knowledge.md
+  s_4f95c2e3875c8c::t_b03b8ded1ff7c7 4
+  s_4f95c2e3875c8c::t_9c2b4ace10b2e0 15
+  s_4f95c2e3875c8c::t_3e198e229d10bf 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "df11c21b6aeb397b4022abeb1c86e8ea3d92321c",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
