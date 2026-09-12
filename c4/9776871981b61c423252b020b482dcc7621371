@@ -1,0 +1,45 @@
+docs/commands/cli.md
+  s_4f95c2e3875c8c::t_7eaa4a1d0f906e 5
+  s_4f95c2e3875c8c::t_686cf5f4fe6e36 111
+  s_4f95c2e3875c8c::t_d1ff53b82ecdf3 112
+  s_4f95c2e3875c8c::t_37e6f18758c5a9 4
+  s_4f95c2e3875c8c::t_8ec5b2094f1861 38
+  s_4f95c2e3875c8c::t_b8a8ca6dcb92ca 222
+docs/architecture.md
+  s_4f95c2e3875c8c::t_3ad552855cccaf 58
+docs/maintenance.md
+  s_4f95c2e3875c8c::t_d0a6ec417b72d8 24
+  s_4f95c2e3875c8c::t_3bc968c32537c9 11
+docs/jj-lab-siblings.md
+  s_4f95c2e3875c8c::t_2657f193bc3f72 40
+  s_4f95c2e3875c8c::t_844eedbda0f32e 68
+  s_4f95c2e3875c8c::t_9e89e4f05a7f7a 77-78
+  s_4f95c2e3875c8c::t_d4e06c54e7993d 83
+  s_4f95c2e3875c8c::t_5034c09a6c7cb4 36
+  s_4f95c2e3875c8c::t_835d5fe35c2cc1 29
+  s_4f95c2e3875c8c::t_e36b725dcc6901 6
+docs/memory-knowledge-guide.md
+  s_4f95c2e3875c8c::t_812762ea5e71db 5
+  s_4f95c2e3875c8c::t_7ee318310dcb98 11
+docs/loop-graph-guide.md
+  s_4f95c2e3875c8c::t_4bea47cb322c1f 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "c49776871981b61c423252b020b482dcc7621371",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
