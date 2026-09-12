@@ -1,0 +1,66 @@
+agents/jj-implementer.toml
+  s_64c418359cd940::t_270880b3335b36 1-16
+ARCHITECTURE.md
+  s_f62f40b3ae5d5e::t_896e2d17ff0ac6 42
+  s_f62f40b3ae5d5e::t_453efa8c216d15 64
+  s_f62f40b3ae5d5e::t_f6d2068dc8eb83 32,34
+src/installSkill.mjs
+  s_64c418359cd940::t_db2545906a8978 217,362,467,473,477,489-491,502-505,515-516,642,645-646,650,670-677
+  s_64c418359cd940::t_f569d728214d45 105-114,122-129,189,334,531
+src/cli.mjs
+  s_64c418359cd940::t_fa84e439edd7fc 1742,1746
+  s_64c418359cd940::t_1b7dc722752e11 11,810
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_64c418359cd940::t_0f1faca38f34db 21
+evals/regression/EP-20260911-p1-custom-agents.json
+  s_64c418359cd940::t_384641507b1e6e 11-14
+tests/install-skill.test.mjs
+  s_64c418359cd940::t_349a973a93e835 505-507,519-522,585-586,763-764,799,802
+  s_64c418359cd940::t_102343975adc69 8,22,143-144,214-216,235-239,277-280,422-430
+skill-inventory.json
+  s_64c418359cd940::t_cd61a111cccece 8,14,16-17,22
+CHANGELOG.md
+  s_64c418359cd940::t_e26c52d65b054f 7-8
+tests/jj-review-contract.test.mjs
+  s_64c418359cd940::t_79fc8c213c476e 80-100
+AGENTS.md
+  s_f62f40b3ae5d5e::t_204996ca37bb88 6-7
+scripts/check-project.mjs
+  s_64c418359cd940::t_e40cdd5090b45d 86-88
+skills/jj-review/references/host-review.md
+  s_64c418359cd940::t_0ff5be331853c7 34,36
+agents/jj-researcher.toml
+  s_64c418359cd940::t_c68c481b9c90b5 1-15
+agents/jj-reviewer.toml
+  s_64c418359cd940::t_aff88104559ec5 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "1cb3ebfbe5197d86c651a096c380813e7de1e1e8",
+  "prompts": {},
+  "sessions": {
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_f62f40b3ae5d5e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c94cdd4e-a761-48e1-b5d4-bf85c427e6f2",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
