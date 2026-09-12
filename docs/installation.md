@@ -46,7 +46,7 @@ npx @brewer/jj-flow@latest install-skill --platform agents
 
 不加 `--project` 时，装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`；AGENTS：`~/.agents/skills` + `~/.agents/commands`）。
 
-升级后再跑同一条命令会**补上缺失的 skill**（例如新版本的 `jj-init`），不会覆盖你已经装过的文件。要刷新旧副本才加 `--force`。
+升级后再执行同一条命令会**补上缺失的 skill**（例如新版本的 `jj-init`），不会覆盖你已经装过的文件。要刷新旧副本才加 `--force`。
 
 ## 卸载（先预览）
 
@@ -54,13 +54,13 @@ npx @brewer/jj-flow@latest install-skill --platform agents
 npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 ```
 
-只删本工具登记过的文件；你本地改过的内容默认不会乱删。确认预览无误后，再去掉 `--dry-run`。
+只删本工具登记过的文件；你本地改过的内容默认不会误删。确认预览无误后，再去掉 `--dry-run`。
 
 ## 本机目录（可选）
 
 `install-skill` 会在 `~/.jj-flow` 生成空结构（已有文件不覆盖）：调度状态、`map.md`、`knowledge/`。新项目默认不进全局索引；要写入地图或补知识库，在对话里用 `$jj-init` / `/jj-init`。
 
-| 配置项 | 默认 | 干什么 |
+| 配置项 | 默认 | 用途 |
 |--------|------|--------|
 | 调度状态目录 | `~/.jj-flow` | 多项目调度记录 |
 | 项目地图 | `~/.jj-flow/map.md` | 全局项目索引（须你同意才加行） |
@@ -69,4 +69,4 @@ npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 
 ## 相关
 
-[第一次使用](usage.md) · [命令总览](commands.md) · [维护说明](maintenance.md)
+[第一次使用](usage.md)、[命令总览](commands.md)、[维护说明](maintenance.md)

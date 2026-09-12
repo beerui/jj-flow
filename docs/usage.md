@@ -27,18 +27,18 @@ $jj-ralph 先改项目A：登录成功后密码过期要弹提示，只做登录
 
 ## 3. 接下来会发生什么
 
-Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报后写入 `progress.md`。spawn 前会先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣reviewer审查改动代码」），不要干等。不要在主对话里改业务代码，也不要跑 `ralph_ops` / `jj ralph`。
+Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报后写入 `progress.md`。spawn 前会先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要在主对话里改业务代码，也不要执行 `ralph_ops` / `jj ralph`。
 
 | 步骤 | Agent 在做什么 | 你会看到 |
 |------|---------------|----------|
 | 对齐 | 确认目标和"怎样算做完"，写入短合同 | `.workflow/ralph/task-…/task_plan.md` 出现，里面有目标和验收项 |
 | 计划 | 列要改的文件和步骤（给派单用） | `task_plan.md` 多出步骤 |
-| 派单实施 | 每刀一份 `ASSIGNMENT-TASK`（精确文件），spawn 前先说「派遣前端开发实现任务」，`description` 以 `[implementer]` 开头。同一仓库上一刀实施已结束则续上，不冷启动；换仓交接则新开 | 聊天里那一行进度；`assignments/`；代码 diff；`progress.md` |
-| 审查（大功能） | spawn 前先说「派遣reviewer审查改动代码」，`description` 以 `[reviewer]` 开头。审查还在跑时不要再派交接。小改跳过 | 聊天里那一行进度；`reviews/…/findings.md`：`[OK]`/`[WARN]`/`[BLOCK]` |
+| 派单实施 | 每轮一份 `ASSIGNMENT-TASK`（精确文件），spawn 前先说「派遣前端开发实现任务」，`description` 以 `[implementer]` 开头。同一仓库上一轮实施已结束则续上，不冷启动；换仓交接则新开 | 聊天里那一行进度；`assignments/`；代码 diff；`progress.md` |
+| 审查（大功能） | spawn 前先说「派遣 reviewer 审查改动代码」，`description` 以 `[reviewer]` 开头。审查还在跑时不要再派交接。小改跳过 | 聊天里那一行进度；`reviews/…/findings.md`：`[OK]`/`[WARN]`/`[BLOCK]` |
 | 你验收 | 审查通过后等你测 | 你点头后才对照验收项收口 |
-| 归档 | 记录定稿 | 任务目录搬进 `.workflow/ralph/completed/`，收到一段短报告 |
+| 归档 | 记录定稿 | 任务目录移入 `.workflow/ralph/completed/`，收到一段短报告 |
 
-还会停下来等你：分析时或 MUST / 范围 / 验收事后仍确认不了（先问，不要猜着做）、你说了"先不写代码"、要做不可逆的事（推送 / 合分支 / 删数据）。
+还会停下来等你：分析时或 MUST / 范围 / 验收事后仍确认不了（先问，不要凭猜测推进）、你说了"先不写代码"、要做不可逆的事（推送 / 合分支 / 删数据）。
 
 ## 4. 怎么确认真的做完了
 
@@ -68,7 +68,7 @@ Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、s
 $jj-same 交接到 项目B 项目C
 ```
 
-Agent 写下本轮交接任务、到每个目标仓调研，再带入职派工人按目标仓自己的写法改。分支不对会停下来问你。→ [same](commands/jj-same.md)
+Agent 写下本轮交接任务、到每个目标仓调研，再带派单前缀派工人按目标仓自己的写法改。分支不对会停下来问你。→ [same](commands/jj-same.md)
 
 **dispatch——多个项目一起派**（Codex / Grok / Qoder 有，Claude 没有）
 
@@ -87,10 +87,10 @@ $jj-dispatch 把 README 的装依赖改成 pnpm，预览分发到项目A、项�
 | dispatch | 每个项目在调度记录里验收通过——但这 **不等于** 已经 push |
 | end | 代码已 push，并按需要合进 dev / main |
 
-## 最容易翻车的三件事
+## 最容易出错的三件事
 
 1. 源仓库 **还没 commit** 就多项目派发 → 会被拦住
 2. **分支不对** 就迁移 → 改到错误分支
 3. 调度显示"验收通过"就以为 **已经上线** → 其实还没 push / 合分支
 
-更多：[常见踩坑](pitfalls.md) · 全部入口：[命令总览](commands.md) · 名词：[术语](glossary.md)
+更多：[常见踩坑](pitfalls.md)、全部入口：[命令总览](commands.md)、名词：[术语](glossary.md)

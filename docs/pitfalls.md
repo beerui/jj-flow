@@ -10,7 +10,7 @@
 
 **怎么做：**
 
-1. 先看每个目标仓：现在在哪条分支、干不干净、是不是这个任务的分支
+1. 先看每个目标仓：现在在哪条分支、是否干净、是不是这个任务的分支
 2. 不对就先切到正确功能分支，再改
 3. 禁止「人在哪就改哪」
 
@@ -28,7 +28,7 @@
 
 1. 源仓库先 commit
 2. 再预览 → 你批准 → 再派发
-3. 被拦住时先补提交，不要硬派
+3. 被拦住时先补提交，不要强行派发
 
 → [dispatch](commands/jj-dispatch.md)
 
@@ -53,7 +53,7 @@
 
 **发生在：** dispatch 选择宿主和工作方式时。
 
-**出什么事：** 以为一定要开很多会话，或把两种工具的做法抄反。
+**出什么事：** 以为一定要开很多会话，或把两种工具的做法弄反。
 
 **怎么做：**
 
@@ -82,17 +82,17 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 ---
 
-## 6. 回退时自动乱改 Git
+## 6. 回退时自动擅自改动 Git
 
 **发生在：** dispatch 处理回退或重新打开交付时。
 
-**出什么事：** 你说「回退某次交付」，Agent 直接 revert/reset，和你想的干净历史不一致。
+**出什么事：** 你说「回退某次交付」，Agent 直接 revert/reset，与你预期的干净历史不一致。
 
 **怎么做：**
 
 1. 先处理调度记录（能否重开、能否再做）
 2. Git 先探测「推没推、合没合」→ **列选项给你** → 你点了再执行
-3. 本地干净未推常适合 reset；已推或已合常适合 revert；不会乱 force
+3. 本地干净未推常适合 reset；已推或已合常适合 revert；不会随意 force
 
 → [dispatch](commands/jj-dispatch.md)
 
@@ -114,7 +114,7 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 ---
 
-## 8. team 跑完就当成验收通过
+## 8. team 完成就当成验收通过
 
 **发生在：** team-coordinate / lifecycle / swarm 报告完成之后。
 
@@ -130,7 +130,7 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 验收仍只认 ralph 的记录和证据，或 dispatch 的验收记录。team 产物可以写进证据里引用，但不会自动打开验收门。
 
-→ [team-coordinate](commands/jj-team-coordinate.md) · [证据怎么算数](concepts-evidence.md)
+→ [team-coordinate](commands/jj-team-coordinate.md)、[证据怎么算数](concepts-evidence.md)
 
 ---
 
@@ -144,13 +144,13 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 ---
 
-## 10. 把项目族角色名随便改成 source / target
+## 10. 把项目族角色名擅自改成 source / target
 
 **发生在：** same / dispatch 解析目标项目时。
 
-**出什么事：** 叫成 source / target 后对错仓库。
+**出什么事：** 叫成 source / target 后指向错误仓库。
 
-**怎么做：** 会话和调度里用稳定的项目族称呼（文档示例为**项目A / 项目B / 项目C**）；用项目地图里的 path 对照，别靠绰号猜。
+**怎么做：** 会话和调度里用稳定的项目族称呼（文档示例为**项目A / 项目B / 项目C**）；用项目地图里的 path 对照，别靠别名猜。
 
 ---
 
@@ -158,13 +158,13 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 **发生在：** end 选择合入分支、打印收工计划时。
 
-**出什么事：** 仓库里既有 `dev` 又有 `staging`，Agent 只因为历史提交或构建脚本里出现 staging，就把功能合进预发。
+**出什么事：** 仓库里既有 `dev` 又有 `staging`，Agent 只因为历史提交或构建脚本里出现 staging，就把功能合进预发分支。
 
 **怎么做：**
 
 1. 没写 `integration=`、文档 / `naming.json` 也没点名合入分支时：有 `dev` 就只合 **`dev`**
 2. git log、MR 标题、默认远端指向、功能分支来源、仓库里有 `staging` 分支、构建脚本名里带 staging，**都不算**约定
-3. 要合预发必须写 `integration=staging`，或文档明确点名合入分支
+3. 要合入预发必须写 `integration=staging`，或文档明确点名合入分支
 4. 执行前那一行 `work → integration` 要看得出依据，方便当场拦住
 
 → [end](commands/jj-end.md)
@@ -177,13 +177,13 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 **发生在：** end 合并工作分支时。
 
-**出什么事：** `$jj-end` 把「两边都在演进」的 Vue/文档冲突标成 complex，整单 `merge --abort`（feat/dynamic-form：AGENTS.md 策略段、`readonly` vs `uploadDisabled`、草稿恢复 helper、LOGO 条件）。或者只把 import 解了、业务函数还留着，半成品 merge。一有冲突就停也是同一类问题。
+**出什么事：** `$jj-end` 把「两边都在演进」的 Vue/文档冲突标成 complex，整段 `merge --abort`（feat/dynamic-form：AGENTS.md 策略段、`readonly` vs `uploadDisabled`、草稿恢复 helper、LOGO 条件）。或者只解了 import、业务函数还留着，半成品 merge。一有冲突就停也是同一类问题。
 
 **怎么做：**
 
 1. 先打分类表：每个冲突文件 `self-merge` 或 `unhandleable`；拿不准的交给你判断
-2. **默认自己合**：能一句话说清、不发明产品决策 → 解完继续 push 合入（Vue/文档/条件守卫不同也算）
-3. **只有真正合不了**（同一产品开关两边相反且无法判断、二进制/密钥、读完仍无法陈述解法）→ `merge --abort`，回到工作分支，把表给你
+2. **默认自行合并**：能一句话说清如何合并、不发明产品决策 → 解完继续 push 合入（Vue/文档/条件守卫不同也算）
+3. **只有真正无法合并**（同一产品开关两边相反且无法判断、二进制/密钥、读完仍无法陈述解法）→ `merge --abort`，回到工作分支，把表给你
 4. 不要只解子集再 abort；解完不能留下 `<<<<<<<`
 5. 第一眼「看起来复杂」不是停手理由，要读 hunk 和上下文再判
 
@@ -195,7 +195,7 @@ npx @brewer/jj-flow@latest install-skill --platform all
 
 - [ ] 源仓库已经 commit
 - [ ] 每个目标仓的分支对得上这次任务
-- [ ] 分支或目录拿不准时，已经问过人
+- [ ] 分支或目录拿不准时，已经问过
 - [ ] 说清楚要不要 push、要不要合进 dev
 
 更细的复盘在仓库 `docs/evaluations/`（偏内部，日常上手不用读）。
