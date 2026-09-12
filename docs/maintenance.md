@@ -7,9 +7,9 @@
 | 层 | 路径 | 规则 |
 |----|------|------|
 | 正文 | `docs/**/*.md` | 只改 Markdown；内链写源文件相对路径（如 `../commands/jj-ralph.md`） |
-| 站点声明 | `docs/.vitepress/config.mjs` · `docs/.vitepress/sidebar.mjs` · `docs/.vitepress/redirects.mjs` | 配置 / 侧栏 / 旧地址跳转 |
+| 站点声明 | `docs/.vitepress/config.mjs`、`docs/.vitepress/sidebar.mjs`、`docs/.vitepress/redirects.mjs` | 配置 / 侧栏 / 旧地址跳转 |
 | 产物 | `site/` | `npm run docs:build`；勿手动改；不入库 |
-| 门禁 | `npm run docs:check` · `harness:check` · `harness:gc` | CI / verify |
+| 门禁 | `npm run docs:check`、`harness:check`、`harness:gc` | CI / verify |
 
 新增顶层页面：放文件 + 在 `docs/.vitepress/sidebar.mjs` 对应分组加一行；`design-docs/`、`exec-plans/`、`adr/` 下的文件自动进侧栏（标题取首个 `#`）。忘了加侧栏，`docs:check` 与 `harness:gc` 都会报。构建即校验：内链指向不存在的页面会让 `docs:check` 失败。
 

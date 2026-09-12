@@ -11,13 +11,13 @@
 
 ## 活跃计划
 
-| 计划 | 状态摘要 | 下一刀 |
+| 计划 | 状态摘要 | 下一轮 |
 | --- | --- | --- |
-| [人格标签 / 反 Start-broad / 活审查占位](active/2026-09-11-persona-spawn-gym.md) | 样本 `01a08fa6`：P0–P2 靶场通过；审查工人钉 `high`；承接基线 22 pass | 有新切片再 spawn；未说归档不 archive |
+| [人格标签 / 反 Start-broad / 活审查占位](active/2026-09-11-persona-spawn-gym.md) | 样本 `01a08fa6`：P0–P2 靶场通过；审查工人固定 `high`；承接基线 22 pass | 有新切片再 spawn；未说归档不 archive |
 | [same / dispatch 交接派单与入职](active/2026-09-11-same-handoff-assignment.md) | `C-same-assignment-onboard-v1`：本轮 ASSIGNMENT + 入职 spawn；Family gym 隔离副本 cheap replay 通过 | 真人业务仓复测 |
-| [Ralph review 文档约束](active/2026-09-11-review-docs-not-cli.md) | `C-review-docs-not-cli-v1`：对话不跑 review-record；HIGH→high；exclusive listed files；G-review-3 | 可选 cheap replay |
-| [Ralph 对话记账文档约束](active/2026-09-11-ralph-docs-not-cli.md) | `C-ralph-docs-not-cli-v1`：对话记账写文档；Loop gym 干净副本 cheap replay 通过 | 真人业务仓复测 |
-| [Ralph / review 流程等待](active/2026-09-10-ralph-review-process-wait.md) | G-ralph-1 / G-review-2 已落地；`C-ralph-no-eager-refs-v1` + G-ralph-2（team-lead spawn）本刀 | 真人 cheap replay |
+| [Ralph review 文档约束](active/2026-09-11-review-docs-not-cli.md) | `C-review-docs-not-cli-v1`：对话不执行 review-record；HIGH→high；exclusive listed files；G-review-3 | 可选 cheap replay |
+| [Ralph 对话记账文档约束](active/2026-09-11-ralph-docs-not-cli.md) | `C-ralph-docs-not-cli-v1`：对话记录写文档；Loop gym 干净副本 cheap replay 通过 | 真人业务仓复测 |
+| [Ralph / review 流程等待](active/2026-09-10-ralph-review-process-wait.md) | G-ralph-1 / G-review-2 已落地；`C-ralph-no-eager-refs-v1` + G-ralph-2（team-lead spawn）本轮 | 真人 cheap replay |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.md) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.md) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 
@@ -28,7 +28,7 @@
 | 计划 | 结果 |
 | --- | --- |
 | [工作流执行优化](completed/2026-09-09-workflow-execution-fastpath.md) | Ralph 精简上下文与审查快照、review 文件输入、portable end runner；全量 453/453、Loop/Family PASS，五宿主全局与项目安装核对完成 |
-| [Ralph 对话协议瘦身](completed/2026-09-07-ralph-skill-slim.md) | 22 项完成；77 行入口、静默推断、自动 CAP、交付折叠、9 模块合约拆分与五宿主安装。Ralph 76/76；全量 422/422 |
+| [Ralph 对话协议精简](completed/2026-09-07-ralph-skill-slim.md) | 22 项完成；77 行入口、静默推断、自动 CAP、交付折叠、9 模块合约拆分与五宿主安装。Ralph 76/76；全量 422/422 |
 | [Ralph 自动结案](completed/2026-09-04-ralph-auto-closeout.md) | 主路径 PR #30；后续补录设计文档（非修订 10）、`locate` next、`~/.agents` 分发与 retired 清理、`jj ralph remediate`。合约 56/56；全量 381/381 |
 | [Ralph 工作区 P2+ lite](completed/2026-09-03-ralph-plans-workspace-p2-lite.md) | P2+a `--lite` / `brief` / `close` 别名写五键、budget ≤ 3、FAIL/BLOCKED 或 scope 膨胀升 full 同目录；P2+b 启发式判档只建议（无 flag 仍 full，tiny ≠ lite）+ skill / 命令文档口语。schema 仍 1.2；收口批已升 gym pin（`lab:check` 回绿）并修复 lite 预算出口残留 BLOCKED |
 | [文档站 VitePress 迁移与文案改版](completed/2026-09-03-docs-site-vitepress.md) | VitePress 站点、侧栏自动索引、旧地址跳转、`docs:check` / Harness 对齐，以及 init / ralph / same / dispatch / review / end / team / evaluated 新手文档已完成；`npm run verify`、`npm run docs:build` 通过 |

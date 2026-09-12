@@ -33,7 +33,7 @@
 
 安装完成后，Agents 宿主侧的技能文件位于 `~/.agents/skills`；需要刷新旧副本时运行 `jj install-skill --platform agents --force`。
 
-已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要打开 skill 手册当开机清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
+已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要打开 skill 手册当作启动清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
 
 ## 第一次这样用
 
@@ -157,13 +157,13 @@ $jj-ralph task-login-reminder 继续
 
 验收通过后 **MUST finalize**：对话路径把任务目录移入 `completed/`，更新 `index.md`，双写 `run.json`。命令行维护仍可用 `jj ralph finalize`。只翻 archive 门或不收尾，任务会留在活跃层；机械 `status` 会提示 `next: finalize`，如果 `phase=ARCHIVE` 仍在活跃目录，就提示“未完成收尾”。
 
-默认验收后直接归档。你要求审查或门禁需要审查证据时，Agent 才跟进 `$jj-review`（派单 + findings，不跑 `review-record`）。提交代码仍需要你的授权。若已有工作区审查需要补提交后的审查，Agent 会再写一份 `review_scope=commit` 的 REV 文档并说明缺少的证据。
+默认验收后直接归档。你要求审查或门禁需要审查证据时，Agent 才跟进 `$jj-review`（派单 + findings，不执行 `review-record`）。提交代码仍需要你的授权。若已有工作区审查需要补提交后的审查，Agent 会再写一份 `review_scope=commit` 的 REV 文档并说明缺少的证据。
 
 对话里 Agent 读 `index.md` 活跃表，不执行 CLI。命令行维护仍可用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。要更新宿主旧副本，可用 `jj install-skill --platform agents --force`。
 
 「审查修复 / review-fix」不是新任务：对着原来那条功能任务改，不要另开 `task-*-review-fix`。说「投喂知识库」才写入 `~/.jj-flow/knowledge`（当前项目），须你点头。
 
-`index.md` 管活跃任务：超过 **5 条**还在运行，或任一条 **5 天没动**，会出现「归档提示」。同一会话（含 `review.task_thread_id` 与 CLI `--thread-id` / `host.thread_id`）或一条「审查修复」和另一条活着的任务并排，会出现「同需求提示」。都只提醒，不会自动归档、合并或废弃。能确定该收的会建议 `finalize`；PAUSED / BLOCKED / 进行到一半、分不清收还是弃 → **先问你**。
+`index.md` 管活跃任务：超过 **5 条**还在运行，或任一条 **5 天没动**，会出现「归档提示」。同一会话（含 `review.task_thread_id` 与 CLI `--thread-id` / `host.thread_id`）或一条「审查修复」和另一条运行中的任务并排，会出现「同需求提示」。都只提醒，不会自动归档、合并或废弃。能确定该收的会建议 `finalize`；PAUSED / BLOCKED / 进行到一半、分不清收还是弃 → **先问你**。
 
 ## 记录在哪
 
