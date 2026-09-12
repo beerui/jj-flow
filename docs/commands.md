@@ -30,7 +30,7 @@
 | [team-swarm](commands/jj-team-swarm.md) | 多假设、对抗评分、方案收敛 |
 | [evaluated](commands/jj-evaluated.md) | 用真实交付记录做离线复盘（实验性） |
 
-## 可以怎么说
+## 常用说法
 
 口语就够用：
 

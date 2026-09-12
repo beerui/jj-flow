@@ -22,7 +22,7 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 
 skill 正文在 npm 包顶层的 `skills/`；Claude 的薄斜杠命令在 `claude-commands/`。
 
-## 装好后怎么喊
+## 装好后如何调用
 
 | 你用的工具 | 写法 | 例子 |
 |------------|------|------|

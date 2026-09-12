@@ -52,7 +52,7 @@ Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、s
 
 ## 5. 做完之后的三条路
 
-| 你想 | 怎么说 | 去哪一页 |
+| 你想 | 示例说法 | 去哪一页 |
 |------|--------|----------|
 | 再改一点 / 加一点 | 「tip 应是 6px 不是 8px」「close 也跟着下移」——直接说，Agent 接着同一条任务改，不用编号 | [ralph](commands/jj-ralph.md) |
 | 提交并合进 dev | `$jj-end` 或「收工」——ralph 自己不动 Git | [end](commands/jj-end.md) |
@@ -68,7 +68,7 @@ Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、s
 $jj-same 交接到 项目B 项目C
 ```
 
-Agent 写下本轮交接任务、到每个目标仓调研，再带派单前缀派工人按目标仓自己的写法改。分支不对会停下来问你。→ [same](commands/jj-same.md)
+Agent 写下本轮交接任务、到每个目标仓调研，再带派单前缀派执行人按目标仓自己的写法改。分支不对会停下来问你。→ [same](commands/jj-same.md)
 
 **dispatch——多个项目一起派**（Codex / Grok / Qoder 有，Claude 没有）
 

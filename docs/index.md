@@ -29,9 +29,9 @@
 
 可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘。
 
-## 怎么喊
+## 对话入口
 
-在**业务项目**的对话里使用前缀：Codex 用 `$jj-ralph`，其他工具通常用 `/jj-ralph`；完整平台差异见[宿主说明](concepts-hosts.md)。不想记入口时，直接说 `$jj` / `/jj` 让它分流。
+在**业务项目**的对话里使用前缀：Codex 用 `$jj-ralph`，其他工具通常用 `/jj-ralph`；完整平台差异见[宿主说明](concepts-hosts.md)。不想记入口时，直接说 `$jj` / `/jj`，由它帮你选择入口。
 
 ## 它们怎么配合
 
@@ -48,7 +48,7 @@
 
 全部入口：[命令总览](commands.md)、名词：[术语](glossary.md)
 
-## 维护与深入（可后读）
+## 维护与进阶
 
 | 主题 | 链接 |
 |------|------|

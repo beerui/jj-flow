@@ -4,7 +4,7 @@
 
 **它不做什么：** 不开 ralph 需求任务，不迁移代码，也不派发多项目任务。分别去 [ralph](jj-ralph.md)、[same](jj-same.md)、[dispatch](jj-dispatch.md)。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex | `$jj-init …` |
 | Claude / Grok / Qoder | `/jj-init …` |

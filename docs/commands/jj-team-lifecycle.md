@@ -6,7 +6,7 @@
 
 **它不做什么：** 不替代 ralph 的单仓闭环，不替代 dispatch 的多项目控制，也不会凭聊天推进任何交付门禁。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex / Grok / Qoder | `$jj-team-lifecycle …` |
 | Claude | `/jj-team-lifecycle …` |

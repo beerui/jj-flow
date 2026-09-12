@@ -4,7 +4,7 @@
 
 **它不做什么：** 不创建 ralph 任务、不替你修问题，也不推进 dispatch 的多项目验收。要修问题回 [ralph](jj-ralph.md)，要做跨项目验收去 [dispatch](jj-dispatch.md)。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex | `$jj-review …` |
 | Claude / Grok / Qoder | `/jj-review …` |
@@ -38,7 +38,7 @@ $jj-review 审一下刚才的改动
 **Agent 会做：**
 
 1. 找到当前（或最近）的 ralph 任务（`index.md` 活跃唯一行）。主对话是 team-lead，不在主进程里做审查，也不启动时读 skill 手册，**也不执行** `review-record` / `context --review`。
-2. 写 `ASSIGNMENT-REVIEW`（本轮派单里的文件：来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），spawn 前先说 **派遣审查**（例如「派遣 reviewer 审查改动代码」），再 spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；Grok/Claude 用 md 人设，Codex 用 toml；审查工人钉 `high`，不用最高档）；**不**调用工具自带的 `/review`。审查还在跑时不要再派 `$jj-same`。同一轮对话里，这个 ralph 任务如果已经有过 `REV-*` / findings，再 `/jj-review` 只审相对上一份的改动（delta），`resume_from` 上一名 `jj-reviewer`，不要再新开一个全量审查子代理。
+2. 写 `ASSIGNMENT-REVIEW`（本轮派单里的文件：来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），spawn 前先说 **派遣审查**（例如「派遣 reviewer 审查改动代码」），再 spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；Grok/Claude 用 md 人设，Codex 用 toml；审查执行人固定为 `high`，不用最高档）；**不**调用工具自带的 `/review`。审查还在跑时不要再派 `$jj-same`。同一轮对话里，这个 ralph 任务如果已经有过 `REV-*` / findings，再 `/jj-review` 只审相对上一份的改动（delta），`resume_from` 上一名 `jj-reviewer`，不要再新开一个全量审查子代理。
 3. 人读结论是 `[OK]` / `[WARN]` / `[BLOCK]`；先把结论告诉你。门禁映射为 `PASS` / `NEEDS_CHANGES` / `BLOCKED`（`HIGH` 写成 `high`）。
 4. 绑定任务时把 `findings.md` 和 `REV-n.json` 当文档写进任务目录；不会直接改业务代码。本轮只有文案/样式会跳过审查。
 

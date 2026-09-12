@@ -4,7 +4,7 @@
 
 **它不做什么：** 不 commit、不 push、不合分支（收工用 [end](jj-end.md)）；不碰别的仓库（迁到别的仓用 [same](jj-same.md)）。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex | `$jj-ralph …` |
 | Claude / Grok / Qoder | `/jj-ralph …` |
@@ -47,8 +47,8 @@ $jj-ralph 先改项目A：登录成功后如果密码过期要弹提示，只做
 
 1. **对齐**——确认目标和“怎样算做完”（验收项），写入短合同。主对话是 team-lead，不在这里改业务代码
 2. **计划**——列出要改哪些文件、分几步（给派单用）
-3. **派单实施**——每轮写一份 `ASSIGNMENT-TASK`（读这些/交付必须是精确文件），spawn 前先说 **派遣前端开发实现任务**（「按审查改」则写 **派遣按审查改**），再 spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）去做；同一对话、同一仓库里上一轮实施工人已结束 → `resume_from` 那个 id，不要冷启动。换审查员或换仓库就新开。prompt 禁止 Start broad / 全库 grep。子代理先确认再开工，做完带证据回报主进程。这一轮结束后停，等下一轮，不连做 Task n+1
-4. **审查（大功能）**——验证通过后写改动摘要，spawn 前先说 **派遣 reviewer 审查改动代码**，再 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头）。审查还在跑时不要再派交接工人。本轮只有文案/样式、以及小改，跳过审查。审查结论写在 `findings.md`，不执行 `review-record`
+3. **派单实施**——每轮写一份 `ASSIGNMENT-TASK`（读这些/交付必须是精确文件），spawn 前先说 **派遣前端开发实现任务**（「按审查改」则写 **派遣按审查改**），再 spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）去做；同一对话、同一仓库里上一轮实施执行人已结束 → `resume_from` 那个 id，不要冷启动。换审查员或换仓库就新开。prompt 禁止 Start broad / 全仓 grep。子代理先确认再开工，做完带证据回报主进程。这一轮结束后停，等下一轮，不连做 Task n+1
+4. **审查（大功能）**——验证通过后写改动摘要，spawn 前先说 **派遣 reviewer 审查改动代码**，再 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头）。审查还在跑时不要再派交接执行人。本轮只有文案/样式、以及小改，跳过审查。审查结论写在 `findings.md`，不执行 `review-record`
 5. **你验收**——审查 `[OK]`/`[WARN]` 之后等你测过，再对照验收项收口
 6. **归档**——记录定稿，任务目录移入 `completed/`
 
@@ -107,7 +107,7 @@ $jj-ralph 刷新鉴权 token 失败要重登，审查过再归档
 
 **还是同一件事，就接着同一条任务改**——归档过也一样，你不需要记任务编号，Agent 会自己找到它；候选太多分不清时才会列几个标题让你选。
 
-| 你想 | 怎么说 | 会怎样 |
+| 你想 | 示例说法 | 会怎样 |
 |------|--------|--------|
 | 再改一点 | 「tip 应是 6px 不是 8px」「刚才那个再改一下」 | 找到同一任务接着改 |
 | 加一点 | 「close 按钮也跟着下移」 | 同一任务扩范围，重新验收 |

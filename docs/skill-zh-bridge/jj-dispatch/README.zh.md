@@ -9,7 +9,7 @@
 
 多项目调度：PREVIEW→批准→DISPATCH→tick/resume；控制面默认 `~/.jj-flow`。  
 平台：Codex / Qoder / Grok；**故意无** Claude `/jj-dispatch` slash。
-统筹只写home目录；每个 lead/target 业务仓还要完整 Ralph `task-<slug>`（Goal/验收/Steps），不能只用 `ANL-*`。同一 delivery / 同一会话线程在该仓已有活跃 Ralph 时复用（含 `host.thread_id`），禁止再 init 第二条。多轮对话不能推进 plane。DISPATCH 之后实施走 `$jj-same` 对话路径：本轮 ASSIGNMENT + 目标仓调研 + 入职 spawn；`distribution_prompt` 是统筹索引，不是工人说明书，也不是入职。
+统筹只写home目录；每个 lead/target 业务仓还要完整 Ralph `task-<slug>`（Goal/验收/Steps），不能只用 `ANL-*`。同一 delivery / 同一会话线程在该仓已有活跃 Ralph 时复用（含 `host.thread_id`），禁止再 init 第二条。多轮对话不能推进 plane。DISPATCH 之后实施走 `$jj-same` 对话路径：本轮 ASSIGNMENT + 目标仓调研 + 带人设提示词 spawn；`distribution_prompt` 是统筹索引，不是子代理操作说明，也不是人设提示词。
 
 ## 仓库规范（2026-08-03）
 

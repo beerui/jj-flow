@@ -32,7 +32,7 @@
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| Immediate actions | 立即动作 | 主对话是 team-lead：定位 run、写客服形状 `ASSIGNMENT-TASK`（精确文件 / 先确认再开工 / 等 Task n+1）并本轮 spawn `jj-implementer`（缺失则 `general-purpose`，`description` 以 `[implementer]` 开头）；同一 cwd 上一刀已结束则 `resume_from`（G-ralph-5）；换人格/换仓新开；spawn 前先说「派遣前端开发实现任务」「派遣reviewer审查改动代码」，不要干等；活审查未结束不要再派 same；禁止主对话改业务代码；入口不挂 ops/phases/layout/must；大功能审完等用户验收；记账写 `progress.md` + `run.json`，不跑 CLI；**MUST finalize** |
+| Immediate actions | 立即动作 | 主对话是 team-lead：定位 run、写客服形状 `ASSIGNMENT-TASK`（精确文件 / 先确认再开工 / 等 Task n+1）并本轮 spawn `jj-implementer`（缺失则 `general-purpose`，`description` 以 `[implementer]` 开头）；同一 cwd 上一轮已结束则 `resume_from`（G-ralph-5）；换人格/换仓新开；spawn 前先说「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」，不要静默等待；运行中的审查未结束不要再派 same；禁止主对话改业务代码；入口不挂 ops/phases/layout/must；大功能审完等用户验收；记账写 `progress.md` + `run.json`，不执行 CLI；**MUST finalize** |
 | Handoff | 交接 | 真相源 `run.handoff` |
 | Conversational documents | 对话产物 | `task_plan.md` / `progress.md` / `findings.md` / `assignments/` / `index.md` / `.state/run.json`；不跑 CLI |
 | Scripts | 脚本 | 机械 CLI 用户才跑 `ralph_ops.mjs`；对话路径不跑 |

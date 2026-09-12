@@ -6,7 +6,7 @@
 
 **它不做什么：** 不替代单仓闭环、同源迁移或多项目调度，也不会凭聊天内容推进 ralph / dispatch 的门禁。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex / Grok / Qoder | `$jj-team-coordinate …` |
 | Claude | `/jj-team-coordinate …` |

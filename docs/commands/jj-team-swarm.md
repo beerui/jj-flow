@@ -6,7 +6,7 @@
 
 **它不做什么：** 不直接替你完成单仓交付，不替代动态多角色实现，也不会推进 ralph / dispatch 的检查点。
 
-| 你用的工具 | 怎么喊 |
+| 你用的工具 | 写法 |
 |------------|--------|
 | Codex / Grok / Qoder | `$jj-team-swarm …` |
 | Claude | `/jj-team-swarm …` |
