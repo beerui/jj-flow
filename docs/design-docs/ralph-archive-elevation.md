@@ -13,7 +13,7 @@
 | 档 | 名称 | 默认 | 含义 |
 | --- | --- | --- | --- |
 | **L1** | 本仓能力提升 | **必做**（finalize 内） | 写入 `business-map.json`，供本仓 `map-find` |
-| **L2** | 全局候选投喂 | **写包必做；钩子可选** | 写 `knowledge-contribution.json`，可选 extract → KB **candidate** |
+| **L2** | 全局候选写入 | **写包必做；钩子可选** | 写 `knowledge-contribution.json`，可选 extract → KB **candidate** |
 | **L3** | 全局 active 晋升 | **不做** | 仅 Portfolio 人审 / `promote` |
 
 ```text
@@ -127,7 +127,7 @@ map-find(query)
 | 时机 | 行为 |
 | --- | --- |
 | finalize 成功后 | **必写** `knowledge-contribution.json`（从 **同一套 elevation 分类结果** 生成） |
-| 用户「投喂知识库」 | `knowledge-contribute --hook` |
+| 用户「写入知识库」 | `knowledge-contribute --hook` |
 | hook=cli/http | 外置 extract → **candidate only** |
 
 ### 4.2 L1 → L2 字段映射
@@ -141,7 +141,7 @@ map-find(query)
 | run_refs + git head | provenance |
 | existing knowledge_refs on run | relations / 避免重复 |
 
-L2 **不得**比 L1 更脏：L1 已过滤的 process 默认不投喂全局。
+L2 **不得**比 L1 更脏：L1 已过滤的 process 默认不写入全局。
 
 ### 4.3 失败策略
 
@@ -159,7 +159,7 @@ L2 **不得**比 L1 更脏：L1 已过滤的 process 默认不投喂全局。
 KB: human-review / promote / auto-promote(policy)
 ```
 
-jj-flow 最多在报告里提示：「候选已投喂，请在知识库审核晋升」。
+jj-flow 最多在报告里提示：「候选已写入，请在知识库审核晋升」。
 
 ## 6. 端到端流程（推荐默认）
 
@@ -172,7 +172,7 @@ accept PASS
   → report:
        本仓能力已更新 CAP-…
        全局：已写贡献包 | 钩子 ok/skip/fail
-       口语下一步：需要进全局库就说「投喂知识库」
+       口语下一步：需要进全局库就说「写入知识库」
 ```
 
 ### 6.1 skill 决策树
@@ -180,7 +180,7 @@ accept PASS
 ```text
 用户：做完了 / 归档 / 收尾
   → finalize（含 L1+L2 包）
-用户：投喂知识库 / 补充全局知识
+用户：写入知识库 / 补充全局知识
   → knowledge-contribute --hook（若包已存在可只 hook）
 用户：不要进地图
   → 显式 finalize --no-map（可选，非默认；或 tiny 策略）
@@ -242,7 +242,7 @@ export function finalizeRun(...) {
 | --- | --- |
 | auto lessons 直接进 `lessons` | 默认进 process 桶 |
 | finalize = map + archive | + 贡献包；报告分「本仓提升 / 全局候选」 |
-| 无全局投喂 | L2 包 + 可选钩子 |
+| 无全局写入 | L2 包 + 可选钩子 |
 | 用户不知是否被索引 | 完成报告固定写 CAP id |
 
 兼容：`include_process_lessons_in_map: true` 恢复旧 map 行为。
@@ -254,7 +254,7 @@ export function finalizeRun(...) {
 3. 默认 process 不进主 `lessons`（或可测开关）。  
 4. 存在 `knowledge-contribution.json`；hook 失败 archive 仍成功。  
 5. ABANDONED 无 map、无贡献包。  
-6. 用户文档：口语「做完归档」= 本仓提升；「投喂知识库」= L2。
+6. 用户文档：口语「做完归档」= 本仓提升；「写入知识库」= L2。
 
 ## 11. 分波
 
@@ -263,7 +263,7 @@ export function finalizeRun(...) {
 | **E0** | 文档 + 报告话术；明确 L1 即今日 finalize（行为说明） |
 | **E1** | lessons 分桶 + finalize 报告 CAP；合约测试 |
 | **E2** | contribution 包（= knowledge-contribute Wave 0） |
-| **E3** | hook + skill「投喂」 |
+| **E3** | hook + skill「写入」 |
 
 ## 12. 一句话
 

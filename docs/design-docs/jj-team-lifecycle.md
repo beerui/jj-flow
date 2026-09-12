@@ -103,7 +103,7 @@ jj-flow 主路径保持 same / ralph / dispatch。可选会话引擎：
 | 能力 | Claude Code | Codex / Grok / Qoder |
 | --- | --- | --- |
 | Skill install | ✅ | ✅ |
-| Slash `/jj-team-lifecycle` | ✅ 薄入口 | `$jj-team-lifecycle` |
+| Slash `/jj-team-lifecycle` | ✅ 斜杠命令入口 | `$jj-team-lifecycle` |
 | team-worker / supervisor | 优先 | 常 **fallback** general-purpose |
 | TeamCreate / Task* / SendMessage | ✅ | 部分 → `tasks.json` + `.msg/` |
 | 并行 | ✅ | 允许串行；嵌套 notice 可更长用时 |
@@ -155,7 +155,7 @@ jj-flow 主路径保持 same / ralph / dispatch。可选会话引擎：
 
 - [x] `skills/jj-team-lifecycle/SKILL.md` 含 jj-flow 边界与 identity 分离
 - [x] `skill-inventory.json` 含 `jj-team-lifecycle`
-- [x] `claude-commands/jj-team-lifecycle.md` 薄入口
+- [x] `claude-commands/jj-team-lifecycle.md` 斜杠命令入口
 - [x] design 入索引 / build-docs
 - [x] `jj` 路由与 ralph integrations 指针
 - [ ] 真机 Claude / Codex 跑通一条 `spec-only`（人工）

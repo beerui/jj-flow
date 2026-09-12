@@ -77,7 +77,7 @@ P0 前提（已合入 `main`）：`eb4e34c` 热层闭环、`0fb5e6f` 审查修�
 - [x] `skills/jj-ralph/references/phases.md` 文案
 - [x] `jj-ralph-contract` 归档用例：活跃目录仍可 resume；历史快照只读
 
-## 下一刀
+## 下一轮
 
 P1 关闭。P2 执行计划：[Ralph 工作区 P2](../completed/2026-09-02-ralph-plans-workspace-p2.md)。
 

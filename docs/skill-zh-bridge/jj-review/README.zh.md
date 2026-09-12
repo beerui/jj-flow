@@ -47,7 +47,7 @@
 | 编辑源 | 顶层 `skills/jj-review/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-review`、`~/.grok/skills/jj-review` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 
 ## 英文化状态
 

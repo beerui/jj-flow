@@ -44,7 +44,7 @@ npm run harness:gc
 
 ## Skill SSOT
 
-只编辑 `skills/`。Claude 仅 `.claude/commands/` 薄入口。  
+只编辑 `skills/`。Claude 斜杠命令仅同步到 `.claude/commands/`。  
 命令行全集见 [CLI 参考](commands/cli.md)（维护/调试用，不写进用户教程）。
 
 ## 发布

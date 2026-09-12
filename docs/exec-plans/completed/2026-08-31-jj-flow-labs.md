@@ -88,7 +88,7 @@
 - [x] dispatch `lab-harness` host_id（Mode S session；**不是** Wave 2 / real-host）
 - [x] CI `windows-latest` 独立 job：`prepare-lab-roots` + `npm run lab:check`
 
-## 下一刀
+## 下一轮
 
 无。Live Agent 仍为手册 / evaluated，不阻塞关闭。
 

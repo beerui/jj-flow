@@ -78,7 +78,7 @@
 npx @brewer/jj-flow@latest install-skill --platform all
 ```
 
-现在会补上缺失项，不覆盖已有文件。要刷新旧副本再加 `--force`。然后**新开一轮对话**，输入 `/jj`。
+再次安装会补上缺失项，默认不覆盖已有文件；覆盖安装请加 `--force`。然后**新开一轮对话**，输入 `/jj`。
 
 ---
 

@@ -29,6 +29,6 @@ allowed-tools:
 6. 多项目调度 → `$jj-dispatch`（Codex/Qoder/Grok；Claude **无** slash = intentional）
 7. 离线评估（experimental）→ `$jj-evaluated`（无 Claude `/jj-evaluated`）
 
-Skill 权威正文只在 `skills/`（多端 SSOT）；本目录仅 Claude 薄入口。改 skill 后需 `jj install-skill --platform all --force`。
+Skill 权威正文只在 `skills/`（多端 SSOT）；本目录仅 Claude 斜杠命令入口。改 skill 后需 `jj install-skill --platform all --force`。
 
 保留原始动机和证据；`npx`/`jj` 只用于安装资产。对话路径不跑 `jj ralph` / `ralph_ops.mjs`。

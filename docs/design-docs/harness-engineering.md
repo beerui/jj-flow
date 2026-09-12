@@ -96,7 +96,7 @@ Harness Control Plane **不**接管 same / ralph / dispatch 的业务职责。�
 
 - 控制状态默认 `control_root`（`~/.jj-flow`），业务仓发起调度  
 - Portfolio KB 外置；ralph 硬接线 `knowledge_refs`  
-- Skill SSOT：`skills/`（多端 install）；Claude 仅 `.claude/commands/` 薄入口  
+- Skill SSOT：`skills/`（多端 install）；Claude 仅 `.claude/commands/` 斜杠命令入口  
 
 ## 5. Repository Truth Plane
 

@@ -18,7 +18,7 @@
 | 编辑源 | 顶层 `skills/jj-ralph/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-ralph`、`~/.grok/skills/jj-ralph` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 
 ## 英文化状态
 
@@ -37,7 +37,7 @@
 | Conversational documents | 对话产物 | `task_plan.md` / `progress.md` / `findings.md` / `assignments/` / `index.md` / `.state/run.json`；不跑 CLI |
 | Scripts | 脚本 | 机械 CLI 用户才跑 `ralph_ops.mjs`；对话路径不跑 |
 | Rollback & continue (summary) | 回退与续作（摘要） | 含 archive 后再做、abandon |
-| Knowledge contribute (L2) | 投喂知识库（L2） | candidate only；fail-open |
+| Knowledge contribute (L2) | 写入知识库（L2） | candidate only；fail-open |
 | Hard constraints | 硬约束 | 控制项目禁业务 ralph 等 |
 | Completion report | 完成报告 | 字段清单 |
 | Examples (user speech; agent resolves the run) | 示例（用户口语；agent 解析 run） | 示例可保留中文口语 |
@@ -60,7 +60,7 @@
 | `post-complete-continue.md` | Continue after complete (agent) | 续作（agent） |
 | `post-complete-continue.md` | Principles / Detection / Fix mistakes | 原则 / 探测 / 改错 |
 | `post-complete-continue.md` | Add requirements / Abandon / Anti-patterns | 加需求 / 废弃 / 负例 |
-| `post-complete-continue.md` | Knowledge contribute | 投喂知识库 |
+| `post-complete-continue.md` | Knowledge contribute | 写入知识库 |
 | `tiny-example.md` | （已删） | 入口不再挂单点样例；形状见 `artifact-layout.md`，不进 SKILL 开机清单 |
 | `artifact-layout.md` | Ralph artifact layout | Ralph 产物布局 |
 | `artifact-layout.md` | Current contract vs history | 当前合约 vs 历史（live Goal / 验收 / Steps；历史按日写 progress.md） |

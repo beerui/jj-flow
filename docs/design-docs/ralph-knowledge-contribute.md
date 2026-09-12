@@ -4,11 +4,11 @@
 >
 > 关联：`portfolio-knowledge.md`、`jj-ralph.md`、`ralph-archive-elevation.md`（提升总览）、ADR 0001 外部工具边界  
 > 问题：归档只写本仓 `business-map` + 快照，**不会**更新全局 Portfolio KB；用户希望归档时能**方便**补充全局知识库。  
-> 定位：本文 = **L2 全局候选投喂**；L1 本仓 map 见 `ralph-archive-elevation.md`。
+> 定位：本文 = **L2 全局候选写入**；L1 本仓 map 见 `ralph-archive-elevation.md`。
 
 ## 1. 目标
 
-1. **归档后一条路径**即可把本轮交付的「可复用知识」投喂到全局 KB 管道。  
+1. **归档后一条路径**即可把本轮交付的「可复用知识」写入到全局 KB 管道。  
 2. 保持 **聊天非权威、candidate 默认、人审晋升**（不静默污染 active）。  
 3. **jj-flow 不内嵌全量 KB 引擎**；Portfolio 仍外置（jj-portfolio / `knowledge_root`）。  
 4. 无 KB、不可达、用户关闭时 **不挡归档**（fail-open 对 archive 主路径）。
@@ -61,14 +61,14 @@ finalizeRun / archiveRun（成功后）
 
 - KB 有 schema、去重、审核状态机；jj-flow 直写易绕过。  
 - extract 侧已有 map/wiki 抽取器，**统一入口 = extract** 更可演进。  
-- 贡献包可离线、可 CI、可 agent 二次编辑后再投喂。
+- 贡献包可离线、可 CI、可 agent 二次编辑后再写入。
 
 ### 4.3 与 business-map 的关系
 
 | 产物 | 范围 | 时机 |
 | --- | --- | --- |
 | business-map | **本仓** CAP | map-merge |
-| knowledge-contribution | **拟投喂全局** 的结构化摘要 | archive 后 |
+| knowledge-contribution | **拟写入全局** 的结构化摘要 | archive 后 |
 | KB active entry | **全局** 可检索 | extract + promote **之后** |
 
 map-merge 的 CAP 可作为贡献包输入（title/modules/lessons 过滤后），但 **不等价于** 已入 KB。
@@ -180,7 +180,7 @@ jj ralph finalize …                 # 默认：map-merge + archive + 写 contr
 jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 ```
 
-- `knowledge-contribute`：对已归档/已 finalize 的 run **重放**生成包 + 可选钩子（补投喂）。  
+- `knowledge-contribute`：对已归档/已 finalize 的 run **重放**生成包 + 可选钩子（补充写入）。  
 - finalize 内：`contribute: true|false`（默认 true 写包；钩子仍受 config）。
 
 ### 6.3 Skill 用户路径（方便）
@@ -191,10 +191,10 @@ jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 知识贡献：
 - 已写 knowledge-contribution.json（N 条 candidate 建议）
 - 钩子：skipped|ok|failed（原因）
-- 下一步（人话）：审核知识库候选 / 或说「投喂知识库」
+- 下一步（人话）：审核知识库候选 / 或说「写入知识库」
 ```
 
-用户说「投喂知识库 / 补充全局知识」→ agent：
+用户说「写入知识库 / 补充全局知识」→ agent：
 
 1. 读 contribution  
 2. 可让用户删掉不合适 candidate  
@@ -209,7 +209,7 @@ jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 | ABANDONED | **不**生成贡献（与 map-merge 一致） |
 | 无 knowledge_root | 仍写本地 package；hook 跳过 |
 | 密钥/路径 | 不把 secrets、绝对本机隐私路径写入 body |
-| 幂等 | `source_id = ralph:{run_id}:{content_hash}`，重复投喂 upsert 不炸 |
+| 幂等 | `source_id = ralph:{run_id}:{content_hash}`，重复写入 upsert 不炸 |
 | 审计 | progress 一行：`knowledge-contribute written|hook=…` |
 
 ## 8. 分波交付
@@ -222,7 +222,7 @@ jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 
 **验收：** 归档后本地有 package；无 KB 也成功。
 
-### Wave 1 — CLI 重放 + skill「投喂」
+### Wave 1 — CLI 重放 + skill「写入」
 
 - `jj ralph knowledge-contribute`  
 - skill 话术绑定  
@@ -236,7 +236,7 @@ jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 
 ### Wave 3 — 体验增强（可选）
 
-- finalize 后 AskUser「是否投喂」  
+- finalize 后 AskUser「是否写入」  
 - durable 分类 UI / 过滤 STAGNATION 开关  
 - 与 re-archive：仅 delta 贡献或全量幂等  
 
@@ -278,11 +278,11 @@ export function knowledgeContribute(runId, { cwd, hook = false } = {}) { /* writ
 | --- | --- |
 | 写回 portfolio 还是 extract 钩子？ | **先贡献包，再可选 extract 钩子**；不直写 active |
 | 归档是否必须联网/有 KB？ | **否** |
-| 用户如何「方便」？ | 归档自动落包 + 一句「投喂知识库」/ CLI 一键 hook |
+| 用户如何「方便」？ | 归档自动落包 + 一句「写入知识库」/ CLI 一键 hook |
 | 本仓 map 还要吗？ | **要**；全局 KB 是另一条晋升管道 |
 
 ## 13. 下一步（实现前）
 
 1. 与 jj-portfolio 确认 `extract --source` 是否消费 JSON package（或需 adapter）。  
 2. 落地 Wave 0（jj-flow 单仓可合并）。  
-3. 用户文档补「归档后如何进全局知识库」三步：归档 →（可选）投喂 → 审核晋升。
+3. 用户文档补「归档后如何进全局知识库」三步：归档 →（可选）写入 → 审核晋升。

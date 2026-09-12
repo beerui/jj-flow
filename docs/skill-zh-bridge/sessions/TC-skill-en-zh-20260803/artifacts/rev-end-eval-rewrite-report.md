@@ -93,7 +93,7 @@ Chinese agent-trigger phrases for closeout (`收工`, `结束任务`, …) live 
 | 归档 | ARCHIVE / archive (boundary only) |
 | 控制平面 | control plane |
 | 派发 | dispatch |
-| 薄入口 | thin entry (bridge packs) |
+| 斜杠命令入口 | thin entry (bridge packs) |
 | 权威源 | SSOT / authoritative source |
 | 承载 | carry target / 承载 (evidence map dual form) |
 

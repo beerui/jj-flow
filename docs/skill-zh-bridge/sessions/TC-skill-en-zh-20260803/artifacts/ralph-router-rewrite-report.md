@@ -67,7 +67,7 @@ Only **user-utterance recognition examples** remain Chinese (plus bilingual glos
 
 | File | Why kept |
 | --- | --- |
-| `skills/jj-ralph/SKILL.md` | Examples: tip/login/handoff/abandon speech; trigger phrases 「投喂知识库」「交接到 …」 |
+| `skills/jj-ralph/SKILL.md` | Examples: tip/login/handoff/abandon speech; trigger phrases 「写入知识库」「交接到 …」 |
 | `skills/jj-ralph/references/post-complete-continue.md` | Continue/abandon speech signals + knowledge-feed phrases |
 | `skills/jj-ralph/references/integrations.md` | Handoff speech 「交接到 项目B …」 |
 
@@ -91,7 +91,7 @@ Applied from `artifacts/glossary.json` where relevant:
 | 控制平面 | control plane |
 | 派发 | dispatch |
 | 收工 | closeout (jj-end) |
-| 薄入口 | thin entry |
+| 斜杠命令入口 | thin entry |
 | 权威源 | SSOT |
 
 ## Notes / non-goals

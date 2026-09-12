@@ -24,7 +24,7 @@
 
 | 问题 | 结论 | 章节 |
 | --- | --- | --- |
-| 对话协议为什么大 | `$jj-ralph` 把手册、命令目录、27 行黑名单、知识投喂、handoff 字段全塞进 `SKILL.md`（复核 260 行 / 25KB）。运行时 `src/ralph/` 与 dispatch 同量级，**不是**要重写的对象 | §3 |
+| 对话协议为什么大 | `$jj-ralph` 把手册、命令目录、27 行黑名单、知识写入、handoff 字段全塞进 `SKILL.md`（复核 260 行 / 25KB）。运行时 `src/ralph/` 与 dispatch 同量级，**不是**要重写的对象 | §3 |
 | SKILL 目标体积 | 硬顶 120 行，目标 **≤100 行**。SKILL = **一条** playbook：路由器 + 红检查点 + 指针。**不**按强度档分支 | §6.1 |
 | intensity 还是不是产品档 | **对话面：否，连提都不提。** `$jj-ralph` / SKILL **一条路径**：不菜单、不教、不推断、不读 `run.intensity`、不传 `--intensity`、不把 `tiny`/`strict` 当 trigger、没有 `CHECKPOINT (strict)`。引擎档 `tiny \| standard \| strict` 仍在 ledger；PR2 `initRun` **静默**推断写入。Agent 跟 `status next` / gate 错误，不因「这是 strict」改步骤。`next` **不**读 `run.intensity`。默认 closeout **不是**每次 `review-record` | §4 / §6.3 / Cut 1 |
 | 与 P2+b `suggestGateSet` 的差别 | `gate_set` 启发式只建议（`applied=false`，ledger 永 default `full`）。intensity 推断 **必须落地** `run.json`：`buildBudgetForIntensity` / `createEmptyAcceptLayers` / tiny 跳过空 `## 存疑` 都读它 | §6.3 |
@@ -119,7 +119,7 @@
 | `map-find` | **不教、不调。** 禁止 Read `business-map.json`。空 CAP 合法，继续 | PR-flow：`initRun`/`resumeRun` 调 `mapFind`（`map.mjs` L217）。机械 `jj ralph map-find` / ops.md 仍在 |
 | 默认审查 / 提交 / `$jj-end` | **不做**（黑名单 #4）。只在用户开口或 `next=review` / `commit-scoped-review` | `$jj-end` 仍是 Git-only。无 PASS review ⇒ ARCHIVE 不要求 commit-scoped SHA（`evaluateAcceptArchiveGate` **L940–L943**：仅当 latest 是 PASS 才要求 `review_scope=commit` + SHA） |
 | `gate deliver PASS` | **PR1：** SKILL 仍教 `gate analyze` → `gate plan` → `gate deliver`（**不**声称折叠；**不**说忽略 `next=gate analyze`）。先不写代码：写 Goal+存疑后 **STOP**。**PR-flow 之后：** 对话 `ralph_ops gate deliver PASS` 折叠 analyze+plan（产物齐）；SKILL 才改成不把 `next=gate analyze` 当 happy path | `jj ralph gate --gate analyze\|plan\|deliver` **原子**（`setGate` 一次一键）。折叠**只**在 `ralph_ops`。脚本缺失回落到 `jj ralph gate --gate deliver` = **degraded unfold**（analyze/plan 保持 PENDING；该路径禁止 finalize） |
-| `knowledge-confirm` / `knowledge-prune` / `knowledge-contribute` | 不教；不把投喂拉进对话主链 | CLI / `ops.md` 仍可调用 |
+| `knowledge-confirm` / `knowledge-prune` / `knowledge-contribute` | 不教；不把写入拉进对话主链 | CLI / `ops.md` 仍可调用 |
 | `migrate` / `adopt` / `host-record` / `metrics` / `dispatch-snapshot` | 不教 | 机械 ops |
 
 引擎启发式仍用「文案两字 / 单像素 / 鉴权 / 协议 / 审查过再归档」作 **initRun 输入**（PR2，对话看不见）。档名 `tiny` / `strict` / `standard` / `single-point` 既不是推断信号也不是 skill 分支（D13）。SKILL **不问**「要用 tiny 还是 strict？」，也**不写**那句禁令——不提即不区分。
@@ -128,7 +128,7 @@
 
 ```text
 对话入口     skills/jj-ralph/SKILL.md          260 行手册
-             claude-commands/jj-ralph.md       薄入口，仍写「只有 intensity」
+             claude-commands/jj-ralph.md       斜杠命令入口，仍写「只有 intensity」
              docs/commands/jj-ralph.md         用户「强度档」菜单
 机械包装     skills/jj-ralph/scripts/ralph_ops.mjs
 CLI          src/cli.mjs runRalphCommand        ~28 子命令；文本 init 打 gate_set?
@@ -237,7 +237,7 @@ frontmatter / Role / Entry / Checkpoints 红标题 / 白名单 10 / Pointers 与
 | --- | --- | --- |
 | 完整 `ralph_ops` 命令目录（现 L139–164） | **新建** `skills/jj-ralph/references/ops.md` | 10 条白名单 + 「目录见 ops.md」 |
 | Failure modes 表（现 L104–127） | `phases.md`（User intervention / Closeout 旁） | 一句「失败表见 phases.md」 |
-| Knowledge contribute + Hot memory（现 L183–204） | `integrations.md`（或短 `references/knowledge.md`，优先并入已有 integrations，避免再增一本手册） | 一行：归档热层已晋升；投喂全局 KB 非对话主链 → `$jj-init` / integrations |
+| Knowledge contribute + Hot memory（现 L183–204） | `integrations.md`（或短 `references/knowledge.md`，优先并入已有 integrations，避免再增一本手册） | 一行：归档热层已晋升；写入全局 KB 非对话主链 → `$jj-init` / integrations |
 | 27 行反例黑名单（现 L206–236） | **删除表**。PR2 前 Entry/Checkpoints 各留不重复的一行路由，避免现场课还没下沉到 CLI 就丢 | 见 §6.4 过渡 |
 | Handoff 字段 dump（现 L130–137） | `integrations.md`（已有 jj-same 节） | 一行：交接到 → `$jj-same` |
 | MasterGo / Tool use 长段 | MasterGo → `integrations.md`；速度约定压成 ≤4 行留在 SKILL 或并入 phases Lean execution | SKILL 可留「批量读、offset/limit、禁止重读已注入、禁止 Read business-map」 |
@@ -403,9 +403,9 @@ Happy path **教哪些 gate 键**随窗口变：PR1 教 `analyze` → `plan` →
 本工作 **不**开始、**不**修订：
 
 - `docs/design-docs/ralph-workspace-layout.md`（Proposed：`tasks/`≡active 等）
-- 把 `ralph-knowledge-contribute.md` 的投喂流程拉进 `$jj-ralph` Immediate actions / Idle offer
+- 把 `ralph-knowledge-contribute.md` 的写入流程拉进 `$jj-ralph` Immediate actions / Idle offer
 
-SKILL 瘦身时 Idle offer 整段移出对话主链；integrations 可保留「用户主动说投喂知识库时走机械命令」的一行。不把 confirm/prune 教回 Agent。
+SKILL 瘦身时 Idle offer 整段移出对话主链；integrations 可保留「用户主动说写入知识库时走机械命令」的一行。不把 confirm/prune 教回 Agent。
 
 ### 6.6 架构与 init 时序
 
@@ -813,7 +813,7 @@ Agent 会跳过 phases，丢掉五阶段推进与 `next=`。目标 ≤100 已含
 - 不可逆操作（push / merge / release / 删数据）仍是红检查点；对话路径只 `commit-prep` / 报告。
 - **推断不得在鉴权/协议工作上跳过 strict judgment。** tiny∧strict → strict；architecture_terms 已覆盖鉴权/协议/权限/oauth/jwt。
 - `--force` 仍禁止出现在对话白名单。
-- 不把全局 KB 自动写成 active；投喂保持 opt-in 机械命令（本轮对话路径甚至不教）。
+- 不把全局 KB 自动写成 active；写入保持 opt-in 机械命令（本轮对话路径甚至不教）。
 
 威胁：Agent 把「改登录文案」误标 tiny，而改动实际碰到鉴权分支。缓解：goal/title 命中架构词即 strict（tiny∧strict → strict）。1 个具体文件的大功能无 small_wording → `standard`，不会只因 `--in file` 就 tiny。
 

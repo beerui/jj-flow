@@ -28,10 +28,10 @@
 ## 开始前
 
 1. 在 **业务仓库的根目录** 打开对话（不是调度用的控制仓）
-2. 切到这个需求该用的分支——ralph 在你当前所在的分支上改，不会替你切
+2. 切换到该需求的功能分支；ralph 在当前分支上工作，**不会自动切换分支**
 3. 已经[安装](../installation.md)了 skill
 
-安装完成后，Agents 宿主侧的技能文件位于 `~/.agents/skills`；需要刷新旧副本时运行 `jj install-skill --platform agents --force`。
+安装完成后，Agents 宿主侧技能位于 `~/.agents/skills`；覆盖已有安装请运行 `jj install-skill --platform agents --force`。
 
 已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要打开 skill 手册当作启动清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
 
@@ -63,7 +63,7 @@ $jj-ralph 先改项目A：登录成功后如果密码过期要弹提示，只做
 | `findings.md` | 改动摘要、实际踩过的坑、可复用的结论 |
 | `assignments/` | 每轮派单：`ASSIGNMENT-TASK` / `ASSIGNMENT-REVIEW` / `ASSIGNMENT-FIX` |
 
-**怎样算做完：** 大功能过审且你验收通过后归档——目录已在 `.workflow/ralph/completed/` 下，Agent 给你一段短报告（任务名、验收结果、可复用结论）。归档时可复用结论会记到你本机 `~/.jj-flow/memory/`，下次同一项目开任务会自动带上。投喂全局知识库只在你主动提出时进行。
+**怎样算做完：** 大功能过审且你验收通过后归档——目录已在 `.workflow/ralph/completed/` 下，Agent 给你一段短报告（任务名、验收结果、可复用结论）。归档时可复用结论会记到你本机 `~/.jj-flow/memory/`，下次同一项目开任务会自动带上。写入全局知识库仅在你主动提出并经确认后进行。
 
 > 聊天里说“做完了”不算数。算数的是任务目录里的记录和 `git diff`。
 
@@ -84,7 +84,7 @@ $jj-ralph 先改项目A：登录后密码过期要提示
 $jj-ralph [截图] 这里要改一下：放到列表对应列的下面，标题去掉
 ```
 
-**先分析，不动代码**——Agent 只写目标和存疑点，等你点头：
+**先分析，不动代码**——Agent 只写目标和存疑点，待你确认后再实施：
 
 ```text
 $jj-ralph 先不写代码，先分析怎么做
@@ -159,9 +159,9 @@ $jj-ralph task-login-reminder 继续
 
 默认验收后直接归档。你要求审查或门禁需要审查证据时，Agent 才跟进 `$jj-review`（派单 + findings，不执行 `review-record`）。提交代码仍需要你的授权。若已有工作区审查需要补提交后的审查，Agent 会再写一份 `review_scope=commit` 的 REV 文档并说明缺少的证据。
 
-对话里 Agent 读 `index.md` 活跃表，不执行 CLI。命令行维护仍可用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。要更新宿主旧副本，可用 `jj install-skill --platform agents --force`。
+对话里 Agent 读 `index.md` 活跃表，不执行 CLI。命令行维护仍可用 `jj ralph locate`；存量任务先用 `jj ralph remediate` 看名单，确认后再加 `--yes`（只处理 finalize 和 migrate，不自动改动 resume 窗口）。覆盖 Agents 侧安装可用 `jj install-skill --platform agents --force`。
 
-「审查修复 / review-fix」不是新任务：对着原来那条功能任务改，不要另开 `task-*-review-fix`。说「投喂知识库」才写入 `~/.jj-flow/knowledge`（当前项目），须你点头。
+「审查修复 / review-fix」不是新任务：在原功能任务上继续，不要另开 `task-*-review-fix`。说「写入知识库」时，经你确认后写入 `~/.jj-flow/knowledge`（当前项目）。
 
 `index.md` 管活跃任务：超过 **5 条**还在运行，或任一条 **5 天没动**，会出现「归档提示」。同一会话（含 `review.task_thread_id` 与 CLI `--thread-id` / `host.thread_id`）或一条「审查修复」和另一条运行中的任务并排，会出现「同需求提示」。都只提醒，不会自动归档、合并或废弃。能确定该收的会建议 `finalize`；PAUSED / BLOCKED / 进行到一半、分不清收还是弃 → **先问你**。
 
@@ -188,7 +188,7 @@ $jj-ralph task-login-reminder 继续
   tasks/                    # 旧版嵌套布局，迁移后提升到根目录
 ```
 
-日常只需要打开 `task_plan.md` 和 `progress.md`；`.state/` 下是机器状态，不用看。控制项目里是 dispatch 的 `DEL-…`，不要用 ralph 顶替业务实现。
+日常阅读 `task_plan.md` 与 `progress.md` 即可；`.state/` 为机器状态，一般无需查看。控制项目中的 `DEL-…` 属于 dispatch，不要用 ralph 顶替业务实现。
 
 ## 相关
 

@@ -2,7 +2,7 @@
 
 **它帮你做什么：** 对当前改动做一次只读审查，按客服派单写 `ASSIGNMENT-REVIEW` 并 spawn 审查员，**不**调用工具自带的 `/review`。有 ralph 任务就把 `findings.md` 和 `REV-*.json` 双写；没有任务也审当前工作区 / HEAD，不另建任务。它只记录问题，不改业务代码。
 
-**它不做什么：** 不创建 ralph 任务、不替你修问题，也不推进 dispatch 的多项目验收。要修问题回 [ralph](jj-ralph.md)，要做跨项目验收去 [dispatch](jj-dispatch.md)。
+**它不做什么：** 不创建 ralph 任务、**不负责**修复问题，也不推进 dispatch 的多项目验收。修复问题回 [ralph](jj-ralph.md)，跨项目验收去 [dispatch](jj-dispatch.md)。
 
 | 你用的工具 | 写法 |
 |------------|--------|

@@ -35,7 +35,7 @@ jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-
 ```
 
 - 默认不按名称前缀扫描未知文件；只动 ownership 登记资产
-- 再执行 `install-skill` 会补上缺失 skill（如 `jj-init`），不覆盖已有文件；刷新旧副本才加 `--force`
+- 再次执行 `install-skill` 会补上缺失 skill（如 `jj-init`），默认不覆盖已有文件；覆盖安装请加 `--force`
 - 本地改过或历史未登记：默认拒绝，审查后 `--force`
 - 用户装入口仍可在 [安装](../installation.md) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI
 - `install-skill` 会在 `~/.jj-flow` 生成空 `naming.json` / `map.md` / `knowledge/`（已有文件不覆盖）
@@ -191,7 +191,7 @@ jj harness-gc [--json]
 | scenario | 固定 fixture、纯状态、不创建真 task、不执行 host action |
 | trace replay | 只重放纯状态转换 |
 | host-trial | 系统临时目录半真实 Git/worktree；**不能**关闭真 Host 里程碑 |
-| grok-trial | 绑定真实 `GROK_SESSION_ID`；`--write-report` 才写 `real-host-trial-grok.json`；**不**升 A2、**不**进 `verify` |
+| grok-trial | 绑定真实 `GROK_SESSION_ID`；`--write-report` 经确认后写 `real-host-trial-grok.json`；**不**升 A2、**不**进 `verify` |
 | harness-gc | 只读 findings，不自动修 |
 
 ---

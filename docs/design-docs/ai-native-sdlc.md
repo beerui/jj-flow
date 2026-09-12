@@ -70,7 +70,7 @@ intent.md（可选；发起人原话；tiny 跳过）
                   → 同 run resume，或新 intent，或 evals/regression 考题
 ```
 
-接受一份产物后，由对话指令（`$jj-ralph` / `$jj-review` / `$jj-evaluated`）进入下一刀。Git merge **不**触发作业。
+接受一份产物后，由对话指令（`$jj-ralph` / `$jj-review` / `$jj-evaluated`）进入下一轮。Git merge **不**触发作业。
 
 ### intent 与 analyze 的分工
 

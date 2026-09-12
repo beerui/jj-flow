@@ -20,7 +20,7 @@
 | [Ralph 对话协议瘦身](ralph-skill-slim.md) | Implemented（入口精简、静默推断、CAP 检索、交付折叠与合约拆分） |
 | [任务分配 UX](task-assignment-ux.md) | Implemented |
 | [Portfolio Knowledge](portfolio-knowledge.md) | Implemented |
-| [Ralph → 知识库贡献](ralph-knowledge-contribute.md) | Proposed（归档投喂全局 KB） |
+| [Ralph → 知识库贡献](ralph-knowledge-contribute.md) | Proposed（归档写入全局 KB） |
 | [Ralph 工作区布局（方案 A）](ralph-workspace-layout.md) | Implemented（扁平 live + `completed/` + `events.jsonl` + `--prune-archive`；finding 软提示） |
 | [Ralph 自动收尾 / 结案](ralph-auto-closeout.md) | Implemented（accept PASS 后 MUST finalize；`status`/`locate` 带 `next`（含 ralph_ops 输出层）；`~/.agents` 分发与存量 `remediate`；解析链按当前宿主排序 + index 刷新下沉 saveRun / Locate 快速入口 + reopen 状态头清理。修订 10 原文未入库，本文为补录） |
 | [Ralph 任务工作区 .plans 化改造](ralph-plans-workspace.md) | Implemented（P0 热层 / P1 布局与归档 / P2 `task-*` 身份 / [P2+ lite](../exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md) 均已落地；schema 1.2） |

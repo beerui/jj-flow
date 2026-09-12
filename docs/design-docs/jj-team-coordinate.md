@@ -112,7 +112,7 @@ P1+ 可增加 `jj team-bridge summarize --session TC-… --run-id RALPH-…`（�
 | 能力 | Claude Code | Grok Build | Codex / Qoder |
 | --- | --- | --- | --- |
 | Skill install | ✅ `~/.claude/skills` | ✅ `~/.grok/skills` | ✅ |
-| Slash `/jj-team-coordinate` | ✅ 薄入口 | 宿主 skill 触发 | `$jj-team-coordinate` |
+| Slash `/jj-team-coordinate` | ✅ 斜杠命令入口 | 宿主 skill 触发 | `$jj-team-coordinate` |
 | `team-worker` agent | 优先（`agents/team-worker.md` 随 skill 提供） | 常 **fallback** `general-purpose` | 视 agent 配置 |
 | TeamCreate / Task* / SendMessage | ✅ | 部分/不同 API | 部分 |
 | `mcp__maestro__team_msg` | 有则用 | 常无 → **文件消息总线** `.msg/` | 常无 → 文件总线 |

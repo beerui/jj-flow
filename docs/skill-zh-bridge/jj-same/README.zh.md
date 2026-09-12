@@ -20,7 +20,7 @@
 | 编辑源 | 顶层 `skills/jj-same/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-same`、`~/.grok/skills/jj-same` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 
 ## 英文化状态
 
@@ -38,7 +38,7 @@
 | --- | --- |
 | Cross-project precise port | 跨项目精准迁移 |
 | Conversational path (客服) | 对话路径：本轮派单 → 调研 → 带人设提示词 spawn |
-| 入职 prefix | spawn 前置人设提示词（执行人不是 team-lead） |
+| 派单前缀 | spawn 前置人设提示词（执行人不是 team-lead） |
 | Happy path checklist | Happy path 清单 |
 | How users say it | 用户常用说法 |
 | Write plane (do not collapse) | 写面（勿塌层） |
@@ -94,7 +94,7 @@
 | --- | --- |
 | ASSIGNMENT-RESEARCH | 目标仓只读调研派单 |
 | ASSIGNMENT-HANDOFF | 本轮交接实施派单 |
-| Spawn prefix / 入职 | 执行人前置人设提示词（不是 team-lead） |
+| Spawn prefix / 人设提示词 | 执行人前置人设提示词（不是 team-lead） |
 
 ### `references/continuous-sync.md`
 
@@ -190,7 +190,7 @@
 | 门禁 | gate |
 | 产物 | artifact |
 | 权威源 | SSOT / authoritative source |
-| 薄入口 | thin entry / thin wrapper |
+| 斜杠命令入口 | thin entry / thin wrapper |
 | 能力地图 | business-map / capability map |
 | 项目族 | project family |
 | 领头项目 | lead project |

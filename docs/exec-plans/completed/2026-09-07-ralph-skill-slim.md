@@ -12,7 +12,7 @@
 
 把 `$jj-ralph` 收成一条可执行主链：短计划 → 开发验证 → 交付 → 验收 → 归档。入口目标不超过 100 行，机械细节按需读取。保留五个 ledger gate、存量 run、机械 CLI、审查证据与同需求 resume 语义。
 
-本次用户已要求审查、制定任务清单并完成开发，因此从原设计的 PR0 文档范围进入 PR1 → PR2 → PR-flow → PR3。按依赖顺序逐段修改和验证，不把中间态分发为最终行为；不额外创建控制任务。仅交付当前工作区改动，不包含 Git 提交、推送、合并或发布。workspace-layout overlay 与知识投喂对话化继续冻结。
+本次用户已要求审查、制定任务清单并完成开发，因此从原设计的 PR0 文档范围进入 PR1 → PR2 → PR-flow → PR3。按依赖顺序逐段修改和验证，不把中间态分发为最终行为；不额外创建控制任务。仅交付当前工作区改动，不包含 Git 提交、推送、合并或发布。workspace-layout overlay 与知识写入对话化继续冻结。
 
 ## 审查结论与设计修正
 
@@ -93,6 +93,6 @@
 - 入口 77 行、Claude wrapper 34 行；路由、4 个红检查点、五阶段和 10 项命令白名单均由资产合约检查，通用 skill 校验通过。
 - 推断、CAP 与折叠由 conversation/knowledge/cli 合约覆盖；持久化临时字段由 dispatch/task-artifacts 合约覆盖；验收、审查与旧 run/lite 兼容合约完整保留。
 - `tests/jj-ralph-contract.test.mjs` 为稳定聚合入口，9 个分模块最大 746 行。全量测试未重复发现子模块，最终共 422 项。
-- 用户级及项目级安装副本与 SSOT 完全同步；源码、schema 与 Git 权限边界保持，未启动冻结的 workspace-layout overlay 或知识投喂对话路径。
+- 用户级及项目级安装副本与 SSOT 完全同步；源码、schema 与 Git 权限边界保持，未启动冻结的 workspace-layout overlay 或知识写入对话路径。
 - 本次交付位于当前工作区。验证失败轮次产生的少量临时 fixture 目录保留，其中 PR2 的清理曾被自动审批拒绝；没有绕过该限制。修复后的 trial 均验证自身临时目录实际删除。
 - 执行计划归档和索引更新后再次通过 `docs:check`（`.tmp/ralph-slim-final-docs.log`）；所有 T01–T22 已勾选，无遗留活跃计划链接。

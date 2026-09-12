@@ -45,7 +45,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | 编辑源 | 顶层 `skills/jj-team-swarm/` |
 | 发布 | npm `files` 含 `skills/`；`jj install-skill` 分发 |
 | 宿主安装目录 | `…/skills/jj-team-swarm` — **勿当编辑源** |
-| Claude 薄入口 | `/jj-team-swarm` |
+| Claude 斜杠命令入口 | `/jj-team-swarm` |
 | 其他宿主 | `$jj-team-swarm` / skill id |
 | 旧名 | `team-adversarial-swarm` / 口语「蚁群」「对抗搜索」 |
 | 依赖 | 本机 Python ≥ 3.10 推荐；stdlib only（`pheromone.py` / `scoring.py`） |

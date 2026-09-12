@@ -51,7 +51,7 @@ git log / `Merge #N into staging` / 同时存在 `staging` 分支 / AGENTS 里 `
 | 编辑源 | 顶层 `skills/jj-end/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-end`、`~/.grok/skills/jj-end` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 
 ## 英文化状态
 

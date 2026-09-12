@@ -17,7 +17,7 @@
 | 编辑源 | 顶层 `skills/jj/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj`、`~/.grok/skills/jj` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明）；**无** `/jj-dispatch`、**无** `/jj-evaluated`（intentional） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明）；**无** `/jj-dispatch`、**无** `/jj-evaluated`（intentional） |
 
 ## 英文化状态
 

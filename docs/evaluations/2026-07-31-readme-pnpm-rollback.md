@@ -110,7 +110,7 @@ Parent golden **readme-pnpm install** 仍为 Mode S success regression；本文�
 
 ## 6. One candidate change（本迭代只推一个）
 
-### Candidate **R-soft-reopen**（推荐下一刀）
+### Candidate **R-soft-reopen**（推荐下一轮）
 
 | Field | Content |
 | --- | --- |

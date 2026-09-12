@@ -38,7 +38,7 @@ EN 正文中保留这些 token，不翻译成 handoff/source 等。
 | 编辑源 | 顶层 `skills/jj-evaluated/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-evaluated`、`~/.grok/skills/jj-evaluated` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 | 脚本 | `scripts/episode-validate.mjs`、`scripts/evaluated_ops.mjs`（保留；role 校验未改） |
 
 ## 英文化状态

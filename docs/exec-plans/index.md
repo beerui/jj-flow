@@ -13,8 +13,8 @@
 
 | 计划 | 状态摘要 | 下一轮 |
 | --- | --- | --- |
-| [人格标签 / 反 Start-broad / 活审查占位](active/2026-09-11-persona-spawn-gym.md) | 样本 `01a08fa6`：P0–P2 靶场通过；审查工人固定 `high`；承接基线 22 pass | 有新切片再 spawn；未说归档不 archive |
-| [same / dispatch 交接派单与入职](active/2026-09-11-same-handoff-assignment.md) | `C-same-assignment-onboard-v1`：本轮 ASSIGNMENT + 入职 spawn；Family gym 隔离副本 cheap replay 通过 | 真人业务仓复测 |
+| [人格标签 / 反 Start-broad / 运行中的审查占位](active/2026-09-11-persona-spawn-gym.md) | 样本 `01a08fa6`：P0–P2 靶场通过；审查执行人固定 `high`；承接基线 22 pass | 有新切片再 spawn；未说归档不 archive |
+| [same / dispatch 交接派单与人设提示词](active/2026-09-11-same-handoff-assignment.md) | `C-same-assignment-onboard-v1`：本轮 ASSIGNMENT + 带人设提示词 spawn；Family gym 隔离副本 cheap replay 通过 | 真人业务仓复测 |
 | [Ralph review 文档约束](active/2026-09-11-review-docs-not-cli.md) | `C-review-docs-not-cli-v1`：对话不执行 review-record；HIGH→high；exclusive listed files；G-review-3 | 可选 cheap replay |
 | [Ralph 对话记账文档约束](active/2026-09-11-ralph-docs-not-cli.md) | `C-ralph-docs-not-cli-v1`：对话记录写文档；Loop gym 干净副本 cheap replay 通过 | 真人业务仓复测 |
 | [Ralph / review 流程等待](active/2026-09-10-ralph-review-process-wait.md) | G-ralph-1 / G-review-2 已落地；`C-ralph-no-eager-refs-v1` + G-ralph-2（team-lead spawn）本轮 | 真人 cheap replay |

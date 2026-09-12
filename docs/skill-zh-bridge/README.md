@@ -11,7 +11,7 @@
 | npm 发布 | `package.json` → `files` 含 `skills/` |
 | 安装目标（Codex） | `~/.codex/skills` 或项目 `.codex/skills` |
 | 安装目标（Grok / Qoder） | `~/.grok/skills` / `~/.qoder/skills` |
-| Claude 薄入口 | `.claude/commands/` |
+| Claude 斜杠命令入口 | `.claude/commands/` |
 | 禁止当编辑源 | 任意宿主安装目录 |
 
 ## 对照包

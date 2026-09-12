@@ -46,7 +46,7 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 | 编辑源 | 顶层 `skills/jj-team-coordinate/` |
 | 发布 | npm `files` 含 `skills/`；`jj install-skill` 分发 |
 | 宿主安装目录 | `~/.claude|/.codex|/.grok|/.qoder/skills/jj-team-coordinate` — **勿当编辑源** |
-| Claude 薄入口 | `claude-commands/jj-team-coordinate.md` → `/jj-team-coordinate` |
+| Claude 斜杠命令入口 | `claude-commands/jj-team-coordinate.md` → `/jj-team-coordinate` |
 | 其他宿主 | `$jj-team-coordinate` / skill id |
 | 旧名 | 口语 “Team Coordinate” / 目录 `team-coordinate` 可回落只读，SSOT 仍是 `jj-team-coordinate` |
 

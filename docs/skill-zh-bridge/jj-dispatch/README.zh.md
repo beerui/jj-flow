@@ -18,7 +18,7 @@
 | 编辑源 | 顶层 `skills/jj-dispatch/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-dispatch`、`~/.grok/skills/jj-dispatch` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 薄入口（若清单声明） |
+| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
 
 ## 英文化状态
 
@@ -56,7 +56,7 @@
 | 回退 | rollback |
 | 续作 | resume / continue same run |
 | 废弃 | abandon |
-| 薄入口 | thin entry / thin wrapper |
+| 斜杠命令入口 | thin entry / thin wrapper |
 | 权威源 | SSOT / authoritative source |
 | 收工 | closeout (`$jj-end`) |
 

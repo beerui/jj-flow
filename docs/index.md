@@ -18,7 +18,7 @@
 
 | 你想… | 用这个 | 一句话说明 |
 |--------|--------|------------|
-| 把当前仓接入全局地图、梳理项目、补知识库 | [init](commands/jj-init.md) | 先给提案，你点头才写 |
+| 把当前仓接入全局地图、梳理项目、补知识库 | [init](commands/jj-init.md) | 先提案，确认后写入 |
 | 只改当前这一个仓，从做到验收 | [ralph](commands/jj-ralph.md) | 五步闭环，完成后可继续改 |
 | 把项目A 做好的能力搬到项目B / 项目C | [same](commands/jj-same.md) | 按目标仓自己的写法适配 |
 | 多个项目一起派、一起盯 | [dispatch](commands/jj-dispatch.md) | 预览 → 你批准 → 派发 |

@@ -97,7 +97,7 @@
 - [x] 移除主动路径 1.0 标题回退（`当前`→`Current`→`Tasks`→全文 的后两级）。leftover `archive/` 只读定位不走该提取器则无需保留
 - [x] 合约：1.0 八文件 fixture 迁到 `tasks/task-slug`；leftover `archive/` 不被 mutate；`.migrated-*` 不出现在 listRuns 活集
 
-## 下一刀
+## 下一轮
 
 P2 关闭。lite 档见 [P2+](../completed/2026-09-03-ralph-plans-workspace-p2-lite.md)（已关闭）。
 

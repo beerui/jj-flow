@@ -15,12 +15,12 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 | 平台 | 装到哪里 |
 |------|----------|
 | Codex | `.codex/skills` + `agents` |
-| **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（薄入口） |
+| **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（斜杠命令） |
 | Grok | `.grok/skills` |
 | Qoder | `.qoder/skills` |
 | AGENTS | `.agents/skills` + `.agents/commands` |
 
-skill 正文在 npm 包顶层的 `skills/`；Claude 的薄斜杠命令在 `claude-commands/`。
+skill 正文在 npm 包顶层的 `skills/`；Claude 斜杠命令源文件在 `claude-commands/`。
 
 ## 装好后如何调用
 
@@ -44,7 +44,7 @@ npx @brewer/jj-flow@latest install-skill --platform agents
 
 不加 `--project` 时，装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`；AGENTS：`~/.agents/skills` + `~/.agents/commands`）。
 
-升级后再执行同一条命令会**补上缺失的 skill**（例如新版本的 `jj-init`），不会覆盖你已经装过的文件。要刷新旧副本才加 `--force`。
+再次执行安装命令会**补上缺失的 skill**（如新版 `jj-init`），默认不覆盖已有文件；**覆盖已有安装**请加 `--force`。
 
 ## 卸载（先预览）
 
@@ -61,9 +61,9 @@ npx @brewer/jj-flow@latest uninstall-skill --platform all --dry-run --json
 | 配置项 | 默认 | 用途 |
 |--------|------|--------|
 | 调度状态目录 | `~/.jj-flow` | 多项目调度记录 |
-| 项目地图 | `~/.jj-flow/map.md` | 全局项目索引（须你同意才加行） |
-| 知识库目录 | `~/.jj-flow/knowledge` | 跨项目知识（须你同意才投喂） |
-| 项目族根目录 | 可选 | 本机多个仓库的根；公司另有路径可在 `naming.json` 改 |
+| 项目地图 | `~/.jj-flow/map.md` | 全局项目索引（写入须经你确认） |
+| 知识库目录 | `~/.jj-flow/knowledge` | 跨项目知识（写入须经你确认） |
+| 项目族根目录 | 可选 | 本机多仓根路径；组织级路径可在 `naming.json` 配置 |
 
 ## 相关
 
