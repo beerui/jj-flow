@@ -716,7 +716,7 @@ phases / layout / tiny / claude-command / userCmd / usage 上**已经**存在的
 
 `docs/commands/jj-ralph.md` 去掉「强度档」菜单与 `$jj-ralph tiny：` / `$jj-ralph strict：` 点名示例。`intensity` / `tiny` / `strict` **不进** userCmd 正循环（现 L414–L416 删掉）。下列 marker **必须仍出现**：
 
-`项目A` `项目B` `项目C` `控制项目` `task-login-reminder` `DEL-password` `CAP-login-reminder` `先不写代码` `按审查改` `改坏了` `这里` `仍走五步` `归档提示` `审查修复` `MUST finalize` `未完成收尾` `jj ralph locate` `jj ralph remediate` `确认不了` `不要猜着做`
+`项目A` `项目B` `项目C` `控制项目` `task-login-reminder` `DEL-password` `CAP-login-reminder` `先不写代码` `按审查改` `改坏了` `这里` `仍走五步` `归档提示` `审查修复` `MUST finalize` `未完成收尾` `jj ralph locate` `jj ralph remediate` `确认不了` `不要凭猜测推进`
 
 **负锁定（精确，不要裸 `/tiny/` `/strict/`）：**
 
