@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **Skill 写作规范 marker 对齐合约**：`bd06ee7` 把 skill 里的「入职」改成「人设提示词」、「工人」改成「执行人」，并按写作规范给「派遣 reviewer 审查改动代码」加了中英空格。`verify` 在 `6852913` / `a07f0ea` / `f00d688` 红同一批 8 条：合约 / evals 仍锁旧词。`tests/jj-same-contract.test.mjs`、`tests/jj-review-contract.test.mjs`、`tests/jj-dispatch-contract.test.mjs`、`tests/ralph/assets.contract.mjs` 与 `evals/regression/EP-20260910-review-assignment-exclusive.json`、`EP-20260911-same-handoff-assignment.json` 改跟 skill 实文。产品规则不变：spawn 仍须带匹配 prefix，派遣进度句仍须先说再 spawn。
 - **文档书面语全库对齐**：按 `docs/writing-guide.md` 统一用户文档、design-docs、exec-plans、evaluations、skill-zh-bridge、`ARCHITECTURE.md`、`AGENTS.md`。对话入口、安装说明、角色用语（执行人/人设提示词）、知识库写入确认、斜杠命令入口等口语表述改为书面语；量词与进程表述（上一轮、运行中的审查、全仓 grep 等）一并收敛。`npm run docs:check` PASS。
 - **Ralph 用户文档 marker 对齐书面语**：`docs/commands/jj-ralph.md` 已改为「不要凭猜测推进」后，合约仍锁「不要猜着做」，`verify` 在 `afd298a` 红。`tests/ralph/assets.contract.mjs` 与设计 `ralph-skill-slim` §9.3 改跟用户文档；派遣进度句按写作规范保留中英空格（`派遣 reviewer 审查改动代码`）。产品规则不变：确认不了先问。
 - **对话工人装到 Codex / Claude**：`agents/jj-implementer.toml` / `jj-reviewer.toml` / `jj-researcher.toml` 写入 `~/.codex/agents`（与 dispatch 的 `jj-workflow-*` 分开）。同一套 `agents/jj-*.md` 写入 `~/.claude/agents` 与 `~/.grok/agents`。审查工人 Codex `model_reasoning_effort = "high"`，Grok/Claude md `reasoning_effort: high`。缺失仍回退 `general-purpose`。合约：`tests/install-skill.test.mjs`、`tests/jj-review-contract.test.mjs`。
