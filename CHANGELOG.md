@@ -4,12 +4,9 @@
 
 ## Unreleased
 
+- **用户文档书面语优化**：对话入口统一为「写法」「示例说法」「装好后如何调用」；禁用「怎么喊」「可后读」「用户怎么说」等口语标题。角色用语 `工人`→`执行人`、`入职`→`人设提示词/派单前缀`；量词与进程表述对齐 `docs/writing-guide.md`（`上一刀`→`上一轮`、`干等`→`静默等待`、`活审查`→`运行中的审查`、`全库 grep`→`全仓 grep`）。覆盖 `docs/commands/*`、`usage`、`installation`、`index`、`skill-zh-bridge`、`claude-commands`。`npm run docs:check` PASS。
 - **Ralph 用户文档 marker 对齐书面语**：`docs/commands/jj-ralph.md` 已改为「不要凭猜测推进」后，合约仍锁「不要猜着做」，`verify` 在 `afd298a` 红。`tests/ralph/assets.contract.mjs` 与设计 `ralph-skill-slim` §9.3 改跟用户文档；派遣进度句按写作规范保留中英空格（`派遣 reviewer 审查改动代码`）。产品规则不变：确认不了先问。
 - **对话工人装到 Codex / Claude**：`agents/jj-implementer.toml` / `jj-reviewer.toml` / `jj-researcher.toml` 写入 `~/.codex/agents`（与 dispatch 的 `jj-workflow-*` 分开）。同一套 `agents/jj-*.md` 写入 `~/.claude/agents` 与 `~/.grok/agents`。审查工人 Codex `model_reasoning_effort = "high"`，Grok/Claude md `reasoning_effort: high`。缺失仍回退 `general-purpose`。合约：`tests/install-skill.test.mjs`、`tests/jj-review-contract.test.mjs`。
-
-## 0.2.3 — 2026-09-12 15:35
-
-- **用户文档书面语优化**：对话入口统一为「写法」「示例说法」「装好后如何调用」；禁用「怎么喊」「可后读」「用户怎么说」等口语标题。角色用语 `工人`→`执行人`、`入职`→`人设提示词/派单前缀`；量词与进程表述对齐 `docs/writing-guide.md`（`上一刀`→`上一轮`、`干等`→`静默等待`、`活审查`→`运行中的审查`、`全库 grep`→`全仓 grep`）。覆盖 `docs/commands/*`、`usage`、`installation`、`index`、`skill-zh-bridge`、`claude-commands`。`npm run docs:check` PASS。
 
 ## 0.2.2 — 2026-09-12 14:02
 
