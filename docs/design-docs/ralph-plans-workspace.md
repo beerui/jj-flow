@@ -194,7 +194,7 @@ task_key 即 `.plans` 的 `task-<name>` 语义，**自带 `task-` 前缀**（如
 
 由 `jj ralph init`（ANALYZE 前）生成骨架，skill 文案与模板同步修改。
 
-**章节名一律中文（已定）**。边界要分清：这三个 md 是**业务仓工作区产物**，首要读者是中文使用者，标题用中文；`skills/**` 的指令正文仍是英文 SSOT（`skill-en-zh-rewrite` 既有约定不变，中文只出 `docs/skill-zh-bridge/` 对照）。二者不冲突——前者是产物内容，后者是 agent 运行时协议。机器可解析的标识符（`run_id` / `task_key` / `evidence_class` 取值 / 阶段名 / gate 名）保持英文，不参与本次中文化。
+**章节名一律中文（已定）**。边界要分清：这三个 md 是**业务仓工作区产物**，首要读者是中文使用者，标题用中文；`skills/**` 的指令正文仍是英文 SSOT（中文只出 `docs/skill-zh-bridge/` 对照）。二者不冲突——前者是产物内容，后者是 agent 运行时协议。机器可解析的标识符（`run_id` / `task_key` / `evidence_class` 取值 / 阶段名 / gate 名）保持英文，不参与本次中文化。
 
 **task_plan.md**
 
@@ -377,7 +377,7 @@ gate 判据调整：PLAN gate 要求 `## 计划` 的 `### 当前` 存在且非�
 
 **`## 踩坑与因果` 与 `## 可复用结论` 的分工**（同一文件两节，职责不同，勿混）：前者是**冷层全文**——五要素完整、含现象与证据，供回查时理解来龙去脉；后者是**热层写入口**——每条一句话规则，是前者「对策 + 适用范围」两行的蒸馏。archive 时只有 `## 可复用结论` 进热层（注入有界，全文进 context 必然膨胀），`## 踩坑与因果` 留在归档目录供回链拉取。写 `## 可复用结论` 时**必须回指对应 F 编号**，保证热层每条一句话都能追回冷层全文。
 
-另需与 §2.3「findings 索引体系」的分层对齐：本方案不设参考模型的「根 findings 纯索引」层——jj-flow 单仓闭环只有一条执行线（§5），热层 `~/.jj-flow/memory/<project_key>.md` 已承担跨任务索引职责，无需在仓内再建一层。
+另需与 §2.3「findings 索引体系」的分层对齐：本方案不设参考模型的「根 findings 纯索引」层——jj-flow 任务闭环只有一条执行线（§5），热层 `~/.jj-flow/memory/<project_key>.md` 已承担跨任务索引职责，无需在仓内再建一层。
 
 要点：
 
@@ -544,10 +544,10 @@ extract(验收) => ""                        ← 直接返回空串
 | `agents/jj-workflow-reviewer.toml:9` | 1 | **初稿整份遗漏**。reviewer agent 定义正文写「对照 plan.md ## Current」，是运行时协议载体，漏改直接让 agent 找错段名 |
 | `skills/jj-ralph/references/phases.md:7,:129` | 2 | `## Flagged concerns` 是 ANALYZE gate 判据；:129 是 product-consistency 判据表述 |
 | `skills/jj-ralph/references/post-complete-continue.md:41,:42` | 2 | resume 时写 `## Current` / `## Superseded` 与 `## Tasks` 重命名兜底 |
-| `docs/skill-zh-bridge/jj-ralph/README.zh.md` | — | 按 `skill-en-zh-rewrite` 约定与 SKILL.md 同步的对照件 |
+| `docs/skill-zh-bridge/jj-ralph/README.zh.md` | — | 与 SKILL.md 同步的对照件 |
 | `tests/jj-ralph-contract.test.mjs` | **8**（另有 **:237**） | 骨架断言与 Current/Landed/Superseded 用例。**:237 的 `assert.equal((plan.match(/^## Tasks$/m)||[]).length, 0)` 中文化后恒真，变成假绿断言，须改为断言中文段名存在** |
 
-**skill 指令正文仍是英文 SSOT**（`skill-en-zh-rewrite` 约定不变）——上表改的是这些文档中**引用的产物章节名**，不是指令语言本身。二者边界：产物内容中文，运行时协议英文。
+**skill 指令正文仍是英文 SSOT**——上表改的是这些文档中**引用的产物章节名**，不是指令语言本身。二者边界：产物内容中文，运行时协议英文。
 
 #### 迁移策略
 
@@ -582,7 +582,7 @@ RALPH-enter-form-dynamic-apply-20260901  →  tasks/task-enter-form-dynamic-appl
 | 6 | 删 `knowledge-attach.json` / `knowledge-contribution.json` | — |
 | 7 | 原目录改名 `.migrated-RALPH-<原名>/` 保留 | 确认无误后由人手动删；**不自动清理** |
 
-**作用域**：默认单仓（当前 cwd 的 `.workflow/ralph/`）。`--all-projects` 才遍历 home 地图里的项目。`archive/` 下历史快照**只读不迁**。`skills/jj-evaluated` 引用的旧 `RALPH-` 证据路径声明为只读合法，不参与改名（§5）。
+**作用域**：默认本任务（当前 cwd 的 `.workflow/ralph/`）。`--all-projects` 才遍历 home 地图里的项目。`archive/` 下历史快照**只读不迁**。`skills/jj-evaluated` 引用的旧 `RALPH-` 证据路径声明为只读合法，不参与改名（§5）。
 
 **第 7 步保留一轮**是必要的：迁移脚本首次运行难免有边界情况，`.migrated-` 前缀让读端不再识别该目录，同时保留回退余地。判定口径：确认新目录能被 `jj ralph status` 正常列出且 gate 可跑通后即可删。
 
@@ -606,7 +606,7 @@ RALPH-enter-form-dynamic-apply-20260901  →  tasks/task-enter-form-dynamic-appl
 - **KB 对推广偏重，降为 opt-in 组合层**：外置 git 仓（jj-portfolio）、extractors、candidate→active 人工审核、web 管理端对新用户是纯成本；实测样本 KB root 未配置时 attach 即 `unavailable`，主循环不能建立在它之上。零基建热层（§3.6）承担默认闭环，KB 服务组合级 / 团队级用户。
 - **gate 证据从「文件存在」变「section 完整性」**：三阶段合一个 task_plan.md 后，PLAN/ACCEPT gate 需解析 section 与 checkbox/证据引用，校验逻辑比单文件略复杂。接受。
 - **去重责任部分转移到起名纪律**：稳定 task_key 依赖 init 时命中历史建议；漏匹配仍可能双目录，`adopt` 是兜底而非保证。开放问题：是否对「新 task_key 与既有 task 的 KB 相似度超阈值」加一条 warning gate。
-- **`.plans` 的角色/团队层不引入**：参考模型的 `<role>/` 层服务于常驻多角色团队；jj-flow 单仓闭环只有一条执行线，任务目录不按角色分层。多角色（team-coordinate/lifecycle/swarm）嵌套时仍写 `.workflow/.team/`，本方案不改。
+- **`.plans` 的角色/团队层不引入**：参考模型的 `<role>/` 层服务于常驻多角色团队；jj-flow 任务闭环只有一条执行线，任务目录不按角色分层。多角色（team-coordinate/lifecycle/swarm）嵌套时仍写 `.workflow/.team/`，本方案不改。
 - **docs 四件套归属**：api-contracts / invariants / ADR 是业务仓库自身知识，不是 ralph 控制面；jj-flow 只在 ACCEPT gate 提示 Doc-Code Sync（API/架构变更时 findings 必须注明已同步项目 docs），不接管这些文件。
 - **旧数据迁移与兼容策略**：推荐**硬切**——P2 起加载只认新布局，遇旧布局报错并提示跑 `jj ralph migrate`；迁移时原目录改名 `.migrated-` 保留一轮回退，确认无误后删除。P1b 的 1.0 读端回退是迁移完成前的**过渡措施**，P2 migrate 收尾时移除，不构成常驻双路径。历史归档只读不迁；`skills/jj-evaluated` 冻结证据引用的旧 `RALPH-` 路径声明为只读合法，不参与改名。
 - **`.state/` 隐藏目录（已定，采纳）**：run.json / reviews / handoff 移入点前缀 `.state/`，人 `ls` 任务目录只见 3 个 md（§3.2）。取舍已评估：下游路径深一层，但与 §3.10 表 A 的 jj-same / jj-review 路径常量改动**同批落地**，不新增变更批次；人查机器状态需 `ls -a`，而机器状态本就不面向人。

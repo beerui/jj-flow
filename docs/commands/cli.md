@@ -15,7 +15,7 @@
 | `install-skill` / `uninstall-skill` | 安装或卸载 skill / 薄命令（同时生成 `~/.jj-flow` 空 map/知识结构） |
 | `home init` / `init preview\|join\|ingest` / `map lookup` / `map add` | 生成用户主目录；接入地图与补知识（`$jj-init` 对话入口，须用户同意）；`map lookup` 只读 |
 | `doctor` | 只读诊断 Git / Harness / 路径 / capabilities |
-| `ralph *` | 单仓 run 机械步骤（不替代对话） |
+| `ralph *` | 任务 run 机械步骤（不替代对话） |
 | `end preview` / `end execute` | Git 收尾预览和批量执行；不写任务账本 |
 | `dispatch-tick` | 单次调度 tick 预览或 CAS 写入 |
 | `task scaffold` / `task assign` | 任务脚手架与轻量分配展示 |
@@ -49,7 +49,7 @@ jj map lookup [--cwd dir] [--json]
 jj map add --path DIR [--name NAME] [--aliases a,b] [--family FAMILY] [--json]
 ```
 
-对话入口是 `$jj-init`。`preview` 只提案（默认短中文 `user_view`；`--json` 给 Agent，不要贴给用户）；`join` / `ingest` 须用户同意后由 Agent 代写。`map lookup` / doctor / ralph 只读地图。`jj ralph init` 是开单仓 run，不是接入。
+对话入口是 `$jj-init`。`preview` 只提案（默认短中文 `user_view`；`--json` 给 Agent，不要贴给用户）；`join` / `ingest` 须用户同意后由 Agent 代写。`map lookup` / doctor / ralph 只读地图。`jj ralph init` 是开任务 run，不是接入。
 
 ---
 

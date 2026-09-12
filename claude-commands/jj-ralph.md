@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: 单仓闭环：分析→计划→改代码→验收→归档；同需求优先同一 run（归档后可继续）；能力地图与 handoff。
+description: 任务闭环：分析→计划→改代码→验收→归档；同需求优先同一 run（归档后可继续）；能力地图与 handoff。
 argument-hint: "<目标、资料、范围、验收，或 run_id / 查地图关键词>"
 allowed-tools:
   - Read

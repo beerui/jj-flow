@@ -163,7 +163,7 @@ git checkout <work_branch>
 
 ### 5. Report
 
-Happy path (all `self-merge`, closeout continued): see **Final Response**; do not list auto-resolved files.
+All `self-merge` (closeout continued): see **Final Response**; do not list auto-resolved files.
 Any `unhandleable` abort: hand the classify table, then **Final Response** with `已回退`. Abort is **not** closeout success.
 
 ## Workflow
@@ -337,7 +337,7 @@ git log -1 --oneline <integration>   # if resolvable
 
 ## Failure and recovery (must follow)
 
-🔴 Rows are **STOP or continue-after-classify**. Happy path (including all-`self-merge` conflicts) does **not** pause for user confirmation before push/merge. Any-`unhandleable` is a STOP. Vue/docs/logic that you can compose is **not** unhandleable.
+🔴 Rows are **STOP or continue-after-classify**. All-`self-merge` (including those conflicts) does **not** pause for user confirmation before push/merge. Any-`unhandleable` is a STOP. Vue/docs/logic that you can compose is **not** unhandleable.
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|

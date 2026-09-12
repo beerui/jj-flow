@@ -217,10 +217,6 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'examples/ralph/sample-business-map.json',
     'skills/jj-ralph/SKILL.md',
     'skills/jj-ralph/references/artifact-layout.md',
-    'skills/jj-ralph/references/phases.md',
-    'skills/jj-ralph/references/ops.md',
-    'skills/jj-ralph/references/rollback.md',
-    'skills/jj-ralph/references/business-map.md',
     'skills/jj-ralph/references/integrations.md',
     'skills/jj-ralph/references/ralph-run.schema.json',
     'skills/jj-ralph/references/business-map.schema.json',
@@ -232,6 +228,16 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'docs/design-docs/jj-ralph.md'
   ]) {
     assert.ok(fs.existsSync(path.join(root, rel)), `missing ${rel}`);
+  }
+  for (const rel of [
+    'skills/jj-ralph/references/phases.md',
+    'skills/jj-ralph/references/ops.md',
+    'skills/jj-ralph/references/rollback.md',
+    'skills/jj-ralph/references/business-map.md',
+    'skills/jj-ralph/references/must-evidence.md',
+    'skills/jj-ralph/references/post-complete-continue.md'
+  ]) {
+    assert.equal(fs.existsSync(path.join(root, rel)), false, `retired ${rel}`);
   }
 
   const skill = read('skills/jj-ralph/SKILL.md');
@@ -331,15 +337,17 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.match(skill, /send_subagent_message/);
   assert.match(skill, /11× cold General/);
   assert.match(skill, /empty CAP hits are valid/);
-  const happyPath = skill.split('## Happy path')[1].split('## Red checkpoints')[0];
-  assert.match(happyPath, /append progress\.md/);
-  assert.match(happyPath, /MUST finalize/);
-  assert.match(happyPath, /ASSIGNMENT-TASK n → 派遣前端开发实现任务 → spawn/);
-  assert.match(happyPath, /派遣reviewer审查改动代码/);
-  assert.match(happyPath, /用户验收/);
-  assert.doesNotMatch(happyPath, /ralph_ops/);
-  assert.doesNotMatch(happyPath, /degraded unfold/);
-  assert.doesNotMatch(happyPath, /\$jj-end/);
+  const immediate = skill.split('## Immediate actions')[1].split('## Red checkpoints')[0];
+  assert.match(immediate, /append `progress\.md`/);
+  assert.match(immediate, /MUST finalize/);
+  assert.match(immediate, /ASSIGNMENT-TASK/);
+  assert.match(immediate, /派遣前端开发实现任务/);
+  assert.match(immediate, /派遣 reviewer 审查改动代码/);
+  assert.match(immediate, /用户验收/);
+  assert.doesNotMatch(skill, /## Happy path/);
+  assert.match(immediate, /Never `ralph_ops\.mjs`/);
+  assert.doesNotMatch(immediate, /degraded unfold/);
+  assert.doesNotMatch(immediate, /\$jj-end/);
 
   const userCmd = read('docs/commands/jj-ralph.md');
   for (const marker of [
@@ -381,34 +389,9 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(userCmd, /must-evidence\.md/);
   assert.doesNotMatch(userCmd, /tiny-example\.md/);
 
-  const phases = read('skills/jj-ralph/references/phases.md');
-  // English SSOT: intensity tier section (was Chinese 「强度档」)
-  assert.match(phases, /[Ii]ntensity|intensity tier|tiny\|standard\|strict/);
-  assert.match(phases, /deliver-attempt/);
-  assert.match(phases, /accept-layer|accept_layers/);
-  assert.match(phases, /archive_history/);
-  assert.match(phases, /## Gate set \(deprecated\)/);
-  assert.match(phases, /\*\*never\*\* uses `--lite`/);
-  assert.match(phases, /先不写代码/);
-  assert.match(phases, /Unconfirmed requirement/);
-  assert.match(phases, /ask first/);
-  assert.match(phases, /commit-scoped-review/);
-  assert.match(phases, /归档提示/);
-  assert.doesNotMatch(phases, /prefer `?intensity=tiny/);
-  for (const marker of ['rollback-phase', 'instruction-correction', 'process/agent limit', 'offset', '未完成收尾', 'jj ralph remediate', 'product-consistency']) {
-    assert.ok(phases.includes(marker), `phases owns ${marker}`);
-  }
   const integrations = read('skills/jj-ralph/references/integrations.md');
   for (const marker of ['Idle offer', 'knowledge-confirm', 'hot_memory', 'MasterGo', 'blocked_reasons', 'do_not_port']) {
     assert.ok(integrations.includes(marker), `integrations owns ${marker}`);
-  }
-  const ops = read('skills/jj-ralph/references/ops.md');
-  assert.match(ops, /degraded unfold/);
-  assert.match(ops, /Do not finalize/);
-  assert.match(ops, /Conversational `\$jj-ralph` never runs `ralph_ops`/);
-  assert.doesNotMatch(ops, /Conversational `gate --gate deliver --status PASS` must use `ralph_ops`/);
-  for (const marker of ['map-find', 'accept-layer', 'metrics', 'migrate', 'adopt', 'dispatch-snapshot', 'knowledge-contribute', 'rollback-phase', '--intensity']) {
-    assert.ok(ops.includes(marker), `ops owns ${marker}`);
   }
   assert.match(read('claude-commands/jj-ralph.md'), /不要.*`--lite`/);
   assert.match(read('skills/jj-ralph/references/artifact-layout.md'), /does \*\*not\*\* drop gates/);
@@ -506,25 +489,22 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
 
 test('ralph asks first when requirement cannot be confirmed', () => {
   const skill = read('skills/jj-ralph/SKILL.md');
-  const phases = read('skills/jj-ralph/references/phases.md');
   const layout = read('skills/jj-ralph/references/artifact-layout.md');
   const command = read('claude-commands/jj-ralph.md');
   const userCmd = read('docs/commands/jj-ralph.md');
   const usage = read('docs/usage.md');
   assert.match(skill, /CHECKPOINT \(unconfirmed requirement\)/);
   assert.match(skill, /ask first/);
-  assert.match(phases, /and the requirement is confirmed/);
-  assert.match(phases, /cannot be confirmed/);
-  assert.match(phases, /stay in the current phase \(or BLOCKED\)/);
-  assert.match(phases, /ACCEPT\/ARCHIVE the guess/);
-  assert.match(phases, /Unconfirmed requirement/);
-  assert.match(phases, /ask first/);
-  assert.match(phases, /Do not invent, do not pick a side/);
-  assert.match(phases, /do not treat a guess as the spec/);
-  assert.match(phases, /do not rollback-phase to ANALYZE/);
-  assert.match(phases, /gate` analyze\/plan\/deliver\/accept\/archive/);
+  assert.match(skill, /and the requirement is confirmed/);
+  assert.match(skill, /cannot be confirmed/);
+  assert.match(skill, /stay in the current phase \(or BLOCKED\)/);
+  assert.match(skill, /ACCEPT\/ARCHIVE the guess/);
+  assert.match(skill, /Unconfirmed requirement/);
+  assert.match(skill, /Do not invent, do not pick a side/);
+  assert.match(skill, /do not treat a guess as the spec/);
+  assert.match(skill, /do not rollback-phase to ANALYZE/);
+  assert.match(skill, /gate` analyze\/plan\/deliver\/accept\/archive/);
   assert.doesNotMatch(skill, /cannot be safely inferred/);
-  assert.doesNotMatch(phases, /cannot be safely inferred/);
   assert.match(layout, /tiny` skips empty `## 存疑` at init/);
   assert.match(layout, /unconfirmed requirement \(ask first; do not invent\)/);
   assert.doesNotMatch(layout, /`tiny` skips `## 存疑`\./);

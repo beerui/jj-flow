@@ -170,7 +170,6 @@
 | 机械 CLI 保留单键及遗留兼容 | 机械 CLI 保留单命令入口及遗留兼容 |
 | 先回 [OK]/[BLOCK] 再落盘 | 先回复 [OK]/[BLOCK] 再落盘 |
 | 现场：全平台装过旧版后 | 场景：全平台装过旧版后 |
-| skill-en-zh-rewrite 不进用户端 | skill-en-zh-rewrite 不随用户端分发 |
 | 把 references/ 当开机清单 | 把 references/ 当作启动清单 |
 | 不是工人说明书 | 不是子代理操作说明 |
 | live plan 长出"已落地"/"Landed" | live plan 生成"已落地"/"Landed" |

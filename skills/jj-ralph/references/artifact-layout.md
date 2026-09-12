@@ -32,7 +32,7 @@
 1. Handoff source of truth: `run.handoff`
 2. Do not write external `.workflow/handoffs/` or csv-wave HOF bulk packages
 3. Naming follows naming config (`jj doctor` / `JJ_GLOBAL_CONFIG_DIR`; **never** hard-code host-local paths)
-4. Scripts: `scripts/ralph_ops.mjs`; syntax and conditional mechanical operations live in [ops.md](ops.md)
+4. Scripts: `scripts/ralph_ops.mjs` (mechanical CLI only; conversational path never runs it). Syntax: `jj ralph --help`
 5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. Live runs sit at `.workflow/ralph/task-*`. `archive` / `abandon` rename into `completed/`; `resume` lifts back and opens a new progress round. Leftover `archive/` folders are historical 1.0 snapshots — `jj ralph migrate --prune-archive` dry-runs removal, `--yes` deletes. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
 7. Intent is the Goal paragraph. No empty `## 存疑` at init unless `--intent`. `tiny` skips empty `## 存疑` at init unless `--intent`. Unconfirmed requirement / analyze-hold still write `## 存疑` and ask first (`tiny` is not exempt). Conversational path never `--lite`; `tiny` does **not** drop gates. Same requirement resume keeps Goal; a truly new requirement may get a new run

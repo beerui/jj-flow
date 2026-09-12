@@ -35,7 +35,7 @@ Session 前缀 **`TAS`**，目录：业务仓 `.workflow/.team/TAS-<slug>-<date>
 | `TAS-*` | 本 skill | swarm 会话 id |
 | `TC-*` | jj-team-coordinate | 多角色实施会话 |
 | `TLV4-*` | jj-team-lifecycle | 固定 SDLC 会话 |
-| `RALPH-*` | jj-ralph | 单仓闭环 run |
+| `RALPH-*` | jj-ralph | 任务闭环 run |
 | `DEL-*` | jj-dispatch | 调度交付 |
 
 ## 仓库规范

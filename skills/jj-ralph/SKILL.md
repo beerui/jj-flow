@@ -1,6 +1,6 @@
 ---
 name: jj-ralph
-description: "Single-repo requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/{task_key}/ + business-map; handoff in run.handoff. Same requirement → same run_id, including resume after archive. Triggers: $jj-ralph, /jj-ralph, 单仓闭环, resume, 继续, 改坏了, 按审查改, 先不写代码. Cross-repo → jj-same; multi-project → jj-dispatch. Conversational path never uses --lite."
+description: "Task requirement loop ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE; artifacts under .workflow/ralph/{task_key}/ + business-map; handoff in run.handoff. Same requirement → same run_id, including resume after archive. Triggers: $jj-ralph, /jj-ralph, 任务闭环, resume, 继续, 改坏了, 按审查改, 先不写代码. Cross-repo → jj-same; multi-project → jj-dispatch. Conversational path never uses --lite."
 ---
 
 # jj-ralph
@@ -40,19 +40,10 @@ Do **not** re-read this SKILL. Do **not** open skill `references/` from this ent
 
 Never `ralph_ops.mjs`. Mechanical CLI is CLI-users only. Conversational full has no lifetime `max_iterations` stop; **STAGNATION** still: same strategy twice → change approach (write `instruction-correction.md`). Do not start Task n+1 after a successful slice.
 
-## Happy path
-
-```text
-index 活跃唯一 | read task_plan.md
-→ ASSIGNMENT-TASK n → 派遣前端开发实现任务 → spawn/resume `[implementer]` → report to team-lead
-→ append progress.md
-→ 大功能: 改动摘要 → 派遣 reviewer 审查改动代码 → ASSIGNMENT-REVIEW spawn → [OK]/[WARN] → 用户验收 → MUST finalize (completed/ + index.md)
-```
-
 ## Red checkpoints
 
 - **CHECKPOINT (multiple candidates):** list candidate titles when the intended run is unclear.
-- **CHECKPOINT (unconfirmed requirement):** **ask first**, record `## 存疑`, stay in the current phase; do not invent.
+- **CHECKPOINT (unconfirmed requirement):** Unconfirmed requirement — **ask first** when a requirement / MUST / scope / acceptance cannot be confirmed. Do not invent, do not pick a side, do not treat a guess as the spec. Record `## 存疑`; stay in the current phase (or BLOCKED); do not rollback-phase to ANALYZE. Do not implement or `gate` analyze/plan/deliver/accept/archive until a written answer; never ACCEPT/ARCHIVE the guess. Once files are located and the requirement is confirmed, continue.
 - **CHECKPOINT (analyze-hold):** 「先不写代码」 → Goal + 存疑 only, no gate PASS or implementation until 「开始做吧 / 我认可 / 继续改」.
 - **CHECKPOINT (irreversible):** push / merge / release / delete data require existing explicit authorization; prepare the result before asking if authorization is missing.
 - **CHECKPOINT (user UAT):** after review `[OK]`/`[WARN]`, wait for 用户验收 before archive.

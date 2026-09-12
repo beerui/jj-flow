@@ -28,7 +28,6 @@
 | jj-team-coordinate | [jj-team-coordinate/README.zh.md](jj-team-coordinate/README.zh.md) |
 | jj-team-lifecycle | [jj-team-lifecycle/README.zh.md](jj-team-lifecycle/README.zh.md) |
 | jj-team-swarm | [jj-team-swarm/README.zh.md](jj-team-swarm/README.zh.md) |
-| skill-en-zh-rewrite | [skill-en-zh-rewrite/README.zh.md](skill-en-zh-rewrite/README.zh.md) |
 
 ## 进度
 

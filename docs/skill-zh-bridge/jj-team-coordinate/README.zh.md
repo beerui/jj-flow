@@ -35,7 +35,7 @@ Session 前缀 **`TC`**，目录：业务仓 `.workflow/.team/TC-<slug>-<date>/`
 | `TC-*` | 本 skill | team 会话 id |
 | `TLV4-*` | jj-team-lifecycle | 固定 SDLC 会话 |
 | `TAS-*` | jj-team-swarm | 蚁群搜索会话 |
-| `RALPH-*` | jj-ralph | 单仓闭环 run |
+| `RALPH-*` | jj-ralph | 任务闭环 run |
 | `DEL-*` / `task_key` | jj-dispatch | 多项目调度身份 |
 | host Task 主题 `IMPL-1` 等 | team 会话内部 | ≠ ralph plan 的 TASK |
 

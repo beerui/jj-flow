@@ -284,5 +284,5 @@ export function knowledgeContribute(runId, { cwd, hook = false } = {}) { /* writ
 ## 13. 下一步（实现前）
 
 1. 与 jj-portfolio 确认 `extract --source` 是否消费 JSON package（或需 adapter）。  
-2. 落地 Wave 0（jj-flow 单仓可合并）。  
+2. 落地 Wave 0（jj-flow 本仓可合并）。  
 3. 用户文档补「归档后如何进全局知识库」三步：归档 →（可选）写入 → 审核晋升。

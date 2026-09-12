@@ -43,9 +43,9 @@
 | --- | ---: | --- |
 | 1 | 同源多仓迁移 / handoff / 持续同步 | `jj-same` |
 | 2 | 多目标批准 / delivery_id / task_key / 控制项目调度 | `jj-dispatch`（无 Claude slash） |
-| 3 | 单仓闭环 / 能力地图 / 验收归档 / 归档后续作·废弃 | `jj-ralph`（同 run resume 优先） |
-| 4 | 单仓只读审查 / REV-*.json | `jj-review` |
-| 5 | 单仓 git 收工 | `jj-end`（不关死 ralph） |
+| 3 | 任务闭环 / 能力地图 / 验收归档 / 归档后续作·废弃 | `jj-ralph`（同 run resume 优先） |
+| 4 | 任务只读审查 / REV-*.json | `jj-review` |
+| 5 | 任务 git 收工 | `jj-end`（不关死 ralph） |
 | 6 | 离线 episode 评估 | `jj-evaluated`（experimental） |
 | 7 | 显式多角色 team / Team Coordinate | `jj-team-coordinate`（`TC-*`；不推进 checkpoint） |
 | 8 | 显式蚁群 / 对抗搜索 / multi-hypothesis | `jj-team-swarm`（`TAS-*`；不推进 checkpoint） |
@@ -70,7 +70,6 @@
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/ralph-router-rewrite-report.md`
 - Glossary: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/glossary.json`
 - Inventory: `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`
 
 ## 修订记录
 

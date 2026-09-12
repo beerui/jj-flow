@@ -24,13 +24,10 @@ const PACKAGE_JSON = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package
 export const INSTALL_MANIFEST_FILENAME = '.jj-flow-install.json';
 export const INSTALL_MANIFEST_VERSION = 'jj-flow/install-manifest/1.0';
 
-/** Repo-local maintenance skills: stay under skills/ but are not installed or packed. */
-export const UNPUBLISHED_SKILL_DIRS = Object.freeze(['skill-en-zh-rewrite']);
-
 const PRODUCT_SKILL_ID = /^jj(-[a-z0-9]+)*$/;
 
 export function isDistributedSkillName(name) {
-  return PRODUCT_SKILL_ID.test(name) && !UNPUBLISHED_SKILL_DIRS.includes(name);
+  return PRODUCT_SKILL_ID.test(name);
 }
 
 const RETIRED_ASSETS = Object.freeze({
@@ -42,7 +39,7 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-fix',
     'jj-knowhow',
     'jj-validate',
-    ...UNPUBLISHED_SKILL_DIRS
+    'skill-en-zh-rewrite'
   ]),
   agents: Object.freeze([]),
   commands: Object.freeze([

@@ -7,7 +7,7 @@ description: "Onboard jj-flow home: join ~/.jj-flow/map.md, group families, back
 
 Write `~/.jj-flow/map.md` and bootstrap home knowledge after the user confirms. Delivery skills only **read** the map.
 
-`$jj-ralph init` opens a single-repo **run**. This skill is machine/project onboarding.
+`$jj-ralph init` opens a task **run**. This skill is machine/project onboarding.
 
 ## Immediate actions
 

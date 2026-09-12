@@ -18,7 +18,7 @@ description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-init, jj-s
 
 Before choosing a target skill, probe when available (read if present, skip if missing — do not invent):
 
-1. User’s original intent and scope (single-repo / multi-repo / closeout / review / schedule)
+1. User’s original intent and scope (task / multi-repo / closeout / review / schedule)
 2. If present: `.workflow/handoff/`, current or latest ralph `run.json` (including `run.handoff`)
 3. If present: control-project manifest / approval snapshot (**read-only**; without control, do not fake a dispatch)
 4. Whether branch / commit / workspace dirtiness matches the intent
@@ -30,9 +30,9 @@ Before choosing a target skill, probe when available (read if present, skip if m
 1. Join global map / 梳理项目 / first-time KB bootstrap                           → $jj-init  (Claude: /jj-init)
 2. Same-origin multi-repo migration / handoff consume / sync_key / continuous sync  → $jj-same  (Claude: /jj-same)
 3. Multi-target approval / delivery_id / task_key / control-project schedule         → $jj-dispatch (Codex/Qoder/Grok; no Claude slash)
-4. Single-repo ANALYZE→ARCHIVE loop / capability map / accept+archive / **post-archive continue·abandon** → $jj-ralph (Claude: /jj-ralph)
-5. Single-repo read-only review / write REV-*.json (includes latest soft-archived run) → $jj-review (Claude: /jj-review)
-6. Single-repo git closeout: commit → push work → merge integration                 → $jj-end   (Claude: /jj-end; does **not** kill ralph)
+4. Task ANALYZE→ARCHIVE loop / capability map / accept+archive / **post-archive continue·abandon** → $jj-ralph (Claude: /jj-ralph)
+5. Task read-only review / write REV-*.json (includes latest soft-archived run) → $jj-review (Claude: /jj-review)
+6. Task git closeout: commit → push work → merge integration                 → $jj-end   (Claude: /jj-end; does **not** kill ralph)
 7. Offline episode evaluation (experimental)                                       → $jj-evaluated (no Claude command)
 8. Explicit multi-role team pipeline / “Team Coordinate” / dynamic role-specs      → $jj-team-coordinate (Claude: /jj-team-coordinate)
 9. Explicit fixed SDLC / team-lifecycle-v4 / spec-only|impl-only|full-lifecycle     → $jj-team-lifecycle (Claude: /jj-team-lifecycle)
@@ -42,7 +42,7 @@ Before choosing a target skill, probe when available (read if present, skip if m
 
 Decision hints:
 
-- Join map / 梳理项目 / bootstrap KB → init; migration/family/handoff → same; multi-project approval/dispatch → dispatch; single-repo through acceptance **or post-archive continue/abandon** → ralph (**same-run resume first**); review-only → review; closeout merge → end (Git only); offline retrospective → evaluated
+- Join map / 梳理项目 / bootstrap KB → init; migration/family/handoff → same; multi-project approval/dispatch → dispatch; task through acceptance **or post-archive continue/abandon** → ralph (**same-run resume first**); review-only → review; closeout merge → end (Git only); offline retrospective → evaluated
 - **Multi-role execution** (explicit “team coordinate”, dynamic roles, TC session) → `jj-team-coordinate`; nested under ralph DELIVER when useful — **does not** replace ralph/dispatch facts
 - **Fixed SDLC pipeline** (brief/PRD/architecture/epics, CHECKPOINT gates, team-lifecycle-v4) → `jj-team-lifecycle` (TLV4-*); not a substitute for coordinate when roles must be dynamic
 - **Search / ACO / adversarial multi-hypothesis** → `jj-team-swarm` (TAS-*); not for tiny edits; not a substitute for coordinate implement pipelines

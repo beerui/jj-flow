@@ -1,6 +1,6 @@
 ---
 name: jj-dispatch
-description: "Multi-project dispatch control plane: PREVIEW → approve task_keys → DISPATCH → tick/resume. Triggers: $jj-dispatch, jj-dispatch, 调度, 分发, 预览, PREVIEW, DISPATCH, 回滚, TASK-ID, delivery, cross-project dispatch. Coordination state defaults to ~/.jj-flow (configurable). From a business-repo cwd: recover TASK-ID, approve keys, bind real sessions + attestation. Not single-repo loop (jj-ralph), not port/implement (jj-same), not single-repo review (jj-review). No Claude /jj-dispatch slash (intentional)."
+description: "Multi-project dispatch control plane: PREVIEW → approve task_keys → DISPATCH → tick/resume. Triggers: $jj-dispatch, jj-dispatch, 调度, 分发, 预览, PREVIEW, DISPATCH, 回滚, TASK-ID, delivery, cross-project dispatch. Coordination state defaults to ~/.jj-flow (configurable). From a business-repo cwd: recover TASK-ID, approve keys, bind real sessions + attestation. Not task loop (jj-ralph), not port/implement (jj-same), not task review (jj-review). No Claude /jj-dispatch slash (intentional)."
 ---
 
 # jj-dispatch
@@ -11,28 +11,7 @@ Cross-project dispatch entry. Platforms: **Codex / Qoder / Grok**. **No Claude s
 >
 > **VERIFIED must bind attestation file evidence** (`sandbox_evidence_ref` → `attestations/*.json`, including review). Verbal/chat VERIFIED is forbidden.
 
-## Happy path (In → action → Out)
-
-```text
-TASK-ID recovery -> PREVIEW (branch/workspace table)
-  -> 🔴 user approves task_keys
-  -> 🔴 (if uncertain) confirm branch/mode
-  -> DISPATCH -> tick/resume
-  -> 🔴 VERIFIED only with full evidence
-```
-
-| # | In | Action | Out / next |
-| --- | --- | --- | --- |
-| 1 | Business-repo cwd / TASK-ID | Read `control_root` task dir + plane. Never require CLI. | Context loaded |
-| 2 | Intake fields | If incomplete → `INTAKE_REQUIRED` only (no PREVIEW advance) | Intake complete **or** stop |
-| 3 | Complete intake | **PREVIEW** read-only: write-task branch/workspace table (`behind_count`, `base_action`, `proposed_mode=S\|W\|P`, …); **no** intent write | `PREVIEW_ONLY` + table |
-| 4 | PREVIEW table | 🔴 **CHECKPOINT · user approves `task_keys`** this round. No approval → 🛑 **STOP** at `PREVIEW_ONLY` | Approved keys |
-| 5 | Branch/mode / CREATE base | 🔴 **CHECKPOINT · `NEEDS_CONFIRM`** when confidence low, dirty/diverged base, or unclear isolation. Show decision table; 🛑 **STOP** DISPATCH until user confirms | `READY` path |
-| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree. Opt-in Mode P → child session 1:1 per write `task_key`. **Same turn:** scaffold control TASK index + `ensureDispatchRalphRuns` — every lead/target repo gets a full Ralph `task-<slug>`. Conversational implement = `$jj-same` assignment + 人设提示词 spawn, not `distribution_prompt` body | Bound / RUNNING + per-repo Ralph |
-| 7 | Receipt / bound tasks | tick/resume; **without CLI, Agent writes plane** → [agent-write-plane.md](references/agent-write-plane.md) | Advanced status |
-| 8 | Claim done | 🔴 **CHECKPOINT · VERIFIED**: need `produced_commit` + review + real session + **attestation file** + **T-task-result-sync** in same write batch. Missing any → 🛑 **STOP** at `EVIDENCE_READY`/`RUNNING` | VERIFIED or hold |
-
-Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not invent parallel enums**. Full gates/decision table → [happy-path.md](references/happy-path.md).
+Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not invent parallel enums**. Conversational `$jj-dispatch` writes the plane as documents (PREVIEW → approved `task_keys` → DISPATCH → tick/resume). Never require CLI. VERIFIED needs `produced_commit` + review + real session + **attestation file** + **T-task-result-sync**. Implement in targets via `$jj-same` assignment + 人设提示词 spawn, not `distribution_prompt` body.
 
 ## Gates 1–8 (first match wins)
 

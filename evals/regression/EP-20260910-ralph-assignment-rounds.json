@@ -7,7 +7,7 @@
     { "type": "contains", "text": "next unchecked Step" },
     { "type": "contains", "text": "no lifetime iteration stop" },
     { "type": "contains", "text": "STAGNATION" },
-    { "type": "file_exists", "path": "skills/jj-ralph/references/phases.md" },
+    { "type": "file_exists", "path": "skills/jj-ralph/references/artifact-layout.md" },
     { "type": "file_exists", "path": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md" }
   ]
 }

@@ -107,7 +107,7 @@ Commands:
 
 scope: --replace-in/--replace-out a,b requires --reason; replacement is audited.
 gate accept/archive, archive and finalize accept --context-file (validated task diff).
-Mechanical compatibility controls: use jj ralph; see references/ops.md.
+Mechanical compatibility controls: use jj ralph --help.
 `);
 }
 
@@ -199,7 +199,7 @@ async function main() {
 
   for (const flag of ['lite', 'full', 'intensity']) {
     if (Object.hasOwn(args, flag)) {
-      die('对话包装不接受 --' + flag + '；机械覆写请用 jj ralph init --' + flag + '（详见 references/ops.md）');
+      die('对话包装不接受 --' + flag + '；机械覆写请用 jj ralph init --' + flag + '（详见 jj ralph --help）');
     }
   }
   if (cmd === 'gate' && (args.gate || args.phase) && !['analyze', 'plan', 'deliver', 'accept', 'archive'].includes(args.gate || args.phase)) {

@@ -6,12 +6,12 @@
 
 - **`$jj-init` / `/jj-init`**：接入全局地图、梳理项目、补知识库（须用户同意后写入）
 - **`$jj-same` / `/jj-same`**：同源分叉项目之间的功能迁移、handoff 与持续同步
-- **`$jj-ralph` / `/jj-ralph`**：单仓全流程闭环（分析 → 计划 → 验收 → 归档）与能力地图
+- **`$jj-ralph` / `/jj-ralph`**：任务全流程闭环（分析 → 计划 → 验收 → 归档）与能力地图
 - **`$jj-dispatch` / `/jj-dispatch`**：在**业务仓**发起多项目预览、批准、派发与恢复（Codex / Grok / Qoder；无 Claude 薄命令）
 
 协调状态、项目地图和知识库默认写 **`~/.jj-flow`**（`install-skill` 会生成空 `map.md` 与 `knowledge/`）。本机若另有 portfolio，用 `$JJ_GLOBAL_CONFIG_DIR/naming.json` 覆盖路径。接入地图和建知识库走 `$jj-init`（须用户同意）。`jj doctor` 可查看解析结果。
 
-它解决的是「单仓如何可追溯地做完一件事」以及「多个已分叉项目如何协同改同一能力」。**产品定位是项目编排协议与工作流**。事实来源是 run ledger、control-plane、Git commit 与验证证据，不是聊天状态。
+它解决的是「任务如何可追溯地做完一件事」以及「多个已分叉项目如何协同改同一能力」。**产品定位是项目编排协议与工作流**。事实来源是 run ledger、control-plane、Git commit 与验证证据，不是聊天状态。
 
 适合这类场景：
 

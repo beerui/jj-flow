@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { runCli } from '../src/cli.mjs';
 import {
   defaultClaudeAgentsTarget,
@@ -29,8 +30,7 @@ import {
   projectGrokTarget,
   projectQoderTarget,
   projectSkillTarget,
-  uninstallSkill,
-  UNPUBLISHED_SKILL_DIRS
+  uninstallSkill
 } from '../src/installSkill.mjs';
 import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs';
 
@@ -63,10 +63,8 @@ test('published package includes skills SSOT, agents, and Claude command wrapper
   assert.ok(files.includes('claude-commands/'));
   assert.equal(isDistributedSkillName('jj-init'), true);
   assert.equal(isDistributedSkillName('skill-en-zh-rewrite'), false);
-  assert.ok(UNPUBLISHED_SKILL_DIRS.includes('skill-en-zh-rewrite'));
-  for (const name of UNPUBLISHED_SKILL_DIRS) {
-    assert.equal(files.some((item) => item === 'skills/' + name || item === 'skills/' + name + '/'), false);
-  }
+  assert.equal(fs.existsSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'skills', 'skill-en-zh-rewrite')), false);
+  assert.equal(files.some((item) => item.includes('skill-en-zh-rewrite')), false);
 });
 
 test('jj-same docs describe the complete handoff lifecycle', () => {
@@ -308,12 +306,15 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.match(sameCorpus, /EXECUTION_READY/);
   assert.match(sameCorpus, /HANDOFF_READY/);
   assert.match(sameCorpus, /EXECUTE_NOW/);
-  assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /PREVIEW/);
+  const dispatchSkill = fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8');
+  assert.match(dispatchSkill, /PREVIEW/);
+  assert.doesNotMatch(dispatchSkill, /## Happy path/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /RECONCILE/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /origin_project/);
   assert.match(fs.readFileSync(path.join(target, 'jj-dispatch', 'SKILL.md'), 'utf8'), /reference_implementation/);
   assert.match(sameCorpus, /\.workflow|must not|不得继续用补齐|不得只更新计划/i);
-  assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Happy path|happy path/i);
+  assert.match(sameSkill, /\$jj-same|Ralph-handoff-first|Conversational path/i);
+  assert.doesNotMatch(sameSkill, /## Happy path/);
   assert.match(sameSkill, /Write plane/);
   assert.match(sameSkill, /task_plan\.md/);
   assert.match(sameSkill, /ensureDispatchRalphRuns/);
@@ -853,7 +854,7 @@ test('CLI install-skill adds missing skills without force', () => {
   });
 });
 
-test('installSkill does not distribute skill-en-zh-rewrite and removes leftover copies', () => {
+test('installSkill removes leftover skill-en-zh-rewrite copies', () => {
   const workspace = makeWorkspace('jj-flow-install-unpublished-');
   const skillsTarget = path.join(workspace, '.grok', 'skills');
   const leftover = path.join(skillsTarget, 'skill-en-zh-rewrite', 'SKILL.md');

@@ -125,7 +125,7 @@ $jj-ralph 刷新鉴权 token 失败要重登，审查过再归档
 
 对话路径**不用** `--lite`。机械 CLI 保留该开关兼容旧记录；普通对话沿用同一条流程，仍走五步。
 
-旧任务或维护记录里可能看到 `CAP-login-reminder`、`DEL-password`、`task-login-reminder` 等机器标识；它们只是记录用的名字，不需要你记，也不是新的输入格式。`控制项目`只负责多项目调度，单仓 ralph 仍应在业务仓里运行。
+旧任务或维护记录里可能看到 `CAP-login-reminder`、`DEL-password`、`task-login-reminder` 等机器标识；它们只是记录用的名字，不需要你记，也不是新的输入格式。`控制项目`只负责多项目调度，任务 ralph 仍应在业务仓里运行。
 
 ### 卡住时
 

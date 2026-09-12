@@ -65,4 +65,3 @@
 - Glossary: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/glossary.json`
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/dispatch-rewrite-report.md`
 - Inventory (path migrate): `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`

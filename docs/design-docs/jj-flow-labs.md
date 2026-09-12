@@ -22,7 +22,7 @@ jj-flow 已有协议合约（`tests/jj-ralph-contract.test.mjs`、`tests/jj-disp
 
 | 实验项目 | 推荐仓名（与 `jj-flow` 同级） | 形态 | 主路径 | 证明什么 |
 | --- | --- | --- | --- | --- |
-| **Lab 1 · Loop gym**（`loop-gym`） | `jj-lab-loop`（例：`D:\daji-docs\jj-lab-loop`） | **一个** git 仓库（单仓「业务」应用 + 种子/scripts；物化业务 git 在仓内 `_materialized/`） | `ralph` + `review` + `end` | 工程能力 + ralph 闭环 + 单仓红灯 |
+| **Lab 1 · Loop gym**（`loop-gym`） | `jj-lab-loop`（例：`D:\daji-docs\jj-lab-loop`） | **一个** git 仓库（任务「业务」应用 + 种子/scripts；物化业务 git 在仓内 `_materialized/`） | `ralph` + `review` + `end` | 工程能力 + ralph 闭环 + 任务红灯 |
 | **Lab 2 · Family gym**（`family-gym`） | `jj-lab-family`（例：`D:\daji-docs\jj-lab-family`） | **一个**实验项目仓，seed 后在 **本仓** `_materialized/` 下包装 **两个**同源已分叉的 sibling git 克隆 + 非业务 control sidecar（**不是** git 仓） | `same` + `dispatch`（源仓可跑 ralph → `run.handoff`） | 目标原生 ADAPT、handoff 双门、调度 attestation |
 
 二者都是 **lab**，不是 项目A / 项目B / 项目C，也不把任一 lab 角色改名为 `handoff`。Team 引擎（`jj-team-coordinate` / `lifecycle` / `swarm`）可选用作 worker，**不得**推进 ralph / dispatch checkpoint，也**不是**过 lab 的必要条件。
@@ -982,7 +982,7 @@ Episode：省略 `role`；`labels` 可含 `lab_role:notes-alpha`（**不得**等
 | --- | --- | --- |
 | D1 | **恰好两个顶层实验项目**：`loop-gym` 与 `family-gym`。Family gym **是一个项目、两个 git 仓库**（外加**非 git** 的非业务 control 目录）。 | 覆盖三条路径而不发明第三 lab；「项目」≠「仓库」。 |
 | D2 | **放置（用户已决，覆盖原 in-tree 默认）：两个 sibling git 仓与 `jj-flow` 同级。** 推荐目录名钉死：`jj-lab-loop`、`jj-lab-family`（例：`D:\daji-docs\jj-lab-loop`、`D:\daji-docs\jj-lab-family`）。种子/scenarios/scripts 入 **各 lab 仓**；物化 git 入 **该仓** `_materialized/`（gitignore 在 lab 仓内）。产品仓 **无** `labs/` 树，**无** `labs/_materialized/` gitignore。产品仍持有设计文档、index、exec-plan、可选 pointer README、`HNS-PUBLISH-LABS`（误加 `labs/` 进 npm `files` 仍 FAIL）、opt-in `lab:check`（`JJ_LAB_LOOP_ROOT` / `JJ_LAB_FAMILY_ROOT` 或仓外 `lab-roots.json`；缺根 fail-closed）。 | 用户拒绝 A1 in-tree；选择 A2。发布与体积隔离。漂移用 D17 pin 缓解。 |
-| D3 | **域名：笔记标题持久化 + 列表/详情一致。** Lab 1 单仓；Lab 2 同源分叉后源=Vuex 形 store、目标=Pinia 形 composable + 改名 API client。 | 最小领域就能逼出 `write-then-read` / `cross-path` 与 **ADAPT 必选**；零额外运行时依赖。 |
+| D3 | **域名：笔记标题持久化 + 列表/详情一致。** Lab 1 任务；Lab 2 同源分叉后源=Vuex 形 store、目标=Pinia 形 composable + 改名 API client。 | 最小领域就能逼出 `write-then-read` / `cross-path` 与 **ADAPT 必选**；零额外运行时依赖。 |
 | D4 | **栈：Node ESM + `node --test`，零 extra deps。** 不用 Vue/Vite 真栈。用目录与模块形状模拟 Vuex vs Pinia。 | 与 jj-flow 自身一致；CI 便宜；分叉足够让整文件 copy 失败。 |
 | D5 | **Lab 角色名 `notes-alpha` / `notes-beta`（及 `loop-gym`）。禁止 项目A/B/C、`handoff`、`project-a`。** | 避免评测/host-trial 串台。 |
 | D6 | **Lab runner 是 namingConfig 的包装，不是库行为。** 启动前必须设置绝对路径：lab 根 + `JJ_GLOBAL_CONFIG_DIR`、`JJ_DISPATCH_CONTROL_ROOT`、`JJ_PORTFOLIO_ROOT`。缺任一 → exit ≠ 0，**永不**调用 `resolveDispatchControlRoot` / `ensureDispatchControlRoot`。**Lab 1** control = `$JJ_LAB_LOOP_ROOT/_materialized/loop-gym-control/`（`seed-loop-gym.mjs` 创建，非 git）。**Lab 2** control = `$JJ_LAB_FAMILY_ROOT/_materialized/family-gym/control/`。Lab 1 **永不**指向尚未 seed 的 family 路径。 | 库覆盖序是 explicit → `JJ_DISPATCH_CONTROL_ROOT` → naming.json → `~/.jj-flow`。`resolveGlobalConfigDir()`：env `JJ_GLOBAL_CONFIG_DIR`/`DAJI_CONFIG_DIR`，否则 **win32 返回 `/portfolio/config`**。`ensureDispatchControlRoot` **会 mkdir** 解析根。Lab 规则 ≠ 库默认。PR3 不依赖 PR5。 |

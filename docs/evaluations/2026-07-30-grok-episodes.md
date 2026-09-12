@@ -160,7 +160,7 @@ map-find after archive: 2 capabilities in-repo. Portfolio KB (`/portfolio/knowle
 | Split | Episodes | Purpose |
 | --- | --- | --- |
 | optimization/search | H1 (jj-end history), S1, B2 tooling | branch preflight + closeout friction |
-| holdout | B1 sale-draft COMPLETED | protect successful single-repo ralph with knowledge_refs |
+| holdout | B1 sale-draft COMPLETED | protect successful task ralph with knowledge_refs |
 | regression | K1 postinstall Node14; H1 “no ralph run → review BLOCKED”; historical EP-05 family LITE from 2026-07-29 | freeze known good / known bad |
 
 Leakage: do not redesign branch preflight by reading holdout B1 review text beyond “do not block clean same-branch UI ralph”.

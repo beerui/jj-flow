@@ -65,4 +65,3 @@ git log / `Merge #N into staging` / 同时存在 `staging` 分支 / AGENTS 里 `
 
 - Inventory: `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/rev-end-eval-rewrite-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`

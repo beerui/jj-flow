@@ -53,4 +53,3 @@ EN 正文中保留这些 token，不翻译成 handoff/source 等。
 
 - Inventory: `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/rev-end-eval-rewrite-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`

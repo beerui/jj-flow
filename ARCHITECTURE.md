@@ -30,8 +30,8 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 
 - `skills/jj-init/` 定义全局地图接入与知识库建库。机械步骤由 `src/jjInit.mjs` + `jj init preview|join|ingest` 提供；ralph / same / dispatch 只读地图。
 - `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`assignment.md` / `onboarding.md` 定义客服独占派单形状（`ASSIGNMENT-RESEARCH` → `ASSIGNMENT-HANDOFF`）与执行人派单前缀（spawn prefix）；`scripts/` 负责采集源证据。
-- `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,context,knowledge,archive,migrate}.mjs` + `jj ralph *` 提供。`context` 读取当前合同、阶段与 Git 快照，供一次性 review 交接及任务范围校验；依赖 state/gates，knowledge 只消费其验证结果。
-- `skills/jj-review/` 定义单仓只读审查协议，同用客服独占派单形状：team-lead 写 `ASSIGNMENT-REVIEW-*.md`，spawn 一个只读 reviewer，产出 `findings.md` + `REV-*.json`。`references/review-policy.md` 是 pass/importance/nit 上限的 SSOT；`report-layout.md` 定义产出结构；`host-review.md` 描述宿主证据映射。不调用宿主内建 `/review`，不改业务代码。
+- `skills/jj-ralph/` 定义任务全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,context,knowledge,archive,migrate}.mjs` + `jj ralph *` 提供。`context` 读取当前合同、阶段与 Git 快照，供一次性 review 交接及任务范围校验；依赖 state/gates，knowledge 只消费其验证结果。
+- `skills/jj-review/` 定义任务只读审查协议，同用客服独占派单形状：team-lead 写 `ASSIGNMENT-REVIEW-*.md`，spawn 一个只读 reviewer，产出 `findings.md` + `REV-*.json`。`references/review-policy.md` 是 pass/importance/nit 上限的 SSOT；`report-layout.md` 定义产出结构；`host-review.md` 描述宿主证据映射。不调用宿主内建 `/review`，不改业务代码。
 - `src/gitSnapshot.mjs` 采集只读 Git 状态和提交范围指纹；`src/end.mjs` + `src/endCli.mjs` 提供经授权的 Git preview/execute，不写 Ralph/dispatch 账本。`skills/jj-end/scripts/end_ops.mjs` 与 Ralph 一样携带可独立安装的库，分别由 `end:sync/check`、`ralph:sync/check` 保持一致。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
 - `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-init`、`jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
@@ -63,7 +63,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
 - `src/installSkill.mjs` 安装或卸载 Codex / Grok / Claude 的 skills、commands 和 `agents/jj-*`（Claude Code `~/.claude/agents` 与 Grok 共用同一份 `.md`；Codex 用对应 `.toml`）；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
-- `src/ralph.mjs` 是单仓闭环机械步骤门面（init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics）。实现按 DAG `state ← gates ← map ← knowledge ← archive` 拆在 `src/ralph/`。它不替代 `$jj-ralph` 对话协议。
+- `src/ralph.mjs` 是任务闭环机械步骤门面（init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics）。实现按 DAG `state ← gates ← map ← knowledge ← archive` 拆在 `src/ralph/`。它不替代 `$jj-ralph` 对话协议。
 - `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。`src/memoryHotLayer.mjs` 是用户级热层（`~/.jj-flow/memory/<project_key>.md`）：findings `## 可复用结论` 在 archive 晋升，init/resume/dispatch 词法注入，confirmed 置顶；0 命中保持 empty。
 - `src/dispatch.mjs`、`src/recipes.mjs`、`src/evidence.mjs`、`src/guards.mjs`、`src/executionDecision.mjs` 和 `src/knowledgeLoop.mjs` 实现 CLI 侧的 `same` 辅助 recipe、证据归一化和门禁报告。它们是支撑工具，不是对话工作流的事实来源。
 - `src/evidenceProviders.mjs` 把外部输出适配为统一证据结构。
@@ -86,7 +86,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 4. `task_key` 是可恢复的调度身份。临时 subagent 和 task/thread 的展示状态不能替代它。
 5. Reviewer 保持只读。Developer 只在当前任务获批目标的写工作区中写入（默认 project-branch；isolation 时 exclusive-worktree）。
 6. 缺少证据时输出 `PENDING` 或 `BLOCKED`，不能推断为 `PASS`。一个目标失败时，不能推进自身检查点，也不能替其他目标宣告完成。
-7. `jj-same` 负责迁移、目标适配和同步检查点；`jj-ralph` 负责单仓闭环与能力地图；`jj-dispatch` 负责项目选择、批准、任务身份、派发和恢复。三者不重写彼此的职责。ralph 完成后可导出 handoff（给 same）或推荐快照（给 dispatch），迁移实现不在 `.workflow/ralph/` 内完成。
+7. `jj-same` 负责迁移、目标适配和同步检查点；`jj-ralph` 负责任务闭环与能力地图；`jj-dispatch` 负责项目选择、批准、任务身份、派发和恢复。三者不重写彼此的职责。ralph 完成后可导出 handoff（给 same）或推荐快照（给 dispatch），迁移实现不在 `.workflow/ralph/` 内完成。
 8. 外部副作用属于宿主。dispatch 核心代码只计算和校验状态转换，不创建 task，不 merge、push、release，也不运行后台服务。ralph 的 `commit-prep` 同样不自动 commit/push。
 9. 协议语义由 jj-flow skill / schema / CLI 定义；不绑定外部编排产品名称。
 10. Trace replay 只重放纯状态转换。场景固定、隔离且不执行真实 host action；任何输入、输出或状态 hash 漂移都必须在最早不匹配步骤失败。
@@ -117,7 +117,7 @@ Guard 只消费归一化后的证据。序列化输入、host capabilities、rec
 | --- | --- |
 | 修改全局地图接入或知识建库 | `skills/jj-init/`、`src/jjInit.mjs` |
 | 修改同源迁移或持续同步行为 | `skills/jj-same/` |
-| 修改单仓闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs`、`src/ralph/` |
+| 修改任务闭环或能力地图 | `skills/jj-ralph/`、`src/ralph.mjs`、`src/ralph/` |
 | 修改会话多角色执行引擎 | `skills/jj-team-coordinate/`、`docs/design-docs/jj-team-coordinate.md` |
 | 修改固定 SDLC 会话执行引擎 | `skills/jj-team-lifecycle/`、`docs/design-docs/jj-team-lifecycle.md` |
 | 修改对抗蚁群搜索引擎 | `skills/jj-team-swarm/`、`docs/design-docs/jj-team-swarm.md` |

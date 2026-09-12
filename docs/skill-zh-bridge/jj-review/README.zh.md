@@ -7,7 +7,7 @@
 
 ## 技能用途
 
-单仓**只读审查适配器**：走客服派单（`ASSIGNMENT-REVIEW` + spawn），**禁止**调用宿主 `/review`。有 ralph run 时双写 `findings.md` + `reviews/REV-*.json`；没有 run 时审工作区 / HEAD，不 init。
+任务**只读审查适配器**：走客服派单（`ASSIGNMENT-REVIEW` + spawn），**禁止**调用宿主 `/review`。有 ralph run 时双写 `findings.md` + `reviews/REV-*.json`；没有 run 时审工作区 / HEAD，不 init。
 
 不改业务代码，不 init run，不建 fix 任务，不走 dispatch。审查出 `NEEDS_CHANGES` 后停在 findings，等用户说「按审查改」再改。  
 可写到已 soft-archive / `COMPLETED` 的 run（ralph 无终态冻结）；不要为「补审查」另 init 新 run。  
@@ -61,4 +61,3 @@
 
 - Inventory: `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/rev-end-eval-rewrite-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`

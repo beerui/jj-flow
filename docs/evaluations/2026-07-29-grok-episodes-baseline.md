@@ -53,7 +53,7 @@ Evidence hashes are SHA-256 prefixes of the listed artifact at evaluation time.
 | tags | `validation_evidence_present` |
 | key refs | `run.json#b7b2bbd37b16`, `acceptance.md#94f7720a41e8`, `progress.md#6f16f21f2734` |
 
-Notes: clean single-repo delivery with machine-checkable acceptance. Good regression candidate for “SDK-style ralph with tests”, weak as a product-family handoff sample.
+Notes: clean task delivery with machine-checkable acceptance. Good regression candidate for “SDK-style ralph with tests”, weak as a product-family handoff sample.
 
 ### EP-20260729-02 — 智付中金对齐智付汇元
 

@@ -118,7 +118,7 @@ export const sidebar = [
     items: [
       { text: '命令总览', link: '/commands' },
       { text: 'init · 接入地图', link: '/commands/jj-init' },
-      { text: 'ralph · 单仓闭环', link: '/commands/jj-ralph' },
+      { text: 'ralph · 任务闭环', link: '/commands/jj-ralph' },
       { text: 'same · 同源迁移', link: '/commands/jj-same' },
       { text: 'dispatch · 多仓调度', link: '/commands/jj-dispatch' },
       { text: 'review · 审查落盘', link: '/commands/jj-review' },

@@ -1,21 +1,21 @@
 ---
 name: jj-same
-description: "Port and sync features across same-origin forked projects (not whole-file copy). Triggers: $jj-same, /jj-same, jj-same, 交接, 交接到, 开始交接, 迁, 迁移, 同步, hand off, handoff, port, continuous sync, SYNC-*. User says e.g. “交接到项目B/C” or “hand off to Project B”; agent resolves targets from current Ralph run/handoff (also sessions, commits, legacy snapshots) and implements. Not for single-repo loop (jj-ralph) or multi-project dispatch control (jj-dispatch). Principles: robust / razor / precise / minimal / reuse against each target’s native architecture."
+description: "Port and sync features across same-origin forked projects (not whole-file copy). Triggers: $jj-same, /jj-same, jj-same, 交接, 交接到, 开始交接, 迁, 迁移, 同步, hand off, handoff, port, continuous sync, SYNC-*. User says e.g. “交接到项目B/C” or “hand off to Project B”; agent resolves targets from current Ralph run/handoff (also sessions, commits, legacy snapshots) and implements. Not for task loop (jj-ralph) or multi-project dispatch control (jj-dispatch). Principles: robust / razor / precise / minimal / reuse against each target’s native architecture."
 ---
 
 # Cross-project precise port
 
-Sync requirement invariants; do not copy source project files. On first port of a feature from A to B, establish a verifiable baseline. Afterwards, process only effective deltas from A since the last successful sync, then apply the narrowest adaptation to B’s real capabilities. Details: [references/happy-path.md](references/happy-path.md), [references/workflow-core.md](references/workflow-core.md).
+Sync requirement invariants; do not copy source project files. On first port of a feature from A to B, establish a verifiable baseline. Afterwards, process only effective deltas from A since the last successful sync, then apply the narrowest adaptation to B’s real capabilities.
 
 Parent chat is **team-lead** (客服). Conversational `$jj-same` / 「交接到…」 writes **this-round** task docs, researches each target repo, then spawns implementers. **Do not** port business code in this chat. **Do not** treat dispatch `distribution_prompt` as the worker spec or 人设提示词. **Do not** open skill `references/` from this entry.
 
 ## Conversational path (客服; must not skip)
 
-1. Pin source commit + authorized targets (read-only dispatch approval if a plane exists). This round = the effective delta (e.g. one CSS commit), not the historic DEL Goal.
+1. Pin source commit + authorized targets (read-only dispatch approval if a plane exists). This round = the effective delta (e.g. one CSS commit), not the historic DEL Goal. Ralph-handoff-first: lead `.workflow/ralph/<run_id>/.state/run.json` → `run.handoff` (`ready=true` → **do not** redo source analysis). Ambiguous multi-target (e.g.「三端」未点名) → 🔴 **CHECKPOINT**. **Same turn:** pin each target’s Ralph `task-<slug>` ([Write plane](#write-plane--do-not-collapse)).
 2. If a `[reviewer]` worker is still running in this thread: announce 审查还在跑; **do not spawn** RESEARCH this turn (G-same-2 / `01a08fa6`). Occupancy wins over `work_policy` spawn-this-turn. Wait or park; keep `[reviewer]` labeled.
 3. Write `assignments/ASSIGNMENT-RESEARCH-<target>.md` in **that target’s** Ralph (客服 shape: 来自 team-lead / 读这些 / 交付 / 不要改 / 先确认再开工; **exact paths**). **Before spawn: 派遣调研.** Do not wait silently (Grok may hold later text until the worker returns). Call `spawn_subagent` (`jj-researcher`; missing → `general-purpose`) this turn per target — `description` starts `[research]`; `cwd` is that repo; exclusive input is that file; **调研 人设提示词 prefix** + file; read-only. Same-target later RESEARCH in that cwd: `resume_from` last completed `jj-researcher`. Saying you will research without spawning fails.
-4. From the research report, write `assignments/ASSIGNMENT-HANDOFF-<target>.md`. **Before spawn: 派遣交接实施** (e.g. 派遣开发实施交接). Spawn `jj-implementer` (missing → `general-purpose`) with `description` starting `[implementer]` and the **实施 人设提示词 prefix** + that file only. Target cwd ≠ source implementer cwd → **new spawn** (G-same-3: `resume_from` inherits cwd; do not reuse the source-repo implementer). Do not wait silently. Do not `search_replace` in the parent.
-5. After each target reports: update that repo’s Ralph. If a delivery exists and Git has a ≥7-char sha, write `produced_commit` / receipt — do not leave the previous wave’s dirty receipt.
+4. From the research report, write `assignments/ASSIGNMENT-HANDOFF-<target>.md`. Before coding: 🔴 branch-purpose + CREATE freshness; `EXECUTION_READY` unmet → 🛑 **STOP**. LITE vs FULL is one decision ([LITE vs FULL](#lite-vs-full)). **Before spawn: 派遣交接实施** (e.g. 派遣开发实施交接). Spawn `jj-implementer` (missing → `general-purpose`) with `description` starting `[implementer]` and the **实施 人设提示词 prefix** + that file only. Target cwd ≠ source implementer cwd → **new spawn** (G-same-3: `resume_from` inherits cwd; do not reuse the source-repo implementer). Do not wait silently. Do not `search_replace` in the parent.
+5. After each target reports: update that repo’s Ralph. If a delivery exists and Git has a ≥7-char sha, write `produced_commit` / receipt — do not leave the previous wave’s dirty receipt. User closeout = [template](#user-visible-closeout) only. Claim complete only at `HANDOFF_READY`. Continuous sync (`SYNC-*`) restores the last checkpoint; do not invent HEAD-as-baseline.
 
 Missing `run.handoff`: still write this-round assignments from the source commit/diff. Do not BLOCK only because `handoff_ref` is empty when the user already `$jj-end`’d a sha.
 
@@ -59,35 +59,17 @@ Paste the matching **人设提示词 prefix** into every spawn (调研 vs 实施
 
 **A:** No. `resume_from` inherits cwd. Target repo ≠ source cwd → new `jj-implementer` spawn in the target. Same-target later RESEARCH may `resume_from` last `jj-researcher` in that cwd. Do not resume a reviewer as researcher. Miss: `01a08fa6` 11× cold unlabeled General, including RESEARCH over a live reviewer.
 
-## Happy path (In → action → Out)
-
-| # | In | Action | Out / next gate |
-| --- | --- | --- | --- |
-| 1 | Session / cwd | Ralph-handoff-first: `.workflow/ralph/<run_id>/.state/run.json` (live flat `task-<slug>/`; leftover `tasks/<id>/` or `RALPH-*/run.json` ok) → `run.handoff` (mirror `.state/handoff.json`). `ready=true` → **do not** redo source analysis | `handoff` pinned **or** [Failure recovery](#failure-recovery-if-x--y) |
-| 2 | User speech (+ optional control manifest) | Parse target roles; with control, **read-only** approved `targets` / `task_key`. Ambiguous multi-target (e.g.「三端」未点名) → 🔴 **CHECKPOINT**: confirm targets before coding. **Same turn:** pin each target’s Ralph `task-<slug>` ([Write plane](#write-plane--do-not-collapse)) | Authorized targets + per-repo Ralph |
-| 3 | Current branch + task purpose | 🔴 **CHECKPOINT · branch purpose + CREATE base freshness** → [branch-purpose-preflight.md](references/branch-purpose-preflight.md) (`behind_count` / G6). Mismatch or stale base → 🛑 **STOP** | Work branch GO |
-| 4 | Change shape | `port_profile.mode` via [LITE vs FULL](#lite-vs-full) (single decision point) | `LITE` or `FULL` |
-| 5 | Auth + stable source commit/diff + requirements + target call chain + no MUST-`UNRESOLVED` | 🔴 **CHECKPOINT · `EXECUTION_READY`**. Unmet → 🛑 **STOP** business code (`BLOCKED` / caveat) | May code |
-| 6 | Narrowest plan | Conversational: implement via ASSIGNMENT-HANDOFF spawn (step 3 above), not parent edits. Mechanical/CLI: same-turn business code + focused tests on authorized targets only; not plan-status-only closeout | Diff + tests |
-| 7 | Diff | Layered verification: static/focused tests; runtime = user confirm or evidenced `N/A` | Verify record |
-| 8 | Final diff | Internal five criteria only (**do not** show to user); artifacts under typed `.workflow/`; **forbid** `.workflow/jj-same/` | Self-check done |
-| 9 | Facts from 6–8 | User closeout = [template](#user-visible-closeout) only; no five-gates / slogan tables | User summary |
-| 10 | Verify + acceptance | 🔴 **CHECKPOINT · `HANDOFF_READY`** before `READY_FOR_HANDOFF` / `COMPLETED` / advancing sync checkpoints. Unmet → 🛑 **STOP** claiming complete | Handoff claim or hold |
-| 11 | `sync_key` scenario | Continuous sync: restore checkpoint → [continuous-sync.md](references/continuous-sync.md) | Delta plan |
-
-### Global map (read-only here)
+## Global map (read-only here)
 
 Product default: `~/.jj-flow/map.md`. Missing home → `jj home init`, then continue. Unindexed cwd does not block authorized port. Map join / KB bootstrap → `$jj-init`.
 
-Full prose path + control-plane boundary → [happy-path.md](references/happy-path.md).
-
-### LITE vs FULL
+## LITE vs FULL
 
 | Use **LITE** (default) | Use **FULL** |
 | --- | --- |
 | Near-isomorphic, few files, handoff `ready=true` | Clear ADAPT / multi-file / continuous-sync |
 
-### Dual gates
+## Dual gates
 
 | Gate | Role |
 | --- | --- |
@@ -98,7 +80,7 @@ Full prose path + control-plane boundary → [happy-path.md](references/happy-pa
 - User “start migration / implement / go” → `EXECUTE_NOW`: after fact check, conversational next action = ASSIGNMENT-HANDOFF spawn (not parent edits); mechanical/CLI = business code or focused tests.
 - Five criteria (robust / razor / precise / minimal / reuse) = **agent-internal only** (definitions in happy-path).
 
-### User-visible closeout
+## User-visible closeout
 
 Use this skeleton (facts only; omit empty lines; one target block per project):
 

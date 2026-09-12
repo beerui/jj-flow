@@ -84,7 +84,7 @@
 
 ### P2c — migrate + adopt + 去掉 1.0 回退
 
-设计 §3.12 / §5 硬切。默认单仓 cwd；`--all-projects` 才走 home 地图。
+设计 §3.12 / §5 硬切。默认本任务 cwd；`--all-projects` 才走 home 地图。
 
 - [x] `jj ralph migrate` 逐目录 1:1：去日期 → `tasks/task-<slug>/`；slug 冲突 `-2` 并提示
 - [x] 步 2–6：四文件已在 P1b 的合成 `task_plan.md`（若仍是 analyze/plan/acceptance 则合并）；英文标题转中文（失败不阻断）；progress 原样 + 轮次索引；无 findings 则建空骨架；`run.json`/reviews/handoff 进 `.state/`；内联残留 `archive-manifest.json`；删 attach/contribution

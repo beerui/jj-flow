@@ -24,7 +24,7 @@ jj-flow 主路径保持：
 | 主路径 | 职责 |
 | --- | --- |
 | `jj-same` | 同源迁移 / 持续同步 |
-| `jj-ralph` | 单仓 ANALYZE→ARCHIVE + 能力地图 |
+| `jj-ralph` | 任务 ANALYZE→ARCHIVE + 能力地图 |
 | `jj-dispatch` | 多项目调度身份 / 批准 / receipt |
 
 本 skill 只在 **需要动态多角色并行** 时被调用（典型：ralph DELIVER 大改、跨模块分析、多角色文档/实现流水线）。它产出 `.workflow/.team/TC-*` 会话产物；**不得**自行推进 ralph `run.json` phase、control-plane checkpoint，或创建 `delivery_id` / 持久 `task_key`。

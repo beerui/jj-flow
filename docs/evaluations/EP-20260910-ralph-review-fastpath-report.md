@@ -17,7 +17,7 @@
 | episode_id | `EP-20260910-ralph-fastpath-time` · `EP-20260910-review-fastpath-time` |
 | skill under eval | `$jj-ralph` · `$jj-review` |
 | host | Grok（`grok-4.6` / `reasoning_effort=high` / `agent_name=grok-build-plan`） |
-| role | omitted — 单仓 ralph/review，不是 项目A / 项目B / 项目C |
+| role | omitted — 任务 ralph/review，不是 项目A / 项目B / 项目C |
 | captured_at | `2026-09-10T14:13:45.591Z` |
 | evidence provenance | 会话 `events.jsonl` / `summary.json` / `prompt_history.jsonl` / subagent `meta.json`；派生表冻结在 `.tmp/eval-20260910/` |
 

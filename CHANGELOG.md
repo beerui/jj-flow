@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+- **卸掉 skill-en-zh-rewrite**：仓库维护 skill 已不需要。删除 `skills/skill-en-zh-rewrite/` 与对照页。`install-skill` 仍从宿主目录清残留。合约：`tests/install-skill.test.mjs`。
+- **删掉 Ralph 对话 CLI 手册**：对话路径已不跑 `ralph_ops` / `jj ralph`。删除 `skills/jj-ralph/references/` 下 `phases.md` / `ops.md` / `rollback.md` / `business-map.md` / `must-evidence.md` / `post-complete-continue.md`。入口仍禁止打开 `references/`。文档形状留 `artifact-layout.md`；身份/热层留 `integrations.md`。证据类由 `evaluateAcceptArchiveGate` 执行。机械 CLI / gym / `src/cli.mjs` 保留。未确认需求细则并进 SKILL Red checkpoints。`context` 包指向 `jj-ralph/SKILL.md`。合约：`tests/ralph/assets.contract.mjs`。
+- **Skill 入口去掉 Happy path**：对话主线就是入口。`jj-same` 删掉与 Conversational path 并列的 In→Out 表，把 Ralph-handoff-first / 分支门 / `EXECUTION_READY` / `HANDOFF_READY` 并进对话步骤；入口不再链到 `references/` 当启动清单。`jj-ralph` / `jj-dispatch` 删 `## Happy path`。review / evaluated / end 去掉同名标签。`references/happy-path.md` 与场景 `dispatch-happy-path` 仍作详表与回放。合约：`tests/ralph/assets.contract.mjs`、`tests/jj-same-contract.test.mjs`、`tests/install-skill.test.mjs`。
+- **术语：单仓 / 单仓闭环 → 任务 / 任务闭环**：用户文档、架构说明、skill 描述与 trigger、CLI 帮助等 SSOT 统一为「任务」「任务闭环」/ `task` / `task loop`；产品叙述不再用「单仓」指代 ralph / review / end 作用域。已发布 CHANGELOG 段落未改。
 - **文档书面语全库对齐**：按 `docs/writing-guide.md` 统一用户文档、design-docs、exec-plans、evaluations、skill-zh-bridge、`ARCHITECTURE.md`、`AGENTS.md`。对话入口、安装说明、角色用语（执行人/人设提示词）、知识库写入确认、斜杠命令入口等口语表述改为书面语；量词与进程表述（上一轮、运行中的审查、全仓 grep 等）一并收敛。`npm run docs:check` PASS。
 - **Ralph 用户文档 marker 对齐书面语**：`docs/commands/jj-ralph.md` 已改为「不要凭猜测推进」后，合约仍锁「不要猜着做」，`verify` 在 `afd298a` 红。`tests/ralph/assets.contract.mjs` 与设计 `ralph-skill-slim` §9.3 改跟用户文档；派遣进度句按写作规范保留中英空格（`派遣 reviewer 审查改动代码`）。产品规则不变：确认不了先问。
 - **对话工人装到 Codex / Claude**：`agents/jj-implementer.toml` / `jj-reviewer.toml` / `jj-researcher.toml` 写入 `~/.codex/agents`（与 dispatch 的 `jj-workflow-*` 分开）。同一套 `agents/jj-*.md` 写入 `~/.claude/agents` 与 `~/.grok/agents`。审查工人 Codex `model_reasoning_effort = "high"`，Grok/Claude md `reasoning_effort: high`。缺失仍回退 `general-purpose`。合约：`tests/install-skill.test.mjs`、`tests/jj-review-contract.test.mjs`。

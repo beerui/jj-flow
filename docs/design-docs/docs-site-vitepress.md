@@ -227,7 +227,7 @@ VitePress 本地搜索（minisearch）默认按空白/标点分词，中文整�
 - **end**：固定顺序 拉最新 → 提交 → 同步并推工作分支 → 切到合入分支同步 → 合并 → 推合入分支 → 回到工作分支；合入分支：你写的 `integration=` > 文档/配置明说的收工分支 > `dev` → `develop` → `main` > 问你；git log 里的 `Merge into staging`、`staging` 分支存在、构建脚本名含 staging **都不算**约定；执行前先打印一行 `work→integration` 计划及来源；冲突先分类打表，能一句话说清、不用替产品做决定的自己合完继续，判不了的（同一开关两边相反、二进制/密钥）整段中止把表交给你，不会只解一半（用户页不写分类标签名——skill 正在从 `simple`/`complex` 改为 `self-merge`/`unhandleable`，中性表述两版都成立）；绝不 force push / 删分支 / 改 git 配置；`dry_run=true` 只打印计划；做完实现后 Agent 可能主动收工，不想推就明说"先别推"；end 只动 Git，不归档 ralph 任务。
 - **review**：只读；优先用宿主自带 code review；结论写进当前 ralph 任务 `.state/reviews/REV-n.json`，结果只有 通过 / 需要修改 / 阻塞；没有 ralph 任务就不会硬建一个；你也可以把审查结论贴给它记录；改完说「按审查改」回到 ralph。
 - **init**：先给短提案（中文名 / 别名 / 家族 / 待写入条数），经你确认后写入 `~/.jj-flow/map.md`；默认只处理当前仓，说「梳理 D:\2025」则加上该目录的直接子仓；名字用你说的，否则用 AGENTS.md 标题或目录名，不自己编；ralph / same / dispatch 不会自动入图。
-- **jj**：分流入口；顺序 接入 → 迁移 → 多项目 → 单仓 → 审查 → 收工；说不清就先问目标。
+- **jj**：分流入口；顺序 接入 → 迁移 → 多项目 → 任务 → 审查 → 收工；说不清就先问目标。
 
 ## 8. 验收
 

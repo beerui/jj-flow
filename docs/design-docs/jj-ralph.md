@@ -1,4 +1,4 @@
-# jj-ralph 单仓全流程自治闭环
+# jj-ralph 任务全流程自治闭环
 
 > 状态：Implemented
 >
@@ -29,7 +29,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 
 ## 3. 阶段
 
-权威：`skills/jj-ralph/references/phases.md`。
+权威：`skills/jj-ralph/SKILL.md`（对话入口）；机械 CLI 与 gate 语义在 `src/ralph/`。
 
 | 阶段 | 含义 |
 | --- | --- |
@@ -44,7 +44,7 @@ ANALYZE → PLAN → DELIVER → ACCEPT → ARCHIVE
 
 ## 4. 续作与回退
 
-权威：`rollback.md`、`post-complete-continue.md`、`src/ralph.mjs`。
+权威：`src/ralph.mjs`（phase 回退 / resume / abandon）；对话续作写在 `skills/jj-ralph/SKILL.md`。
 
 | 意图 | 动作 |
 | --- | --- |

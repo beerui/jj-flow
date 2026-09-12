@@ -189,7 +189,7 @@ export function resolveDispatchControlRoot({
  * 1. explicit
  * 2. JJ_PORTFOLIO_ROOT
  * 3. naming.json dispatch.portfolio_root
- * 4. null (no portfolio — single-repo / home-only install)
+ * 4. null (no portfolio — task / home-only install)
  */
 export function resolvePortfolioRoot({
   explicit = null,

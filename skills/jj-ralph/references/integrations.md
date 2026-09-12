@@ -85,7 +85,7 @@ Orthogonal accelerator for **code location**, not a workflow identity or gate.
 | Item | Rule |
 | --- | --- |
 | Product | [CodeGraph](https://github.com/colbymchenry/codegraph) — host MCP + per-repo `.codegraph/` index |
-| When useful | Large-repo ANALYZE, blast radius, call paths (see [phases.md](phases.md) § Code exploration) |
+| When useful | Large-repo ANALYZE, blast radius, call paths |
 | When skip | `tiny` single-file, known paths, run/git mechanics |
 | Gates | Graph output **does not** flip `run.json` gates or replace verify evidence |
 | Availability | Prefer if MCP + index present; else Read/Grep; never hard-require install |
@@ -94,7 +94,7 @@ Orthogonal accelerator for **code location**, not a workflow identity or gate.
 
 | Capability | Owner |
 | --- | --- |
-| Single-repo loop + run.handoff | jj-ralph |
+| Task loop + run.handoff | jj-ralph |
 | Cross-repo migration | jj-same |
 | Schedule identity `DEL-*` / task_key | jj-dispatch |
 | Session multi-role execution (`TC-*`) | jj-team-coordinate (optional) |
@@ -112,10 +112,10 @@ User-level hot rules live at `~/.jj-flow/memory/<project_key>.md`, separate from
 
 | Stage | Behavior |
 | --- | --- |
-| DELIVER | Record a real pitfall with `finding` only when 对策 and 适用范围 are known. `## 可复用结论` points back to a pitfall id. |
+| DELIVER | Record a real pitfall with `finding` only when 对策 and 适用范围 are known. Mechanical CLI may print `ralph_ops.mjs finding` as a soft hint (does not block). `## 可复用结论` points back to a pitfall id. |
 | ARCHIVE | `finalize` promotes `## 可复用结论`; absent findings silently skip. `knowledge-contribution.json` remains degraded (P1b). |
 | init / resume | Lexical `hot_memory` injection, cap 5, confirmed `[x]` first; events record `hot_memory:`. Zero hits stay empty. |
-| Mechanical maintenance | `knowledge-confirm` confirms a rule; `knowledge-prune` removes oldest unconfirmed rules over the cap. Syntax: [ops.md](ops.md). |
+| Mechanical maintenance | `knowledge-confirm` confirms a rule; `knowledge-prune` removes oldest unconfirmed rules over the cap. Syntax: `jj ralph --help`. |
 | Portfolio KB | Opt-in overlay; unavailable or unrelated results stay empty. It is separate from local CAP lookup and hot memory. |
 
 Durable contributions must pass Gate B and future reuse: 换一张卡还得遵守才收录. Process narration, task restatements, one-off details and field-howto without a durable rule remain in `extract_audit`. The locked examples are in `tests/fixtures/extract-future-reuse.golden.json`.

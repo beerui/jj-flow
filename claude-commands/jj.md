@@ -23,8 +23,8 @@ allowed-tools:
 
 1. 接入 / 梳理项目 / 初始化地图 / 补知识库 → `/jj-init`
 2. 同源迁移 / handoff / 同步 → `/jj-same`
-3. 单仓全流程 / ralph / 归档 / **归档后再改·废弃** → `/jj-ralph`（同 run resume 优先；见 skill 无终态冻结）
-4. 单仓审查 / review 落盘 REV（含已归档 run）→ `/jj-review`
+3. 任务全流程 / ralph / 归档 / **归档后再改·废弃** → `/jj-ralph`（同 run resume 优先；见 skill 无终态冻结）
+4. 任务审查 / review 落盘 REV（含已归档 run）→ `/jj-review`
 5. 收工 / 提交并合入 dev·develop·main → `/jj-end`（**只 Git**，不关死 ralph）
 6. 多项目调度 → `$jj-dispatch`（Codex/Qoder/Grok；Claude **无** slash = intentional）
 7. 离线评估（experimental）→ `$jj-evaluated`（无 Claude `/jj-evaluated`）

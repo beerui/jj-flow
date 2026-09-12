@@ -1,13 +1,13 @@
 ---
 name: jj-review
-description: Single-repo read-only review adapter using 客服 assignment protocol. Write ASSIGNMENT-REVIEW, spawn a read-only reviewer with that file only; never call host /review. Findings are HIGH/MEDIUM/LOW + [OK]/[WARN]/[BLOCK]; dual-write REV-*.json for gates. Small changes skip review. If a ralph run exists, map to reviews/REV-*.json; if not, review the working tree or HEAD and do not init. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions. Cross-project VERIFIED → jj-dispatch. Does not change business code.
+description: Task read-only review adapter using 客服 assignment protocol. Write ASSIGNMENT-REVIEW, spawn a read-only reviewer with that file only; never call host /review. Findings are HIGH/MEDIUM/LOW + [OK]/[WARN]/[BLOCK]; dual-write REV-*.json for gates. Small changes skip review. If a ralph run exists, map to reviews/REV-*.json; if not, review the working tree or HEAD and do not init. Use for jj-review, $jj-review, review, code review, 审查, 只读审查, 评审 commit/diff, task/review sessions. Cross-project VERIFIED → jj-dispatch. Does not change business code.
 ---
 
 # jj-review
 
 Produce a **read-only review** using the 客服 assignment protocol. Do **not** invoke host `/review` / `[reviewer] local changes` (not even for 当前的全部改动). Parent is team-lead: write `ASSIGNMENT-REVIEW-*.md`. **Before the spawn tool call**, one user-visible line: **派遣审查** (e.g. 派遣 reviewer 审查改动代码). Do not wait silently (Grok may hold later text until the worker returns). Then call `spawn_subagent` (`jj-reviewer`; missing → `general-purpose`) this turn — `description` **starts with** `[reviewer]` then names `run_id` and listed files (never `[reviewer] local changes`); exclusive input is that file. Follow-up same cwd: `resume_from` last completed `jj-reviewer` (G-review-5). Do not resume an implementer. Do **not** perform the review in this chat. Saying you will spawn without calling it fails. Do **not** re-read this SKILL or `report-layout.md` / `host-review.md` / `review-policy.md` at startup. Verdict `[OK]` / `[WARN]` / `[BLOCK]`. Bind a ralph run when one exists; otherwise review the working tree or HEAD. **Do not** init a run to hold a review. A live `[reviewer]` still running → do **not** spawn `$jj-same` / RESEARCH over it (G-review-4 / `01a08fa6`).
 
-**Happy path in one pass** (locate → scope → assignment spawn → persist if bound → finish reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
+**One pass** (locate → scope → assignment spawn → persist if bound → finish reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
 
 **May** write into soft-archived / `COMPLETED` runs (no terminal freeze).
 
@@ -154,7 +154,7 @@ Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `h
 
 ## Failure and recovery
 
-🔴 STOP or bounded recover. Happy path does **not** pause before assignment spawn or persist.
+🔴 STOP or bounded recover. Do **not** pause before assignment spawn or persist except 🔴 / 🛑.
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|

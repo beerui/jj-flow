@@ -378,10 +378,9 @@ test('deliver-attempt improved=false and rollback emit finding_hint until an F e
 test('ralph and dispatch skills mention hot memory injection', () => {
   const ralph = fs.readFileSync(path.join(root, 'skills/jj-ralph/SKILL.md'), 'utf8');
   const integrations = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/integrations.md'), 'utf8');
-  const ops = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/ops.md'), 'utf8');
   const dispatch = fs.readFileSync(path.join(root, 'skills/jj-dispatch/SKILL.md'), 'utf8');
   assert.doesNotMatch(ralph, /\[integrations\.md\]\(references\/integrations\.md\)/);
-  assert.match(ops, /ralph_ops\.mjs finding/);
+  assert.match(integrations, /ralph_ops\.mjs finding/);
   assert.match(integrations, /~\/\.jj-flow\/memory/);
   assert.match(integrations, /knowledge-confirm/);
   assert.match(dispatch, /~\/\.jj-flow\/memory/);

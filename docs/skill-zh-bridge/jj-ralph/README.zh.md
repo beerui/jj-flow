@@ -7,8 +7,8 @@
 
 ## 技能用途
 
-单仓闭环：需求分析 → 计划 → 实施验证 → 验收 → 归档（ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE）。  
-产物在业务仓 `.workflow/ralph/`；交接真相源是 `run.handoff`。  
+任务闭环：需求分析 → 计划 → 实施验证 → 验收 → 归档（ANALYZE→PLAN→DELIVER→ACCEPT→ARCHIVE）。
+产物在业务仓 `.workflow/ralph/`；交接真相源是 `run.handoff`。
 同需求始终优先同一 `run_id`（归档后 `resume`；半途 `abandon` 可救回）。「审查修复 / review-fix」不是新任务。同会话守卫认 `review.task_thread_id` 和 CLI `--thread-id` / `host.thread_id`。审查只出 findings，等用户说「按审查改」再改。跨仓用 `jj-same`，多项目调度用 `jj-dispatch`。
 
 ## 仓库规范（2026-08-03）
@@ -46,28 +46,10 @@
 
 | File | English heading (SSOT) | 中文含义 |
 | --- | --- | --- |
-| `phases.md` | Phases and checkpoints | 阶段与检查点 |
-| `phases.md` | status | 运行状态 |
-| `phases.md` | Autonomy loop | 自治循环 |
-| `phases.md` | Intensity | 强度档 tiny\|standard\|strict |
-| `phases.md` | Gate set (deprecated) | 对话路径不用 lite；机械 CLI 仅兼容旧 run |
-| `phases.md` | MUST evidence | MUST 证据（防假绿） |
-| `phases.md` | Lean execution | 精简执行 |
-| `phases.md` | User intervention | 用户介入（仅此） |
-| `phases.md` | Closeout | 收口 |
-| `phases.md` | Rollback | 回退（详见 rollback.md） |
-| `phases.md` | gate | 门禁与 product-consistency |
-| `post-complete-continue.md` | Continue after complete (agent) | 续作（agent） |
-| `post-complete-continue.md` | Principles / Detection / Fix mistakes | 原则 / 探测 / 改错 |
-| `post-complete-continue.md` | Add requirements / Abandon / Anti-patterns | 加需求 / 废弃 / 负例 |
-| `post-complete-continue.md` | Knowledge contribute | 写入知识库 |
-| `tiny-example.md` | （已删） | 入口不再挂单点样例；形状见 `artifact-layout.md`，不进 SKILL 开机清单 |
 | `artifact-layout.md` | Ralph artifact layout | Ralph 产物布局 |
 | `artifact-layout.md` | Current contract vs history | 当前合约 vs 历史（live Goal / 验收 / Steps；历史按日写 progress.md） |
-| `business-map.md` | Business / capability map | 能力地图 |
-| `rollback.md` | Ralph rollback (agent) | Ralph 回退（agent） |
 | `integrations.md` | Integration with jj-same / jj-dispatch | 与 same / dispatch 边界；另含 optional team-coordinate / team-swarm |
-| `must-evidence.md` | MUST evidence class (acceptance contract) | 验收证据类（原已 EN） |
+| `phases.md` / `ops.md` / `rollback.md` / `business-map.md` / `must-evidence.md` / `post-complete-continue.md` / `tiny-example.md` | （已删） | 对话路径不跑 CLI 手册；形状见 `artifact-layout.md`，边界见 `integrations.md`，入口不打开 `references/` |
 
 ## 阶段 / 产物
 
@@ -89,10 +71,10 @@
 
 ## 关键规则摘要
 
-1. 聊天正文不能推进检查点 → SSOT `phases.md` 开头 / Agents.md 控制面事实源规则  
-2. 同需求 → 同一 `run_id`；归档 ≠ 作废；续作用 `resume` → `post-complete-continue.md`  
-3. 证据层级不得低于 MUST 的 `evidence_class`；禁 write-then-read 仅用静态 diff 假绿 → `must-evidence.md`  
-4. product-consistency 在 accept/archive gate 机械执行 → `phases.md` § gate  
+1. 聊天正文不能推进检查点 → SSOT `SKILL.md` 开头 / Agents.md 控制面事实源规则
+2. 同需求 → 同一 `run_id`；归档 ≠ 作废；续作写 `progress.md` + 双写 `run.json`，同 `run_id` resume
+3. 证据层级不得低于 MUST 的 `evidence_class`；禁 write-then-read 仅用静态 diff 假绿 → `evaluateAcceptArchiveGate`
+4. product-consistency 在 accept/archive gate 机械执行 → `src/ralph/`
 5. 控制项目不跑业务 ralph；`DEL-*` ≠ `RALPH-*` → `integrations.md`  
 5b. accept PASS 后 MUST finalize；`status` 的 `next` 与「未完成收尾」告警是机械提示，不是聊天推进检查点
 6. `$jj-end` 只做 Git，与 run status 正交；收工顺序 review → commit → commit-scope 复审 → accept PASS → MUST finalize → `$jj-end`
@@ -102,7 +84,7 @@
 10. 「先不写代码 / 先理解需求」只写 ANALYZE，不过关、不改业务文件
 11. 截图 / 「这里」先读图当需求；同会话「继续 / 按审查改 / 改坏了」→ resume，禁止 init
 12. `index.md` 活跃超过 5 条或 5 天未动 → 「归档提示」；不自动归档；不确定先问用户
-13. 需求确认不了先问，不臆造、不挑一边、不停在猜上过 gate（含事后 MUST / 验收）→ `phases.md` User intervention #1
+13. 需求确认不了先问，不臆造、不挑一边、不停在猜上过 gate（含事后 MUST / 验收）→ `SKILL.md` CHECKPOINT (unconfirmed requirement)
 14. 对话路径 full 不按终身 `max_iterations` 停；同一 `run_id` 拆成当前未勾 Step（客服派单）；`STAGNATION` 仍挡同一策略连败；机械 `--lite` 仍封顶。G-ralph-1
 15. 对话记账是文档（`progress.md` + 双写 `run.json`），不跑 `deliver-attempt` / `gate` / `finalize` / `locate` CLI。G-ralph-3
 
@@ -118,7 +100,6 @@
 - Rewrite report: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/ralph-router-rewrite-report.md`
 - Glossary: `docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/glossary.json`
 - Inventory: `docs/skill-zh-bridge/sessions/SEZ-20260803-path-migrate/language-report.md`
-- Workflow: `skills/skill-en-zh-rewrite/`
 
 ## 修订记录
 

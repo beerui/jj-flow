@@ -152,7 +152,7 @@ CLI          src/cli.mjs runRalphCommand        ~28 子命令；文本 init 打 
 
 ### 6.1 SKILL.md 目标结构（~90 行）
 
-**一条路径，不按档分支。** SKILL 不得按 `tiny | standard | strict` 分支，不得教引擎档，不得让 Agent 去推断，不得把 `tiny`/`strict` 当 behavioral trigger，不得有 `CHECKPOINT (strict)`，不得含「init infers / init must infer」合同行。frontmatter `description` **删掉** `tiny, strict` 这类强度 trigger；保留 单仓闭环 / resume / 继续 / 改坏了 / 按审查改 / 先不写代码，以及「Conversational path never uses --lite」。`$jj-ralph tiny …` 仍路由进本 skill，因为 skill/命令名是 `jj-ralph`。
+**一条路径，不按档分支。** SKILL 不得按 `tiny | standard | strict` 分支，不得教引擎档，不得让 Agent 去推断，不得把 `tiny`/`strict` 当 behavioral trigger，不得有 `CHECKPOINT (strict)`，不得含「init infers / init must infer」合同行。frontmatter `description` **删掉** `tiny, strict` 这类强度 trigger；保留 任务闭环 / resume / 继续 / 改坏了 / 按审查改 / 先不写代码，以及「Conversational path never uses --lite」。`$jj-ralph tiny …` 仍路由进本 skill，因为 skill/命令名是 `jj-ralph`。
 
 **禁止作为 SKILL 行为正文出现：** `intensity`、`run.intensity`、`--intensity`、档名 `tiny`/`strict`、`CHECKPOINT (strict)`、`init infers`、`init must infer`。指针文件名 `tiny-example.md` 可以留（「单点 / 文案两字例子」），**不要**写「这是 intensity=tiny」。
 
@@ -164,7 +164,7 @@ PR1 SKILL **仍**教 `gate analyze` → `gate plan` → `gate deliver`。**不**
 
 ```text
 frontmatter（无档名 trigger）
-Role（≤5 行）：单仓闭环；同需求同 run_id；事实只在 .workflow/ralph/ 与 Git
+Role（≤5 行）：任务闭环；同需求同 run_id；事实只在 .workflow/ralph/ 与 Git
 Entry decision table（保留，这是路由器；Git 收工仍指向 $jj-end，不进 happy path）
 Immediate actions — **无 map-find 步、无推断合同行**：
   1 locate（index → locate CLI；多候选红检查点；截图先读图）

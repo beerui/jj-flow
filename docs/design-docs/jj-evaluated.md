@@ -16,7 +16,7 @@
 
 `$jj-evaluated`（skill id `jj-evaluated`；experimental；无 Claude slash）是一个
 只读、离线、可回放的学习系统入口，用真实项目对话导出和交付工件评估
-`jj-same`（同源迁移/持续同步）、`jj-ralph`（单仓闭环）和 `jj-dispatch`
+`jj-same`（同源迁移/持续同步）、`jj-ralph`（任务闭环）和 `jj-dispatch`
 （多项目调度）的实际使用。第一阶段学习对象是 workflow 策略、skill 文本、
 handoff 规则和工具编排，不自动训练模型、不自动改生产代码，也不替代现有
 事实源和门禁。MVP runner 提供 episode 校验、split 检查与 report 骨架，不

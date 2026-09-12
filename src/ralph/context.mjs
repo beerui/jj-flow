@@ -76,8 +76,7 @@ export function getRalphContext(runId, {
       progress_tail: tail(readRunArtifactText(run, 'progress', cwd), 30),
       events_tail: tail(readRunEventsText(runId, cwd), 15)
     },
-    reference: /review/.test(next.next || '') ? 'jj-review/SKILL.md'
-      : 'jj-ralph/references/phases.md#' + ({ ANALYZE: 'user-intervention-only-these', PLAN: 'lean-execution', DELIVER: 'lean-execution', ACCEPT: 'gate', ARCHIVE: 'closeout' }[run.phase] || 'closeout')
+    reference: /review/.test(next.next || '') ? 'jj-review/SKILL.md' : 'jj-ralph/SKILL.md'
   };
   let snapshot;
   try { snapshot = snapshotGit(cwd, { include: file => !isWorkflowNoisePath(file) }); }

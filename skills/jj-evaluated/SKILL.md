@@ -12,7 +12,7 @@ description: Experimental offline evaluation skill ($jj-evaluated / skill id jj-
 
 Turn real workflow episodes into an **offline, approval-gated** learning loop for the harness (strategy, skill text, handoff rules, tool orchestration). Do **not** silently change model weights, business code, production rules, or control-plane snapshots.
 
-**Happy path:** scope → ingest → normalize/validate → baseline → split → one candidate → cheap then expensive replay → human review → promote or archive.  
+**Main path:** scope → ingest → normalize/validate → baseline → split → one candidate → cheap then expensive replay → human review → promote or archive.
 Pause only on 🔴 CHECKPOINT / 🛑 STOP. MVP steps 6–9 are mostly agent+human; steps 3/5 use CLI.
 
 Keep roles distinct: `项目A`, `项目B`, `项目C` (do not translate/rename; do not rename a role to `handoff`; do not infer role from an old path/chat without current repo/branch/commit facts).
@@ -149,7 +149,7 @@ Time is one multi-objective signal. Protect correctness, evidence integrity, tar
 
 ## Failure and recovery
 
-🔴 Rows are **STOP or bounded recover**. Happy path does not pause for confirmation between validate-green steps and report fill.
+🔴 Rows are **STOP or bounded recover**. Do not pause for confirmation between validate-green steps and report fill.
 
 | Trigger | First fix | Still fails / must stop |
 |--------|-----------|-------------------------|

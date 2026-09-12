@@ -13,6 +13,6 @@
     { "type": "contains", "text": "ledger is documents too" },
     { "type": "not_contains", "text": "Use `ralph_ops` for conversational deliver PASS" },
     { "type": "not_contains", "text": "## Conversational commands" },
-    { "type": "file_exists", "path": "skills/jj-ralph/references/ops.md" }
+    { "type": "file_exists", "path": "skills/jj-ralph/references/artifact-layout.md" }
   ]
 }
