@@ -1,6 +1,6 @@
 # review — 把只读审查结果记下来
 
-**它帮你做什么：** 对当前改动做一次只读审查，优先调用你所在工具自带的 code review。有 ralph 任务就把结论和来源写回 `reviews/REV-*.json`；没有任务也审当前工作区 / HEAD，不另建任务。它只记录问题，不改业务代码。
+**它帮你做什么：** 对当前改动做一次只读审查，按客服派单写 `ASSIGNMENT-REVIEW` 并 spawn 审查员，**不**调用工具自带的 `/review`。有 ralph 任务就把 `findings.md` 和 `REV-*.json` 双写；没有任务也审当前工作区 / HEAD，不另建任务。它只记录问题，不改业务代码。
 
 **它不做什么：** 不创建 ralph 任务、不替你修问题，也不推进 dispatch 的多项目验收。要修问题回 [ralph](jj-ralph.md)，要做跨项目验收去 [dispatch](jj-dispatch.md)。
 
@@ -19,7 +19,7 @@
 
 **不该用 review 的情况：** 不要为了审查去新建 ralph 任务“占个位置”（点名了不存在的 `run_id` 才会 `BLOCKED`）。没有任务就审工作区 / HEAD，只回结论、不 persist。多项目的 `VERIFIED` 仍由 [dispatch](jj-dispatch.md) 负责。
 
-审查通过时回 `通过。` 加一句总结；有问题则列出每条问题和修改意见。审查本身不改代码，等你说「按审查改」。
+审查通过时回 `[OK]` 加一句总结；有问题则回 `[WARN]`/`[BLOCK]` 并列出 HIGH/MEDIUM/LOW 和修改意见。审查本身不改代码，等你说「按审查改」。
 
 ## 开始前
 
@@ -37,17 +37,17 @@ $jj-review 审一下刚才的改动
 
 **Agent 会做：**
 
-1. 找到当前（或最近）的 ralph 任务，读取目标、计划和过程记录。
-2. 确定审查范围；有可用的宿主 code review 时优先使用它，一次只走一条审查路径。同一轮对话里，这个 ralph 任务如果已经有过 `REV-*`，再 `/jj-review` 只审相对上一份的改动（delta），不要再新开一个全量审查子代理。
-3. 把结论整理成三种之一：`PASS`（通过）、`NEEDS_CHANGES`（需要修改）或 `BLOCKED`（无法判断）。
-4. 将审查来源、文件和发现写进任务，并给你一段短报告；不会直接改业务代码。
+1. 找到当前（或最近）的 ralph 任务（`index.md` 活跃唯一行）。主对话是 team-lead，不在主进程里做审查，也不开机读 skill 手册，**也不跑** `review-record` / `context --review`。
+2. 写 `ASSIGNMENT-REVIEW`（本轮派单里的文件：来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），spawn 前先说 **派遣审查**（例如「派遣reviewer审查改动代码」），再 spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；Grok 上审查工人钉 `reasoning_effort: high`，不用最高档）；**不**调用工具自带的 `/review`。审查还在跑时不要再派 `$jj-same`。同一轮对话里，这个 ralph 任务如果已经有过 `REV-*` / findings，再 `/jj-review` 只审相对上一份的改动（delta），`resume_from` 上一名 `jj-reviewer`，不要再新开一个全量审查子代理。
+3. 人读结论是 `[OK]` / `[WARN]` / `[BLOCK]`；先把结论告诉你。门禁映射为 `PASS` / `NEEDS_CHANGES` / `BLOCKED`（`HIGH` 写成 `high`）。
+4. 绑定任务时把 `findings.md` 和 `REV-n.json` 当文档写进任务目录；不会直接改业务代码。本轮只有文案/样式会跳过审查。
 
-绑定任务后，计划、验证记录、上一轮问题和本次改动范围会一次交给审查器，其他未纳入的改动也会列明。审查结果通过 JSON 文件写回，减少转义失败和重复读取。代码或当前计划变化时旧材料失效，需要审查增量；通过测试不会自动变成审查通过。
+审查员只读派单列出的文件。通过测试不会自动变成审查通过。
 
-**你会看到：** 类似下面的结果：
+**你会看到：** 先看到聊天里的「派遣reviewer审查改动代码」，子代理审完后再看到类似下面的结果：
 
 ```text
-通过。<一句总结：审了什么、结论为何通过>
+[OK] <一句总结：审了什么、结论为何通过>
 ```
 
 或有问题时：
@@ -59,7 +59,7 @@ $jj-review 审一下刚才的改动
 
 下一步：回到 ralph 说「按审查改」。审查保持只读，同一回合不改业务代码。
 
-**怎样算做完：** 任务里有可追溯的 `REV-n.json`、审查结论和来源；若结果是 `NEEDS_CHANGES` 或 `BLOCKED`，就不能把它当成通过。
+**怎样算做完：** 任务里有可追溯的 `findings.md` + `REV-n.json`、`[OK]`/`[WARN]`/`[BLOCK]` 结论和来源；若结果是 `[BLOCK]`（门禁 `NEEDS_CHANGES`）或 `BLOCKED`，就不能把它当成通过。`[WARN]` 可以进入用户验收。
 
 ## 常用说法
 
@@ -84,7 +84,7 @@ $jj-review run=task-login-reminder
 
 ## 进阶
 
-审查是只读适配层，不取代宿主自己的 review 功能；测试或 CI 通过也不能自动当作 code review 通过。已归档的 ralph 任务仍可补写审查记录，但不会因此自动改变业务代码。
+审查是只读适配层，走客服派单 spawn，不调用宿主 `/review`；测试或 CI 通过也不能自动当作 code review 通过。已归档的 ralph 任务仍可补写审查记录，但不会因此自动改变业务代码。
 
 ## 记录在哪
 

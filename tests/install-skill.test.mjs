@@ -224,6 +224,7 @@ test('installSkill installs global Codex skills and agents under the same CODEX_
   assert.equal(fs.existsSync(path.join(codexHome, 'skills', 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-workflow-developer.toml')), true);
+  assert.equal(fs.existsSync(path.join(codexHome, 'agents', 'jj-implementer.md')), false);
   for (const agent of ['jj-workflow-reviewer.toml', 'jj-workflow-developer.toml']) {
     assert.doesNotMatch(
       fs.readFileSync(path.join(codexHome, 'agents', agent), 'utf8'),
@@ -262,6 +263,8 @@ test('installSkill copies bundled Codex skills and blocks accidental overwrite',
   assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(workspace, 'agents', 'jj-workflow-developer.toml')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'continuous-sync.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'onboarding.md')), true);
+  assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'assignment.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'handoff-snapshot.schema.json')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-same', 'references', 'artifact-routing.md')), true);
@@ -434,6 +437,16 @@ test('installSkill can install Grok skills from Codex skill sources', () => {
   assert.equal(fs.existsSync(path.join(target, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(target, 'jj-evaluated', 'SKILL.md')), true);
   assert.match(fs.readFileSync(path.join(target, 'jj-same', 'SKILL.md'), 'utf8'), /^---\r?\nname: jj-same/m);
+  const grokAgents = path.join(workspace, '.grok', 'agents');
+  assert.equal(fs.existsSync(path.join(grokAgents, 'jj-implementer.md')), true);
+  assert.equal(fs.existsSync(path.join(grokAgents, 'jj-reviewer.md')), true);
+  assert.equal(fs.existsSync(path.join(grokAgents, 'jj-researcher.md')), true);
+  assert.equal(fs.existsSync(path.join(grokAgents, 'jj-workflow-reviewer.toml')), false);
+  assert.match(fs.readFileSync(path.join(grokAgents, 'jj-implementer.md'), 'utf8'), /Do not Start broad/);
+  assert.match(fs.readFileSync(path.join(grokAgents, 'jj-reviewer.md'), 'utf8'), /^reasoning_effort:\s*high\s*$/m);
+  assert.doesNotMatch(fs.readFileSync(path.join(grokAgents, 'jj-reviewer.md'), 'utf8'), /xhigh/);
+  assert.doesNotMatch(fs.readFileSync(path.join(grokAgents, 'jj-implementer.md'), 'utf8'), /reasoning_effort/);
+  assert.doesNotMatch(fs.readFileSync(path.join(grokAgents, 'jj-researcher.md'), 'utf8'), /reasoning_effort/);
 });
 
 test('installSkill can install Codex skills and Claude skills+commands together', () => {
@@ -463,6 +476,7 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   assert.equal(fs.existsSync(path.join(codexTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-reviewer.toml')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-workflow-developer.toml')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.codex', 'agents', 'jj-implementer.md')), false);
   assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
@@ -471,6 +485,9 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-dispatch', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.grok', 'agents', 'jj-implementer.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.grok', 'agents', 'jj-reviewer.md')), true);
+  assert.equal(fs.existsSync(path.join(workspace, '.grok', 'agents', 'jj-researcher.md')), true);
   assert.equal(fs.existsSync(path.join(agentsSkillsTarget, 'jj-ralph', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(agentsCommandsTarget, 'jj-ralph.md')), true);
 });

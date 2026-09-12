@@ -7,10 +7,18 @@
   "regression": [
     "EP-20260907-grok-review-subagent-waves",
     "EP-20260910-ralph-assignment-rounds",
-    "EP-20260910-review-assignment-exclusive"
+    "EP-20260910-review-assignment-exclusive",
+    "EP-20260911-ralph-lead-spawn",
+    "EP-20260911-same-handoff-assignment",
+    "EP-20260911-review-docs-not-cli",
+    "EP-20260911-ralph-docs-not-cli",
+    "EP-20260911-merchants-persona-spawn",
+    "EP-20260911-p1-custom-agents",
+    "EP-20260911-p2-resume-teammates",
+    "EP-20260911-reviewer-reasoning"
   ],
   "group_by": [
     "thread_id"
   ],
-  "notes": "Today's post-fastpath Grok sessions are diagnosis/search. Holdout empty: no generalization score. G-review-1 remains. Ralph C-ralph-round-budget-v1 landed: EP-20260910-ralph-assignment-rounds. Review C-reviewer-exclusive-input-v1 landed as 客服 assignment (G-review-2): EP-20260910-review-assignment-exclusive. EP-20260908 samples stay prior search evidence, not this split."
+  "notes": "Today's post-fastpath Grok sessions are diagnosis/search. Holdout empty: no generalization score. G-review-1 remains. Ralph C-ralph-round-budget-v1 landed: EP-20260910-ralph-assignment-rounds. Review C-reviewer-exclusive-input-v1 landed as 客服 assignment (G-review-2): EP-20260910-review-assignment-exclusive. same C-same-assignment-onboard-v1: EP-20260911-same-handoff-assignment (G-same-1). Review C-review-docs-not-cli-v1: EP-20260911-review-docs-not-cli (G-review-3). Ralph C-ralph-docs-not-cli-v1: EP-20260911-ralph-docs-not-cli (G-ralph-3). EP-20260908 samples stay prior search evidence, not this split."
 }

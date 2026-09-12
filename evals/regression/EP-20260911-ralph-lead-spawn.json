@@ -1,0 +1,20 @@
+{
+  "id": "EP-20260911-ralph-lead-spawn",
+  "source_episode": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md",
+  "skill_or_path": "skills/jj-ralph/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-ralph-2" },
+    { "type": "contains", "text": "Parent chat is **team-lead**" },
+    { "type": "contains", "text": "Call `spawn_subagent` (`jj-implementer`; missing → `general-purpose`) in this turn" },
+    { "type": "contains", "text": "jj-implementer" },
+    { "type": "contains", "text": "派遣开发实现" },
+    { "type": "contains", "text": "派遣前端开发实现任务" },
+    { "type": "contains", "text": "Do not wait silently" },
+    { "type": "contains", "text": "01a08fa0" },
+    { "type": "contains", "text": "Do **not** open skill `references/` from this entry" },
+    { "type": "contains", "text": "01a08e5b" },
+    { "type": "not_contains", "text": "## Read when needed" },
+    { "type": "not_contains", "text": "tiny-example.md" },
+    { "type": "file_exists", "path": "skills/jj-ralph/references/artifact-layout.md" }
+  ]
+}

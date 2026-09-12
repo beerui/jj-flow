@@ -1,0 +1,18 @@
+{
+  "id": "EP-20260911-merchants-persona-spawn",
+  "source_episode": "docs/evaluations/EP-20260911-merchants-persona-spawn.episode.json",
+  "skill_or_path": "skills/jj-ralph/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-ralph-4" },
+    { "type": "contains", "text": "[implementer]" },
+    { "type": "contains", "text": "[reviewer]" },
+    { "type": "contains", "text": "Start broad" },
+    { "type": "contains", "text": "审查还在跑" },
+    { "type": "contains", "text": "01a08fa6" },
+    { "type": "contains", "text": "以现有代码为准" },
+    { "type": "contains", "text": "exact paths" },
+    { "type": "contains", "text": "never sample session/commit ids" },
+    { "type": "file_exists", "path": "docs/evaluations/EP-20260911-merchants-persona-spawn.episode.json" },
+    { "type": "file_exists", "path": "docs/exec-plans/active/2026-09-11-persona-spawn-gym.md" }
+  ]
+}

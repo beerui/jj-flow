@@ -37,7 +37,7 @@ diff-only < behavior-local < write-then-read ≤ cross-path < runtime-env
 
 | Intensity | Application |
 | --- | --- |
-| `tiny` | Default class is `diff-only` or `behavior-local`. **Do not** expand lifecycle questions unless a MUST clearly needs write-then-read / cross-path. Keep artifacts short ([tiny-example.md](tiny-example.md)). |
+| `tiny` | Default class is `diff-only` or `behavior-local`. **Do not** expand lifecycle questions unless a MUST clearly needs write-then-read / cross-path. Keep artifacts short ([artifact-layout.md](artifact-layout.md)). |
 | `standard` | Classify every MUST. Enforce minimum evidence for `write-then-read` / `cross-path` / `runtime-env`. |
 | `strict` | Same as standard **plus** existing `accept_layers.judgment` requirements ([phases.md](phases.md)). |
 

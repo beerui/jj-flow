@@ -380,7 +380,7 @@ test('ralph and dispatch skills mention hot memory injection', () => {
   const integrations = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/integrations.md'), 'utf8');
   const ops = fs.readFileSync(path.join(root, 'skills/jj-ralph/references/ops.md'), 'utf8');
   const dispatch = fs.readFileSync(path.join(root, 'skills/jj-dispatch/SKILL.md'), 'utf8');
-  assert.match(ralph, /\[integrations\.md\]\(references\/integrations\.md\)/);
+  assert.doesNotMatch(ralph, /\[integrations\.md\]\(references\/integrations\.md\)/);
   assert.match(ops, /ralph_ops\.mjs finding/);
   assert.match(integrations, /~\/\.jj-flow\/memory/);
   assert.match(integrations, /knowledge-confirm/);

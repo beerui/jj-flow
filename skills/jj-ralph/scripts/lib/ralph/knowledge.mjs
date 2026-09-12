@@ -692,6 +692,31 @@ function applyNitCap(findings) {
   });
 }
 
+const FINDING_SEVERITY_ALIASES = Object.freeze({
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+  info: 'info',
+  critical: 'high',
+  blocker: 'high',
+  bug: 'high',
+  security: 'high',
+  major: 'medium',
+  important: 'medium',
+  minor: 'low',
+  suggestion: 'low',
+  nit: 'info',
+  style: 'info',
+  note: 'info',
+  optional: 'info'
+});
+
+export function normalizeFindingSeverity(severity) {
+  const key = String(severity || '').trim().toLowerCase();
+  if (!key) return 'medium';
+  return FINDING_SEVERITY_ALIASES[key] || 'medium';
+}
+
 function normalizeFindings(findings = []) {
   const mapped = [];
   for (const [index, finding] of findings.entries()) {
@@ -699,7 +724,7 @@ function normalizeFindings(findings = []) {
     if (isReviewSkipPath(file)) continue;
     const item = {
       id: finding.id || ('F-' + (index + 1)),
-      severity: finding.severity || 'medium',
+      severity: normalizeFindingSeverity(finding.severity),
       file,
       line: Number.isInteger(finding.line) ? finding.line : 1,
       description: finding.description || '',

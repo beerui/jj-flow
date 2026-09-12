@@ -1,0 +1,26 @@
+{
+  "id": "EP-20260911-same-handoff-assignment",
+  "source_episode": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md",
+  "skill_or_path": "skills/jj-same/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-same-1" },
+    { "type": "contains", "text": "ASSIGNMENT-RESEARCH" },
+    { "type": "contains", "text": "ASSIGNMENT-HANDOFF" },
+    { "type": "contains", "text": "入职 prefix" },
+    { "type": "contains", "text": "调研 入职 prefix" },
+    { "type": "contains", "text": "实施 入职 prefix" },
+    { "type": "contains", "text": "[research]" },
+    { "type": "contains", "text": "G-same-2" },
+    { "type": "contains", "text": "01a08fa6" },
+    { "type": "contains", "text": "jj-researcher" },
+    { "type": "contains", "text": "派遣调研" },
+    { "type": "contains", "text": "派遣交接实施" },
+    { "type": "contains", "text": "Do not wait silently" },
+    { "type": "contains", "text": "01a08e5b" },
+    { "type": "contains", "text": "**Do not** treat dispatch `distribution_prompt` as the worker spec or 入职" },
+    { "type": "not_contains", "text": "](references/onboarding.md)" },
+    { "type": "not_contains", "text": "](references/assignment.md)" },
+    { "type": "file_exists", "path": "skills/jj-same/references/onboarding.md" },
+    { "type": "file_exists", "path": "skills/jj-same/references/assignment.md" }
+  ]
+}

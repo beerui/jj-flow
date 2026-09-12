@@ -9,7 +9,7 @@
 
 多项目调度：PREVIEW→批准→DISPATCH→tick/resume；控制面默认 `~/.jj-flow`。  
 平台：Codex / Qoder / Grok；**故意无** Claude `/jj-dispatch` slash。
-统筹只写home目录；每个 lead/target 业务仓还要完整 Ralph `task-<slug>`（Goal/验收/Steps），不能只用 `ANL-*`。同一 delivery / 同一会话线程在该仓已有活跃 Ralph 时复用（含 `host.thread_id`），禁止再 init 第二条。多轮对话不能推进 plane。
+统筹只写home目录；每个 lead/target 业务仓还要完整 Ralph `task-<slug>`（Goal/验收/Steps），不能只用 `ANL-*`。同一 delivery / 同一会话线程在该仓已有活跃 Ralph 时复用（含 `host.thread_id`），禁止再 init 第二条。多轮对话不能推进 plane。DISPATCH 之后实施走 `$jj-same` 对话路径：本轮 ASSIGNMENT + 目标仓调研 + 入职 spawn；`distribution_prompt` 是统筹索引，不是工人说明书，也不是入职。
 
 ## 仓库规范（2026-08-03）
 
@@ -33,7 +33,7 @@
 
 | English SSOT | 中文要点 |
 | --- | --- |
-| [SKILL.md](../../../skills/jj-dispatch/SKILL.md) | 跨项目调度入口；Gates 1–8；目录默认 `~/.jj-flow`；四动作 PREVIEW/DISPATCH/RECONCILE/BIND_THREAD；Agent 写 plane；Grok Mode S；CLI 可选矩阵；回退入口；host tokens；与 jj-same 关系；明确不做 |
+| [SKILL.md](../../../skills/jj-dispatch/SKILL.md) | 跨项目调度入口；Gates 1–8；目录默认 `~/.jj-flow`；四动作 PREVIEW/DISPATCH/RECONCILE/BIND_THREAD；Agent 写 plane（对话不跑 CLI）；Grok Mode S；机械 CLI 矩阵仅给 CLI 用户；回退入口；host tokens；与 jj-same 关系；明确不做 |
 | [references/happy-path.md](../../../skills/jj-dispatch/references/happy-path.md) | 用户主线；Gates 1–8 全文；real-host PENDING；分支/workspace 判断表与 CREATE 基线新鲜度（EP-20260803）；delivery 状态链 |
 | [references/agent-write-plane.md](../../../skills/jj-dispatch/references/agent-write-plane.md) | 用户不跑 CLI 时 Agent 落盘硬门禁：状态天花板 A；`produced_commit` B；session/C4 C；自检清单 D/C5/C6；T-task-result-sync |
 | [references/control-project.md](../../../skills/jj-dispatch/references/control-project.md) | 目录/naming；control_root；注册项目；intake/delivery 字段；恢复规则；成功回执/checkpoint；Reviewer/Developer 闭环；schema 检索键 |

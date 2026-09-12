@@ -1,0 +1,11 @@
+{
+  "id": "EP-20260911-reviewer-reasoning",
+  "source_episode": "docs/evaluations/EP-20260911-merchants-persona-spawn.episode.json",
+  "skill_or_path": "agents/jj-reviewer.md",
+  "invariants": [
+    { "type": "contains", "text": "reasoning_effort: high" },
+    { "type": "not_contains", "text": "xhigh" },
+    { "type": "file_exists", "path": "agents/jj-implementer.md" },
+    { "type": "file_exists", "path": "agents/jj-researcher.md" }
+  ]
+}

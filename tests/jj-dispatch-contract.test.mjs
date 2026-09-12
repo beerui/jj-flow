@@ -1733,4 +1733,14 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /reuse-sibling/);
   assert.match(skill, /Multi-turn chat does not drive the plane/);
   assert.match(skill, /host\.thread_id/);
+  assert.match(skill, /ASSIGNMENT-RESEARCH/);
+  assert.match(skill, /ASSIGNMENT-HANDOFF/);
+  assert.match(skill, /入职/);
+  assert.match(skill, /distribution_prompt` is a plane index/);
+  assert.match(skill, /not\*\* the worker spec/);
+  assert.match(skill, /G-same-1/);
+  assert.match(skill, /01a08e5b/);
+  assert.match(skill, /Do not require CLI/);
+  assert.match(skill, /Conversational `\$jj-dispatch` never runs this table/);
+  assert.match(skill, /never `jj ralph init` CLI/);
 });

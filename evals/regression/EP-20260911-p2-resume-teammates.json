@@ -1,0 +1,12 @@
+{
+  "id": "EP-20260911-p2-resume-teammates",
+  "source_episode": "docs/evaluations/EP-20260911-merchants-persona-spawn.episode.json",
+  "skill_or_path": "skills/jj-ralph/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "G-ralph-5" },
+    { "type": "contains", "text": "resume_from" },
+    { "type": "contains", "text": "same cwd" },
+    { "type": "contains", "text": "send_subagent_message" },
+    { "type": "contains", "text": "11× cold General" }
+  ]
+}

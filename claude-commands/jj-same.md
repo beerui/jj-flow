@@ -25,5 +25,6 @@ Mandatory pointers:
 4. **证据优先**：Git / 源码 / 产物优先于聊天摘要；不足则 `BLOCKED` / caveat，不 invent。
 5. **控制面**：有 control project 时**只读** manifest / 批准的 targets / `task_key`；家族计划 ≠ dispatch 批准，无 control 不伪造成调度。
 6. **代码工具**：Read / Glob / Grep / Bash / `rg`；不整分支 cherry-pick、不整文件覆盖。
+7. **对话路径**：写本轮 ASSIGNMENT-RESEARCH / ASSIGNMENT-HANDOFF，目标仓调研后再 spawn（匹配的入职 prefix + exclusive 文件；`[research]` / `[implementer]`）；spawn 前先说 **派遣调研** / **派遣交接实施**，不要干等。目标仓 cwd ≠ 源仓实施工人 → 新开，不要 `resume_from` 源仓工人（G-same-3）。活审查未结束不要 spawn。不要在 parent 改业务代码。
 
 Do not expand this file into full lifecycle/gates workflow — keep logic in the SSOT skill.

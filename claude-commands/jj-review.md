@@ -1,6 +1,6 @@
 ---
 name: jj-review
-description: Adapter — prefer host built-in review/code-review. Bind ralph REV-*.json when a run exists; otherwise review working tree/HEAD. No init. No business-code changes.
+description: Adapter — 客服 ASSIGNMENT-REVIEW spawn; never host /review. Bind findings.md + REV-*.json when a run exists; otherwise review working tree/HEAD. No init. No business-code changes.
 argument-hint: run_id/task_thread/review_thread/reviewed_commit
 allowed-tools:
   - Read
@@ -17,6 +17,4 @@ allowed-tools:
 
 User: $ARGUMENTS
 
-For a bound run, use one `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json` packet for the host handoff. It carries the current contract, verification tail, prior findings, task paths and visible other paths. Persist real results with `--context-file`, `--findings-file` and `--host-review-file`; avoid PowerShell inline JSON. Changed code/contract requires a fresh packet and delta review, never direct-write around a stale-context error.
-
-Locate a ralph run if present (explicit `run_id`, else `.workflow/ralph/index.md` **活跃** first — currently working; glob only if that table is empty). **Prefer the host built-in review / code-review entry** (Skill or Task/subagent); do not invent a parallel full self-review when the host can review. Same-thread follow-up on a bound run that already has `REV-*` is a **delta review** (reuse findings; do not spawn a second full-repo reviewer). Bound run: map verdict + findings into `reviews/REV-n.json` and update `run.json` / `.state/events.jsonl`. Compare the diff to `task_plan.md` **## Steps** when that file exists (leftover: `## 计划 → ### 当前`). Set `source` to `host_builtin` | `user_provided` | `fallback_inline`. Unspecified and no run → unbound review of working tree / HEAD; do not init. Explicit `run_id` missing → BLOCKED. Bound PASS/NEEDS_CHANGES require `reviewed_commit`. Happy path (`PASS`): `通过。` + one-sentence summary. `NEEDS_CHANGES`: list each problem + 修改意见. Full rules: skill `jj-review` references (`host-review.md`, `report-layout.md`). G-review-1 / EP-20260907.
+Parent is team-lead. Do not re-read this command or jj-review references at startup. Locate a ralph run if present (explicit `run_id`, else `.workflow/ralph/index.md` **活跃** first). Write `ASSIGNMENT-REVIEW` (this-round files). Before spawn, one user-visible line **派遣审查** (e.g. 派遣reviewer审查改动代码); do not wait silently. Then `spawn_subagent` (`jj-reviewer`; missing → `general-purpose`) this turn with `description` starting `[reviewer]` (never `[reviewer] local changes`); do not review in this chat; **do not** call host `/review`; **do not** run `review-record` / `context --review`. A live `[reviewer]` still running → do not spawn `$jj-same`. Follow-up on a bound run with `REV-*` is a **delta** + `resume_from` last completed `jj-reviewer` (G-review-5). Bound: findings.md + `REV-n.json` files (`HIGH`→`high`); reply `[OK]`/`[BLOCK]` this turn. Unspecified and no run → unbound; do not init. Full rules: skill `jj-review`. G-review-1 / G-review-2 / G-review-3 / G-review-4 / G-review-5.

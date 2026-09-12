@@ -1350,6 +1350,8 @@ export function computeRalphNext(run, { layout = null } = {}) {
   if (gates.analyze !== 'PASS') return { next: 'gate analyze', warning };
   if (gates.plan !== 'PASS') return { next: 'gate plan', warning };
   if (gates.deliver !== 'PASS') return { next: 'gate deliver', warning };
+  // 客服: 大功能必须审；tiny / 小改 skip. [WARN] maps to PASS so UAT/accept may proceed.
+  if (normalizeIntensity(run.intensity) !== 'tiny' && outcome !== 'PASS') return { next: 'review', warning };
   return { next: 'gate accept', warning };
 }
 

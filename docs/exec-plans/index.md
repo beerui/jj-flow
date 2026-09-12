@@ -13,7 +13,11 @@
 
 | 计划 | 状态摘要 | 下一刀 |
 | --- | --- | --- |
-| [Ralph / review 流程等待](active/2026-09-10-ralph-review-process-wait.md) | Ralph 与 Review 均按客服派单落地（G-ralph-1 / G-review-2）；cheap replay 未做 | 真人 cheap replay；再后 `C-ralph-no-eager-refs-v1` |
+| [人格标签 / 反 Start-broad / 活审查占位](active/2026-09-11-persona-spawn-gym.md) | 样本 `01a08fa6`：P0–P2 靶场通过；审查工人钉 `high`；承接基线 22 pass | 有新切片再 spawn；未说归档不 archive |
+| [same / dispatch 交接派单与入职](active/2026-09-11-same-handoff-assignment.md) | `C-same-assignment-onboard-v1`：本轮 ASSIGNMENT + 入职 spawn；Family gym 隔离副本 cheap replay 通过 | 真人业务仓复测 |
+| [Ralph review 文档约束](active/2026-09-11-review-docs-not-cli.md) | `C-review-docs-not-cli-v1`：对话不跑 review-record；HIGH→high；exclusive listed files；G-review-3 | 可选 cheap replay |
+| [Ralph 对话记账文档约束](active/2026-09-11-ralph-docs-not-cli.md) | `C-ralph-docs-not-cli-v1`：对话记账写文档；Loop gym 干净副本 cheap replay 通过 | 真人业务仓复测 |
+| [Ralph / review 流程等待](active/2026-09-10-ralph-review-process-wait.md) | G-ralph-1 / G-review-2 已落地；`C-ralph-no-eager-refs-v1` + G-ralph-2（team-lead spawn）本刀 | 真人 cheap replay |
 | [Grok dispatch Mode S 执行](active/2026-07-30-grok-dispatch-execution.md) | Phase 2a live + Mode W/P **机械已落地**；Host Wave 2 / A2 **已关闭** | 可选 remote land / Revert-remerge |
 | [Dispatch / Mode S 升级 backlog](active/2026-07-31-dispatch-upgrade-backlog.md) | C4–C6 + Mode W + Mode P + Host Wave 2 **promoted** | 可选 remote land |
 

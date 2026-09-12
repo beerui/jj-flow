@@ -9,7 +9,9 @@
 
 同源分叉项目间迁移/同步功能；从 Ralph handoff 解析目标并适配目标原生架构。
 
-**写哪（2026-09-04）**：源仓读 `run.handoff`；每个目标仓写自己的 Ralph（先复用同会话 / 审查切片 live run，否则 dispatch `task-<slug>`）。`ANL-TARGET` 只是 id。不要把分析正文写进 `~/.jj-flow/.workflow/tasks/`，也不要再开 csv-wave 当实施本。same 不调用 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。
+**写哪（2026-09-04）**：源仓读 `run.handoff`；每个目标仓写自己的 Ralph（先复用同会话 / 审查切片 live run，否则 dispatch `task-<slug>`）。缺目标仓 Ralph 时写该仓文档，不跑 `jj ralph init`。`ANL-TARGET` 只是 id。不要把分析正文写进 `~/.jj-flow/.workflow/tasks/`，也不要再开 csv-wave 当实施本。same 不调用 `ensureDispatchRalphRuns`。多轮对话不能推进 plane。
+
+**对话路径（2026-09-11）**：主对话是 team-lead。写下本轮 `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`（像派单，精确文件），到目标仓调研后再 spawn；spawn 前先说「派遣调研」「派遣交接实施」，不要干等。调研 spawn `jj-researcher`，实施 spawn `jj-implementer`（缺失则 `general-purpose`）；`description` 以 `[research]` / `[implementer]` 开头；调研入职和实施入职分开贴。目标仓 cwd ≠ 源仓实施工人 → **新开**，不要 `resume_from` 源仓工人（会带着源仓 cwd）。同目标仓后续调研可 `resume_from` 上一名 `jj-researcher`。活审查未结束不要 spawn。`distribution_prompt` 不是工人说明书。G-same-1 / G-same-2 / G-same-3。
 
 ## 仓库规范（2026-08-03）
 
@@ -35,6 +37,8 @@
 | EN heading | ZH gloss |
 | --- | --- |
 | Cross-project precise port | 跨项目精准迁移 |
+| Conversational path (客服) | 对话路径：本轮派单 → 调研 → 入职 spawn |
+| 入职 prefix | spawn 前置入职（工人不是 team-lead） |
 | Happy path checklist | Happy path 清单 |
 | How users say it | 用户怎么说 |
 | Write plane (do not collapse) | 写面（勿塌层） |
@@ -46,6 +50,8 @@
 | Hard constraints / MUST NOT | 硬约束 / MUST NOT |
 | References | 引用 |
 | Invocation examples | 调用示例 |
+
+入口不 markdown 链接 `onboarding.md` / `assignment.md`（eager-ref）。形状与入职全文在 references，spawn 时把 SKILL 里的 入职 prefix 贴进 prompt。
 
 ### `references/happy-path.md`
 
@@ -81,6 +87,14 @@
 | 6. Implement increments | 6. 实施增量 |
 | 7. Layered verification | 7. 分层验证 |
 | Delivery format (user-visible = short summary) | 交付格式（用户可见 = 短总结） |
+
+### `references/assignment.md` / `references/onboarding.md`
+
+| EN heading | ZH gloss |
+| --- | --- |
+| ASSIGNMENT-RESEARCH | 目标仓只读调研派单 |
+| ASSIGNMENT-HANDOFF | 本轮交接实施派单 |
+| Spawn prefix / 入职 | 工人前置入职（不是 team-lead） |
 
 ### `references/continuous-sync.md`
 

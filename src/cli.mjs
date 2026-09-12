@@ -12,6 +12,7 @@ import {
   projectClaudeTarget,
   projectCodexAgentsTarget,
   projectCodexTarget,
+  projectGrokAgentsTarget,
   projectGrokTarget,
   projectQoderTarget,
   uninstallSkill
@@ -807,6 +808,7 @@ function parseAssetArgs(rawArgs, cwd = process.cwd(), command = 'install-skill')
       options.claudeTargetDir = projectClaudeTarget({ cwd });
       options.qoderTargetDir = projectQoderTarget({ cwd });
       options.grokTargetDir = projectGrokTarget({ cwd });
+      options.grokAgentsTargetDir = projectGrokAgentsTarget({ cwd });
       options.agentsSkillsTargetDir = projectAgentsSkillsTarget({ cwd });
       options.agentsCommandsTargetDir = projectAgentsCommandsTarget({ cwd });
       continue;
@@ -1735,11 +1737,11 @@ function printHarnessGcHelp(stdout) {
 }
 
 function printInstallHelp(stdout) {
-  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills，agents 安装 ~/.agents/skills + commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills。\n  --target dir  自定义 skills/commands 目标；Codex agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       覆盖已存在的安装文件。不加时仍会补上缺失 skill（例如新版本的 jj-init），不覆盖已有文件。\n  --dry-run     显示 skills、agents 与 commands 的目标、将写入的缺失项和将跳过的已有文件，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
+  stdout.write(`jj install-skill\n\n用法：\n  jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    安装目标。codex 同时安装 .codex/skills 与 .codex/agents，claude 安装 .claude/skills（完整 skill）+ .claude/commands（薄入口），qoder 安装 .qoder/skills，grok 安装 .grok/skills 与 .grok/agents，agents 安装 ~/.agents/skills + commands，all 安装全部资产。默认：codex\n  --project     安装到当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills、.grok/agents 或 .agents/skills。\n  --target dir  自定义 skills/commands 目标；Codex/Grok agents 安装到该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       覆盖已存在的安装文件。不加时仍会补上缺失 skill（例如新版本的 jj-init），不覆盖已有文件。\n  --dry-run     显示 skills、agents 与 commands 的目标、将写入的缺失项和将跳过的已有文件，不写文件。\n  --json        输出结构化结果；Codex 结果包含 agents 与 agent_target。\n\n纪律：\n  Skill 权威源（多端 SSOT）是仓库顶层 skills/；install 分发到各宿主 skills 目录。\n  Claude 安装完整 skills 到 .claude/skills，并安装 .claude/commands 薄入口。改 skill 后请 --force 重装各端。清单见 skill-inventory.json；对账 npm run harness:check。\n  同时在 ~/.jj-flow 生成空 map.md 与 knowledge/（已有文件不覆盖）。新项目须用户同意后才写入索引。\n`);
 }
 
 function printUninstallHelp(stdout) {
-  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/skills 与 .claude/commands，qoder 处理 .qoder/skills，grok 处理 .grok/skills，agents 处理 ~/.agents/skills 与 commands，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills 或 .agents/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
+  stdout.write(`jj uninstall-skill\n\n用法：\n  jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]\n\n选项：\n  --platform    卸载目标。codex 同时处理 .codex/skills 与 .codex/agents，claude 处理 .claude/skills 与 .claude/commands，qoder 处理 .qoder/skills，grok 处理 .grok/skills 与 .grok/agents，agents 处理 ~/.agents/skills 与 commands，all 处理全部资产。默认：codex\n  --project     从当前项目的 .codex/skills、.codex/agents、.claude/commands、.qoder/skills、.grok/skills、.grok/agents 或 .agents/skills 卸载。\n  --target dir  自定义 skills/commands 目标；Codex agents 位于该目录的兄弟 agents 目录。不能和 --platform all 一起使用。\n  --force       删除内容已修改或旧版未登记所有权的明确 jj-flow 资产。\n  --dry-run     仅显示删除目标、冲突和是否需要 --force，不写文件。\n  --json        输出结构化结果，包括 removed、conflicts 和 conflict_details。\n\n说明：\n  默认按 ownership manifest 或当前包内容校验，任一冲突都会阻止整组删除。不会按 jj-* 前缀扫描或删除未知资产。\n`);
 }
 
 // Also support the repository's documented `node src/cli.mjs ...` entrypoint.

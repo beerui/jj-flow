@@ -26,7 +26,7 @@ Exceptions and gates **outrank** the main line.
 7. **Receipt present or need to advance already-bound tasks** → tick/resume (with CLI: `jj dispatch-tick`; **without CLI, Agent edits plane directly**, must follow [agent-write-plane.md](agent-write-plane.md)).
 8. **Mark target/delivery VERIFIED** (or development DONE) → first satisfy terminal evidence (git commit / review / real session id + **attestation file**). If not met: at most `EVIDENCE_READY` / `RUNNING`; never write VERIFIED because the user said “done / merged”. **T-task-result-sync**: in the same plane write that promotes VERIFIED, refresh task dir `result.md` / `progress.md`; forbid plane VERIFIED while result still says EVIDENCE_READY.
 
-When a `TASK-ID` exists, recover index and manifest first (with CLI: `jj task context/status`; without CLI: read task dir and plane under control_root), then apply the gates above.
+When a `TASK-ID` exists, recover index and manifest first: conversational path reads the task dir and plane under control_root (never CLI). Mechanical CLI may use `jj task context/status`. Then apply the gates above.
 
 ## real-host acceptance
 

@@ -29,9 +29,9 @@
 
 Details: [host-review.md](host-review.md). Passes / nit cap / Steps: [review-policy.md](review-policy.md). **Do not** run a second parallel self-review that overwrites a host verdict already given (unless the user explicitly requests re-review).
 
-Maintenance path and conversation path share the same schema: `jj ralph review-record --source … [--host-review-json …]` writes provenance fields; do not assume the CLI drops provenance.
+Conversation path writes `findings.md` + `REV-n.json` + `run.json.review` + `accept_layers.judgment` as documents (客服). Map `HIGH`→`high`. Do **not** run `ralph_ops context --review` or `review-record` in `$jj-review` / `$jj-ralph` chat.
 
-For a bound run, `ralph_ops context --run-id <id> --review --output .workflow/ralph/<id>/.state/review-context.json` gathers scope, current plan, verification tail and prior findings once. Give this packet to the reviewer, then use `--context-file`, `--findings-file` and `--host-review-file` for persistence. File paths resolve against cwd and UTF-8 BOM is accepted. Inline JSON is still compatible. `context_snapshot` on REV records the validated contract hash, HEAD/range, task paths and other paths. It is evidence of the reviewed snapshot, not permission to reuse a verdict after a code change. A stale packet is regenerated and the delta reviewed; direct writes must not bypass validation.
+Maintenance CLI may still use `jj ralph review-record --source … [--host-review-json …]` and optional `context --review` packets. Do not assume the CLI drops provenance. A leftover `review-context.json` is evidence of a snapshot, not permission to reuse a verdict after a code change.
 
 ## REV report fields
 
@@ -85,12 +85,14 @@ For a bound run, `ralph_ops context --run-id <id> --review --output .workflow/ra
         "path": "reviews/REV-1.json",
         "outcome": "PASS",
         "reviewed_commit": "abcdef1234567",
+        "review_scope": "working_tree",
         "task_thread_id": "019f8c85-8c32-72c3-b62b-ee9f0753a9e7",
         "review_thread_id": "019f8cb8-14e9-79b3-bf40-30ba6c89ef2c",
         "recorded_at": "2026-07-23T08:00:00.000Z"
       }
     ]
-  }
+  },
+  "accept_layers": { "judgment": "PASS", "judgment_mode": "review" }
 }
 ```
 

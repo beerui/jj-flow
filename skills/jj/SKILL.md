@@ -54,5 +54,5 @@ Decision hints:
 1. Preserve the user’s original requirement and motive; do not rewrite the request into fixed CLI parameters.
 2. Prefer project materials, `.workflow` state, session, handoff, ralph map, branch and commit evidence.
 3. Locate code with Read, Glob, Grep, Bash, or an approved skill. If the host exposes **CodeGraph** MCP tools (e.g. `codegraph_explore`) **and** the workspace has a usable index (`.codegraph/` or healthy `codegraph status`), prefer graph queries for call paths, blast radius, and cross-file entry points — not for known single-file paths, `run.json`/gates, or git/workflow mechanics. Missing, error, or empty graph → fall back immediately; do not invent availability; graph output does not advance checkpoints.
-4. Do not shell-exec conversation commands like `jj-same`; use `npx`/`jj` for installing assets or `jj ralph *` mechanical steps.
+4. Do not shell-exec conversation commands like `jj-same`. Conversational ralph / review / same / dispatch never run `jj ralph` / `ralph_ops.mjs`. Use `npx`/`jj` only to install assets.
 5. When evidence is insufficient keep `PENDING`/`BLOCKED`; only ask the user where the answer would change delivery outcomes.

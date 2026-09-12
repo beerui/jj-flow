@@ -14,6 +14,33 @@ import {
 } from '../../src/ralph.mjs';
 import { ledgerText } from './helpers.mjs';
 
+test('recordReview maps HIGH/MEDIUM/LOW to lowercase severities', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-high-'));
+  try {
+    const runId = 'task-review-high';
+    initRun({ run_id: runId, title: 'high alias', goal: 'map HIGH', attach_knowledge: false }, cwd);
+    const result = recordReview(runId, {
+      cwd,
+      outcome: 'NEEDS_CHANGES',
+      summary: 'block',
+      findings: [{
+        id: 'F-1',
+        severity: 'HIGH',
+        file: 'src/a.js',
+        line: 1,
+        description: 'user-visible leak',
+        status: 'OPEN',
+        acceptance: 'hide it'
+      }]
+    });
+    assert.equal(result.report.findings[0].severity, 'high');
+    const disk = JSON.parse(fs.readFileSync(path.join(cwd, '.workflow', 'ralph', runId, '.state', 'reviews', 'REV-1.json'), 'utf8'));
+    assert.equal(disk.findings[0].severity, 'high');
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('review-record associates task/review threads on ralph run', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-ralph-review-'));
   const chunks = [];

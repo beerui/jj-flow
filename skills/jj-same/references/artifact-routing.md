@@ -53,9 +53,9 @@ The `jj-flow` repo itself still follows Harness rules and does not treat `.workf
 | Target project review | Target analysis (from blueprint / handoff) | **That target’s** `.workflow/ralph/task-<slug>/task_plan.md` | `ANL-TARGET` id |
 | Implement plan | Implement plan (from analyze) | Same `task_plan.md` `## Steps` (+ progress). Leftover scratch `plan.json` is read-only | `PLN-*` id |
 | Implement and verify | Implement execution | Target Ralph `progress.md` / `findings.md` / `.state/events.jsonl` | `EXC-*`, `VRF-*` ids |
-| Code review | `$jj-review` / `review-record` | Target Ralph `.state/reviews/REV-*.json` | `REV-*` |
+| Code review | `$jj-review` | Target Ralph `reviews/review-*/findings.md` + `.state/reviews/REV-*.json` | `REV-*` |
 
-If the target repo has no Ralph `task-<slug>/`, init/resume it in **that repo** first (`jj ralph init`). Do not hand-forge artifact IDs or treat `control_root` TASK files as completion. Leftover `.workflow/state.json` ids are optional citations only.
+If the target repo has no Ralph `task-<slug>/`, write that repo’s `.workflow/ralph/task-<slug>/` documents (`task_plan.md` / `progress.md` / `findings.md` / `index.md`). Never `jj ralph init` CLI. Do not hand-forge artifact IDs or treat `control_root` TASK files as completion. Leftover `.workflow/state.json` ids are optional citations only.
 
 ## Content mapping
 

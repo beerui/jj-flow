@@ -32,9 +32,10 @@
 
 | English heading (SSOT) | 中文含义 | 备注 |
 | --- | --- | --- |
-| Immediate actions | 立即动作 | 定位 run（含 `completed/` / `jj ralph locate`）、intensity、gate、**MUST finalize**；status / locate 带 `next`；存量用 `jj ralph remediate`；`~/.agents/skills` 由 install-skill `--platform agents` 分发 |
+| Immediate actions | 立即动作 | 主对话是 team-lead：定位 run、写客服形状 `ASSIGNMENT-TASK`（精确文件 / 先确认再开工 / 等 Task n+1）并本轮 spawn `jj-implementer`（缺失则 `general-purpose`，`description` 以 `[implementer]` 开头）；同一 cwd 上一刀已结束则 `resume_from`（G-ralph-5）；换人格/换仓新开；spawn 前先说「派遣前端开发实现任务」「派遣reviewer审查改动代码」，不要干等；活审查未结束不要再派 same；禁止主对话改业务代码；入口不挂 ops/phases/layout/must；大功能审完等用户验收；记账写 `progress.md` + `run.json`，不跑 CLI；**MUST finalize** |
 | Handoff | 交接 | 真相源 `run.handoff` |
-| Scripts | 脚本 | `ralph_ops.mjs` 子命令清单 |
+| Conversational documents | 对话产物 | `task_plan.md` / `progress.md` / `findings.md` / `assignments/` / `index.md` / `.state/run.json`；不跑 CLI |
+| Scripts | 脚本 | 机械 CLI 用户才跑 `ralph_ops.mjs`；对话路径不跑 |
 | Rollback & continue (summary) | 回退与续作（摘要） | 含 archive 后再做、abandon |
 | Knowledge contribute (L2) | 投喂知识库（L2） | candidate only；fail-open |
 | Hard constraints | 硬约束 | 控制项目禁业务 ralph 等 |
@@ -60,7 +61,7 @@
 | `post-complete-continue.md` | Principles / Detection / Fix mistakes | 原则 / 探测 / 改错 |
 | `post-complete-continue.md` | Add requirements / Abandon / Anti-patterns | 加需求 / 废弃 / 负例 |
 | `post-complete-continue.md` | Knowledge contribute | 投喂知识库 |
-| `tiny-example.md` | Tiny single-point example | 单点改动最短样例 |
+| `tiny-example.md` | （已删） | 入口不再挂单点样例；形状见 `artifact-layout.md`，不进 SKILL 开机清单 |
 | `artifact-layout.md` | Ralph artifact layout | Ralph 产物布局 |
 | `artifact-layout.md` | Current contract vs history | 当前合约 vs 历史（live Goal / 验收 / Steps；历史按日写 progress.md） |
 | `business-map.md` | Business / capability map | 能力地图 |
@@ -103,6 +104,7 @@
 12. `index.md` 活跃超过 5 条或 5 天未动 → 「归档提示」；不自动归档；不确定先问用户
 13. 需求确认不了先问，不臆造、不挑一边、不停在猜上过 gate（含事后 MUST / 验收）→ `phases.md` User intervention #1
 14. 对话路径 full 不按终身 `max_iterations` 停；同一 `run_id` 拆成当前未勾 Step（客服派单）；`STAGNATION` 仍挡同一策略连败；机械 `--lite` 仍封顶。G-ralph-1
+15. 对话记账是文档（`progress.md` + 双写 `run.json`），不跑 `deliver-attempt` / `gate` / `finalize` / `locate` CLI。G-ralph-3
 
 ## 刻意不对照的内容
 

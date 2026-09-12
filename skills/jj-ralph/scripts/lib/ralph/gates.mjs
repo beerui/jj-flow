@@ -629,7 +629,7 @@ export function evaluateAcceptJudgment(run, { force = false } = {}) {
       reasons.push(
         'strict intensity requires accept_layers.judgment=PASS (current='
         + (layers.judgment || 'missing')
-        + '); record a passing review (review-record), then retry gate accept'
+        + '); persist a passing review via $jj-review (findings.md + REV json), then retry gate accept'
       );
     }
   }

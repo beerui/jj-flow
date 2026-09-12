@@ -1,0 +1,13 @@
+{
+  "id": "EP-20260911-p1-custom-agents",
+  "source_episode": "docs/evaluations/EP-20260911-merchants-persona-spawn.episode.json",
+  "skill_or_path": "skills/jj-ralph/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "jj-implementer" },
+    { "type": "contains", "text": "jj-reviewer" },
+    { "type": "contains", "text": "missing → `general-purpose`" },
+    { "type": "file_exists", "path": "agents/jj-implementer.md" },
+    { "type": "file_exists", "path": "agents/jj-reviewer.md" },
+    { "type": "file_exists", "path": "agents/jj-researcher.md" }
+  ]
+}

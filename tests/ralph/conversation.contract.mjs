@@ -125,7 +125,7 @@ test('mechanical intensity overrides remain explicit; blank values infer and CLI
   assert.match(chunks.join(''), /jj ralph init --intensity/);
 });
 
-test('judgment errors route to review-record while next remains independent of intensity', () => {
+test('judgment errors route to $jj-review while next remains independent of intensity', () => {
   for (const intensity of ['tiny', 'standard', 'strict']) {
     const run = createRunSkeleton({ run_id: 'task-next-' + intensity, title: 'next', goal: 'next', intensity });
     run.gates.deliver = 'PASS';
@@ -133,12 +133,13 @@ test('judgment errors route to review-record while next remains independent of i
     run.gates.analyze = 'PASS';
     assert.equal(computeRalphNext(run).next, 'gate plan');
     run.gates.plan = 'PASS';
-    assert.equal(computeRalphNext(run).next, 'gate accept');
+    assert.equal(computeRalphNext(run).next, intensity === 'tiny' ? 'gate accept' : 'review');
     if (intensity === 'strict') {
       const judgment = evaluateAcceptJudgment(run);
       assert.equal(judgment.ok, false);
-      assert.match(judgment.reasons.join(';'), /review-record.*gate accept/);
+      assert.match(judgment.reasons.join(';'), /\$jj-review.*gate accept/);
       assert.doesNotMatch(judgment.reasons.join(';'), /setAcceptLayer/);
+      assert.doesNotMatch(judgment.reasons.join(';'), /review-record/);
     }
     run.gates.accept = 'PASS';
     assert.equal(computeRalphNext(run).next, 'finalize');
@@ -233,7 +234,7 @@ test('folded delivery saves the ledger once and recovers partial prerequisites o
   writer.mock.restore();
   setGate(run.run_id, { gate: 'plan', status: 'FAIL', cwd });
   assert.deepEqual(passDeliverGates(run.run_id, { cwd }).gates_written, ['plan', 'deliver']);
-  assert.equal(computeRalphNext(loadRun(run.run_id, cwd)).next, 'gate accept');
+  assert.equal(computeRalphNext(loadRun(run.run_id, cwd)).next, loadRun(run.run_id, cwd).intensity === 'tiny' ? 'gate accept' : 'review');
   for (const gate of ['analyze', 'plan', 'deliver']) {
     assert.match(readRunEventsText(run.run_id, cwd), new RegExp('gate ' + gate + '=PASS'));
   }
@@ -274,7 +275,7 @@ test('folded delivery preserves judgment, product consistency and archive review
   writeConversationPlan(cwd, run.run_id, { steps: '1. Update `src/expected.mjs`' });
   passDeliverGates(run.run_id, { cwd });
   assert.throws(() => setGate(run.run_id, { gate: 'accept', status: 'PASS', cwd, diff_paths: ['src/other.mjs'] }), /product-consistency/);
-  assert.throws(() => setGate(run.run_id, { gate: 'accept', status: 'PASS', cwd }), /review-record.*gate accept/);
+  assert.throws(() => setGate(run.run_id, { gate: 'accept', status: 'PASS', cwd }), /\$jj-review.*gate accept/);
   assert.equal(loadRun(run.run_id, cwd).gates.accept, 'PENDING');
   recordReview(run.run_id, { cwd, outcome: 'PASS', summary: 'Evidence checked', findings: [], review_scope: 'working_tree' });
   setGate(run.run_id, { gate: 'accept', status: 'PASS', cwd });

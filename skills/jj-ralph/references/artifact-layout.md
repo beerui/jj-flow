@@ -10,10 +10,16 @@
     task_plan.md                  # current contract only: Goal / 验收 / Steps
     progress.md                   # dated human narrative (## YYYY-MM-DD); append-only
     findings.md                   # 改动摘要 / 行为 / 踩坑 / 验证；empty F-00N forbidden
+    assignments/                  # 客服派单：子代理只吃这些文件，不吃聊天
+      ASSIGNMENT-TASK-<n>.md      # 读这些 / 交这些 / 不要改那些 / 做完等下一刀
+      ASSIGNMENT-REVIEW-<n>.md    # 审查派单（只读源码）
+      ASSIGNMENT-RESEARCH-<target>.md   # 交接调研（只读目标仓）
+      ASSIGNMENT-HANDOFF-<target>.md    # 交接实施（入职后 spawn）
+    reviews/review-<slice>/findings.md  # 人读审查：[OK]/[WARN]/[BLOCK] + HIGH/MEDIUM/LOW
     .state/
       run.json
       events.jsonl                # machine SSOT (gate / deliver-attempt / review / …)
-      reviews/REV-*.json
+      reviews/REV-*.json          # 门禁双写
       handoff.json
   completed/task-{kebab-slug}/    # archive / abandon (incl. ABANDONED); resume lifts back
   migrated/RALPH-*/               # migrate shelter for .migrated-RALPH-* leftovers
@@ -29,7 +35,7 @@
 4. Scripts: `scripts/ralph_ops.mjs`; syntax and conditional mechanical operations live in [ops.md](ops.md)
 5. `task-*` ≠ control-plane `DEL-*` / dispatch `task_key`
 6. Live runs sit at `.workflow/ralph/task-*`. `archive` / `abandon` rename into `completed/`; `resume` lifts back and opens a new progress round. Leftover `archive/` folders are historical 1.0 snapshots — `jj ralph migrate --prune-archive` dry-runs removal, `--yes` deletes. Active leftover `RALPH-*` dirs fail load/gate/save until `jj ralph migrate`
-7. Intent is the Goal paragraph. `tiny` skips empty `## 存疑` at init unless `--intent`. Unconfirmed requirement / analyze-hold still write `## 存疑` and ask first. Same requirement resume keeps Goal; a truly new requirement may get a new run
+7. Intent is the Goal paragraph. No empty `## 存疑` at init unless `--intent`. `tiny` skips empty `## 存疑` at init unless `--intent`. Unconfirmed requirement / analyze-hold still write `## 存疑` and ask first (`tiny` is not exempt). Conversational path never `--lite`; `tiny` does **not** drop gates. Same requirement resume keeps Goal; a truly new requirement may get a new run
 8. Claimed implementation paths read `task_plan.md` **## Steps** (leftover runs: `## 计划 → ### 当前`). Do not put `#` fragments in `artifact_refs`
 
 ## Current contract vs history
@@ -91,6 +97,86 @@ Dated human narrative. Read the last ~30 lines on resume. Do not paste ISO `gate
 ```
 
 `resume` / approach change: append `## YYYY-MM-DD — resume` plus the reason. `scope --replace-in` appends `## YYYY-MM-DD — assignment` and resets the deliver-attempt counter (new 客服 slice on the same `run_id`). Do not stamp a stub `进行中` — progress is append-only, so a placeholder can never be filled in. Write a result line only when there is a real outcome. Never rewrite an earlier date section.
+
+### File shape (`assignments/ASSIGNMENT-TASK-<n>.md`)
+
+Exclusive spawn input. Copy this 客服 shape. The subagent must not read the parent chat.
+
+```markdown
+# 派单：Task n — <slice title>
+
+来自 team-lead。Task n-1 已完成。本 slice **只做**下列交付，**不要**开始 Task n+1。
+请先一句话确认目标理解与第一步，再开工。
+
+## 读这些
+1. `path/plan.ts`（参考，**不要改**）
+2. `path/a.ts`
+
+## 交付
+1. `path/a.ts` — …
+2. 单测 `path/a.test.ts` — …
+3. 更新本任务 `progress.md` + `findings.md`
+
+## 不要改
+- `path/other.ts`
+- 不要 commit（等 team-lead）
+
+## 验证
+- `<repo verify command>`
+
+完成后向 team-lead 短句汇报（做了什么 / 路径 / 可验证证据），等 Task n+1。
+```
+
+### File shape (`assignments/ASSIGNMENT-REVIEW-<n>.md`)
+
+```markdown
+# 派单：Review — <slice>
+
+来自 team-lead。Task 0–n 已完成。请做大功能代码审查。不要改业务代码。不要调用宿主 `/review`。
+
+## 范围（只读源码；可写本审查目录）
+- `path/a.ts`
+- `path/a.test.ts`
+- **确认未改** `path/other.ts`
+
+## 检查维度
+标准：类型安全、null 处理、API 契约匹配、回归。安全问题标 CRITICAL。
+
+## 产出格式
+写 `reviews/review-<slice>/findings.md`。
+HIGH / MEDIUM / LOW + `file:line`；结论 `[OK]` / `[WARN]` / `[BLOCK]`。
+
+完成后短句回报 team-lead。不要开始修代码。
+```
+
+### File shape (`assignments/ASSIGNMENT-FIX-<id>.md`)
+
+Same `run_id`. Used after `[BLOCK]` or user 「按审查改」. Do not init a review-fix task.
+
+```markdown
+# 派单：修审查 <id>（+ 可选 MEDIUM）
+
+来自 team-lead。Reviewer 结论 **[BLOCK]** / **[WARN]**，见 `reviews/review-<slice>/findings.md`。
+请先一句话确认，再开工。
+
+## 必修
+### H-1 — <title>
+`file:line` … 改法：…
+
+## 不要
+- 改派单未列的文件
+- commit（等 team-lead）
+
+## 验证
+- `<repo verify command>`
+- 更新 progress/findings
+
+完成后短句回报 team-lead。
+```
+
+### File shape (`assignments/ASSIGNMENT-RESEARCH-<target>.md` / `ASSIGNMENT-HANDOFF-<target>.md`)
+
+Same `run_id` family, **target repo** Ralph. Conversational `$jj-same` / dispatch-approved port. Research is read-only; implement spawn includes 入职. Shapes live with jj-same (do not open from the ralph SKILL entry).
 
 ### File shape (`findings.md`)
 

@@ -127,6 +127,15 @@ export function projectGrokTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.grok', 'skills');
 }
 
+export function defaultGrokAgentsTarget({ homeDir = os.homedir(), grokHome = process.env.GROK_HOME } = {}) {
+  const root = grokHome || path.join(homeDir, '.grok');
+  return path.join(root, 'agents');
+}
+
+export function projectGrokAgentsTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.grok', 'agents');
+}
+
 /** AGENTS.md user-level discovery path (~/.agents/skills). */
 export function defaultAgentsSkillsTarget({ homeDir = os.homedir(), agentsHome = process.env.AGENTS_HOME } = {}) {
   const root = agentsHome || path.join(homeDir, '.agents');
@@ -161,6 +170,7 @@ export function installSkill({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  grokAgentsTargetDir,
   agentsSkillsTargetDir,
   agentsCommandsTargetDir,
   homeDir,
@@ -187,6 +197,7 @@ export function installSkill({
     claudeTargetDir,
     qoderTargetDir,
     grokTargetDir,
+    grokAgentsTargetDir,
     agentsSkillsTargetDir,
     agentsCommandsTargetDir,
     homeDir,
@@ -302,6 +313,7 @@ export function uninstallSkill({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  grokAgentsTargetDir,
   agentsSkillsTargetDir,
   agentsCommandsTargetDir,
   homeDir,
@@ -328,6 +340,7 @@ export function uninstallSkill({
     claudeTargetDir,
     qoderTargetDir,
     grokTargetDir,
+    grokAgentsTargetDir,
     agentsSkillsTargetDir,
     agentsCommandsTargetDir,
     homeDir,
@@ -484,6 +497,7 @@ function buildAssetJobs({
   claudeTargetDir,
   qoderTargetDir,
   grokTargetDir,
+  grokAgentsTargetDir,
   agentsSkillsTargetDir,
   agentsCommandsTargetDir,
   homeDir,
@@ -535,14 +549,28 @@ function buildAssetJobs({
     if (name === 'grok') {
       const skillSource = path.resolve(grokSourceDir || codexSourceDir);
       const skillTarget = path.resolve(grokTargetDir || targetDir || defaultGrokTarget({ homeDir, grokHome }));
-      return [{
-        platform: 'grok',
-        asset: 'skills',
-        source: skillSource,
-        target: skillTarget,
-        entries: collectCodexSkillSources(skillSource),
-        label: 'Grok skills'
-      }];
+      const agentSource = path.resolve(codexAgentsSourceDir);
+      const agentTarget = path.resolve(
+        grokAgentsTargetDir || inferCodexAgentsTarget(skillTarget) || defaultGrokAgentsTarget({ homeDir, grokHome })
+      );
+      return [
+        {
+          platform: 'grok',
+          asset: 'skills',
+          source: skillSource,
+          target: skillTarget,
+          entries: collectCodexSkillSources(skillSource),
+          label: 'Grok skills'
+        },
+        {
+          platform: 'grok',
+          asset: 'agents',
+          source: agentSource,
+          target: agentTarget,
+          entries: collectGrokAgentSources(agentSource),
+          label: 'Grok agents'
+        }
+      ];
     }
 
     if (name === 'agents') {
@@ -857,6 +885,20 @@ function collectCodexAgentSources(sourceDir) {
     .map((entry) => ({
       kind: 'file',
       name: path.basename(entry.name, '.toml'),
+      targetName: entry.name,
+      source: path.join(sourceDir, entry.name)
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function collectGrokAgentSources(sourceDir) {
+  if (!fs.existsSync(sourceDir)) return [];
+
+  return fs.readdirSync(sourceDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && /^jj-[a-z0-9-]+\.md$/.test(entry.name))
+    .map((entry) => ({
+      kind: 'file',
+      name: path.basename(entry.name, '.md'),
       targetName: entry.name,
       source: path.join(sourceDir, entry.name)
     }))

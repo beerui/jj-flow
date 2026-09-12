@@ -1,6 +1,6 @@
 # Ralph operations
 
-Read this catalog only for command syntax or a conditional operation. The conversational commands in SKILL.md are a subset of this mechanical catalog; listing an operation here does not make it a default step or authorize Git/external writes.
+Read this catalog only for command syntax or a conditional **mechanical** operation. Conversational `$jj-ralph` / `$jj-review` **never** run these commands (客服 documents instead). Listing an operation here does not make it a default step or authorize Git/external writes.
 
 ## Resolution and compatibility
 
@@ -20,9 +20,11 @@ jj ralph host-record --run-id task-x --host-id codex [--thread-id id] [--model-i
 
 `brief` / `close` are mechanical aliases for existing lite runs, never the conversational chain. `ralph_ops` rejects `--lite` / `--full` / `--intensity` and `gate brief|close`; mechanical `jj ralph` retains them.
 
-Conversational `gate --gate deliver --status PASS` must use `ralph_ops`. It checks real Goal / 验收 content, file backticks in every Step and unanswered `## 存疑`, then saves analyze/plan/deliver together. Blank checkbox stubs fail; empty 存疑 and checked answers are allowed. Check failures write zero gates. Retrying after an interrupted write fills only prerequisites that are not yet PASS; run/index/events are not one transaction.
+Conversational `$jj-ralph` never runs `ralph_ops` / `jj ralph gate`. Persist is documents: append `progress.md`, dual-write `.state/run.json`.
 
-If the wrapper is unavailable, `jj ralph gate --gate deliver` is **degraded unfold**: it changes only deliver, leaving analyze/plan unchanged. Do not finalize through this conversational fallback; restore the wrapper. Explicit mechanical analyze/plan remain supported.
+Mechanical `ralph_ops gate --gate deliver --status PASS` still checks real Goal / 验收 content, file backticks in every Step and unanswered `## 存疑`, then saves analyze/plan/deliver together. Blank checkbox stubs fail; empty 存疑 and checked answers are allowed. Check failures write zero gates. Retrying after an interrupted write fills only prerequisites that are not yet PASS; run/index/events are not one transaction.
+
+If the wrapper is unavailable, mechanical `jj ralph gate --gate deliver` is **degraded unfold**: it changes only deliver, leaving analyze/plan unchanged. Do not finalize through that CLI fallback; restore the wrapper. Explicit mechanical analyze/plan remain supported.
 
 Init/resume return `map_find` (cap 5, empty allowed). Init queries `knowledge_query || title || goal`; resume queries `reason || title || goal`. Results and inference explanations belong to responses/events, not `run.json`, including when a caller saves the returned run again. Manual `map-find` remains a maintenance tool.
 
@@ -57,7 +59,7 @@ ralph_ops.mjs scope --run-id task-x --replace-in current.js,current.test.js --re
 ralph_ops.mjs accept-layer --run-id task-x --layer mechanical|judgment --status PASS|FAIL|PENDING|SKIPPED [--mode review|recheck|adversarial_note] [--note "..."]
 ```
 
-Review records must point to real findings/evidence. `review-record` follows a user request, `next=review` / `commit-scoped-review`, or a gate error requiring a passing review. It is not a mandatory conversational step. A PASS review sets judgment; `accept-layer` is a mechanical-only control. `next` never grants commit permission: use existing user authorization, otherwise give `commit-prep` and leave the missing archive evidence explicit. Detailed gates and recovery: [phases.md](phases.md), [rollback.md](rollback.md).
+Review records must point to real findings/evidence. Conversational `$jj-review` writes findings.md + REV json + `run.json.review` / `accept_layers.judgment`; **never** `review-record` in chat. Mechanical `review-record` is CLI-only. It is not a mandatory conversational step. A PASS review sets judgment; `accept-layer` is a mechanical-only control. `next` never grants commit permission: use existing user authorization, otherwise give `commit-prep` and leave the missing archive evidence explicit. Detailed gates and recovery: [phases.md](phases.md), [rollback.md](rollback.md).
 
 Prefer `--host-review-file` and `--findings-file` over inline JSON on PowerShell. UTF-8 BOM is accepted and paths resolve against `--cwd`. Supply `--context-file` for task-scoped persistence, gate accept and finalize: the CLI recomputes hashes and ownership rather than trusting edited `diff_paths`. Contract/code/index/HEAD changes invalidate the packet; metadata-only gate/review writes do not. Commit context must target HEAD and a real base, with no uncommitted task changes. The report stores `context_snapshot` including the visible out-of-task paths.
 

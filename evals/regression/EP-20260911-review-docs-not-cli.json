@@ -1,0 +1,18 @@
+{
+  "id": "EP-20260911-review-docs-not-cli",
+  "source_episode": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md",
+  "skill_or_path": "skills/jj-review/SKILL.md",
+  "invariants": [
+    { "type": "contains", "text": "Golden Q&A — G-review-3" },
+    { "type": "contains", "text": "Conversational persist is **documents**, not CLI" },
+    { "type": "contains", "text": "Never `review-record`" },
+    { "type": "contains", "text": "01a08ea0" },
+    { "type": "contains", "text": "Read listed files then write findings" },
+    { "type": "contains", "text": "accept_layers.judgment" },
+    { "type": "contains", "text": "review.reviews[]" },
+    { "type": "not_contains", "text": "Prefer CLI" },
+    { "type": "not_contains", "text": "review-report.skeleton.json" },
+    { "type": "not_contains", "text": "archive needs a later `review-record" },
+    { "type": "file_exists", "path": "skills/jj-review/references/host-review.md" }
+  ]
+}

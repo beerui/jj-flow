@@ -31,6 +31,8 @@
 - [x] `tests/jj-review-contract.test.mjs`：packet 路径、`task_paths`、禁止整仓 locate/grep、禁止 bound 首次走 `/review` local。保留现有 G-review-1 断言。
 - [x] 落地后才加 `evals/regression/` 新项：`EP-20260910-review-assignment-exclusive.json`。
 - [x] `npm run verify`、相关合约测试、`git diff --check`；`node src/cli.mjs install-skill --platform all --force`。
+- [x] `C-ralph-no-eager-refs-v1` + G-ralph-2：入口不挂五份手册；parent 是 team-lead，本轮 spawn；删除 `tiny-example.md`；回归 `EP-20260911-ralph-lead-spawn`。
+- [x] Parent spawn 前用户可见进度：派遣开发实现 / 派遣审查（例句「派遣前端开发实现任务」「派遣reviewer审查改动代码」）。样本 miss：`01a08fa0`。
 - [ ] cheap replay：同一 Grok 4.6 / high、绑定 run、脏工作区。失败则归档，不加长 skill。
 
 Cheap replay 记录：父循环、是否 spawn、子代理 `description` / `tool_calls` / `duration_ms` / `effective_context_source`、是否读 packet 外文件。失败信号：description 仍是 `[reviewer] local changes`，或子代理仍扫整棵脏树。
@@ -51,7 +53,7 @@ Cheap replay 记录：父循环、是否 spawn、子代理 `description` / `tool
 - 机械 `--lite` 仍封顶 `max_deliver_loops=3`（`MAX_ITERATIONS`），升 full 后继续。
 - 不补 `set-budget`；禁止 `set-status` 假装抬上限。G-ralph-1。
 
-**C-ralph-no-eager-refs-v1**（再后一刀）：首轮/`context` 已在时禁止读 `phases`/`ops`/`layout`/`must`/`tiny`，除非 `next` 点名；默认 `locate` 不用 `--details`。
+**C-ralph-no-eager-refs-v1**（本刀）：入口不挂 `ops` / `phases` / `artifact-layout` / `must-evidence` / `tiny-example`。Parent = team-lead：写派单并本轮 `spawn_subagent`（`general-purpose`），禁止在主对话改业务代码。删除 `tiny-example.md`。G-ralph-2。`$jj-review` 同样不启动读 reference、不在 parent 审。
 
 ## 验证记录
 

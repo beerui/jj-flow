@@ -38,6 +38,30 @@ When a ralph run exists, compare the implementation diff to `task_plan.md` ## St
 
 Bugfix / `failed_must` / NEEDS_CHANGES runs may **add or strengthen** tests. Deleting or emptying `tests/**` / `*.test.*` / `*.spec.*` is Important. `tiny` presentational runs without `failed_must` do not trip this.
 
+## 客服 verdict
+
+Human/subagent SSOT is `findings.md`: HIGH / MEDIUM / LOW + `file:line`, conclusion `[OK]` / `[WARN]` / `[BLOCK]`.
+
+Check dimensions (from 客服 reviewer; put them in `ASSIGNMENT-REVIEW`):
+
+| Dimension | Look for |
+| --- | --- |
+| Type safety | missing types, wrong unions, unsafe casts |
+| Null handling | unguarded null/undefined, empty states |
+| API contract | diff vs `task_plan.md` **## Steps** / public API |
+| Regressions | broken edges, silent behavior change |
+| Security | secrets, injection, auth bypass (CRITICAL) |
+
+Do **not** invoke host `/review`. Parent writes the assignment; spawn one read-only reviewer.
+
+| Verdict | When | Gate `outcome` |
+| --- | --- | --- |
+| `[OK]` | no CRITICAL/HIGH; dimensions ADEQUATE+ | `PASS` |
+| `[WARN]` | MEDIUM only | `PASS` (nits; UAT allowed) |
+| `[BLOCK]` | CRITICAL/HIGH or a dimension WEAK | `NEEDS_CHANGES` |
+
+Dual-write `REV-*.json` for accept/archive. Chat uses the verdict, not `通过。`.
+
 ## Mapping
 
 Keep ralph finding schema `jj-flow/ralph-review/1.0`. Optional fields: `pass`, `importance`. Do not mix dispatch `P0–P3` severities here.
