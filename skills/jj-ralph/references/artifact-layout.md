@@ -10,11 +10,11 @@
     task_plan.md                  # current contract only: Goal / 验收 / Steps
     progress.md                   # dated human narrative (## YYYY-MM-DD); append-only
     findings.md                   # 改动摘要 / 行为 / 踩坑 / 验证；empty F-00N forbidden
-    assignments/                  # 客服派单：子代理只吃这些文件，不吃聊天
-      ASSIGNMENT-TASK-<n>.md      # 读这些 / 交这些 / 不要改那些 / 做完等下一刀
+    assignments/                  # 客服派单：子代理只读取这些文件，不读取聊天
+      ASSIGNMENT-TASK-<n>.md      # 读这些 / 交这些 / 不要改那些 / 做完等下一轮
       ASSIGNMENT-REVIEW-<n>.md    # 审查派单（只读源码）
       ASSIGNMENT-RESEARCH-<target>.md   # 交接调研（只读目标仓）
-      ASSIGNMENT-HANDOFF-<target>.md    # 交接实施（入职后 spawn）
+      ASSIGNMENT-HANDOFF-<target>.md    # 交接实施（人设提示词后 spawn）
     reviews/review-<slice>/findings.md  # 人读审查：[OK]/[WARN]/[BLOCK] + HIGH/MEDIUM/LOW
     .state/
       run.json
@@ -176,7 +176,7 @@ Same `run_id`. Used after `[BLOCK]` or user 「按审查改」. Do not init a re
 
 ### File shape (`assignments/ASSIGNMENT-RESEARCH-<target>.md` / `ASSIGNMENT-HANDOFF-<target>.md`)
 
-Same `run_id` family, **target repo** Ralph. Conversational `$jj-same` / dispatch-approved port. Research is read-only; implement spawn includes 入职. Shapes live with jj-same (do not open from the ralph SKILL entry).
+Same `run_id` family, **target repo** Ralph. Conversational `$jj-same` / dispatch-approved port. Research is read-only; implement spawn includes 人设提示词. Shapes live with jj-same (do not open from the ralph SKILL entry).
 
 ### File shape (`findings.md`)
 

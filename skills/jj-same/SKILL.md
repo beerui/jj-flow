@@ -7,37 +7,37 @@ description: "Port and sync features across same-origin forked projects (not who
 
 Sync requirement invariants; do not copy source project files. On first port of a feature from A to B, establish a verifiable baseline. Afterwards, process only effective deltas from A since the last successful sync, then apply the narrowest adaptation to B’s real capabilities. Details: [references/happy-path.md](references/happy-path.md), [references/workflow-core.md](references/workflow-core.md).
 
-Parent chat is **team-lead** (客服). Conversational `$jj-same` / 「交接到…」 writes **this-round** task docs, researches each target repo, then spawns implementers. **Do not** port business code in this chat. **Do not** treat dispatch `distribution_prompt` as the worker spec or 入职. **Do not** open skill `references/` from this entry.
+Parent chat is **team-lead** (客服). Conversational `$jj-same` / 「交接到…」 writes **this-round** task docs, researches each target repo, then spawns implementers. **Do not** port business code in this chat. **Do not** treat dispatch `distribution_prompt` as the worker spec or 人设提示词. **Do not** open skill `references/` from this entry.
 
 ## Conversational path (客服; must not skip)
 
 1. Pin source commit + authorized targets (read-only dispatch approval if a plane exists). This round = the effective delta (e.g. one CSS commit), not the historic DEL Goal.
 2. If a `[reviewer]` worker is still running in this thread: announce 审查还在跑; **do not spawn** RESEARCH this turn (G-same-2 / `01a08fa6`). Occupancy wins over `work_policy` spawn-this-turn. Wait or park; keep `[reviewer]` labeled.
-3. Write `assignments/ASSIGNMENT-RESEARCH-<target>.md` in **that target’s** Ralph (客服 shape: 来自 team-lead / 读这些 / 交付 / 不要改 / 先确认再开工; **exact paths**). **Before spawn: 派遣调研.** Do not wait silently (Grok may hold later text until the worker returns). Call `spawn_subagent` (`jj-researcher`; missing → `general-purpose`) this turn per target — `description` starts `[research]`; `cwd` is that repo; exclusive input is that file; **调研 入职 prefix** + file; read-only. Same-target later RESEARCH in that cwd: `resume_from` last completed `jj-researcher`. Saying you will research without spawning fails.
-4. From the research report, write `assignments/ASSIGNMENT-HANDOFF-<target>.md`. **Before spawn: 派遣交接实施** (e.g. 派遣开发实施交接). Spawn `jj-implementer` (missing → `general-purpose`) with `description` starting `[implementer]` and the **实施 入职 prefix** + that file only. Target cwd ≠ source implementer cwd → **new spawn** (G-same-3: `resume_from` inherits cwd; do not reuse the source-repo implementer). Do not wait silently. Do not `search_replace` in the parent.
+3. Write `assignments/ASSIGNMENT-RESEARCH-<target>.md` in **that target’s** Ralph (客服 shape: 来自 team-lead / 读这些 / 交付 / 不要改 / 先确认再开工; **exact paths**). **Before spawn: 派遣调研.** Do not wait silently (Grok may hold later text until the worker returns). Call `spawn_subagent` (`jj-researcher`; missing → `general-purpose`) this turn per target — `description` starts `[research]`; `cwd` is that repo; exclusive input is that file; **调研 人设提示词 prefix** + file; read-only. Same-target later RESEARCH in that cwd: `resume_from` last completed `jj-researcher`. Saying you will research without spawning fails.
+4. From the research report, write `assignments/ASSIGNMENT-HANDOFF-<target>.md`. **Before spawn: 派遣交接实施** (e.g. 派遣开发实施交接). Spawn `jj-implementer` (missing → `general-purpose`) with `description` starting `[implementer]` and the **实施 人设提示词 prefix** + that file only. Target cwd ≠ source implementer cwd → **new spawn** (G-same-3: `resume_from` inherits cwd; do not reuse the source-repo implementer). Do not wait silently. Do not `search_replace` in the parent.
 5. After each target reports: update that repo’s Ralph. If a delivery exists and Git has a ≥7-char sha, write `produced_commit` / receipt — do not leave the previous wave’s dirty receipt.
 
 Missing `run.handoff`: still write this-round assignments from the source commit/diff. Do not BLOCK only because `handoff_ref` is empty when the user already `$jj-end`’d a sha.
 
-Paste the matching **入职 prefix** into every spawn (调研 vs 实施; never mix 调研+实施 in one paste).
+Paste the matching **人设提示词 prefix** into every spawn (调研 vs 实施; never mix 调研+实施 in one paste).
 
-### 调研 入职 prefix (paste into RESEARCH spawn)
+### 调研 人设提示词 prefix (paste into RESEARCH spawn)
 
 ```
-你不是 team-lead。你是目标仓调研工人。默认中文（简体）。
+你不是 team-lead。你是目标仓调研执行人。默认中文（简体）。
 只读 exclusive 派单文件。不要读 parent 聊天。不要打开 skill references/。
 第一条回复必须是一句话确认：(1) 对目标的理解 (2) 计划的第一步。
-只读。不要改业务代码。不要 Start broad。不要全库 grep/list_dir。不要再 spawn。
+只读。不要改业务代码。不要 Start broad。不要全仓 grep/list_dir。不要再 spawn。
 完成后向 team-lead 短句汇报（路径对照 / 保留项 / 清单）。Idle 不等于完成。
 ```
 
-### 实施 入职 prefix (paste into HANDOFF spawn)
+### 实施 人设提示词 prefix (paste into HANDOFF spawn)
 
 ```
-你不是 team-lead。你是目标仓实施工人。默认中文（简体）。
+你不是 team-lead。你是目标仓实施执行人。默认中文（简体）。
 只读 exclusive 派单文件。不要读 parent 聊天。不要打开 skill references/。
 第一条回复必须是一句话确认：(1) 对目标的理解 (2) 计划的第一步。打包了多条则逐条枚举。
-只改「交付」列出的文件。不要 Start broad。不要全库 grep/list_dir。不要再 spawn。不要 commit。
+只改「交付」列出的文件。不要 Start broad。不要全仓 grep/list_dir。不要再 spawn。不要 commit。
 完成后向 team-lead 短句汇报（做了什么 / 路径 / 证据）。Idle 不等于完成。
 ```
 
@@ -45,7 +45,7 @@ Paste the matching **入职 prefix** into every spawn (调研 vs 实施; never m
 
 **Q:** `/jj-end` then `/jj-dispatch 分发到兑接和承载` then `$jj-same`. Lead `handoff` is null. `distribution_prompt` still lists the old 识票同步验收. Parent `search_replace` in the target repos?
 
-**A:** No. Write this-round ASSIGNMENT (the source sha slice). Research each target. Spawn with 入职 + `ASSIGNMENT-HANDOFF`. Sample: `01a08e5b` `d53a16510`.
+**A:** No. Write this-round ASSIGNMENT (the source sha slice). Research each target. Spawn with 人设提示词 + `ASSIGNMENT-HANDOFF`. Sample: `01a08e5b` `d53a16510`.
 
 ### Golden Q&A — G-same-2 (must not regress)
 
@@ -189,8 +189,8 @@ Shortest path: fast implement / standard discovery / snapshot reuse. **Write** t
 
 ## Hard constraints / MUST NOT
 
-- MUST: 🔴 branch-purpose preflight before coding; **before CREATE**, `git fetch`, ff-only freshen **local** `master` when behind+clean (`FF_LOCAL_MASTER`), then `checkout -b <feat> master` only (`CREATE_FROM_LOCAL_MASTER`; default `create_from=master` local); code only when `EXECUTION_READY`; claim complete only when `HANDOFF_READY`; user closeout = [template](#user-visible-closeout) only. Conversational: write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, spawn this turn with the matching **入职 prefix** (`[research]` / `[implementer]`); a live `[reviewer]` still running → do not spawn (G-same-2); do not parent-port.
-- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silent CREATE from stale local base when `behind_count > 0`; `reset --hard` or rewrite dirty/divergent local `master` without **written** approval; change unauthorized repos; private `.workflow/jj-same/`; write port/ANL body under `control_root` `TASK-*`; treat csv-wave as the implement home when a target Ralph exists; fake dispatch approval without control; chat summaries as Git/source evidence; treat `distribution_prompt` as worker spec or 入职; **show “five gates” / slogan conclusions to the user**; claim all-targets complete when any authorized target is still `BLOCKED`.
+- MUST: 🔴 branch-purpose preflight before coding; **before CREATE**, `git fetch`, ff-only freshen **local** `master` when behind+clean (`FF_LOCAL_MASTER`), then `checkout -b <feat> master` only (`CREATE_FROM_LOCAL_MASTER`; default `create_from=master` local); code only when `EXECUTION_READY`; claim complete only when `HANDOFF_READY`; user closeout = [template](#user-visible-closeout) only. Conversational: write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, spawn this turn with the matching **人设提示词 prefix** (`[research]` / `[implementer]`); a live `[reviewer]` still running → do not spawn (G-same-2); do not parent-port.
+- MUST NOT: whole-branch cherry-pick / whole-file overwrite (unless isomorphic with no target-only logic); `CREATE_FROM_ORIGIN` as primary path; silent CREATE from `dev`/`develop`; silent CREATE from stale local base when `behind_count > 0`; `reset --hard` or rewrite dirty/divergent local `master` without **written** approval; change unauthorized repos; private `.workflow/jj-same/`; write port/ANL body under `control_root` `TASK-*`; treat csv-wave as the implement home when a target Ralph exists; fake dispatch approval without control; chat summaries as Git/source evidence; treat `distribution_prompt` as worker spec or 人设提示词; **show “five gates” / slogan conclusions to the user**; claim all-targets complete when any authorized target is still `BLOCKED`.
 - Do not commit/push without explicit request; do not continuously watch the source repo.
 - 🛑 **STOP** on purpose mismatch, unmet `EXECUTION_READY`, or unmet `HANDOFF_READY` — recover via [Failure recovery](#failure-recovery-if-x--y); never skip gates silently.
 

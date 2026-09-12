@@ -15,7 +15,7 @@ Never first-match host `/review`. Bound first never enters the host-callable `/r
 1. **User-specified**  
    User gives a review artifact path, pastes findings, or names a completed review session → parse and map directly, `source=user_provided`.
 
-2. **客服 assignment spawn (G-review-2)** — write `ASSIGNMENT-REVIEW`, announce **派遣审查** (e.g. 派遣reviewer审查改动代码) then spawn one `jj-reviewer` (missing → `general-purpose`). description **starts with** `[reviewer]` (never `[reviewer] local changes`). Exclusive input = that file + listed `task_paths` / task diff. Prompt first paragraph forbids Start broad / repo grep / list_dir. Stop here. Do **not** match host `/review` / `code-review` commands. Do not wait silently. A live `[reviewer]` still running → do not spawn `$jj-same` over it (G-review-4 / `01a08fa6`).
+2. **客服 assignment spawn (G-review-2)** — write `ASSIGNMENT-REVIEW`, announce **派遣审查** (e.g. 派遣 reviewer 审查改动代码) then spawn one `jj-reviewer` (missing → `general-purpose`). description **starts with** `[reviewer]` (never `[reviewer] local changes`). Exclusive input = that file + listed `task_paths` / task diff. Prompt first paragraph forbids Start broad / repo grep / list_dir. Stop here. Do **not** match host `/review` / `code-review` commands. Do not wait silently. A live `[reviewer]` still running → do not spawn `$jj-same` over it (G-review-4 / `01a08fa6`).
 
 3. **Unavailable → fallback**
    Spawn impossible, or the call failed and the user asks to continue → `source=fallback_inline` for minimal inline review (see SKILL.md).

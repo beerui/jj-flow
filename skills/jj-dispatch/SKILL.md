@@ -28,7 +28,7 @@ TASK-ID recovery -> PREVIEW (branch/workspace table)
 | 3 | Complete intake | **PREVIEW** read-only: write-task branch/workspace table (`behind_count`, `base_action`, `proposed_mode=S\|W\|P`, …); **no** intent write | `PREVIEW_ONLY` + table |
 | 4 | PREVIEW table | 🔴 **CHECKPOINT · user approves `task_keys`** this round. No approval → 🛑 **STOP** at `PREVIEW_ONLY` | Approved keys |
 | 5 | Branch/mode / CREATE base | 🔴 **CHECKPOINT · `NEEDS_CONFIRM`** when confidence low, dirty/diverged base, or unclear isolation. Show decision table; 🛑 **STOP** DISPATCH until user confirms | `READY` path |
-| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree. Opt-in Mode P → child session 1:1 per write `task_key`. **Same turn:** scaffold control TASK index + `ensureDispatchRalphRuns` — every lead/target repo gets a full Ralph `task-<slug>`. Conversational implement = `$jj-same` assignment + 入职 spawn, not `distribution_prompt` body | Bound / RUNNING + per-repo Ralph |
+| 6 | Approved + path ready | **DISPATCH**: write intent `PENDING_THREAD` → BIND (Grok default Mode S: real session + attestation file). Isolation → Mode W exclusive-worktree. Opt-in Mode P → child session 1:1 per write `task_key`. **Same turn:** scaffold control TASK index + `ensureDispatchRalphRuns` — every lead/target repo gets a full Ralph `task-<slug>`. Conversational implement = `$jj-same` assignment + 人设提示词 spawn, not `distribution_prompt` body | Bound / RUNNING + per-repo Ralph |
 | 7 | Receipt / bound tasks | tick/resume; **without CLI, Agent writes plane** → [agent-write-plane.md](references/agent-write-plane.md) | Advanced status |
 | 8 | Claim done | 🔴 **CHECKPOINT · VERIFIED**: need `produced_commit` + review + real session + **attestation file** + **T-task-result-sync** in same write batch. Missing any → 🛑 **STOP** at `EVIDENCE_READY`/`RUNNING` | VERIFIED or hold |
 
@@ -84,7 +84,7 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 - Evidence: commit / review / attestation path / session id
 - Git base: base_action if CREATE this turn
 - Hot memory: up to 5 one-liners from ~/.jj-flow/memory/<project_key>.md (or (none))
-- Next: (one line; after DISPATCH usually `$jj-same` 本轮 ASSIGNMENT + 入职 spawn; 🛑 if blocked)
+- Next: (one line; after DISPATCH usually `$jj-same` 本轮 ASSIGNMENT + 人设提示词 spawn; 🛑 if blocked)
 ```
 
 **Hot memory (optional, non-blocking):** when writing the per-task brief after DISPATCH, inject up to 5 lexical hits from `~/.jj-flow/memory/<project_key>.md` (one-line rule + backref). Empty is valid — do not pad. Confirmed `[x]` rows rank first. Never dump the whole file. Do not write AGENTS.md / CLAUDE.md. Portfolio KB overlay stays opt-in and silent-skip when missing.
@@ -199,9 +199,9 @@ Role fields: `origin_project` · `requirement_owner` · `lead_project` · `refer
 
 ## Relation to `jj-same`
 
-`$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, research in each target repo, then spawn with **入职** prefix. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 入职. Do not parent-`search_replace` after DISPATCH. Analysis / adapt / verify / sync checkpoints stay `jj-same`. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
+`$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, research in each target repo, then spawn with **人设提示词** prefix. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 人设提示词. Do not parent-`search_replace` after DISPATCH. Analysis / adapt / verify / sync checkpoints stay `jj-same`. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
 
-Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing assignment + 入职 was the miss (G-same-1).
+Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing assignment + 人设提示词 was the miss (G-same-1).
 
 ## Explicitly out of scope / MUST NOT
 
@@ -216,7 +216,7 @@ Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing ass
 - Do not add Claude `/jj-dispatch`
 - Do not treat control root as a business source project or as a substitute Ralph workspace
 - Do not leave a DISPATCH wave with only `~/.jj-flow/.workflow/tasks/TASK-*/ANL-*.md` and no per-project `.workflow/ralph/task-*`
-- Do not treat `distribution_prompt` as the worker spec or 入职; do not parent-`search_replace` after DISPATCH
+- Do not treat `distribution_prompt` as the worker spec or 人设提示词; do not parent-`search_replace` after DISPATCH
 - Do not forge host APIs or “degrade to projectless” on capability failure
 - Do not treat skill install or `host:trial` as real Host acceptance
 - 🛑 **STOP** DISPATCH without approved keys + confirmed branch/mode; 🛑 **STOP** VERIFIED without attestation-bound evidence — recover via [Failure recovery](#failure-recovery-if-x--y)
