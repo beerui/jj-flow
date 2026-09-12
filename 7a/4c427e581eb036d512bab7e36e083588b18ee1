@@ -1,0 +1,224 @@
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_4f95c2e3875c8c::t_c516c9b652d960 10
+src/ralph/context.mjs
+  s_64c418359cd940::t_81bddc375b2d1a 79
+evals/regression/EP-20260910-review-assignment-exclusive.json
+  s_64c418359cd940::t_a44dcee6b4ee1b 12
+docs/design-docs/jj-team-coordinate.md
+  s_4f95c2e3875c8c::t_2c573d45bb8ab7 27
+tests/jj-same-contract.test.mjs
+  s_64c418359cd940::t_eae2ed1298a45a 34-38,46-49,51-52,65,83
+tests/jj-dispatch-contract.test.mjs
+  s_64c418359cd940::t_0fc20c2d1c155d 1738
+tests/jj-review-contract.test.mjs
+  s_64c418359cd940::t_b7dcbe1f0ffe1f 54,139
+skills/jj-ralph/SKILL.md
+  s_64c418359cd940::t_f5df05853e127d 46
+  s_64c418359cd940::t_df9011e0990463 3
+tests/install-skill.test.mjs
+  s_64c418359cd940::t_cab3749878e832 316-317
+  s_64c418359cd940::t_05ebab0c3d55fa 6
+  s_64c418359cd940::t_b4f92e88ac1838 33,66-67,857
+  s_64c418359cd940::t_440a6386dbc385 309-311
+skill-inventory.json
+  s_64c418359cd940::t_64eba081526320 5,25
+docs/design-docs/ralph-plans-workspace.md
+  s_64c418359cd940::t_50cfbb06a37e3e 197,380,547,550
+  s_4f95c2e3875c8c::t_2afd95d7fc746e 585,609
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_64c418359cd940::t_37b064b3804823 74-77
+  s_64c418359cd940::t_b3be1b3d2829c3 10-11
+  s_64c418359cd940::t_c9d35b023d37dd 52,87
+scripts/check-project.mjs
+  s_64c418359cd940::t_4439e64ec6b014 153-154
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_64c418359cd940::t_7e46c05c57c2c2 110,202
+evals/regression/EP-20260910-ralph-assignment-rounds.json
+  s_64c418359cd940::t_43bce9b8c47616 10
+evals/regression/EP-20260911-same-handoff-assignment.json
+  s_64c418359cd940::t_ff4f1975516a22 9-11,20-21
+src/installSkill.mjs
+  s_64c418359cd940::t_dff350a3f3d623 30,42
+skills/jj-end/references/git-policy.md
+  s_64c418359cd940::t_28d1b6df825caf 166,340
+skills/jj-review/SKILL.md
+  s_64c418359cd940::t_b133ecf0af86ff 10,157
+  s_64c418359cd940::t_09ec80390c0ded 3
+skills/jj-same/SKILL.md
+  s_64c418359cd940::t_0691e282bcfcc2 8,14,17-18,62
+  s_64c418359cd940::t_02dc72cbc7247c 66,72,83
+  s_4f95c2e3875c8c::t_cc679fde4da5b6 3
+README.md
+  s_4f95c2e3875c8c::t_e4358618f15b8d 9
+  s_64c418359cd940::t_aea68209e50bc6 14
+skills/jj-ralph/scripts/lib/ralph/context.mjs
+  s_64c418359cd940::t_ca093df8fb1653 79
+evals/regression/EP-20260911-ralph-docs-not-cli.json
+  s_64c418359cd940::t_e477830d024bcc 16
+docs/design-docs/jj-ralph.md
+  s_4f95c2e3875c8c::t_5b771dfe34afdd 1
+  s_64c418359cd940::t_5fd82ac6addf8c 32,47
+skills/jj-evaluated/SKILL.md
+  s_64c418359cd940::t_e1c1a51e64fb17 15
+  s_64c418359cd940::t_a2de510e1f405a 152
+skills/jj-ralph/references/artifact-layout.md
+  s_64c418359cd940::t_2cf7d2ec3dba91 35
+skills/jj-dispatch/SKILL.md
+  s_64c418359cd940::t_e27a071deff157 14
+  s_0a1fdf7e8a0a56::t_a5a6e9d10ab01b 3
+tests/memory-hot-layer.test.mjs
+  s_64c418359cd940::t_b9df58d1e2079e 383
+skills/jj-ralph/references/integrations.md
+  s_64c418359cd940::t_ed7a87c646fe21 88,97,115,118
+CHANGELOG.md
+  s_64c418359cd940::t_0b93af58a363f8 9
+  s_64c418359cd940::t_f3a8b36462e4c5 7
+  s_4f95c2e3875c8c::t_18a32b968c9d15 10
+  s_64c418359cd940::t_4adc6f7d5ed9d1 8
+tests/ralph/assets.contract.mjs
+  s_64c418359cd940::t_af8509c7dc563e 348
+  s_64c418359cd940::t_8aa1910b5766e5 241,340-347,349-350
+  s_64c418359cd940::t_77ac4439140a81 232-240,498-506
+ARCHITECTURE.md
+  s_4f95c2e3875c8c::t_b9dcd34dda770f 33,66,89,120
+  s_4f95c2e3875c8c::t_3fe2cdf90e9ef1 34
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_e562b20a047bb4 25,985
+docs/evaluations/EP-20260910-ralph-review-fastpath-report.md
+  s_64c418359cd940::t_5b7ab67335b386 20
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md
+  s_a78f71b1a6fd98::t_465c19b4e069d7 87
+skills/jj-ralph/scripts/lib/namingConfig.mjs
+  s_a78f71b1a6fd98::t_a1b6a411882dbb 192
+src/namingConfig.mjs
+  s_a78f71b1a6fd98::t_a018f4000937cc 192
+docs/evaluations/2026-07-29-grok-episodes-baseline.md
+  s_55a038659bf8d5::t_e617bf2d54da2a 56
+AGENTS.md
+  s_4f95c2e3875c8c::t_1e0cd02402e1ba 3
+claude-commands/jj-ralph.md
+  s_4f95c2e3875c8c::t_45bd08162f4a92 3
+claude-commands/jj.md
+  s_4f95c2e3875c8c::t_00437641980d26 26-27
+docs/.vitepress/sidebar.mjs
+  s_4f95c2e3875c8c::t_d7a422e8f0401a 39
+docs/architecture.md
+  s_4f95c2e3875c8c::t_24ad0232403ac8 5,31
+docs/commands/cli.md
+  s_4f95c2e3875c8c::t_4947f25427102b 18,52
+docs/commands/jj-ralph.md
+  s_4f95c2e3875c8c::t_df443c556783ae 128
+docs/commands/jj-team-coordinate.md
+  s_4f95c2e3875c8c::t_a691d34400735a 7
+docs/commands/jj-team-lifecycle.md
+  s_4f95c2e3875c8c::t_120d4548f3c987 7
+docs/commands/jj-team-swarm.md
+  s_4f95c2e3875c8c::t_5ab873e47b072a 7
+docs/commands/jj.md
+  s_4f95c2e3875c8c::t_1e3ec786a539bd 34,72
+docs/concepts-evidence.md
+  s_4f95c2e3875c8c::t_44144c22889434 22
+docs/concepts-knowledge.md
+  s_4f95c2e3875c8c::t_94b811fb412914 8
+docs/design-docs/docs-site-vitepress.md
+  s_4f95c2e3875c8c::t_c862eca003ec83 230
+docs/design-docs/jj-evaluated.md
+  s_4f95c2e3875c8c::t_1aa8f1a1a532bd 19
+docs/design-docs/ralph-knowledge-contribute.md
+  s_4f95c2e3875c8c::t_83aacc23254db4 287
+docs/design-docs/ralph-skill-slim.md
+  s_4f95c2e3875c8c::t_f9b9f3622ca6fc 155,167
+docs/evaluations/2026-07-30-grok-episodes.md
+  s_4f95c2e3875c8c::t_68dad6188eff32 163
+docs/evaluations/EP-20260907-grok-review-subagent-waves.episode.json
+  s_4f95c2e3875c8c::t_596dbb8dfbf379 21
+docs/exec-plans/completed/2026-09-03-docs-site-vitepress.md
+  s_4f95c2e3875c8c::t_671d5bae5f131e 121
+docs/glossary.md
+  s_4f95c2e3875c8c::t_9b42e88102a32f 13
+docs/memory-knowledge-guide.md
+  s_4f95c2e3875c8c::t_a38ad56699daee 7
+docs/skill-zh-bridge/jj-team-coordinate/README.zh.md
+  s_4f95c2e3875c8c::t_dea9665d3d8457 38
+docs/skill-zh-bridge/jj-team-swarm/README.zh.md
+  s_4f95c2e3875c8c::t_cb3ca4c21c1c62 38
+docs/skill-zh-bridge/jj/README.zh.md
+  s_4f95c2e3875c8c::t_7b3e98cb01559e 46-48
+docs/usage.md
+  s_4f95c2e3875c8c::t_98f1235f352a75 3
+package.json
+  s_4f95c2e3875c8c::t_634362c03e01e2 4
+skills/jj-dispatch/agents/openai.yaml
+  s_4f95c2e3875c8c::t_a17ce3db387d23 4
+skills/jj-init/SKILL.md
+  s_4f95c2e3875c8c::t_15c3d8926a2888 10
+skills/jj-ralph/agents/openai.yaml
+  s_4f95c2e3875c8c::t_6889d60fb56a03 3
+skills/jj/SKILL.md
+  s_4f95c2e3875c8c::t_f0efabc4adcfea 21,33-35,45
+src/cli.mjs
+  s_4f95c2e3875c8c::t_e726b5ca818694 424,838,1714
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "7a4c427e581eb036d512bab7e36e083588b18ee1",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "default"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_55a038659bf8d5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facfd-c957-7752-9b2e-59d98338f1e0",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
