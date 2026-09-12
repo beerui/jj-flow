@@ -163,11 +163,10 @@
 
 ## 0.1.1-beta.45 — 2026-08-01
 
-- **npm 包迁移到 `@brewer/jj-flow`**（原 `@shendu-sdt/jj-flow` 弃用，安装请改用新 scope）
+- **npm 包迁移到 `@brewer/jj-flow`**
   - `package.json` name / `publishConfig.access=public` / release-please package-name
   - 文档与 CLI help 示例：`npx @brewer/jj-flow@beta …`
-  - `ralph_ops` 解析优先 `@brewer/jj-flow`，兼容旧 `node_modules/@shendu-sdt/jj-flow`
-  - 旧包 deprecate 命令见发布后说明（`npm deprecate @shendu-sdt/jj-flow`）
+  - `ralph_ops` 解析优先 `@brewer/jj-flow`
 - **信息保护 / 示例脱敏**：文档、skill、评测与样例中的业务项目角色统一改为 **项目A / 项目B / 项目C**（及项目D/E），路径改为 `/portfolio/*` 或 `/path/to/*`；去掉真实仓名、本机绝对路径与开发者缩写示例
 
 ## 0.1.1-beta.44 — 2026-08-01 14:21
@@ -483,7 +482,6 @@
 ## 0.1.1-beta.0 — 2026-07-04 17:47
 
 - 增加 npm beta 发布准备：版本号、`npx` 安装入口和 GitHub Actions 发布流程。
-- 修正 npm `bin` 路径，确保发布后 `npx @shendu-sdt/jj-flow@beta` 能调用 `jj`。
 - 增加 `jj install-skill --project`，支持安装到当前项目的 `./skills/jj`。
 - 更新安装文档：默认用户级安装，可选项目级安装。
 

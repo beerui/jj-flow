@@ -22,7 +22,6 @@
 | control-plane hash | `690410c60e45` (SHA-256 prefix @ eval) |
 | evaluation_date | 2026-07-31 |
 | prior | `2026-07-30-acceptor-tag-color-dispatch.md`（integrity FAIL 负例） |
-| harness | Mode S skill on `@shendu-sdt/jj-flow@0.1.1-beta.38` |
 
 ### Role mapping
 

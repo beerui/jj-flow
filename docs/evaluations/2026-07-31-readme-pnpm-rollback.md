@@ -23,7 +23,6 @@
 | control-plane hash @ eval | `2f07acdfb729` (SHA-256 prefix) |
 | plane revision | `4` (VERIFIED) → `6` (reopen) → **`7`** (git revert recorded) |
 | evaluation_date | 2026-07-31 |
-| harness | `@shendu-sdt/jj-flow` R1–R3 rollback APIs + Mode S soft plane |
 
 ### Role mapping (facts @ rollback)
 

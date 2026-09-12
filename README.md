@@ -24,8 +24,6 @@
 
 控制面里的 `delivery_id` 是调度任务身份，不是对话 skill 入口。
 
-**npm 包名（2026-08）：** `@brewer/jj-flow`。旧包 `@shendu-sdt/jj-flow` 已弃用，请改用新 scope 安装。
-
 ## 快速使用
 
 安装 Codex skills 和配套 agents：
