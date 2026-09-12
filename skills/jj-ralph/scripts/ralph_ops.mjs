@@ -71,7 +71,7 @@ Resolve library:
   2. jj-flow checkout ../../../../src/ralph.mjs
   3. skill-bundled scripts/lib/ralph.mjs (no jj-flow install required)
   4. cwd package / node_modules/@brewer/jj-flow
-  5. else skill is incomplete — reinstall skill or copy references/*.skeleton.json
+  5. else skill is incomplete — reinstall skill or run npm run ralph:sync
 
 Commands:
   init --run-id task-x --title "..." --goal "..." [--max-iterations N] [--force] [--capability CAP-x] [--in a,b] [--out c,d] [--project KEY] [--knowledge-query Q] [--intent|--no-intent] [--cwd DIR]
@@ -179,8 +179,6 @@ async function loadRalph(cwd) {
     'Fix:',
     '  - reinstall/update jj-ralph skill (must include scripts/lib/ralph.mjs)',
     '  - or in jj-flow checkout: npm run ralph:sync',
-    '  - last resort: copy references/*.skeleton.json by hand',
-    `      ${path.join(REFS, 'run.skeleton.json')}`,
   ].join('\n');
   die(hint, 2);
 }

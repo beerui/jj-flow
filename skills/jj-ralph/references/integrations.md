@@ -42,7 +42,7 @@ Use when **DELIVER / analysis needs dynamic multi-role parallelism** — not for
 | Dispatch | Never creates `DEL-*` / durable `task_key` |
 | Design | `docs/design-docs/jj-team-coordinate.md` |
 | User notice | **Only when nested here**: `开启 team 模式，开始任务XXX 约 10-25分钟`；direct invoke needs no notice |
-| Codex | Degraded path OK (`tasks.json` + file bus); see `references/host-codex.md` |
+| Codex | Degraded path OK (`tasks.json` + file bus); see [jj-team-coordinate host-codex](../jj-team-coordinate/references/host-codex.md) |
 
 Typical nesting: ralph PLAN ready → one-line nested notice → team multi-module DELIVER → cite `artifacts/` into evidence → ACCEPT as usual.
 
@@ -60,7 +60,7 @@ Use when **ANALYZE / PLAN / DELIVER needs a fixed engineering document chain** (
 | Dispatch | Never creates `DEL-*` / durable `task_key` |
 | Design | `docs/design-docs/jj-team-lifecycle.md` |
 | User notice | **Only when nested here**: `开启 lifecycle 模式，开始任务XXX 约 20-45分钟`；direct invoke needs no notice |
-| Codex | Degraded path OK (`tasks.json` + file bus); see skill `references/host-codex.md` |
+| Codex | Degraded path OK (`tasks.json` + file bus); see [jj-team-lifecycle host-codex](../jj-team-lifecycle/references/host-codex.md) |
 
 Typical nesting: ralph PLAN needs formal specs → one-line nested notice → lifecycle `spec-only` → cite `spec/` into plan → DELIVER / ACCEPT as usual.
 

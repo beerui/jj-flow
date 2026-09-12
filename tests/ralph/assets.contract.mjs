@@ -219,7 +219,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'skills/jj-ralph/references/artifact-layout.md',
     'skills/jj-ralph/references/integrations.md',
     'skills/jj-ralph/references/ralph-run.schema.json',
-    'skills/jj-ralph/references/business-map.schema.json',
+    'skills/jj-ralph/references/ralph-business-map.schema.json',
     'skills/jj-review/references/review-policy.md',
     'examples/host-guardrails/README.md',
     'evals/regression/EP-20260828-jj-end-staging-not-dev.json',
@@ -235,7 +235,11 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'skills/jj-ralph/references/rollback.md',
     'skills/jj-ralph/references/business-map.md',
     'skills/jj-ralph/references/must-evidence.md',
-    'skills/jj-ralph/references/post-complete-continue.md'
+    'skills/jj-ralph/references/post-complete-continue.md',
+    'skills/jj-ralph/references/archive-manifest.skeleton.json',
+    'skills/jj-ralph/references/run.skeleton.json',
+    'skills/jj-ralph/references/capability.skeleton.json',
+    'skills/jj-ralph/references/business-map.schema.json'
   ]) {
     assert.equal(fs.existsSync(path.join(root, rel)), false, `retired ${rel}`);
   }
@@ -406,6 +410,10 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.equal(
     read('skills/jj-ralph/references/ralph-run.schema.json'),
     schema
+  );
+  assert.equal(
+    read('skills/jj-ralph/references/ralph-business-map.schema.json'),
+    read('schemas/ralph-business-map.schema.json')
   );
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/ralph_ops.mjs')));
   assert.ok(fs.existsSync(path.join(root, 'skills/jj-ralph/scripts/lib/ralph.mjs')));

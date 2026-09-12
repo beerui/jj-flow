@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **删掉 Ralph 死骨架**：`references/` 去掉 `archive-manifest.skeleton.json` / `run.skeleton.json` / `capability.skeleton.json`（引擎用 `createRunSkeleton()`）和重复的 `business-map.schema.json`（留 `ralph-business-map.schema.json`，与 `schemas/` 同步）。形状仍留 `artifact-layout.md` / `integrations.md`。合约：`tests/ralph/assets.contract.mjs`。
 - **卸掉 skill-en-zh-rewrite**：仓库维护 skill 已不需要。删除 `skills/skill-en-zh-rewrite/` 与对照页。`install-skill` 仍从宿主目录清残留。合约：`tests/install-skill.test.mjs`。
 - **删掉 Ralph 对话 CLI 手册**：对话路径已不跑 `ralph_ops` / `jj ralph`。删除 `skills/jj-ralph/references/` 下 `phases.md` / `ops.md` / `rollback.md` / `business-map.md` / `must-evidence.md` / `post-complete-continue.md`。入口仍禁止打开 `references/`。文档形状留 `artifact-layout.md`；身份/热层留 `integrations.md`。证据类由 `evaluateAcceptArchiveGate` 执行。机械 CLI / gym / `src/cli.mjs` 保留。未确认需求细则并进 SKILL Red checkpoints。`context` 包指向 `jj-ralph/SKILL.md`。合约：`tests/ralph/assets.contract.mjs`。
 - **Skill 入口去掉 Happy path**：对话主线就是入口。`jj-same` 删掉与 Conversational path 并列的 In→Out 表，把 Ralph-handoff-first / 分支门 / `EXECUTION_READY` / `HANDOFF_READY` 并进对话步骤；入口不再链到 `references/` 当启动清单。`jj-ralph` / `jj-dispatch` 删 `## Happy path`。review / evaluated / end 去掉同名标签。`references/happy-path.md` 与场景 `dispatch-happy-path` 仍作详表与回放。合约：`tests/ralph/assets.contract.mjs`、`tests/jj-same-contract.test.mjs`、`tests/install-skill.test.mjs`。
