@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.2.2 — 2026-09-12 14:02
+
 - **审查工人 reasoning 钉 high**：`agents/jj-reviewer.md` 写 `reasoning_effort: high`，不 inherit、不用最高档 `xhigh`（Grok `model: inherit` 在 grok-4.6-build 上常落到 `xhigh`）。父会话仍 `high`。`jj-implementer` / `jj-researcher` 仍 inherit。`install-skill --platform grok|all` 写入 `~/.grok/agents`。合约：`tests/jj-review-contract.test.mjs`、`tests/install-skill.test.mjs`。eval：`EP-20260911-reviewer-reasoning`。
 - **P2 持久队友**：同一对话、同一人格、同一 cwd，上一刀工人已结束 → `resume_from` 该 id，不要每片冷启动（样本 `01a08fa6` 11×）。换人格或换仓库必须新开（`resume_from` 继承 cwd，交接目标仓不能复用源仓实施工人）。活着的工人只用 `send_subagent_message` 纠偏，不拿来派下一刀。G-ralph-5 / G-review-5 / G-same-3。靶场第三轮：`.tmp/persona-flow-p2/` TASK2 `resume_from` TASK1；审查/调研/交接新开。合约：`tests/ralph/assets.contract.mjs`、`tests/jj-review-contract.test.mjs`、`tests/jj-same-contract.test.mjs`。eval：`EP-20260911-p2-resume-teammates`。
 - **P1 Grok 自定义工人**：`agents/jj-implementer.md` / `jj-reviewer.md` / `jj-researcher.md` 替换 `general-purpose` 的 Start broad。对话路径 spawn `jj-implementer` / `jj-reviewer` / `jj-researcher`（缺失才回退 `general-purpose`）。不走内置 `explore`（会全库搜）。审查工人后来钉 `reasoning_effort: high`（见上条）。`install-skill --platform grok|all` 写入 `~/.grok/agents`。靶场第二轮：`.tmp/persona-flow-p1/` TASK1–HANDOFF，工人类型全部命中自定义 agent。合约：`tests/install-skill.test.mjs`、`tests/ralph/assets.contract.mjs`、`tests/jj-same-contract.test.mjs`。eval：`EP-20260911-p1-custom-agents`。
