@@ -5,19 +5,21 @@
   "canonical_skills_root_note": "Top-level skills/ is the repo skill SSOT. install-skill and npm pack only distribute inventory jj-* skills into host dirs. Repo-local tooling (skill-en-zh-rewrite) stays in skills/ but is not published. Claude also gets thin slash wrappers under ~/.claude/commands. Do not edit install outputs as source.",
   "claude_commands_root": "claude-commands",
   "install_targets": {
-    "codex": { "skills": "~/.codex/skills (or project .codex/skills)", "agents": "~/.codex/agents", "source": "canonical_skills_root + agents/" },
+    "codex": { "skills": "~/.codex/skills (or project .codex/skills)", "agents": "~/.codex/agents", "source": "canonical_skills_root + agents/*.toml" },
     "qoder": { "skills": "~/.qoder/skills (or project .qoder/skills)", "source": "canonical_skills_root" },
     "grok": { "skills": "~/.grok/skills (or project .grok/skills)", "agents": "~/.grok/agents (or project .grok/agents)", "source": "canonical_skills_root + agents/*.md" },
     "claude": {
       "skills": "~/.claude/skills (or project .claude/skills)",
       "commands": "~/.claude/commands (or project .claude/commands)",
+      "agents": "~/.claude/agents (or project .claude/agents)",
       "source_skills": "canonical_skills_root",
-      "source_commands": "claude_commands_root"
+      "source_commands": "claude_commands_root",
+      "source_agents": "agents/jj-*.md"
     }
   },
   "install_discipline": [
     "Edit skill body only under skills/<id>/ (SKILL.md + references + scripts).",
-    "Edit Codex agent profiles under agents/*.toml; Grok subagent types under agents/jj-*.md; Claude slash wrappers under claude-commands/ only.",
+    "Edit Codex agent profiles under agents/*.toml; Grok and Claude subagent types under agents/jj-*.md; Claude slash wrappers under claude-commands/ only.",
     "Claude install receives full skills under .claude/skills plus thin wrappers under .claude/commands — do not fork full procedures into commands.",
     "After skill/command changes: node src/cli.mjs install-skill --platform all --force (or per-platform).",
     "Do not inventory or pack repo-local maintenance skills (skill-en-zh-rewrite). install-skill copies jj-* only and removes leftover unpublished copies from host dirs.",

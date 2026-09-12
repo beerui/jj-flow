@@ -102,11 +102,29 @@ export function projectClaudeTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.claude', 'commands');
 }
 
+/** Claude Code custom agents (~/.claude/agents). Same jj-*.md as Grok. */
+export function defaultClaudeAgentsTarget({ homeDir = os.homedir(), claudeHome = process.env.CLAUDE_HOME } = {}) {
+  const root = claudeHome || path.join(homeDir, '.claude');
+  return path.join(root, 'agents');
+}
+
+export function projectClaudeAgentsTarget({ cwd = process.cwd() } = {}) {
+  return path.join(cwd, '.claude', 'agents');
+}
+
 /** If skill target is …/skills, place commands at sibling …/commands. */
 export function inferClaudeCommandsTarget(skillTarget) {
   const base = path.basename(path.resolve(skillTarget));
   if (base === 'skills') return path.join(path.dirname(path.resolve(skillTarget)), 'commands');
   return null;
+}
+
+/** If skill or commands target is under .claude, place agents at sibling …/agents. */
+export function inferClaudeAgentsTarget(skillOrCommandTarget) {
+  const resolved = path.resolve(skillOrCommandTarget);
+  const base = path.basename(resolved);
+  if (base === 'skills' || base === 'commands') return path.join(path.dirname(resolved), 'agents');
+  return path.join(path.dirname(resolved), 'agents');
 }
 
 export function defaultQoderTarget({ homeDir = os.homedir(), qoderHome = process.env.QODER_HOME } = {}) {
@@ -168,6 +186,7 @@ export function installSkill({
   codexAgentsTargetDir,
   claudeSkillsTargetDir,
   claudeTargetDir,
+  claudeAgentsTargetDir,
   qoderTargetDir,
   grokTargetDir,
   grokAgentsTargetDir,
@@ -195,6 +214,7 @@ export function installSkill({
     codexAgentsTargetDir,
     claudeSkillsTargetDir,
     claudeTargetDir,
+    claudeAgentsTargetDir,
     qoderTargetDir,
     grokTargetDir,
     grokAgentsTargetDir,
@@ -311,6 +331,7 @@ export function uninstallSkill({
   codexAgentsTargetDir,
   claudeSkillsTargetDir,
   claudeTargetDir,
+  claudeAgentsTargetDir,
   qoderTargetDir,
   grokTargetDir,
   grokAgentsTargetDir,
@@ -338,6 +359,7 @@ export function uninstallSkill({
     codexAgentsTargetDir,
     claudeSkillsTargetDir,
     claudeTargetDir,
+    claudeAgentsTargetDir,
     qoderTargetDir,
     grokTargetDir,
     grokAgentsTargetDir,
@@ -442,14 +464,17 @@ function resolveClaudeInstallTargets({
   targetDir,
   claudeSkillsTargetDir,
   claudeTargetDir,
+  claudeAgentsTargetDir,
   homeDir,
   claudeHome
 }) {
   const defaultSkills = defaultClaudeSkillsTarget({ homeDir, claudeHome });
   const defaultCommands = defaultClaudeTarget({ homeDir, claudeHome });
+  const defaultAgents = defaultClaudeAgentsTarget({ homeDir, claudeHome });
 
   let skillTarget;
   let commandTarget;
+  let agentsTarget;
 
   if (claudeSkillsTargetDir) {
     skillTarget = path.resolve(claudeSkillsTargetDir);
@@ -461,6 +486,9 @@ function resolveClaudeInstallTargets({
       skillTarget = path.join(path.dirname(commandTarget), 'skills');
     }
   }
+  if (claudeAgentsTargetDir) {
+    agentsTarget = path.resolve(claudeAgentsTargetDir);
+  }
 
   if (targetDir) {
     const resolved = path.resolve(targetDir);
@@ -471,6 +499,10 @@ function resolveClaudeInstallTargets({
     } else if (base === 'skills') {
       skillTarget = skillTarget || resolved;
       commandTarget = commandTarget || inferClaudeCommandsTarget(resolved) || defaultCommands;
+    } else if (base === 'agents') {
+      agentsTarget = agentsTarget || resolved;
+      skillTarget = skillTarget || path.join(path.dirname(resolved), 'skills');
+      commandTarget = commandTarget || path.join(path.dirname(resolved), 'commands');
     } else {
       // Treat generic --target like other platforms: skills root
       skillTarget = skillTarget || resolved;
@@ -480,7 +512,8 @@ function resolveClaudeInstallTargets({
 
   skillTarget = skillTarget || defaultSkills;
   commandTarget = commandTarget || inferClaudeCommandsTarget(skillTarget) || defaultCommands;
-  return { skillTarget, commandTarget };
+  agentsTarget = agentsTarget || inferClaudeAgentsTarget(skillTarget) || defaultAgents;
+  return { skillTarget, commandTarget, agentsTarget };
 }
 
 function buildAssetJobs({
@@ -495,6 +528,7 @@ function buildAssetJobs({
   codexAgentsTargetDir,
   claudeSkillsTargetDir,
   claudeTargetDir,
+  claudeAgentsTargetDir,
   qoderTargetDir,
   grokTargetDir,
   grokAgentsTargetDir,
@@ -605,12 +639,15 @@ function buildAssetJobs({
     }
 
     // Claude Code: full skills (~/.claude/skills) + thin slash commands (~/.claude/commands)
+    // + exclusive-assignment agents (~/.claude/agents), same jj-*.md as Grok.
     const skillSource = path.resolve(codexSourceDir);
     const commandSource = path.resolve(claudeSourceDir);
-    const { skillTarget, commandTarget } = resolveClaudeInstallTargets({
+    const agentSource = path.resolve(codexAgentsSourceDir);
+    const { skillTarget, commandTarget, agentsTarget } = resolveClaudeInstallTargets({
       targetDir,
       claudeSkillsTargetDir,
       claudeTargetDir,
+      claudeAgentsTargetDir,
       homeDir,
       claudeHome
     });
@@ -630,6 +667,14 @@ function buildAssetJobs({
         target: commandTarget,
         entries: collectClaudeCommandSources(commandSource),
         label: 'Claude commands'
+      },
+      {
+        platform: 'claude',
+        asset: 'agents',
+        source: agentSource,
+        target: agentsTarget,
+        entries: collectGrokAgentSources(agentSource),
+        label: 'Claude agents'
       }
     ];
   });

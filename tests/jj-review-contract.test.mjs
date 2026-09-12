@@ -77,6 +77,27 @@ test('jj-reviewer pins reasoning_effort high, not inherit or xhigh', () => {
   assert.match(host, /not inherit\/`xhigh`/)
 })
 
+test('Codex conversational agents share exclusive-assignment rules; reviewer effort high', () => {
+  const reviewer = fs.readFileSync(path.join(root, 'agents/jj-reviewer.toml'), 'utf8')
+  const implementer = fs.readFileSync(path.join(root, 'agents/jj-implementer.toml'), 'utf8')
+  const researcher = fs.readFileSync(path.join(root, 'agents/jj-researcher.toml'), 'utf8')
+  const workflowReviewer = fs.readFileSync(path.join(root, 'agents/jj-workflow-reviewer.toml'), 'utf8')
+  assert.match(reviewer, /name = "jj-reviewer"/)
+  assert.match(reviewer, /model_reasoning_effort = "high"/)
+  assert.match(reviewer, /Do not Start broad/)
+  assert.match(reviewer, /Never host \/review/)
+  assert.doesNotMatch(reviewer, /xhigh/)
+  assert.doesNotMatch(implementer, /model_reasoning_effort/)
+  assert.doesNotMatch(researcher, /model_reasoning_effort/)
+  assert.match(implementer, /Do not Start broad/)
+  assert.match(researcher, /Do not Start broad/)
+  assert.match(implementer, /sandbox_mode = "workspace-write"/)
+  assert.match(researcher, /sandbox_mode = "workspace-write"/)
+  assert.match(reviewer, /sandbox_mode = "workspace-write"/)
+  assert.match(workflowReviewer, /name = "jj-workflow-reviewer"/)
+  assert.notEqual(reviewer, workflowReviewer)
+})
+
 test('jj-review bound first review is exclusive assignment; no Grok /review dirty-tree', () => {
   const host = fs.readFileSync(path.join(root, 'skills/jj-review/references/host-review.md'), 'utf8')
   assert.match(skill, /G-review-2/)

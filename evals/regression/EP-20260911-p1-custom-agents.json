@@ -8,6 +8,9 @@
     { "type": "contains", "text": "missing → `general-purpose`" },
     { "type": "file_exists", "path": "agents/jj-implementer.md" },
     { "type": "file_exists", "path": "agents/jj-reviewer.md" },
-    { "type": "file_exists", "path": "agents/jj-researcher.md" }
+    { "type": "file_exists", "path": "agents/jj-researcher.md" },
+    { "type": "file_exists", "path": "agents/jj-implementer.toml" },
+    { "type": "file_exists", "path": "agents/jj-reviewer.toml" },
+    { "type": "file_exists", "path": "agents/jj-researcher.toml" }
   ]
 }

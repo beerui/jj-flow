@@ -31,9 +31,9 @@ Discover entries by **capability name**, not marketing product pages. Search too
 
 | Host | Prefer (capability / entry shape) | How to confirm available | Typical artifact or output |
 | --- | --- | --- | --- |
-| **Codex** | Spawn a read-only reviewer with exclusive `ASSIGNMENT-REVIEW` / `task_paths`. Do **not** call `$review` / host `code-review` | session can spawn a read-only subagent | `findings.md` |
+| **Codex** | Spawn agent `jj-reviewer` (`~/.codex/agents/jj-reviewer.toml`; missing → `general-purpose`) with exclusive `ASSIGNMENT-REVIEW` / `task_paths`. Do **not** call `$review` / host `code-review`. Do **not** use `jj-workflow-reviewer` for this slice. Reviewer pins `model_reasoning_effort = "high"` | session agent list; toml in `~/.codex/agents` | `findings.md` |
 | **Grok** | Spawn `jj-reviewer` with exclusive `ASSIGNMENT-REVIEW` / `task_paths`. Do **not** call `/review` (it always fresh-spawns `[reviewer] local changes` on the dirty tree). Follow-up must not re-call `/review`. Agent pins `reasoning_effort: high` (not inherit/`xhigh`) | current session skill list; `jj-reviewer` agent in `~/.grok/agents` | `findings.md`, session attachment paths |
-| **Claude** | Spawn a read-only subagent with exclusive `ASSIGNMENT-REVIEW`. Do **not** call slash `/review` to collect the dirty tree | session can spawn a read-only subagent | `findings.md` |
+| **Claude** | Spawn `jj-reviewer` (`~/.claude/agents/jj-reviewer.md`; missing → `general-purpose`) with exclusive `ASSIGNMENT-REVIEW`. Do **not** call slash `/review` to collect the dirty tree. Same md as Grok | session agent list; md in `~/.claude/agents` | `findings.md` |
 
 Shared rules (all hosts):
 

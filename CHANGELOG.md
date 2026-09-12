@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+- **对话工人装到 Codex / Claude**：`agents/jj-implementer.toml` / `jj-reviewer.toml` / `jj-researcher.toml` 写入 `~/.codex/agents`（与 dispatch 的 `jj-workflow-*` 分开）。同一套 `agents/jj-*.md` 写入 `~/.claude/agents` 与 `~/.grok/agents`。审查工人 Codex `model_reasoning_effort = "high"`，Grok/Claude md `reasoning_effort: high`。缺失仍回退 `general-purpose`。合约：`tests/install-skill.test.mjs`、`tests/jj-review-contract.test.mjs`。
+
 ## 0.2.2 — 2026-09-12 14:02
 
 - **审查工人 reasoning 固定为 high**：`agents/jj-reviewer.md` 写 `reasoning_effort: high`，不继承、不用最高档 `xhigh`（Grok `model: inherit` 在 grok-4.6-build 上常落到 `xhigh`）。父会话仍保持 `high`。`jj-implementer` / `jj-researcher` 仍继承。`install-skill --platform grok|all` 写入 `~/.grok/agents`。合约：`tests/jj-review-contract.test.mjs`、`tests/install-skill.test.mjs`。eval：`EP-20260911-reviewer-reasoning`。

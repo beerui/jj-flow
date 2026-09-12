@@ -3,7 +3,8 @@
 - `jj-flow` 是 **项目族编排工作流**（接入 `jj-init` + 同源迁移 same + 单仓闭环 ralph + 多项目调度 dispatch；可选会话多角色 `jj-team-coordinate` / 固定 SDLC `jj-team-lifecycle` / 对抗蚁群 `jj-team-swarm`，均不推进 checkpoint）。
 - 代码定位先读 `ARCHITECTURE.md`；跨模块目标设计从 `docs/design-docs/index.md` 进入。仓库事实以 `harness-manifest.json` 索引的 versioned 资产为准。
 - **文档优化先读 `docs/writing-guide.md`**：涉及"优化文档""改文案""审查中文表述""整理发版日志"时，必须先读该规范再动手；改 `CHANGELOG.md` 注意 release-please 边界（已发布段落需维护者批准）。
-- **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands、`~/.agents/skills` + commands）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
+- **Skill 多端 SSOT**：编辑源为顶层 `skills/<id>/`、`agents/`、`claude-commands/`（**禁止**把 `.claude`/`.codex`/`.cursor` 当仓库 SSOT 或推远端）。`jj install-skill` 分发到宿主 skills（含 `~/.claude/skills` + commands + agents、`~/.agents/skills` + commands、`~/.codex/agents`、`~/.grok/agents`）。清单见 `skill-inventory.json`；改后 `node src/cli.mjs install-skill --platform all --force`。
+- **客服派单 = 会话工人身份**：`jj-ralph`/`jj-same`/`jj-review` 的独占派单固定 spawn `agents/` 命名子代理（`jj-implementer`、`jj-researcher`、`jj-reviewer`），缺失时才回退 `general-purpose`；工人只读独占派单文件，不读 parent 聊天或 skill `references/`。同 persona + 同 cwd 的后续切片用 `resume_from` 续接，不冷启动。
 - 项目族交付以控制面 manifest、ralph `run.json`、Git commit、verification/review artifact 和 runtime sandbox attestation 为事实来源；聊天正文、thread 状态和 memory 不能推进 checkpoint。
 - Reviewer 必须保持 `read-only`，只输出可追溯 findings；Developer 只能在批准的目标项目写工作区（默认 `project-branch` 主路径，isolation 时 `exclusive-worktree`）中处理当前 `task_key`。
 - 用户可见的控制任务是可恢复调度身份；临时 subagent 只在任务内部做探索、文档核对或并行只读工作，不得创建控制任务、修改批准快照或成为持久 thread identity。

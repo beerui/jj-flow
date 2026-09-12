@@ -18,7 +18,7 @@
 1. **定位 run**：未点名时先读 `.workflow/ralph/index.md` 的「活跃」表（正在做的任务，不要先 glob）；没有活跃行再扫 live `task-*` / leftover。无 run → 无绑定，审工作区/HEAD，禁止 init；点名的 `run_id` 不存在才 `BLOCKED`
 2. **确定审查范围**：本轮 ASSIGNMENT-TASK 交付文件；对话路径不跑 `context --review`。无绑定则脏工作区否则 HEAD；缺 commit/diff → `BLOCKED`。本轮只有文案/样式 → skip
 3. **用户已提供结果** → `source=user_provided`，直接映射落盘
-4. **客服派单 spawn** → 主对话是 team-lead：写 `ASSIGNMENT-REVIEW`，spawn 前先说「派遣审查」（例如「派遣reviewer审查改动代码」），再本轮 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头；Grok 审查工人钉 `reasoning_effort: high`，不 inherit / 不用 `xhigh`，父会话仍 `high`）；禁止在 parent 审、禁止开机读 report-layout / host-review / review-policy。检查维度：类型安全、null 处理、API 契约、回归。只审 listed files；禁止宿主 `/review`、禁止整仓 grep。活审查未结束不要派 `$jj-same`。首次审查新开；follow-up 同 cwd `resume_from` 上一名已结束的 `jj-reviewer`，不要 resume 实施工人。G-review-2 / G-review-4 / G-review-5
+4. **客服派单 spawn** → 主对话是 team-lead：写 `ASSIGNMENT-REVIEW`，spawn 前先说「派遣审查」（例如「派遣reviewer审查改动代码」），再本轮 spawn `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头；Grok/Claude 用 `agents/jj-*.md`，Codex 用 `jj-reviewer.toml`；审查工人钉 `reasoning_effort`/`model_reasoning_effort` 为 `high`，不 inherit / 不用 `xhigh`，父会话仍 `high`）；禁止在 parent 审、禁止开机读 report-layout / host-review / review-policy。检查维度：类型安全、null 处理、API 契约、回归。只审 listed files；禁止宿主 `/review`、禁止整仓 grep。活审查未结束不要派 `$jj-same`。首次审查新开；follow-up 同 cwd `resume_from` 上一名已结束的 `jj-reviewer`，不要 resume 实施工人。G-review-2 / G-review-4 / G-review-5
 5. **映射** `[OK]`/`[WARN]`→`PASS`，`[BLOCK]`→`NEEDS_CHANGES`；`HIGH`→`high`；compliance 对照 `## Steps`
 6. **落盘** 仅有 run 时：先回复用户，再写 `findings.md` + `REV-n.json` + 回写 `run.json.review` / `accept_layers.judgment`（文档，不跑 `review-record`）。G-review-3 / 样本 `01a08ea0`
 7. **最终回复**：本轮必须给出 `[OK]` / `[WARN]` / `[BLOCK]`；有问题列出 HIGH/MEDIUM/LOW + 修改意见；等「按审查改」

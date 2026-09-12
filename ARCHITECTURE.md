@@ -29,8 +29,9 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 ### 对话入口资产
 
 - `skills/jj-init/` 定义全局地图接入与知识库建库。机械步骤由 `src/jjInit.mjs` + `jj init preview|join|ingest` 提供；ralph / same / dispatch 只读地图。
-- `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`scripts/` 负责采集源证据。
+- `skills/jj-same/` 定义同源迁移和持续同步协议。`SKILL.md` 是入口；`references/` 保存 handoff、项目族、产物路由和同步契约；`assignment.md` / `onboarding.md` 定义客服独占派单形状（`ASSIGNMENT-RESEARCH` → `ASSIGNMENT-HANDOFF`）与工人入职 spawn prefix；`scripts/` 负责采集源证据。
 - `skills/jj-ralph/` 定义单仓全流程闭环协议与能力地图契约。业务产物在 `.workflow/ralph/`；机械步骤由 `src/ralph.mjs`（门面）+ `src/ralph/{state,gates,map,context,knowledge,archive,migrate}.mjs` + `jj ralph *` 提供。`context` 读取当前合同、阶段与 Git 快照，供一次性 review 交接及任务范围校验；依赖 state/gates，knowledge 只消费其验证结果。
+- `skills/jj-review/` 定义单仓只读审查协议，同用客服独占派单形状：team-lead 写 `ASSIGNMENT-REVIEW-*.md`，spawn 一个只读 reviewer，产出 `findings.md` + `REV-*.json`。`references/review-policy.md` 是 pass/importance/nit 上限的 SSOT；`report-layout.md` 定义产出结构；`host-review.md` 描述宿主证据映射。不调用宿主内建 `/review`，不改业务代码。
 - `src/gitSnapshot.mjs` 采集只读 Git 状态和提交范围指纹；`src/end.mjs` + `src/endCli.mjs` 提供经授权的 Git preview/execute，不写 Ralph/dispatch 账本。`skills/jj-end/scripts/end_ops.mjs` 与 Ralph 一样携带可独立安装的库，分别由 `end:sync/check`、`ralph:sync/check` 保持一致。
 - `skills/jj-dispatch/` 定义控制项目调度协议（Codex / Qoder / Grok install；Claude 无 slash intentional）。其 `references/` 描述控制项目，以及 manifest 和 task receipt 的 JSON 契约。
 - `skills/jj/` 仅为兼容路由，把请求转到原生 `jj-init`、`jj-same`、`jj-ralph`、`jj-review`、`jj-end`、`jj-dispatch`（宿主支持时）、可选 `jj-team-coordinate` / `jj-team-lifecycle` / `jj-team-swarm`（须显式触发，非默认交付路径），或 experimental `jj-evaluated`。
@@ -38,7 +39,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 - `skills/jj-team-lifecycle/` 是固定 SDLC **执行引擎**（固定角色 + prefab pipeline / `TLV4-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-lifecycle.md`。
 - `skills/jj-team-swarm/` 是对抗蚁群**搜索引擎**（ACO + explore/score/converge/synthesize / `TAS-*` session），不是交付主路径；不得推进 checkpoint。设计见 `docs/design-docs/jj-team-swarm.md`。
 - `claude-commands/` 保存 Claude Code 对应命令。`jj-dispatch` / `jj-evaluated` 有意不在此暴露。
-- `agents/` 描述只读 Reviewer 和可写 Developer 角色。这里声明的是期望角色；实际 sandbox 和 worktree 以宿主运行时证明为准。`jj-team-coordinate` / `jj-team-lifecycle` 的 worker 定义随 skill 提供于各自 `agents/team-worker.md`。
+- `agents/` 是子代理身份 SSOT，分两类角色。**Dispatch 项目族角色**：`jj-workflow-reviewer`（只读）/ `jj-workflow-developer`（可写，仅目标项目 worktree）——这里声明的是期望角色，实际 sandbox 和 worktree 以宿主运行时证明为准。**会话客服派单工人**（jj-ralph / jj-same / jj-review 共用）：`jj-implementer`（ralph TASK/FIX、same HANDOFF）、`jj-researcher`（same RESEARCH，只读业务代码）、`jj-reviewer`（review ASSIGNMENT-REVIEW，`reasoning_effort` 固定为 high）——只读独占派单文件，不读 parent 聊天或 skill `references/`；缺失时回退 `general-purpose`，同 persona + 同 cwd 续接用 `resume_from`。`.toml` 是 Codex 变体，`.md` 是 Grok / Claude Code（`~/.claude/agents`）共用变体。`jj-team-coordinate` / `jj-team-lifecycle` 的 worker 定义随 skill 提供于各自 `agents/team-worker.md`。
 
 修改用户可见的工作流行为时，应从对应 skill 或 command 资产开始。只有安装、ralph 机械步骤或控制平面运行时行为才应先进入 npm CLI。
 
@@ -60,7 +61,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions
 ### 包与维护代码
 
 - `bin/jj.mjs` 是最小可执行入口；`src/cli.mjs` 负责解析命令。
-- `src/installSkill.mjs` 安装或卸载 Codex skills/agents 和 Claude commands；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
+- `src/installSkill.mjs` 安装或卸载 Codex / Grok / Claude 的 skills、commands 和 `agents/jj-*`（Claude Code `~/.claude/agents` 与 Grok 共用同一份 `.md`；Codex 用对应 `.toml`）；安装写入内容摘要 ownership manifest，卸载据此保护本地修改，并只把明确登记的历史入口纳入强制清理候选。`src/releaseLog.mjs` 补充当前安装版本的发布说明。
 - `src/cli.mjs` 中的 `dispatch-tick` 暴露一个用于维护和调试的运行时 tick。它默认只预览，写入必须经过 CAS 边界；它不是业务交付主入口。
 - `src/ralph.mjs` 是单仓闭环机械步骤门面（init、status、archive、map-merge/map-find、handoff、dispatch-snapshot、commit-prep、可选 intent、Current 路径核对、review-record、派生 metrics）。实现按 DAG `state ← gates ← map ← knowledge ← archive` 拆在 `src/ralph/`。它不替代 `$jj-ralph` 对话协议。
 - `src/memoryRetrieve.mjs` / `src/memoryExtract.mjs` 是 ralph 知识挂载与贡献包的词法检索 / Gate B 抽取（移植自 jj-multica 已标定算法）。`src/portfolioKnowledge.mjs` 读外置 KB index 并调用 retrieve；0 命中保持 empty。`src/memoryHotLayer.mjs` 是用户级热层（`~/.jj-flow/memory/<project_key>.md`）：findings `## 可复用结论` 在 archive 晋升，init/resume/dispatch 词法注入，confirmed 置顶；0 命中保持 empty。
