@@ -1,0 +1,69 @@
+docs/pitfalls.md
+  s_4f95c2e3875c8c::t_5076623f4d8a90 85
+  s_4f95c2e3875c8c::t_eb910ac389d10c 89
+  s_4f95c2e3875c8c::t_d1a9db3ba5d27b 185-186
+  s_4f95c2e3875c8c::t_be09ab283cbe50 198
+  s_4f95c2e3875c8c::t_c5d62141ce480a 147
+  s_4f95c2e3875c8c::t_920bb197bc97a8 13
+  s_4f95c2e3875c8c::t_e21edfa42a8b44 161
+  s_4f95c2e3875c8c::t_f141f8f92d0e74 180
+  s_4f95c2e3875c8c::t_abfa976220345f 95
+  s_4f95c2e3875c8c::t_39595ece75cc68 133
+  s_4f95c2e3875c8c::t_0bdd6a9607f50b 117
+  s_4f95c2e3875c8c::t_a9046fc016f170 151,153
+  s_4f95c2e3875c8c::t_a72acc0dced978 56
+  s_4f95c2e3875c8c::t_3301372d840fe5 167
+  s_4f95c2e3875c8c::t_c562cfa4d61381 31
+docs/installation.md
+  s_4f95c2e3875c8c::t_e828f0e8fb01b9 63
+  s_4f95c2e3875c8c::t_4d6f28e24bb496 49
+  s_4f95c2e3875c8c::t_2a6ddeeeb0d79a 57
+  s_4f95c2e3875c8c::t_99c7be467e3164 72
+docs/usage.md
+  s_4f95c2e3875c8c::t_2abced097dd45e 41
+  s_64c418359cd940::t_4cbffb82319d83 90
+  s_4f95c2e3875c8c::t_551d91557b681a 96
+  s_4f95c2e3875c8c::t_d73cf23652d2cc 39
+  s_4f95c2e3875c8c::t_55ffd72e54f070 36-37
+  s_4f95c2e3875c8c::t_e4459ce4a9b3b5 71
+  s_64c418359cd940::t_aea9d1c7da4648 30
+docs/index.md
+  s_4f95c2e3875c8c::t_be866af8820eb9 56
+  s_4f95c2e3875c8c::t_23c1bf03fb8686 59
+  s_4f95c2e3875c8c::t_5f8b1c52ef369c 5
+  s_4f95c2e3875c8c::t_82f0199f2c5266 51
+  s_4f95c2e3875c8c::t_330c5eb55b8cf2 30
+  s_4f95c2e3875c8c::t_bbbc5b13235401 11
+  s_4f95c2e3875c8c::t_23966bd63932dd 15
+  s_4f95c2e3875c8c::t_65bd59bfa76c61 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "b7c9f8ea6a025dadf946674784575b2f5181b216",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
