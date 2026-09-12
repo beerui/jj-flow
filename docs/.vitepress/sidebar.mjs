@@ -64,6 +64,7 @@ export const sidebar = [
     text: '维护者',
     items: [
       { text: '架构', link: '/architecture' },
+      { text: '写作规范', link: '/writing-guide' },
       { text: '维护说明', link: '/maintenance' },
       { text: 'CLI 参考', link: '/commands/cli' },
       { text: '部署', link: '/deployment' },
