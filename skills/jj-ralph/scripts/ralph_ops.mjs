@@ -10,7 +10,7 @@
  *   2) monorepo checkout: ../../../src/ralph.mjs (skills/<id>/scripts; legacy ../../../../ for .codex/skills)
  *   3) skill-bundled scripts/lib/ralph.mjs  ← business repos without jj-flow
  *   4) walk cwd for package root / node_modules/@brewer/jj-flow
- *   5) else exit 2 (skill incomplete; skeleton last resort)
+ *   5) else exit 2 (skill incomplete; reinstall or npm run ralph:sync)
  *
  * Usage:
  *   node ralph_ops.mjs <init|status|locate|context|archive|finalize|map-merge|knowledge-contribute|finding|knowledge-confirm|knowledge-prune|gate|scope|deliver-attempt|accept-layer|rollback-phase|set-status|resume|abandon|map-find|handoff|dispatch-snapshot|commit-prep|review-record|migrate|remediate|adopt> [options]
@@ -22,8 +22,6 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SKILL_ROOT = path.resolve(__dirname, '..');
-const REFS = path.join(SKILL_ROOT, 'references');
 const BUNDLED_LIB = path.join(__dirname, 'lib', 'ralph.mjs');
 
 function die(msg, code = 1) {
