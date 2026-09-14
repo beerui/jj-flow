@@ -18,6 +18,33 @@ export function loadCurrentReleaseLog({
   };
 }
 
+export const EMPTY_UNRELEASED_HINT = '暂无。';
+
+export function extractUnreleasedLog(changelog) {
+  const lines = String(changelog).split(/\r?\n/);
+  const start = lines.findIndex((line) => /^##\s+Unreleased\s*$/i.test(line.trim()));
+  if (start === -1) {
+    throw new Error('CHANGELOG.md is missing ## Unreleased');
+  }
+
+  const endOffset = lines.slice(start + 1).findIndex((line) => /^##\s+/.test(line.trim()));
+  const end = endOffset === -1 ? lines.length : start + 1 + endOffset;
+  return lines.slice(start + 1, end).join('\n').trim();
+}
+
+export function assertUnreleasedReadable(changelog) {
+  const body = extractUnreleasedLog(changelog);
+  const hasItems = /^- /m.test(body);
+  const hasHint = body === EMPTY_UNRELEASED_HINT;
+
+  if (hasItems && /暂无/.test(body)) {
+    throw new Error('Unreleased has changelog items; remove the 暂无 placeholder');
+  }
+  if (!hasItems && !hasHint) {
+    throw new Error(`Unreleased has no items; write ${EMPTY_UNRELEASED_HINT}`);
+  }
+}
+
 export function extractVersionLog(changelog, version) {
   const lines = String(changelog).split(/\r?\n/);
   const escapedVersion = escapeRegExp(version);

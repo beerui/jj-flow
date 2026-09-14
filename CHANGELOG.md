@@ -1,8 +1,10 @@
 # Changelog
 
-版本标题附带发布时间（`YYYY-MM-DD HH:mm`，与发版 commit 本地时区一致）。进行中的变更写在 `Unreleased`。
+版本标题附带发布时间（`YYYY-MM-DD HH:mm`，与发版 commit 本地时区一致）。进行中的变更写在 `Unreleased`；无待发布条目时写「暂无」。
 
 ## Unreleased
+
+暂无。
 
 ## 0.2.3 — 2026-09-14 08:06
 

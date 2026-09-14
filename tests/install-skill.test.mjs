@@ -32,7 +32,13 @@ import {
   projectSkillTarget,
   uninstallSkill
 } from '../src/installSkill.mjs';
-import { extractVersionLog, loadCurrentReleaseLog } from '../src/releaseLog.mjs';
+import {
+  assertUnreleasedReadable,
+  EMPTY_UNRELEASED_HINT,
+  extractUnreleasedLog,
+  extractVersionLog,
+  loadCurrentReleaseLog
+} from '../src/releaseLog.mjs';
 
 const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const packageVersion = packageJson.version;
@@ -114,6 +120,25 @@ test('release log parser supports stamped YYYY-MM-DD HH:mm headings', () => {
   ].join('\n');
 
   assert.equal(extractVersionLog(changelog, '0.1.1-beta.36'), '- stamped notes');
+});
+
+test('Unreleased empty state is 暂无 prose, not a list item', () => {
+  const empty = ['# Changelog', '', '## Unreleased', '', EMPTY_UNRELEASED_HINT, '', '## 0.2.3', '', '- shipped'].join('\n');
+  assert.equal(extractUnreleasedLog(empty), EMPTY_UNRELEASED_HINT);
+  assertUnreleasedReadable(empty);
+
+  const withItems = ['# Changelog', '', '## Unreleased', '', '- **主题**：陈述。', '', '## 0.2.3'].join('\n');
+  assertUnreleasedReadable(withItems);
+
+  assert.throws(() => assertUnreleasedReadable(['# Changelog', '', '## Unreleased', '', '## 0.2.3'].join('\n')), /write 暂无/);
+  assert.throws(
+    () => assertUnreleasedReadable(['# Changelog', '', '## Unreleased', '', EMPTY_UNRELEASED_HINT, '', '- **主题**：陈述。'].join('\n')),
+    /remove the 暂无 placeholder/
+  );
+});
+
+test('live CHANGELOG Unreleased is either items or 暂无', () => {
+  assertUnreleasedReadable(fs.readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8'));
 });
 
 test('default skill target points to Codex skill directory', () => {
