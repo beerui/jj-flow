@@ -258,6 +258,9 @@ export function installSkill({
   if (!dryRun) {
     for (const item of toWrite) {
       fs.mkdirSync(item.job.target, { recursive: true });
+      if (item.entry.kind === 'directory' && fs.existsSync(item.dest)) {
+        fs.rmSync(item.dest, { recursive: true, force: true });
+      }
       fs.cpSync(item.entry.source, item.dest, {
         recursive: item.entry.kind === 'directory',
         force: true,

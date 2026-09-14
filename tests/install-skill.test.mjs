@@ -854,6 +854,29 @@ test('CLI install-skill adds missing skills without force', () => {
   });
 });
 
+test('installSkill --force replaces skill directory so retired files are gone', () => {
+  const workspace = makeWorkspace('jj-flow-install-replace-');
+  const skillsTarget = path.join(workspace, '.grok', 'skills');
+  install({
+    platform: 'grok',
+    grokTargetDir: skillsTarget,
+    force: true
+  });
+  const retired = path.join(skillsTarget, 'jj-ralph', 'references', 'phases.md');
+  fs.mkdirSync(path.dirname(retired), { recursive: true });
+  fs.writeFileSync(retired, '# leftover\n');
+
+  const installed = install({
+    platform: 'grok',
+    grokTargetDir: skillsTarget,
+    force: true
+  });
+
+  assert.equal(installed.ok, true);
+  assert.equal(fs.existsSync(retired), false);
+  assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-ralph', 'references', 'artifact-layout.md')), true);
+});
+
 test('installSkill removes leftover skill-en-zh-rewrite copies', () => {
   const workspace = makeWorkspace('jj-flow-install-unpublished-');
   const skillsTarget = path.join(workspace, '.grok', 'skills');

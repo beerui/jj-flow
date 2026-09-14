@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **install-skill --force 整目录替换**：覆盖安装时先删再拷 skill 目录，清掉源里已删的文件（如旧 `phases.md`）。合约：`tests/install-skill.test.mjs`。
 - **删掉 Ralph 死骨架**：`references/` 去掉 `archive-manifest.skeleton.json` / `run.skeleton.json` / `capability.skeleton.json`（引擎用 `createRunSkeleton()`）和重复的 `business-map.schema.json`（留 `ralph-business-map.schema.json`，与 `schemas/` 同步）。形状仍留 `artifact-layout.md` / `integrations.md`。合约：`tests/ralph/assets.contract.mjs`。
 - **卸掉 skill-en-zh-rewrite**：仓库维护 skill 已不需要。删除 `skills/skill-en-zh-rewrite/` 与对照页。`install-skill` 仍从宿主目录清残留。合约：`tests/install-skill.test.mjs`。
 - **删掉 Ralph 对话 CLI 手册**：对话路径已不跑 `ralph_ops` / `jj ralph`。删除 `skills/jj-ralph/references/` 下 `phases.md` / `ops.md` / `rollback.md` / `business-map.md` / `must-evidence.md` / `post-complete-continue.md`。入口仍禁止打开 `references/`。文档形状留 `artifact-layout.md`；身份/热层留 `integrations.md`。证据类由 `evaluateAcceptArchiveGate` 执行。机械 CLI / gym / `src/cli.mjs` 保留。未确认需求细则并进 SKILL Red checkpoints。`context` 包指向 `jj-ralph/SKILL.md`。合约：`tests/ralph/assets.contract.mjs`。
