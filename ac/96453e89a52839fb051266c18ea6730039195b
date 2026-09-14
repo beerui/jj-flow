@@ -1,0 +1,28 @@
+src/releaseLog.mjs
+  s_4659fc2227d4b3::t_90c3a7d79a509f 21-47
+CHANGELOG.md
+  s_4659fc2227d4b3::t_356bb0b4e88c94 3,7-8
+tests/install-skill.test.mjs
+  s_4659fc2227d4b3::t_e0d4cec929830b 35-41,125-143
+docs/writing-guide.md
+  s_4659fc2227d4b3::t_2be253256f7e72 132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "ac96453e89a52839fb051266c18ea6730039195b",
+  "prompts": {},
+  "sessions": {
+    "s_4659fc2227d4b3": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a09edb-626a-7902-97ec-bc76dc735929",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
