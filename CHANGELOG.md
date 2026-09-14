@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.2.3 — 2026-09-14 08:06
+
 - **install-skill --force 整目录替换**：覆盖安装时先删再拷 skill 目录，清掉源里已删的文件（如旧 `phases.md`）。合约：`tests/install-skill.test.mjs`。
 - **删掉 Ralph 死骨架**：`references/` 去掉 `archive-manifest.skeleton.json` / `run.skeleton.json` / `capability.skeleton.json`（引擎用 `createRunSkeleton()`）和重复的 `business-map.schema.json`（留 `ralph-business-map.schema.json`，与 `schemas/` 同步）。形状仍留 `artifact-layout.md` / `integrations.md`。合约：`tests/ralph/assets.contract.mjs`。
 - **卸掉 skill-en-zh-rewrite**：仓库维护 skill 已不需要。删除 `skills/skill-en-zh-rewrite/` 与对照页。`install-skill` 仍从宿主目录清残留。合约：`tests/install-skill.test.mjs`。
