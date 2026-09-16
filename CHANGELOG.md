@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+- **Ralph 用户文档 marker 随信息架构拆分**：`ea7eaf9` 把机器标识 / locate / remediate / 归档提示从 `docs/commands/jj-ralph.md` 迁到 CLI 参考后，`verify` 仍按旧 userCmd 正循环锁这些词，`test` 红 1 条。`tests/ralph/assets.contract.mjs` 与设计 `ralph-skill-slim` §9.3：对话页只锁会话话术；运维与机器标识改锁 `docs/commands/cli.md`。`MUST finalize` 仍锁 SKILL；`未完成收尾` 仍是机械 status 告警。产品规则不变。
 - **文档信息架构重组**：概念章收敛为五页（Loop 两层图并入证据页、记忆速览并入知识与记忆页），`project-plan` 与 M6 验收移出站点归档，侧栏「参考」新增折叠的历史验收组。
 - **CLI 参考校准**：`commands/cli.md` 按 `src/cli.mjs` 补齐 `agents` 安装平台、`task status/context`、`resume`/`abandon`/`remediate` 与 `migrate --prune-archive`，旧 `tasks/` 路径改为扁平布局，新增 ralph 运维节；`jj-ralph` 命令页拆分瘦身，CLI 与监控内容迁往 CLI 参考。
 - **用户文档口径统一**：首页 / 安装 / 宿主说明补 AGENTS 兼容入口与 `.claude/agents`，知识库写入改为「主动提出并经确认后」，README 按 docs 新口径重写，维护说明新增文档地图与五端 SSOT 说明。

@@ -359,24 +359,27 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     '项目B',
     '项目C',
     '控制项目',
-    'task-login-reminder',
-    'DEL-password',
-    'CAP-login-reminder',
     '先不写代码',
     '按审查改',
     '改坏了',
     '这里',
     '仍走五步',
-    '归档提示',
     '审查修复',
-    'MUST finalize',
-    '未完成收尾',
-    'jj ralph locate',
-    'jj ralph remediate',
     '确认不了',
     '不要凭猜测推进'
   ]) {
     assert.match(userCmd, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  const cliRef = read('docs/commands/cli.md');
+  for (const marker of [
+    'task-login-reminder',
+    'DEL-password',
+    'CAP-login-reminder',
+    '归档提示',
+    'jj ralph locate',
+    'jj ralph remediate'
+  ]) {
+    assert.match(cliRef, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.doesNotMatch(userCmd, /轻量档（lite）/);
   assert.doesNotMatch(userCmd, /顺手修/);

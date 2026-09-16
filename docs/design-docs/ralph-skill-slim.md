@@ -714,9 +714,11 @@ phases / layout / tiny / claude-command / userCmd / usage 上**已经**存在的
 
 ### 9.3 用户文档循环 L406–L430
 
-`docs/commands/jj-ralph.md` 去掉「强度档」菜单与 `$jj-ralph tiny：` / `$jj-ralph strict：` 点名示例。`intensity` / `tiny` / `strict` **不进** userCmd 正循环（现 L414–L416 删掉）。下列 marker **必须仍出现**：
+`docs/commands/jj-ralph.md` 去掉「强度档」菜单与 `$jj-ralph tiny：` / `$jj-ralph strict：` 点名示例。`intensity` / `tiny` / `strict` **不进** userCmd 正循环（现 L414–L416 删掉）。对话页下列 marker **必须仍出现**：
 
-`项目A` `项目B` `项目C` `控制项目` `task-login-reminder` `DEL-password` `CAP-login-reminder` `先不写代码` `按审查改` `改坏了` `这里` `仍走五步` `归档提示` `审查修复` `MUST finalize` `未完成收尾` `jj ralph locate` `jj ralph remediate` `确认不了` `不要凭猜测推进`
+`项目A` `项目B` `项目C` `控制项目` `先不写代码` `按审查改` `改坏了` `这里` `仍走五步` `审查修复` `确认不了` `不要凭猜测推进`
+
+信息架构拆分后，机器标识与命令行运维锁在 `docs/commands/cli.md`（不是对话页正循环）：`task-login-reminder` `DEL-password` `CAP-login-reminder` `归档提示` `jj ralph locate` `jj ralph remediate`。`MUST finalize` 锁 SKILL Immediate actions；`未完成收尾` 是机械 `status` 告警，不回写对话页。
 
 **负锁定（精确，不要裸 `/tiny/` `/strict/`）：**
 
@@ -729,7 +731,7 @@ assert.doesNotMatch(userCmd, /口语里点名即可/);
 
 `assert.doesNotMatch(userCmd, /轻量档（lite）/)` 与 `/顺手修/` 保持。
 
-L136 现「可能看到 `intensity`、`CAP-login-reminder`…」：PR1 **删掉** `intensity` 词（CAP/DEL/task-* 机器标识保留）。不要留一句会让 naive `/intensity/` 变绿的 ledger 别名。L134「普通 `tiny` **不会**切到该档」改成不点名档（例如「普通对话路径不会切到 lite」）。
+L136 现「可能看到 `intensity`、`CAP-login-reminder`…」：PR1 **删掉** `intensity` 词。CAP/DEL/task-* 机器标识改由 CLI 参考保留，不回写对话页。不要留一句会让 naive `/intensity/` 变绿的 ledger 别名。L134「普通 `tiny` **不会**切到该档」改成不点名档（例如「普通对话路径不会切到 lite」）。
 
 ### 9.4 其它已有钉（归属不变或随搬家）
 
