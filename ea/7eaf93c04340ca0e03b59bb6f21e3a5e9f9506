@@ -1,0 +1,64 @@
+README.md
+  s_8d7938512ec493::t_91ff3897998c1f 3,5,7,9,11,13-17,19,21,23-25,28,31,33,35-42,44,46,48,50,53-57,60,62,65-72,75,77-83,85,87-89,91
+scripts/check-project.mjs
+  s_8d7938512ec493::t_e6e086ccf23fe5 118,135
+.gitignore
+  s_8d7938512ec493::t_c9ceb13d85548b 21
+CHANGELOG.md
+  s_8d7938512ec493::t_92fd7f7087f4ad 7-9
+docs/.vitepress/redirects.mjs
+  s_8d7938512ec493::t_9925406d330b98 18-23
+docs/.vitepress/sidebar.mjs
+  s_8d7938512ec493::t_e588f67a28c6d4 58,87-95
+docs/architecture.md
+  s_8d7938512ec493::t_567775a890b184 31-33,35-36
+docs/commands.md
+  s_8d7938512ec493::t_228358c3d816cd 17
+docs/commands/cli.md
+  s_8d7938512ec493::t_9f6c36ceb37037 15,21,25,33-34,87-88,93-94,106-107,117,121-122,138-151,189-192,195
+docs/commands/jj-ralph.md
+  s_8d7938512ec493::t_2759839e4f0a7a 104-113,142,144-148
+docs/concepts-evidence.md
+  s_8d7938512ec493::t_6dedf770393527 15,25-26
+docs/concepts-hosts.md
+  s_8d7938512ec493::t_c7eacfe2df0414 12-13,26-29
+docs/concepts-knowledge.md
+  s_8d7938512ec493::t_8eaea035649abb 1-5,10,15-23,27
+docs/concepts-paths.md
+  s_8d7938512ec493::t_70beae40a56f59 3,10,19-33,36,40
+docs/design-docs/portfolio-knowledge.md
+  s_8d7938512ec493::t_ebc165b2e98bae 76,86
+docs/glossary.md
+  s_8d7938512ec493::t_76403b0ae0fccf 8,29-36
+docs/index.md
+  s_8d7938512ec493::t_78e0225ee8432b 5,30
+docs/installation.md
+  s_8d7938512ec493::t_3a30f3efb8ffe2 18,45
+docs/maintenance.md
+  s_8d7938512ec493::t_ae73fa22822cc0 29-38,51,53,57-62,67
+docs/usage.md
+  s_8d7938512ec493::t_8a2053f66bb43f 61
+docs/writing-guide.md
+  s_8d7938512ec493::t_3ffca557bfc7ab 13,17-18,48,197
+skills/jj-init/SKILL.md
+  s_8d7938512ec493::t_402aa88e802ee9 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "ea7eaf93c04340ca0e03b59bb6f21e3a5e9f9506",
+  "prompts": {},
+  "sessions": {
+    "s_8d7938512ec493": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0a99e-b159-73c0-9c4b-7ec9ff89dea6",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
