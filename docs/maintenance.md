@@ -26,6 +26,16 @@
 | 架构 | `docs/architecture.md` + 根 `ARCHITECTURE.md` |
 | 设计 | `docs/design-docs/*` + 索引 |
 
+## 文档地图
+
+| 章节 | 受众 | 用法 | 内容边界 |
+|------|------|------|----------|
+| 开始 | 新用户 | 第一次接触，从安装到走完第一个需求 | 只讲上手，不展开协议细节 |
+| 工作流 | 日常用户 | 按入口查写法与边界 | 12 个命令页 + 总览；对话路径优先，CLI 细节归维护者 |
+| 概念 | 想懂「为什么」的用户 | 理解证据、目录、宿主差异、知识与记忆机制 | 术语 / 证据 / 目录 / 宿主 / 知识与记忆，共 5 页 |
+| 维护者 | 改本仓库的人 | 架构、CLI 参考、写作规范、发布 | 事实源校准页（`commands/cli.md` 按 `src/cli.mjs` 校准） |
+| 参考 | 深究者 | 设计文档、执行计划、ADR、历史验收 | 历史产物折叠归组，不与新文档混排 |
+
 ## 命令
 
 ```bash
@@ -38,18 +48,23 @@ npm run lab:check
 npm run harness:gc
 ```
 
-`npm run verify` 含 `lab:check`。本地须设绝对 `JJ_LAB_LOOP_ROOT` / `JJ_LAB_FAMILY_ROOT`（或已存在的 `lab-roots.json`）；CI 由 `prepare-lab-roots` 注入。缺根 fail-closed。
+`npm run verify` 的组成：`ralph:check` + `end:check` + 全量测试 + `check` + `harness:check` + `harness:gc` + `scenario:check` + `host:trial` + `docs:check` + `evaluated:check` + `lab:check`。本地须设绝对 `JJ_LAB_LOOP_ROOT` / `JJ_LAB_FAMILY_ROOT`（或已存在的 `lab-roots.json`）；CI 由 `prepare-lab-roots` 注入。缺根 fail-closed。
 
-改 dispatch 协议额外：`node --test tests/jj-dispatch-contract.test.mjs`。
+改 dispatch 协议额外：`node --test tests/jj-dispatch-contract.test.mjs`；改 ralph 额外：`node --test tests/jj-ralph-contract.test.mjs`。
 
 ## Skill SSOT
 
-只编辑 `skills/`。Claude 斜杠命令仅同步到 `.claude/commands/`。  
+编辑源为仓库顶层 `skills/`（对话协议）、`agents/`（命名子代理）、`claude-commands/`（Claude 斜杠命令入口，行数门禁 ≤40）。**禁止**把 `.claude/`、`.codex/`、`.cursor/` 当作 SSOT 或推远端。
+
+改后分发到宿主：`node src/cli.mjs install-skill --platform all --force`（五端：codex / claude / qoder / grok / agents）。
+
+派单协议（客服派单）：`jj-ralph` / `jj-same` / `jj-review` 的独占派单固定 spawn `agents/` 命名子代理（`jj-implementer`、`jj-researcher`、`jj-reviewer`），缺失才回退 `general-purpose`；执行人只读派单文件，不读 parent 聊天或 skill `references/`。同一人设 + 同一目录的后续切片用 `resume_from` 续接，不冷启动。
+
 命令行全集见 [CLI 参考](commands/cli.md)（维护/调试用，不写进用户教程）。
 
 ## 发布
 
-npm 只走 GitHub Actions `NPM Publish`（`workflow_dispatch`）。
+npm 只走 GitHub Actions `NPM Publish`（`workflow_dispatch`）。`CHANGELOG.md` 由 release-please 维护：已发布段落不再改动，仅 `## Unreleased` 可编辑；边界与条目格式见[写作规范](writing-guide.md)。
 
 ## 已移除入口
 

@@ -2,7 +2,7 @@
 
 用**对话**在多个相关项目里把“改功能、迁功能、一起派任务”做完，并且**能核对、能接着做**。
 
-支持：Codex、Claude、Grok、Qoder。
+支持：Codex、Claude、Grok、Qoder，另提供 AGENTS 兼容入口（`~/.agents`）。
 
 > 聊天里说“做完了”不算数。算数的是仓库里的记录、Git 提交和审查结果。
 
@@ -27,7 +27,7 @@
 
 **快速判断：** 一个仓用 **ralph**；要搬家用 **same**；多个仓统一批准用 **dispatch**；只收工用 **end**。
 
-可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘。
+可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘（无 Claude 入口）。
 
 ## 对话入口
 

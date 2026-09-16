@@ -14,10 +14,9 @@
 | [ralph](commands/jj-ralph.md) | 在当前仓库从分析做到验收、归档 | 全平台 |
 | [same](commands/jj-same.md) | 把一个同源仓做好的能力迁到别的仓 | 全平台 |
 | [dispatch](commands/jj-dispatch.md) | 多个项目先预览、批准，再一起派发 | Codex / Grok / Qoder（无 Claude 入口） |
-| [review](commands/jj-review.md) | 只读审查并把结论写进 ralph 任务 | 全平台 |
+| [review](commands/jj-review.md) | 只读审查；有活跃任务时结论写进任务，无任务时只回结论 | 全平台 |
 | [end](commands/jj-end.md) | 提交、推送并按规则合进集成分支 | 全平台 |
 | [jj](commands/jj.md) | 说不清时帮你选上面哪个入口 | 全平台 |
-**快速判断：** 一个仓库 → **ralph**；要搬到别的同源仓 → **same**；好几个仓库一起批准和派发 → **dispatch**；代码已经完成只做 Git 收尾 → **end**。
 
 ## 可选协作（不推进验收）
 

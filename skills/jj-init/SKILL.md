@@ -38,7 +38,7 @@ Users do not run CLI. Resolve: `jj` on PATH, else `node <repo>/bin/jj.mjs`, else
 | Intent | Use |
 | --- | --- |
 | New ralph run | `$jj-ralph` |
-| This-run feed after archive | `$jj-ralph` 「投喂知识库」 |
+| This-run feed after archive | `$jj-ralph` 「写入知识库」 |
 | Read paths / whether cwd is indexed | `jj doctor` (short Chinese `user_view`) |
 | Port / dispatch | `$jj-same` / `$jj-dispatch` |
 

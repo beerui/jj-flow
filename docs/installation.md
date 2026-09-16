@@ -15,7 +15,7 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 | 平台 | 装到哪里 |
 |------|----------|
 | Codex | `.codex/skills` + `agents` |
-| **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（斜杠命令） |
+| **Claude** | **`.claude/skills`（完整 skill）** + `.claude/commands`（斜杠命令）+ `.claude/agents`（命名子代理） |
 | Grok | `.grok/skills` |
 | Qoder | `.qoder/skills` |
 | AGENTS | `.agents/skills` + `.agents/commands` |
@@ -42,7 +42,7 @@ npx @brewer/jj-flow@latest install-skill --platform qoder
 npx @brewer/jj-flow@latest install-skill --platform agents
 ```
 
-不加 `--project` 时，装到用户全局目录（Claude：`~/.claude/skills` + `~/.claude/commands`；AGENTS：`~/.agents/skills` + `~/.agents/commands`）。
+不加 `--project` 时，装到各工具的用户全局目录（如 Claude：`~/.claude`；Codex：`~/.codex`；Grok：`~/.grok`；AGENTS：`~/.agents`）。
 
 再次执行安装命令会**补上缺失的 skill**（如新版 `jj-init`），默认不覆盖已有文件；**覆盖已有安装**请加 `--force`。
 

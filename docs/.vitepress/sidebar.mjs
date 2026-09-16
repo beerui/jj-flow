@@ -55,9 +55,7 @@ export const sidebar = [
       { text: '证据怎么算数', link: '/concepts-evidence' },
       { text: '目录怎么放', link: '/concepts-paths' },
       { text: '宿主与 Mode S', link: '/concepts-hosts' },
-      { text: '知识库', link: '/concepts-knowledge' },
-      { text: 'Loop 与 Graph', link: '/loop-graph-guide' },
-      { text: '记忆速览', link: '/memory-knowledge-guide' }
+      { text: '知识与记忆', link: '/concepts-knowledge' }
     ]
   },
   {
@@ -86,11 +84,15 @@ export const sidebar = [
         ]
       },
       { text: 'ADR', collapsed: true, items: [{ text: '总览', link: '/adr/' }, ...dirEntries('adr')] },
-      { text: '项目规划', link: '/project-plan' },
-      { text: '真实 Host', link: '/milestones/real-host-acceptance' },
-      { text: 'M7 半真实 Host', link: '/milestones/m7-acceptance' },
-      { text: 'H5 熵清理', link: '/milestones/h5-acceptance' },
-      { text: 'M6 调度', link: '/milestones/m6-acceptance' }
+      {
+        text: '历史验收',
+        collapsed: true,
+        items: [
+          { text: '真实 Host', link: '/milestones/real-host-acceptance' },
+          { text: 'M7 半真实 Host', link: '/milestones/m7-acceptance' },
+          { text: 'H5 熵清理', link: '/milestones/h5-acceptance' }
+        ]
+      }
     ]
   }
 ];

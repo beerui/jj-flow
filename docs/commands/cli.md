@@ -12,17 +12,17 @@
 
 | 命令 | 用途 |
 |------|------|
-| `install-skill` / `uninstall-skill` | 安装或卸载 skill / 薄命令（同时生成 `~/.jj-flow` 空 map/知识结构） |
+| `install-skill` / `uninstall-skill` | 安装或卸载 skill / 命令入口（同时生成 `~/.jj-flow` 空 map/知识结构） |
 | `home init` / `init preview\|join\|ingest` / `map lookup` / `map add` | 生成用户主目录；接入地图与补知识（`$jj-init` 对话入口，须用户同意）；`map lookup` 只读 |
 | `doctor` | 只读诊断 Git / Harness / 路径 / capabilities |
 | `ralph *` | 任务 run 机械步骤（不替代对话） |
 | `end preview` / `end execute` | Git 收尾预览和批量执行；不写任务账本 |
 | `dispatch-tick` | 单次调度 tick 预览或 CAS 写入 |
-| `task scaffold` / `task assign` | 任务脚手架与轻量分配展示 |
+| `task scaffold / assign / status / context` | 任务脚手架、分配展示与状态 / 上下文查询 |
 | `scenario` | 确定性场景 list / check / run |
 | `trace` | explain / pure replay |
 | `host-trial run` | 半真实 Host 试跑（非真 Host） |
-| `grok-trial run` | 真 Grok 会话试跑（不关 Wave 2） |
+| `grok-trial run` | 真 Grok 会话试跑 |
 | `harness-gc` | 只读熵扫描 |
 
 ---
@@ -30,8 +30,8 @@
 ## 安装与卸载
 
 ```bash
-jj install-skill [--platform codex|claude|qoder|grok|all] [--project | --target dir] [--force] [--dry-run] [--json]
-jj uninstall-skill [--platform …] [--project | --target dir] [--force] [--dry-run] [--json]
+jj install-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]
+jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | --target dir] [--force] [--dry-run] [--json]
 ```
 
 - 默认不按名称前缀扫描未知文件；只动 ownership 登记资产
@@ -84,12 +84,14 @@ jj ralph accept-layer --run-id task-… --layer mechanical|judgment \
   --status PASS|FAIL|PENDING|SKIPPED [--mode none|review|recheck|adversarial_note] [--note text] [--json]
 jj ralph rollback-phase --run-id task-… --to PLAN|DELIVER|ANALYZE --reason "…" [--json]
 jj ralph set-status --run-id task-… --status PAUSED|BLOCKED|IN_PROGRESS --reason "…" [--json]
+jj ralph resume|continue --run-id task-… [--reason "…"] [--json]
+jj ralph abandon --run-id task-… [--reason "…"] [--json]
 jj ralph finding --run-id task-… --action "…" --scope "…" [--phenomenon "…"] [--cause "…"] [--rule "…"] [--json]
 jj ralph metrics --run-id task-… [--persist] [--json]
 
 jj ralph archive --run-id task-… [--slug name] [--json]
-jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--json]
-jj ralph map-merge --run-id task-… [--modules …] [--keywords …] [--lessons …] [--force] [--json]
+jj ralph finalize --run-id task-… [--modules p1,p2] [--keywords a,b] [--lessons "l1|l2"] [--slug name] [--force] [--include-process-lessons] [--no-contribution-package] [--json]
+jj ralph map-merge --run-id task-… [--modules …] [--keywords …] [--lessons …] [--force] [--include-process-lessons] [--json]
 jj ralph map-find --query "关键词" [--limit N] [--json]
 jj ralph knowledge-contribute --run-id task-… [--lessons "l1|l2"] [--modules …] [--hook] [--json]
 jj ralph knowledge-confirm --needle "…" [--project KEY] [--json]
@@ -101,7 +103,8 @@ jj ralph commit-prep --run-id task-… [--json]
 jj ralph review-record --run-id task-… --outcome PASS|NEEDS_CHANGES|BLOCKED [审查溯源选项…] [--json]
 jj ralph host-record --run-id task-… [--host-id …] [--thread-id …] [--session-handle …] [--model-id …] [--export-path …] [--json]
 
-jj ralph migrate [--all-projects] [--json]
+jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
+jj ralph remediate [--yes] [--force] [--json]
 jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
 ```
 
@@ -111,11 +114,12 @@ jj ralph adopt --task task-… [--from RALPH-…] [--absorb task-…] [--json]
 - `gate_set`：默认 `full`（五 gate）。`--lite` 走 `brief` → `deliver` → `close`：`brief` = analyze + plan，`close` = accept + archive，账本仍写五键，`close` 照常走 accept / archive 证据门；`budget.max_deliver_loops ≤ 3`。任一 gate FAIL / BLOCKED，或 `scope --in` 新增路径，自动升 full（恢复 intensity 预算），同目录、不换 `run_id`。lite 预算到顶时只停（`BLOCKED`，`unblock` 指明出口），不自动升档；`gate deliver FAIL` 即出口，升 full 并解除该 BLOCKED。`gate_set` 与 `intensity` 正交：tiny 不等于 lite
 - 无 `--lite` / `--full` 时，init 按规模**只给建议**：改动面小（`--in` ≤ 2 个具体文件，或标题 / 目标含「小改 / 顺手 / typo / px」这类口语）、无架构词（重构 / 协议 / 鉴权 / 迁移 / schema / api …）、单一验收项，三者同时成立才建议 `lite`，拿不准即 `full`。文本模式多输出一行 `gate_set? lite …`，`--json` 带 `run.gate_set_suggestion`（`applied=false`）；`run.json` 仍写 `full`。要走 lite 必须显式 `--lite`（尚未过任何 gate 时可 `--lite --force` 重 init）
 - `deliver-attempt`：DELIVER 每轮记一次是否改进；省略 `--improved` 时按工作区指纹自动判定；连续无改进 → `BLOCKED` + `STAGNATION`
+- `resume` / `continue` / `abandon`：恢复（或半途废弃）一个 run；`close` 已废弃——半途丢弃用 `abandon`，软归档用 `archive` / `finalize`，同一 run 之后仍可再 resume
 - `accept-layer`：双层验收；**strict** 下 judgment 须 PASS 才能 `gate accept PASS`
 - `archive` / `finalize` 默认要求 accept=PASS（`--force` 可覆盖）；`finalize` = map-merge + archive；归档原地翻转，不再复制到 `archive/`
 - `finding`：按五要素（现象 / 原因 / 对策 / 适用范围 / 证据）追写 `findings.md`，并在 progress 留一行索引
-- `migrate`：把活跃的旧 `RALPH-*` 目录 1:1 迁到 `tasks/task-<slug>/`（原目录改名 `.migrated-*` 保留）；`adopt --task` 把已有 run 绑定到规范目录，`--absorb` 只提示、不自动合并
-- `handoff` 写 `tasks/<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
+- `migrate`：把活跃的旧 `RALPH-*` 目录 1:1 上提到 `.workflow/ralph/<task_key>/`（原目录改名 `.migrated-*` 保留）；`--prune-archive` 默认 dry-run，加 `--yes` 才删除 1.0 `archive/` 快照；`adopt --task` 把已有 run 绑定到规范目录，`--absorb` 只提示、不自动合并
+- `handoff` 写 `.workflow/ralph/<task_key>/.state/handoff.json`（`run.handoff` 仍是 SSOT；迁移实现本身走 `$jj-same`，不在 ralph 目录内）
 - `commit-prep` 只出清单与 message，**不** git commit / push
 - 业务仓也可由 skill 内 `ralph_ops.mjs` 调用同源逻辑（权威实现 `src/ralph.mjs`，`npm run ralph:sync` 同步）
 
@@ -130,6 +134,20 @@ jj ralph gate --run-id task-demo --gate accept --status PASS --context-file .wor
 `findings.json` 为审查结果数组，`host-review.json` 为真实宿主元数据对象；文件支持 UTF-8 BOM，路径相对 cwd，避免 PowerShell 内联 JSON 转义。`finalize` / `archive` 同样接受 `--context-file`。空范围、缺失计划文件、修改过的快照不能变成通过；代码、index、HEAD、当前合同变化后，刷新材料并审查增量。已记录的快照也在后续门禁自动核对，省略参数不会让旧审查重新有效。已提交内容须用 commit 范围，`--base-commit` 缺省为 HEAD 第一父提交，根提交与空树比较；任务文件仍脏时不能宣称提交范围审查完成。
 
 `scope --replace-in` / `--replace-out` 用于方案已明确替换旧范围的续办，必须给 `--reason`，旧范围保留在事件中。它不自动删历史要求，`scope.out` 也不隐藏 Git 改动。
+
+## ralph 运维（存量与收尾）
+
+对话路径不执行这些命令；它们面向维护脚本与存量清理。
+
+```bash
+jj ralph locate [--run-id task-…] [--limit 8] [--details] [--json]
+jj ralph remediate [--yes] [--force] [--json]
+jj ralph migrate [--all-projects] [--prune-archive] [--yes] [--json]
+```
+
+- `remediate`：默认 dry-run，列出每个滞后 run 的 closeout=finalize|migrate；`--yes` 先 migrate，再对 next=finalize 的 run 执行 finalize。resume 窗口（closeout=check）不自动处理
+- 活跃索引 `index.md` 的监控阈值：进行中任务超过 **5 条**，或任一条 **5 天**未更新，写入「归档提示」事件；同一会话或同任务线程的「审查修复」并排运行写入「同需求提示」。都只提醒，不自动归档、合并或废弃；确定要收的建议 `finalize`，PAUSED / BLOCKED / 分不清收弃 → 先问用户
+- 旧记录里的 `CAP-login-reminder`、`DEL-password`、`task-login-reminder` 等机器标识只是记录名字，不是新的输入格式；对话入口不需要用户报这些 id
 
 ## end 批量执行
 
@@ -168,11 +186,13 @@ jj dispatch-tick --delivery DELIVERY_ID \
 ## task
 
 ```bash
-jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--json]
-jj task assign --delivery DELIVERY_ID --task TASK-ID [--manifest path | --control-root dir] [--json]
+jj task scaffold --delivery DELIVERY_ID [--manifest path | --control-root dir] [--task TASK-ID] [--root dir] [--json]
+jj task assign --task TASK-ID [--delivery DELIVERY_ID] [--manifest path] [--control-root dir] [--json]
+jj task status --task TASK-ID [--root dir] [--manifest path] [--control-root dir] [--json]
+jj task context --task TASK-ID [--root dir] [--manifest path] [--control-root dir] [--json]
 ```
 
-轻量分配展示；审计细节在 JSON / manifest。设计见 [任务分配 UX](../design-docs/task-assignment-ux.md)。
+脚手架、分配展示与状态 / 上下文查询；审计细节在 JSON / manifest。设计见 [任务分配 UX](../design-docs/task-assignment-ux.md)。
 
 ---
 

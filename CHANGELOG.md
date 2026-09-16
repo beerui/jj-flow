@@ -4,7 +4,9 @@
 
 ## Unreleased
 
-暂无。
+- **文档信息架构重组**：概念章收敛为五页（Loop 两层图并入证据页、记忆速览并入知识与记忆页），`project-plan` 与 M6 验收移出站点归档，侧栏「参考」新增折叠的历史验收组。
+- **CLI 参考校准**：`commands/cli.md` 按 `src/cli.mjs` 补齐 `agents` 安装平台、`task status/context`、`resume`/`abandon`/`remediate` 与 `migrate --prune-archive`，旧 `tasks/` 路径改为扁平布局，新增 ralph 运维节；`jj-ralph` 命令页拆分瘦身，CLI 与监控内容迁往 CLI 参考。
+- **用户文档口径统一**：首页 / 安装 / 宿主说明补 AGENTS 兼容入口与 `.claude/agents`，知识库写入改为「主动提出并经确认后」，README 按 docs 新口径重写，维护说明新增文档地图与五端 SSOT 说明。
 
 ## 0.2.3 — 2026-09-14 08:06
 

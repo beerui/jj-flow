@@ -18,6 +18,7 @@ eval/ralph-memory/generated/
 .claude
 .agents
 .zcode
+.commandcode
 # One-shot local patch / wire scripts (do not land on main)
 _w_*.py
 _write_*.cjs

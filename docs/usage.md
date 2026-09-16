@@ -58,7 +58,7 @@ Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、s
 | 提交并合进 dev | `$jj-end` 或「收工」——ralph 自己不动 Git | [end](commands/jj-end.md) |
 | 把这个能力搬到项目B / 项目C | 「交接到 项目B 项目C」——源仓要先提交 | [same](commands/jj-same.md) |
 
-归档时可复用结论会写入本机 `~/.jj-flow/memory/`；是否写入全局知识库，Agent 只询问一次，**须经你确认**。
+归档时可复用结论会写入本机 `~/.jj-flow/memory/`；全局知识库仅在你主动提出并经确认后写入。
 
 ## 另外两个入口，一句话
 

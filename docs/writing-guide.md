@@ -10,9 +10,11 @@
 |------|------|------|
 | 发版日志 | `CHANGELOG.md`（站点经 `docs/changelog.md` 包含） | 受 release-please 约束，见 §4 |
 | 用户文档 | `docs/**/*.md` | VitePress 站点源 |
-| Skill 协议 | `skills/**/SKILL.md`、`references/*.md` | 英文 SSOT + 中文对照见 `docs/skill-zh-bridge/` |
+| Skill 协议 | `skills/**/SKILL.md`、`references/*.md` | 英文 SSOT；中文对照仅部分 skill 有（`docs/skill-zh-bridge/`，已排除出站点） |
 | 斜杠命令薄入口 | `claude-commands/*.md` | 行数门禁 ≤40 行 |
 | 仓库规则 | `AGENTS.md`、`ARCHITECTURE.md` | 修改后需同步事实层 |
+
+> 历史文件豁免：`exec-plans/completed/**`、`design-docs/**` 已完结条目与 `CHANGELOG.md` 已发布段落不回溯改写；新写内容仍须遵循本规范。
 
 ## 2. 中文文案总则
 
@@ -38,12 +40,12 @@
 | 回（先回 [OK]） | 回复 |
 | 记账（对话记账） | 记录 / 记账仅作 ledger 术语时保留 |
 | 喊（怎么喊 / 装好后怎么喊） | 调用 / 写法（见 §2.1.1） |
-| 让它分流 | 由它帮你选择入口 |
 | 工人（实施工人 / 审查工人） | 执行人（实施执行人 / 审查执行人） |
 | 入职（入职 prefix / 调研入职） | 人设提示词 / 派单前缀 |
 | 可后读 / 可先看 | 进阶（或去掉括号提示） |
 | 用户怎么说 | 用户常用说法 |
 | 薄斜杠命令 / 薄入口（用户文档） | Claude 斜杠命令 / 斜杠命令入口 |
+| 单仓 / 单仓闭环 | 任务 / 任务闭环 |
 | 要刷新旧副本才加 `--force` | 覆盖已有安装请加 `--force` |
 | 须你同意才加行 / 才投喂 | 写入须经你确认 |
 | 你点头才写 | 经你确认后写入 |
@@ -192,7 +194,7 @@
 
 ## 6. 不做什么
 
-- **不**凭喜好改术语：已成约定的项目术语（ralph、same、dispatch、ralph_ops、CAP、DEL-* 等）保留。
+- **不**凭喜好改术语：已成约定的项目术语（ralph、same、dispatch、CAP、DEL-* 等）保留；`ralph_ops` 仅在机械脚本 / 维护面语境保留，对话路径语境写「不执行 CLI」。
 - **不**改英文 SSOT skill 正文：英文协议改 `skills/`，中文对照改 `docs/skill-zh-bridge/`。
 - **不**用 chat/thread/memory 推进 checkpoint。
 - **不**改已发布 CHANGELOG 段落，除非维护者明确批准。

@@ -28,8 +28,12 @@ swarm:      对抗搜索   → TAS-* best-solution
 |------|------|
 | `skills/jj-*` | 对话协议 SSOT（多端 install） |
 | `src/dispatch*.mjs` | 控制面状态机、tick、CAS、host 契约 |
-| `src/ralph.mjs` + `src/ralph/` | 任务机械步骤（门面 + state/gates/map/knowledge/archive） |
+| `src/ralph.mjs` + `src/ralph/` | 任务机械步骤（门面 + state/gates/map/context/knowledge/archive/migrate） |
+| `src/end.mjs` + `endCli.mjs` | Git 收尾批量 runner（end preview / execute） |
+| `src/installSkill.mjs` | 五端（codex / claude / qoder / grok / agents）安装、卸载与 ownership |
 | `src/jjInit.mjs` | 全局地图接入与知识建库 |
+| `src/taskRegistry.mjs` | task.json 任务索引、脚手架与分配展示 |
+| `src/memoryHotLayer.mjs` / `memoryRetrieve.mjs` / `memoryExtract.mjs` / `portfolioKnowledge.mjs` | 用户级记忆热层、检索注入与知识库 |
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
 | `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（Wave 2 / A2 已关；JSON 不得自关） |

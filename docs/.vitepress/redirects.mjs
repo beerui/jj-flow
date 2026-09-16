@@ -15,5 +15,10 @@ export const redirects = {
   'dispatch-demo.html': 'commands/jj-dispatch.html',
   'milestones/dispatch-demo.html': 'commands/jj-dispatch.html',
   'end-demo.html': 'commands/jj-end.html',
-  'milestones/end-demo.html': 'commands/jj-end.html'
+  'milestones/end-demo.html': 'commands/jj-end.html',
+  // 0.2.x 文档信息架构重组：合并 / 归档页面的旧地址
+  'loop-graph-guide.html': 'concepts-evidence.html',
+  'memory-knowledge-guide.html': 'concepts-knowledge.html',
+  'project-plan.html': 'architecture.html',
+  'milestones/m6-acceptance.html': 'commands/jj-dispatch.html'
 };
