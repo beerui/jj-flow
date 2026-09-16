@@ -1,0 +1,88 @@
+skills/jj-ralph/scripts/lib/memoryRetrieve.mjs
+  s_2fde590434e2d0::t_c6e7d2a5f447fb 1-189
+src/memoryRetrieve.mjs
+  s_2fde590434e2d0::t_ce4e035aec2dd0 1-189
+CHANGELOG.md
+  s_2fde590434e2d0::t_bb73b54364f657 7-8,11
+  s_2fde590434e2d0::t_123945f0a74ae9 10
+  s_2fde590434e2d0::t_cc1d26be4b42d6 9,12
+package.json
+  s_2fde590434e2d0::t_2f4933c0e577de 3
+tests/memory-retrieve.test.mjs
+  s_2fde590434e2d0::t_517d3952c9b803 1-239
+src/ralph.mjs
+  s_2fde590434e2d0::t_32b571e473ca84 7-8,439,803,822-830,834-835,838,840-841
+  s_2fde590434e2d0::t_8d26afeada8c48 818-819,821,831
+  s_2fde590434e2d0::t_01fd5216b5015a 875
+scripts/sync-ralph-skill-lib.mjs
+  s_2fde590434e2d0::t_51dc60f48477f8 10-12
+src/portfolioKnowledge.mjs
+  s_2fde590434e2d0::t_702ef35ef57ff5 117-119,124
+  s_2fde590434e2d0::t_0f37ab3ecd7f7c 4-9,56-72,77-79,87,93,96,99,102-116,120-123,125-127,129-142,145-146,148-149,154-167
+skills/jj-ralph/scripts/lib/memoryExtract.mjs
+  s_2fde590434e2d0::t_35be0d24cdeb6a 56
+  s_2fde590434e2d0::t_cccf18f71cc6c4 57-68,144-148,209-239,241,311-353,357,359,362-364,366,369-386
+  s_2fde590434e2d0::t_c6e7d2a5f447fb 1-55,69-143,149-208,240,242-302,305-310,354-356,358,360-361,365,367-368,387
+  s_2fde590434e2d0::t_c4c5174b0b92c7 303-304
+docs/design-docs/portfolio-knowledge.md
+  s_2fde590434e2d0::t_e69676842b4326 55-59
+tests/memory-extract.test.mjs
+  s_2fde590434e2d0::t_06551a0cad38ea 1-7,9-37,66-67,81-113
+  s_2fde590434e2d0::t_1dc19ef0e73697 62-65
+  s_2fde590434e2d0::t_29504f9cac0f21 40-53
+  s_2fde590434e2d0::t_273a97c29dca90 68-80
+  s_2fde590434e2d0::t_6e4e2741604c10 8,38-39,54-61
+skills/jj-ralph/scripts/lib/portfolioKnowledge.mjs
+  s_2fde590434e2d0::t_c6e7d2a5f447fb 4-9,56-72,77-79,87,93,96,99,102-127,129-142,145-146,148-149,154-167
+skills/jj-ralph/SKILL.md
+  s_2fde590434e2d0::t_2839775d814452 140
+  s_2fde590434e2d0::t_f9cb66918aec04 55,83
+  s_2fde590434e2d0::t_5a8526629cfbf6 164
+src/knowledgeLoop.mjs
+  s_2fde590434e2d0::t_8e988b8a2f4d42 20
+ARCHITECTURE.md
+  s_2fde590434e2d0::t_6d568ee019b56d 61
+.gitignore
+  s_2fde590434e2d0::t_d4279605c301ba 11
+src/memoryExtract.mjs
+  s_2fde590434e2d0::t_1a4abb4dcdbcb4 60,62
+  s_2fde590434e2d0::t_ff85cc90e46b88 56
+  s_2fde590434e2d0::t_f091a3517fccd3 144-148,313-355,357,359,362-364,366,369-370,375-386
+  s_2fde590434e2d0::t_488fd5141a862d 212-215
+  s_2fde590434e2d0::t_ef221a14e79fee 303-304
+  s_2fde590434e2d0::t_8b2c08cb3ebe1f 1-55,69-143,149-208,240,242-302,305-312,356,358,360-361,365,367-368,387
+  s_2fde590434e2d0::t_da4627f5ef08bd 57-59,61,63-68,209-211,216-239,241,371-374
+tests/fixtures/extract-future-reuse.golden.json
+  s_2fde590434e2d0::t_91ebc068c6ea11 1-72
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_2fde590434e2d0::t_c6e7d2a5f447fb 7-8,439,803,822-830,834-835,838,840-841,875
+  s_2fde590434e2d0::t_cccf18f71cc6c4 818-819,821,831
+eval/ralph-memory/run-eval.mjs
+  s_2fde590434e2d0::t_9ec68754461a7b 455,476,510
+  s_2fde590434e2d0::t_97d62745a97e67 444,446-451
+  s_2fde590434e2d0::t_6d075de1d983e0 196,392-393,395-396
+  s_2fde590434e2d0::t_0a1ca06e4f5582 1-195,197-391,394,397-443,445,452-454,456-475,477-509,511-520
+tests/jj-ralph-contract.test.mjs
+  s_2fde590434e2d0::t_424bcbeb4d5d01 140-149,468-475
+package-lock.json
+  s_2fde590434e2d0::t_0528bb39496fdc 3,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "57b3ce46127fa7f17374a120484a1ce053db2a16",
+  "prompts": {},
+  "sessions": {
+    "s_2fde590434e2d0": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a04c53-1071-7fc1-8dda-a82d79e77b3e",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+docs/design-docs/docs-site-vitepress.md
+  s_6f4d0bf2ef73fa::t_4d35b4923dfb8f 141
+docs/.vitepress/redirects.mjs
+  s_6f4d0bf2ef73fa::t_55ddeebb44f2d6 1-19
+CHANGELOG.md
+  s_6f4d0bf2ef73fa::t_bc0395e6dfb463 13
+package.json
+  s_6f4d0bf2ef73fa::t_4d617fe009e0e6 65-67
+  s_6f4d0bf2ef73fa::t_f07a3ffa09516e 40-43
+docs/.vitepress/sidebar.mjs
+  s_6f4d0bf2ef73fa::t_ae2e6261005e78 1-118
+.gitignore
+  s_6f4d0bf2ef73fa::t_105a63c5dbb41a 10
+package-lock.json
+  s_6f4d0bf2ef73fa::t_74015dde3fb820 15-17,21-2526
+docs/.vitepress/config.mjs
+  s_6f4d0bf2ef73fa::t_c0f1145487407c 1-110
+docs/changelog.md
+  s_6f4d0bf2ef73fa::t_1dc1f041da4725 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "1b58d299be9381ec3ee434f15df7164ac3500d6c",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": null,
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

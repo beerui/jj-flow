@@ -1,0 +1,77 @@
+docs/commands/jj-dispatch.md
+  s_4f95c2e3875c8c::t_7270f96e8b14c8 3
+  s_4f95c2e3875c8c::t_66a6bfb85e4ed8 86
+  s_4f95c2e3875c8c::t_ccaf6a5dfbada4 34
+  s_4f95c2e3875c8c::t_0a550cb7c6c5c0 44-46
+  s_4f95c2e3875c8c::t_2203fb9b80619b 94
+docs/commands/jj-team-lifecycle.md
+  s_4f95c2e3875c8c::t_36272876a6c652 90
+  s_4f95c2e3875c8c::t_74e2633e697a48 3
+docs/commands/jj-team-swarm.md
+  s_4f95c2e3875c8c::t_61803f34abc751 85
+  s_4f95c2e3875c8c::t_965213ce1226b1 67
+docs/commands/jj-ralph.md
+  s_4f95c2e3875c8c::t_c2a16e300edc41 55
+  s_4f95c2e3875c8c::t_a6e4a663358bcc 36
+  s_4f95c2e3875c8c::t_37b920f034d281 51
+  s_4f95c2e3875c8c::t_5ecca172065780 50
+  s_4f95c2e3875c8c::t_10fdcc851ff84f 53,158
+  s_4f95c2e3875c8c::t_344388970eb027 166
+  s_4f95c2e3875c8c::t_c8e9baf3de68f6 64
+  s_4f95c2e3875c8c::t_c907cb3326f1e0 63
+  s_4f95c2e3875c8c::t_29e5e2bb2d49e4 57
+  s_4f95c2e3875c8c::t_ac225e7f7068d3 162
+  s_4f95c2e3875c8c::t_0b0046106a447e 195
+docs/commands/jj-review.md
+  s_4f95c2e3875c8c::t_ca7373a9694d75 20
+  s_4f95c2e3875c8c::t_aacdd230825bfa 62
+  s_4f95c2e3875c8c::t_67f0d1b53a8588 41,47
+  s_4f95c2e3875c8c::t_57cfc4dc65ce89 100
+  s_4f95c2e3875c8c::t_69c2c72ca1def5 40
+docs/commands/jj-init.md
+  s_4f95c2e3875c8c::t_5cbe327081f0be 37
+  s_4f95c2e3875c8c::t_08a3a8735df86a 83
+docs/commands/jj-same.md
+  s_4f95c2e3875c8c::t_9f3dfa3a243dc6 41
+  s_4f95c2e3875c8c::t_5a0454d370aee3 127
+  s_4f95c2e3875c8c::t_a3e66031ca5fc8 5
+  s_4f95c2e3875c8c::t_a792138723056c 44-45
+  s_4f95c2e3875c8c::t_3b5f89129633f9 110
+docs/commands/jj.md
+  s_4f95c2e3875c8c::t_ce95519aaf380e 80
+  s_4f95c2e3875c8c::t_3a7505c837aabb 72
+  s_4f95c2e3875c8c::t_672e6ade7ccc8a 38
+docs/commands/jj-end.md
+  s_4f95c2e3875c8c::t_af6089e62bb10c 80,82
+  s_4f95c2e3875c8c::t_432bba6bd12ee9 31
+  s_4f95c2e3875c8c::t_1c2dfaff324d53 21
+  s_4f95c2e3875c8c::t_a195cba2058f83 70
+  s_4f95c2e3875c8c::t_17b3899f6391e5 90
+  s_4f95c2e3875c8c::t_f7bedd7d2ba8f3 43
+docs/commands/jj-evaluated.md
+  s_4f95c2e3875c8c::t_a8cde5465e5f3b 40
+  s_4f95c2e3875c8c::t_6523f1771cb3c6 84
+docs/commands/jj-team-coordinate.md
+  s_4f95c2e3875c8c::t_73a2bffc5c31c1 3
+  s_4f95c2e3875c8c::t_7c5ebdc0b11c95 85
+  s_4f95c2e3875c8c::t_9763950b2e9362 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "23f711b21c6d55476da7a1f1b1c7f8727729bb28",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

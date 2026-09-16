@@ -1,0 +1,67 @@
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_c27445f79924f3 7
+harness-manifest.json
+  s_0a1fdf7e8a0a56::t_5548ad9a2d9e3b 185-204
+tests/grok-host-adapter.test.mjs
+  s_0a1fdf7e8a0a56::t_9ef95719f69eb2 223
+docs/architecture.md
+  s_0a1fdf7e8a0a56::t_a49f8d84726ec1 34
+src/grokHostTrialRunner.mjs
+  s_0a1fdf7e8a0a56::t_3e1d8b29f0d94e 1-431,436-438,440-441,443-456,458-797
+  s_0a1fdf7e8a0a56::t_9780574cbbcf1b 432-435,439,442
+  s_0a1fdf7e8a0a56::t_dc274f844b1e75 457
+skills/jj-dispatch/references/grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_e98a53de39e101 294
+tests/grok-host-trial.test.mjs
+  s_0a1fdf7e8a0a56::t_9322050a3056f1 1-156
+package.json
+  s_0a1fdf7e8a0a56::t_b4b6b17764429f 38
+docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_d7f74de20da782 58
+docs/milestones/real-host-acceptance.md
+  s_0a1fdf7e8a0a56::t_0a4fd09aa12f85 1,3,95-96,100-108
+src/grokHostAdapter.mjs
+  s_0a1fdf7e8a0a56::t_31d48e3ad03c60 98-100,135-136
+docs/exec-plans/active/2026-09-01-grok-host-adapter-phase2.md
+  s_0a1fdf7e8a0a56::t_ca7c71dc7819dd 32,45
+src/cli.mjs
+  s_0a1fdf7e8a0a56::t_60877d82792f83 21-26,91-94,193-228,1299-1300
+  s_0a1fdf7e8a0a56::t_a3e7582ed54814 650,1297-1298
+src/dispatchAttestation.mjs
+  s_0a1fdf7e8a0a56::t_16577f40528f79 62-63,85
+docs/milestones/real-host-trial-grok.json
+  s_0a1fdf7e8a0a56::t_c31231f0b2420e 1-233
+docs/design-docs/index.md
+  s_0a1fdf7e8a0a56::t_9abe6294d43534 25
+scripts/check-project.mjs
+  s_0a1fdf7e8a0a56::t_058984ea6b400f 26-27,55-56
+docs/design-docs/grok-host-adapter.md
+  s_0a1fdf7e8a0a56::t_8c066bfdd337e3 241-244
+docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md
+  s_0a1fdf7e8a0a56::t_d49daa2152cbf4 35
+docs/commands/cli.md
+  s_0a1fdf7e8a0a56::t_f40bafe77819d7 23,126,135
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_d0f4eefc173185 16-17
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_88d6d3f7d5ee44 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "4b13397f6009c79b43e570fb246170a3e43ba540",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

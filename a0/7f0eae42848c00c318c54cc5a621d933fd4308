@@ -1,0 +1,24 @@
+package.json
+  s_4f95c2e3875c8c::t_3ac4a967d8300a 3
+CHANGELOG.md
+  s_4f95c2e3875c8c::t_20d53249f65e0d 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "a07f0eae42848c00c318c54cc5a621d933fd4308",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "composer-2.5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

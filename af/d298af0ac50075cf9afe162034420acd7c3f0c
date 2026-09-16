@@ -1,0 +1,36 @@
+docs/pitfalls.md
+  s_4f95c2e3875c8c::t_3ee1b6bc8ce31d 62
+  s_4f95c2e3875c8c::t_e794fa59cdf9cc 110
+docs/exec-plans/index.md
+  s_4f95c2e3875c8c::t_359172cbb0d3af 14,16,18-19
+  s_4f95c2e3875c8c::t_4819ba9132e24a 31
+  s_4f95c2e3875c8c::t_eff0184137b59d 20
+docs/maintenance.md
+  s_4f95c2e3875c8c::t_2823efccc96d4d 10
+  s_4f95c2e3875c8c::t_9acc18ceb9ed76 12
+docs/commands/jj-same.md
+  s_4f95c2e3875c8c::t_4844a5fac3c220 110
+docs/commands/jj-ralph.md
+  s_4f95c2e3875c8c::t_a639cfcc479ad9 166
+  s_4f95c2e3875c8c::t_039c7e7cc112a1 36
+  s_4f95c2e3875c8c::t_60ebcfd5c9edab 160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "afd298af0ac50075cf9afe162034420acd7c3f0c",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

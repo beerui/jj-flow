@@ -1,0 +1,140 @@
+CHANGELOG.md
+  s_95053898d04d99::t_b747137e478fd2 7
+ARCHITECTURE.md
+  s_95053898d04d99::t_ade751b53f21c9 33-34
+claude-commands/jj-end.md
+  s_95053898d04d99::t_7926a954539bb3 23-25,34-36,38
+claude-commands/jj-ralph.md
+  s_95053898d04d99::t_16ee7c3152e4b3 24,34
+claude-commands/jj-review.md
+  s_95053898d04d99::t_ddb31288a012fa 20-21
+docs/commands/cli.md
+  s_95053898d04d99::t_825cc75cd0760a 19,76-78,81,122-148
+docs/commands/jj-end.md
+  s_95053898d04d99::t_4ca3185d77af24 21,48-50
+docs/commands/jj-ralph.md
+  s_95053898d04d99::t_c5a33955191be4 36-37
+docs/commands/jj-review.md
+  s_95053898d04d99::t_3aaa5d30b9c466 45-46
+docs/evaluations/2026-09-08-ralph-slim-lab-comparison.md
+  s_95053898d04d99::t_91642dc20ad35c 1-36
+docs/evaluations/EP-20260908-cursor-flow-comparison-report.md
+  s_95053898d04d99::t_01f0133aa0c3ac 1-86
+docs/evaluations/EP-20260908-cursor-flow-comparison.episode.json
+  s_95053898d04d99::t_f425287c453030 1-790
+docs/evaluations/EP-20260908-grok-latency-report.md
+  s_95053898d04d99::t_6dd9b87bc91835 1-116
+docs/evaluations/EP-20260908-grok-latency.split.json
+  s_95053898d04d99::t_b1ead0e00350a9 1-13
+docs/evaluations/EP-20260908-grok-ralph-latency.episode.json
+  s_95053898d04d99::t_37b1ce6e8ccfaa 1-598
+docs/evaluations/EP-20260908-grok-review-end-latency.episode.json
+  s_95053898d04d99::t_5ff5486df774ed 1-355
+docs/exec-plans/completed/2026-09-09-workflow-execution-fastpath.md
+  s_95053898d04d99::t_7aa71662accf29 1-52
+docs/exec-plans/index.md
+  s_95053898d04d99::t_c1817bcc19e2e5 25
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_95053898d04d99::t_afa3b073165cb1 31
+evals/regression/EP-20260828-jj-end-staging-not-dev.json
+  s_95053898d04d99::t_8e7e5f5aa40738 4
+harness-manifest.json
+  s_95053898d04d99::t_b7439686879799 70-84
+package.json
+  s_95053898d04d99::t_5aed46a5daf19b 56,58-60
+scripts/sync-end-skill-lib.mjs
+  s_95053898d04d99::t_bda1084f0ea56b 1-22
+scripts/sync-ralph-skill-lib.mjs
+  s_95053898d04d99::t_eb1baad704e5b4 7,9
+skills/jj-end/SKILL.md
+  s_95053898d04d99::t_5a5db9fcb37a40 3,8,10,12-16,18-20,23,25,27-29,32,34,36,38,40,42-47,51,57-58
+skills/jj-end/references/git-policy.md
+  s_95053898d04d99::t_285c777caaaa76 1-404
+skills/jj-end/scripts/end_ops.mjs
+  s_95053898d04d99::t_748a63623c8502 1-20
+skills/jj-end/scripts/lib/end.mjs
+  s_95053898d04d99::t_0d817445d64ee6 1-323
+skills/jj-end/scripts/lib/endCli.mjs
+  s_95053898d04d99::t_c6609c235ce1d1 1-86
+skills/jj-end/scripts/lib/gitSnapshot.mjs
+  s_95053898d04d99::t_3bce91918c5249 1-104
+skills/jj-ralph/SKILL.md
+  s_95053898d04d99::t_6554cfd2f23d8b 31,33,48-49,65
+skills/jj-ralph/references/ops.md
+  s_95053898d04d99::t_76711c0cf1397b 3,34-36,47-48,52,56,60-62
+skills/jj-ralph/references/phases.md
+  s_95053898d04d99::t_31745c25d02cd2 26,84-86,91
+skills/jj-ralph/scripts/lib/gitSnapshot.mjs
+  s_95053898d04d99::t_6b0391781a9dee 1-104
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_95053898d04d99::t_7f03597fdc3234 197
+skills/jj-ralph/scripts/lib/ralph/archive.mjs
+  s_95053898d04d99::t_341a908c0862d6 91,97,182,194
+skills/jj-ralph/scripts/lib/ralph/context.mjs
+  s_95053898d04d99::t_d442dfa035f337 1-172
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_95053898d04d99::t_ab3126fcb044f1 9,249,305,330,364,385-392,509,1003-1016,1566,1569,1573-1580
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_95053898d04d99::t_dfe54a87946ac6 8-9,747-748,755,759-767,771-780,840-843
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_95053898d04d99::t_3d59691d9492ef 907-929,1393,1396-1398,1403-1407,1413-1417,1463-1465,1482-1483,1494
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_95053898d04d99::t_5652baa7928594 16,78-80,104,108-109,215-219,292-294,307-320,339,414,453,478-480,483,701-702,722,737
+skills/jj-review/SKILL.md
+  s_95053898d04d99::t_35d5289d2d02a2 43,50,72,89-90,93,144-145
+skills/jj-review/references/report-layout.md
+  s_95053898d04d99::t_83c85d68a1657f 34-35
+src/cli.mjs
+  s_95053898d04d99::t_7d44b60113c68c 4-5,45-49,82,833,865-867,875,886,892-903,906,916,1010,1023-1024,1037,1054-1057,1397,1403-1405,1409,1417-1424,1488,1602,1615-1620,1622,1637,1703-1705,1744-1749
+src/end.mjs
+  s_95053898d04d99::t_cf8004e27ea05e 1-323
+src/endCli.mjs
+  s_95053898d04d99::t_f2969ef932cdbb 1-86
+src/gitSnapshot.mjs
+  s_95053898d04d99::t_921f1dfb570d7c 1-104
+src/ralph.mjs
+  s_95053898d04d99::t_07e5ac68d1eb55 197
+src/ralph/archive.mjs
+  s_95053898d04d99::t_ac9215561bf8ce 91,97,182,194
+src/ralph/context.mjs
+  s_95053898d04d99::t_048b5b88b78027 1-172
+src/ralph/gates.mjs
+  s_95053898d04d99::t_04a242c78ceabc 9,249,305,330,364,385-392,509,1003-1016,1566,1569,1573-1580
+src/ralph/knowledge.mjs
+  s_95053898d04d99::t_363a38769f6180 8-9,747-748,755,759-767,771-780,840-843
+src/ralph/state.mjs
+  s_95053898d04d99::t_20c9b3a66c2c5d 907-929,1393,1396-1398,1403-1407,1413-1417,1463-1465,1482-1483,1494
+tests/end/runner.contract.mjs
+  s_95053898d04d99::t_bb2d5d765dd947 1-269
+tests/helpers/git-fixture.mjs
+  s_95053898d04d99::t_44fab4ed5cda26 1-69
+tests/jj-end-contract.test.mjs
+  s_95053898d04d99::t_b2a21b76fdb2f3 5,9-18,66
+tests/jj-ralph-contract.test.mjs
+  s_95053898d04d99::t_660ffc576979eb 12
+tests/ralph/assets.contract.mjs
+  s_95053898d04d99::t_6a2936ef9b5753 10-15,287,346
+tests/ralph/cli.contract.mjs
+  s_95053898d04d99::t_97a91c5705fabb 11-19,180,201
+tests/ralph/context.contract.mjs
+  s_95053898d04d99::t_4bbae17258b69e 1-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "3711d964e35b5a936f8174f919149a5bab04ab6b",
+  "prompts": {},
+  "sessions": {
+    "s_95053898d04d99": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a088df-3916-73b3-823d-5af8f1981d04",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

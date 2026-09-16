@@ -1,0 +1,26 @@
+src/installSkill.mjs
+  s_64c418359cd940::t_08134591dba699 261-263
+CHANGELOG.md
+  s_64c418359cd940::t_c320aeda23727a 7
+tests/install-skill.test.mjs
+  s_64c418359cd940::t_689bab8f0d7fbc 857-879
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "5bc9c14f422362b69eff6ec3f4e52ced7b1c6a2a",
+  "prompts": {},
+  "sessions": {
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

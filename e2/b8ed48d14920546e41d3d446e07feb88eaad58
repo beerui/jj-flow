@@ -1,0 +1,24 @@
+skills/jj-ralph/SKILL.md
+  s_60089c8e856798::t_431bbce61b4635 43,87
+skills/jj-ralph/references/tiny-example.md
+  s_60089c8e856798::t_d73bda8844d44f 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.31",
+  "base_commit_sha": "e2b8ed48d14920546e41d3d446e07feb88eaad58",
+  "prompts": {},
+  "sessions": {
+    "s_60089c8e856798": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a036a2-bcda-7290-8874-369335a1da91",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

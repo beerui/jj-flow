@@ -1,0 +1,25 @@
+skills/jj-review/SKILL.md
+  s_95124590b873ea::t_7f23228b0b5443 3,8,10,12,18-27,31-34,36,40-41,43,51-75,82,85,87,89,91,93,95-96,98,100,104-112
+  s_95124590b873ea::t_1639864e316135 11,13-17,28-30,35,102-103,118,120
+skills/jj-review/references/host-review.md
+  s_95124590b873ea::t_577e224713d79d 48-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "dcbe3749de5157200fbb4eb23e8587f13bc3abec",
+  "prompts": {},
+  "sessions": {
+    "s_95124590b873ea": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019feab0-9eb5-71c3-9153-2a7f183a7d4f",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

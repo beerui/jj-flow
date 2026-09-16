@@ -1,0 +1,22 @@
+src/grokHostTrialRunner.mjs
+  s_0a1fdf7e8a0a56::t_042b3ea994a4b3 295,311,343,352,361,390,399,408,446,450-451,456,460,464,469,472,476,480,512,697,732,742,766
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "24a60c35f71eea5b0cfd295bdb7987716cceeceb",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

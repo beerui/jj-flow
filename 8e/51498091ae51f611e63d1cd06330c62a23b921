@@ -1,0 +1,40 @@
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_4c9b0aeff396ef 16
+lab-roots.json.example
+  s_0a1fdf7e8a0a56::t_55759cb7174977 1-4
+scripts/check-harness.mjs
+  s_0a1fdf7e8a0a56::t_b425c3185d2cde 2,37-38,241-247,1181-1272,1305
+.gitignore
+  s_0a1fdf7e8a0a56::t_b8bd0dbbb39d3c 30-31
+scripts/build-docs.mjs
+  s_0a1fdf7e8a0a56::t_8ca4b11f0190e9 107
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_edb5aa036bc2d7 127
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_2aa2dbb0fff824 1-77
+tests/harness-check.test.mjs
+  s_0a1fdf7e8a0a56::t_83579605a46906 5-13,274-306
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_e094d0f574b0ad 7
+docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_150c2c77690ec9 49-52,89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "8e51498091ae51f611e63d1cd06330c62a23b921",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

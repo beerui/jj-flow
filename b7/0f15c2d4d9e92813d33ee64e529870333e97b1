@@ -1,0 +1,133 @@
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md
+  s_a78f71b1a6fd98::t_2db667a040a453 3,62-70,76-83,89-98,102
+skills/jj-ralph/references/capability.skeleton.json
+  s_a78f71b1a6fd98::t_dcc725632668a7 8-9
+scripts/build-docs.mjs
+  s_a78f71b1a6fd98::t_b085eb5ea2164d 112
+src/ralph/map.mjs
+  s_a78f71b1a6fd98::t_d7ce6d80e11e37 70
+  s_a78f71b1a6fd98::t_0cf1eea98460de 9,11,13,179-187
+src/ralph.mjs
+  s_a78f71b1a6fd98::t_30b192788a7f5f 17-18,28,30-36,159
+src/namingConfig.mjs
+  s_a78f71b1a6fd98::t_a26af72c75963d 129-138
+  s_a78f71b1a6fd98::t_a2d23417013537 34-35,38,44-45,357,380,385,397,403
+tests/memory-extract.test.mjs
+  s_a78f71b1a6fd98::t_281cc4b7f8bb57 84
+tests/jj-ralph-contract.test.mjs
+  s_a78f71b1a6fd98::t_4b0cbd13e2b686 59
+  s_a78f71b1a6fd98::t_167b3df759e49c 557,640,701,838,866,932,1007,1033,1163,1654,1765,1775-1776,1866,1880
+  s_a78f71b1a6fd98::t_429f0fca8ee2e9 1831-1840
+  s_a78f71b1a6fd98::t_04054f73de2014 319,354,388,393,410,413,421,449,459,493,517,538,560,562,569,589,598-599,613,637,642,659,676,700,706,711-712,773,778,823-824,826,876,881,895,916,985,1000,1019,1028,1063,1065,1119,1153,1207,1209,1250,1252,1257,1288,1297,1305,1319,1343,1354,1360,1369,1405,1461,1486,1502,1518,1539,1582,1627,1675,1714,1763,1772,1780,1828,1830,1861,1877,1904,1919,1957,1982,2003,2031,2051
+  s_a78f71b1a6fd98::t_ce23454cf47096 93,95,100,115,156,158,162,170-172,180,197,204
+  s_a78f71b1a6fd98::t_b75c97bfd0b3db 738
+  s_a78f71b1a6fd98::t_5d2f4fab7e2cb6 2081-2177
+  s_a78f71b1a6fd98::t_2dd8dc9a15f54f 55-58,572,839,845,859,1030,1069,1090,1788,1799
+skills/jj-review/references/review-report.skeleton.json
+  s_a78f71b1a6fd98::t_d3f2cc541d35dd 4
+docs/exec-plans/index.md
+  s_a78f71b1a6fd98::t_d8a7fcdccbf268 25
+skills/jj-same/SKILL.md
+  s_a78f71b1a6fd98::t_8c937583b2d1f8 14,72,82
+tests/memory-hot-layer.test.mjs
+  s_a78f71b1a6fd98::t_281cc4b7f8bb57 210,234,246,254-255,273,303,321
+  s_a78f71b1a6fd98::t_167b3df759e49c 218,281,283,288,299,334
+src/ralph/state.mjs
+  s_a78f71b1a6fd98::t_68790ba0daf392 219,279-283,372-373,448,495-514,518-528,538,542-545,564-578,582-629,631-633,750,752,761-767
+  s_a78f71b1a6fd98::t_b2f5de6f47f839 8-9,13,16-17,38-41,176-184,190-199,515-516,579-580,768
+  s_a78f71b1a6fd98::t_564a5ae68d53bb 539
+skills/jj-same/references/happy-path.md
+  s_a78f71b1a6fd98::t_94d6a51959d266 7
+docs/design-docs/ralph-plans-workspace.md
+  s_a78f71b1a6fd98::t_a3962624652368 9,587
+src/ralph/migrate.mjs
+  s_a78f71b1a6fd98::t_5eda4b8bd00ce2 1-247
+schemas/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_c0c727db6da3ab 3
+  s_a78f71b1a6fd98::t_a107622626b5c4 28-29,50
+README.md
+  s_a78f71b1a6fd98::t_39b83f8289881e 84
+CHANGELOG.md
+  s_a78f71b1a6fd98::t_90c0c54a35060b 8
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md
+  s_a78f71b1a6fd98::t_1ae9e4ac224fb6 82
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 35,56-57,59,63-64,78,171-172,175-179,292-318,746,790,831
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_a78f71b1a6fd98::t_213d1925d77e7c 539
+  s_a78f71b1a6fd98::t_8766506bcaa406 8-9,13,16-17,38-41,176-184,190-199,219,279-283,372-373,448,495-516,518-528,538,542-545,564-580,582-629,631-633,750,752,761-768
+src/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_d76aeb619dee4a 285
+  s_a78f71b1a6fd98::t_80567994215d5c 292
+  s_a78f71b1a6fd98::t_25953f4dfd5d97 21,23-24,103-104,147,283,293
+  s_a78f71b1a6fd98::t_a90a5db3bb0c02 37,509
+  s_a78f71b1a6fd98::t_7451b8d00f82b2 276-277
+scripts/sync-ralph-skill-lib.mjs
+  s_a78f71b1a6fd98::t_1b3cccfb12b34e 7
+claude-commands/jj-ralph.md
+  s_a78f71b1a6fd98::t_864d9a41fae280 25
+  s_a78f71b1a6fd98::t_9ab46078112a49 19
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 17-18,28,30-36,159
+skills/jj-review/SKILL.md
+  s_a78f71b1a6fd98::t_61ce7cec709594 41,68,79,120
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 21,23-24,37,103-104,147,276-277,283,285,292-293,509
+docs/design-docs/index.md
+  s_a78f71b1a6fd98::t_c5ebfdb2908e28 23
+skills/jj-ralph/scripts/lib/namingConfig.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 34-35,38,44-45,357,380,385,397,403
+  s_a78f71b1a6fd98::t_7bd9e109db1de9 129-138
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_a78f71b1a6fd98::t_adb7a3b0bc8c82 16,72-79,82-83,85-89,91-96,212-213,251,717-740
+tests/jj-dispatch-contract.test.mjs
+  s_a78f71b1a6fd98::t_281cc4b7f8bb57 796,802
+skills/jj-ralph/scripts/lib/ralph/map.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 9,11,13,70,179-187
+skills/jj-ralph/references/business-map.md
+  s_a78f71b1a6fd98::t_5c91bd6aa7551a 16,34
+src/cli.mjs
+  s_a78f71b1a6fd98::t_8ff750fde03215 55-57,813,1140-1166,1170-1181,1549-1554
+skills/jj-ralph/SKILL.md
+  s_a78f71b1a6fd98::t_1c056a387cfb82 3,12,29,43,89,105-112,115-122,175,182
+src/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_a6e6cf26e00b30 35,56-57,59,63-64,171-172,175-179,746,790,831
+  s_a78f71b1a6fd98::t_92fb5cdd321f60 78,292-318
+skills/jj-ralph/scripts/lib/ralph/migrate.mjs
+  s_a78f71b1a6fd98::t_8766506bcaa406 1-247
+skills/jj-same/references/handoff-snapshot.md
+  s_a78f71b1a6fd98::t_3b46b194a70bbd 5
+skills/jj-same/test-prompts.json
+  s_a78f71b1a6fd98::t_f2278a91a3a9f5 4
+docs/commands/jj-ralph.md
+  s_a78f71b1a6fd98::t_9800cb3a6984c7 29,134
+skills/jj-ralph/references/artifact-layout.md
+  s_a78f71b1a6fd98::t_940225bac874ab 6,11-14,19,28-29,31,75
+skills/jj-review/references/report-layout.md
+  s_a78f71b1a6fd98::t_446670d2c30f6c 6,8-9,15,18
+skills/jj-ralph/references/integrations.md
+  s_a78f71b1a6fd98::t_3ad79021eace25 7,29,38,55,73
+tests/portfolio-knowledge.test.mjs
+  s_a78f71b1a6fd98::t_281cc4b7f8bb57 24,35,37
+skills/jj-ralph/references/ralph-run.schema.json
+  s_a78f71b1a6fd98::t_ff156b424d8ef3 3,28-29,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "b70f15c2d4d9e92813d33ee64e529870333e97b1",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

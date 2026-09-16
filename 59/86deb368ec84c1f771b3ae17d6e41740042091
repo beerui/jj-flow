@@ -1,0 +1,22 @@
+skills/jj-ralph/SKILL.md
+  s_3c05523033de41::t_1bb876f8491465 14-25,37,42,46-68,80-81,153,158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "5986deb368ec84c1f771b3ae17d6e41740042091",
+  "prompts": {},
+  "sessions": {
+    "s_3c05523033de41": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019feac4-f8d7-7090-a9b0-81c0dedf703b",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_51c6e2e6936d4f 8
+docs/exec-plans/active/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_d5d951fd84a397 81
+docs/design-docs/jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_8048f65e711fa3 32
+docs/jj-lab-siblings.md
+  s_0a1fdf7e8a0a56::t_5a95d052df522b 68
+.github/actions/prepare-lab-roots/action.yml
+  s_0a1fdf7e8a0a56::t_a5038025310d0c 2,24-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "c19e718ea7d564fe873cd3d58ca1fb1b3af5e690",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

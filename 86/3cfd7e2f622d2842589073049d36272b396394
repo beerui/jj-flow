@@ -1,0 +1,64 @@
+src/ralph/state.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 1-607
+src/ralph.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 1-127
+scripts/sync-ralph-skill-lib.mjs
+  s_a78f71b1a6fd98::t_2a2c8c39ad6d5d 7,10-13
+skills/jj-ralph/scripts/lib/ralph/state.mjs
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 1-607
+src/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 59-91,93-217,220-527,529-600,602-737,739-751
+  s_a78f71b1a6fd98::t_94089113072b05 218
+  s_a78f71b1a6fd98::t_c4244cce038721 1-58,92,219,528,601,738
+CHANGELOG.md
+  s_a78f71b1a6fd98::t_ffa031e4000848 8
+skills/jj-ralph/scripts/lib/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 1-204
+skills/jj-ralph/scripts/lib/ralph/map.mjs
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 1-197
+tests/jj-ralph-contract.test.mjs
+  s_a78f71b1a6fd98::t_27402c6661775d 52,56-177
+  s_a78f71b1a6fd98::t_ceec1ad1604be7 178,303,305,309-317,667-672
+docs/exec-plans/active/2026-09-02-ralph-plans-workspace-p1.md
+  s_a78f71b1a6fd98::t_4470482a6f19ef 50-54,80
+scripts/check-project.mjs
+  s_a78f71b1a6fd98::t_c7ae8b3f193554 37-41
+skills/jj-ralph/scripts/lib/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 1-1106
+ARCHITECTURE.md
+  s_a78f71b1a6fd98::t_b6dfeb4827d964 33,64,118
+skills/jj-ralph/scripts/lib/ralph/knowledge.mjs
+  s_a78f71b1a6fd98::t_9c2533e7974452 1-58,92,219,528,601,738
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 59-91,93-218,220-527,529-600,602-737,739-751
+src/ralph/map.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 1-197
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_a78f71b1a6fd98::t_2fdb7ac5cc53ad 1-127
+docs/architecture.md
+  s_a78f71b1a6fd98::t_20b2aa241842a3 31
+src/ralph/gates.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 1-1106
+src/ralph/archive.mjs
+  s_a78f71b1a6fd98::t_82c11cd7f999ee 1-204
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_a78f71b1a6fd98::t_1564e42ae94872 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "863cfd7e2f622d2842589073049d36272b396394",
+  "prompts": {},
+  "sessions": {
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

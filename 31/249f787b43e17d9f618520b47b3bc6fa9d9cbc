@@ -1,0 +1,30 @@
+CHANGELOG.md
+  h_9115cfa70f54a6 166,169
+skills/jj-ralph/scripts/ralph_ops.mjs
+  h_9115cfa70f54a6 12
+  s_64c418359cd940::t_29e91015419f56 73,137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "31249f787b43e17d9f618520b47b3bc6fa9d9cbc",
+  "prompts": {},
+  "humans": {
+    "h_9115cfa70f54a6": {
+      "author": "刘勇杰 <motou2017@163.com>"
+    }
+  },
+  "sessions": {
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

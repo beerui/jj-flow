@@ -1,0 +1,36 @@
+src/ralph.mjs
+  s_60089c8e856798::t_059b8cae84a83c 458
+skills/jj-ralph/references/artifact-layout.md
+  s_60089c8e856798::t_88640cedab4a83 62
+skills/jj-ralph/references/tiny-example.md
+  s_60089c8e856798::t_acb9bf25fbd4a8 76
+tests/jj-ralph-contract.test.mjs
+  s_60089c8e856798::t_4b51263fef6597 165-177
+skills/jj-ralph/references/post-complete-continue.md
+  s_60089c8e856798::t_271bb4424a1692 41
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_60089c8e856798::t_14705f75efb076 97
+skills/jj-ralph/SKILL.md
+  s_60089c8e856798::t_224aea4c0354cf 43
+skills/jj-ralph/scripts/lib/ralph.mjs
+  s_60089c8e856798::t_ba34dc704ebba6 458
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.31",
+  "base_commit_sha": "3371836b916d0e1d5158dbae8111c262bb44b6f0",
+  "prompts": {},
+  "sessions": {
+    "s_60089c8e856798": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a036a2-bcda-7290-8874-369335a1da91",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

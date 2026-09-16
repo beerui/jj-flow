@@ -1,0 +1,50 @@
+skills/jj-same/SKILL.md
+  s_4f95c2e3875c8c::t_4e46411e108e9c 30,40
+  s_4f95c2e3875c8c::t_2af963bee284a5 10,16-17,22,24,34,48,192-193
+  s_4f95c2e3875c8c::t_15c844bb9237f5 27,37
+skills/jj-same/references/happy-path.md
+  s_4f95c2e3875c8c::t_8cc5033ab6cdd8 11
+skills/jj-review/references/host-review.md
+  s_4f95c2e3875c8c::t_2455f3e591e575 18
+skills/jj-same/references/assignment.md
+  s_4f95c2e3875c8c::t_e2dc84fe9a4bc6 3
+  s_4f95c2e3875c8c::t_156344b8c0f981 5
+  s_4f95c2e3875c8c::t_e91df44acfa533 20
+  s_4f95c2e3875c8c::t_6ed90d02128f36 7
+skills/jj-dispatch/SKILL.md
+  s_4f95c2e3875c8c::t_32007b6d38f804 31,87,202,204,219
+skills/jj-ralph/references/artifact-layout.md
+  s_4f95c2e3875c8c::t_6fe3bfdf15fc0b 17,179
+  s_4f95c2e3875c8c::t_f93823d83e02ae 13-14
+skills/jj-review/SKILL.md
+  s_4f95c2e3875c8c::t_5072390079f9c6 8,73,126
+skills/jj-ralph/SKILL.md
+  s_4f95c2e3875c8c::t_4dccf885f0f9c1 38,49
+  s_4f95c2e3875c8c::t_3e364adc83919c 37
+skills/jj-same/references/onboarding.md
+  s_4f95c2e3875c8c::t_95035087d3f5a3 1
+  s_4f95c2e3875c8c::t_f5fe5d2737d504 5
+  s_4f95c2e3875c8c::t_2bd31967da43e9 15,25
+  s_4f95c2e3875c8c::t_6dbdf8a905ac28 3
+  s_4f95c2e3875c8c::t_efa33219cc97d1 12,22,36,40
+  s_4f95c2e3875c8c::t_6e873df83cbeb1 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "bd06ee7d7147e839949f5595ef9751472d04c4b9",
+  "prompts": {},
+  "sessions": {
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "glm-5.2"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

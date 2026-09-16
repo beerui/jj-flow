@@ -1,0 +1,27 @@
+CHANGELOG.md
+  s_eea67d07d4c8bc::t_577b3ff5de8dca 7
+.github/actions/prepare-lab-roots/action.yml
+  s_eea67d07d4c8bc::t_f62b146953cc3e 8,12
+docs/jj-lab-siblings.md
+  s_eea67d07d4c8bc::t_595a24c75ee3e7 83
+  s_eea67d07d4c8bc::t_a556c3dd0db1a2 91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "9075811187c80fb733cdf3188eb742a8718f15c0",
+  "prompts": {},
+  "sessions": {
+    "s_eea67d07d4c8bc": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07a83-1235-7e33-b2ef-9f51212674d5",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

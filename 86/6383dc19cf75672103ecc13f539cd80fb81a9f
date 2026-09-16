@@ -1,0 +1,22 @@
+.gitignore
+  s_2e87ff540b1937::t_30b481be835479 13-14,18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "866383dc19cf75672103ecc13f539cd80fb81a9f",
+  "prompts": {},
+  "sessions": {
+    "s_2e87ff540b1937": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "13ba4e07-d5e9-4ebc-9664-0e27538c5771",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

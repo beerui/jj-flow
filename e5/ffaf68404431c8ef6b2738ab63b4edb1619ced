@@ -1,0 +1,31 @@
+skills/jj-ralph/references/post-complete-continue.md
+  s_60089c8e856798::t_5f15f8df59478a 41
+skills/jj-ralph/references/tiny-example.md
+  s_60089c8e856798::t_3fcdbd5b18721c 76
+skills/jj-ralph/references/artifact-layout.md
+  s_60089c8e856798::t_82bd5c5e8b1d25 60-69
+skills/jj-ralph/SKILL.md
+  s_60089c8e856798::t_d1ede9d4cb8297 43,87
+  s_60089c8e856798::t_148b022b1c3bf2 161
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_60089c8e856798::t_7fde0896bf8bbb 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.31",
+  "base_commit_sha": "e5ffaf68404431c8ef6b2738ab63b4edb1619ced",
+  "prompts": {},
+  "sessions": {
+    "s_60089c8e856798": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a036a2-bcda-7290-8874-369335a1da91",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

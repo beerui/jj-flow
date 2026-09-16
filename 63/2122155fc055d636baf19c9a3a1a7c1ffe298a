@@ -1,0 +1,147 @@
+docs/commands.md
+  s_105f4901c5b875::t_336e809c35a62e 16-18,21-22
+CHANGELOG.md
+  s_105f4901c5b875::t_992f2c61d1b998 7-8,10-12
+  s_105f4901c5b875::t_796cb4ed821d51 9,13
+docs/design-docs/index.md
+  s_105f4901c5b875::t_ade7115af8632c 27
+docs/design-docs/jj-team-swarm.md
+  s_105f4901c5b875::t_cae832e6e8c33c 20,89
+docs/skill-zh-bridge/jj-team-lifecycle/README.zh.md
+  s_105f4901c5b875::t_1b04f34a03bfcc 1-35
+scripts/build-docs.mjs
+  s_105f4901c5b875::t_40d1af07d4ad3b 104
+  s_105f4901c5b875::t_0efde43038723e 46-48
+docs/commands/jj.md
+  s_105f4901c5b875::t_d64d97e3b8ef2b 15-20
+docs/index.md
+  s_105f4901c5b875::t_4e0055dd399df9 19-21
+docs/commands/jj-team-coordinate.md
+  s_105f4901c5b875::t_f33a6384a730c3 1-50
+docs/commands/jj-team-lifecycle.md
+  s_105f4901c5b875::t_b1e10ae6c506cb 1-52
+docs/commands/jj-team-swarm.md
+  s_105f4901c5b875::t_4d8d249e7ea1aa 1-50
+docs/skill-zh-bridge/README.md
+  s_105f4901c5b875::t_43687d80c3359e 29,43,52
+skills/jj-team-lifecycle/references/host-codex.md
+  s_105f4901c5b875::t_dbae50f1e7afe5 3-77
+  s_105f4901c5b875::t_833c2e44823340 1-2
+skills/jj/SKILL.md
+  s_105f4901c5b875::t_c13e75bb77949f 3,14-15,36-38,45
+docs/skill-zh-bridge/jj-team-coordinate/README.zh.md
+  s_105f4901c5b875::t_31a5fff8664cfb 7,28,36-37,79
+docs/design-docs/jj-team-coordinate.md
+  s_105f4901c5b875::t_beee3017f99a29 83-84,93-94,210,235-236
+docs/skill-zh-bridge/jj-team-swarm/README.zh.md
+  s_105f4901c5b875::t_c1912d0fabd956 19,27-28,37
+skills/jj-team-coordinate/SKILL.md
+  s_105f4901c5b875::t_8590cdcf6aef7f 314
+  s_105f4901c5b875::t_5406285a07c28e 36,39
+docs/pitfalls.md
+  s_105f4901c5b875::t_797d08d1100947 88-106
+docs/architecture.md
+  s_105f4901c5b875::t_21bba9219e0ee1 6,17-22
+  s_105f4901c5b875::t_12f5ba875ac220 23-24
+skills/jj-team-lifecycle/agents/team-worker.md
+  s_105f4901c5b875::t_c2201b3a61afc8 3-93
+  s_105f4901c5b875::t_2a3ed88d388a69 1-2,94-101
+skills/jj-team-lifecycle/roles/coordinator/commands/dispatch.md
+  s_105f4901c5b875::t_637cce734f7395 32-50
+  s_105f4901c5b875::t_b5ebfc208c8409 1-31,51-58
+package.json
+  s_105f4901c5b875::t_4c558f9812d090 3-4
+docs/design-docs/jj-team-lifecycle.md
+  s_105f4901c5b875::t_015ad4b6bf0213 1-9,12-161
+  s_105f4901c5b875::t_b7d8689c6c89ac 10-11
+skills/jj-team-lifecycle/roles/coordinator/role.md
+  s_105f4901c5b875::t_6c36d5d0d0739d 74-79
+  s_105f4901c5b875::t_445bac6a328ffe 3
+  s_105f4901c5b875::t_9992df67fdb092 1-2,4-73,80-134
+skills/jj-team-coordinate/roles/coordinator/role.md
+  s_105f4901c5b875::t_bb727dabf4b7ff 39
+skills/jj-team-lifecycle/references/user-transparency.md
+  s_105f4901c5b875::t_0112d79ac25d2e 1-46
+ARCHITECTURE.md
+  s_105f4901c5b875::t_96a3c7065e33d2 33,35,38,114
+tests/jj-team-skills-contract.test.mjs
+  s_105f4901c5b875::t_69d5e7696a4e46 2-3,27,31,33,51,57,59,61-62,68,70,75,78,82,86-95
+  s_105f4901c5b875::t_ee6694343293bd 96-98
+  s_105f4901c5b875::t_e2bfcf09a72507 99-100
+skills/jj-ralph/references/integrations.md
+  s_105f4901c5b875::t_a3dd5a0ed839db 48-65,68,73,100
+docs/glossary.md
+  s_105f4901c5b875::t_ce7ed8f99d6deb 22-25
+claude-commands/jj-team-coordinate.md
+  s_105f4901c5b875::t_6f1557f7350565 36
+claude-commands/jj-team-lifecycle.md
+  s_105f4901c5b875::t_6ce9450544f4a5 1-37
+skill-inventory.json
+  s_105f4901c5b875::t_b9c97a9543de3e 84-90
+AGENTS.md
+  s_105f4901c5b875::t_1e6d9e32d03471 3
+claude-commands/jj-team-swarm.md
+  s_105f4901c5b875::t_0ec0a9a5de0c34 28
+skills/jj-team-lifecycle/SKILL.md
+  s_105f4901c5b875::t_bd3e8541975187 2-285
+  s_105f4901c5b875::t_b3d70537688004 1
+skills/jj-team-lifecycle/roles/analyst/role.md
+  s_105f4901c5b875::t_640ef1d4cb5222 1-100
+skills/jj-team-lifecycle/roles/coordinator/commands/analyze.md
+  s_105f4901c5b875::t_229b29789632d2 1-56
+skills/jj-team-lifecycle/roles/coordinator/commands/monitor.md
+  s_105f4901c5b875::t_2b84fad16a78d3 1-206
+skills/jj-team-lifecycle/roles/executor/commands/fix.md
+  s_105f4901c5b875::t_0c157a3f655ac3 1-35
+skills/jj-team-lifecycle/roles/executor/commands/implement.md
+  s_105f4901c5b875::t_a7c57cf263503a 1-62
+skills/jj-team-lifecycle/roles/executor/role.md
+  s_105f4901c5b875::t_cc0a0e51eb6778 1-67
+skills/jj-team-lifecycle/roles/planner/role.md
+  s_105f4901c5b875::t_f5875897788838 1-85
+skills/jj-team-lifecycle/roles/reviewer/commands/review-code.md
+  s_105f4901c5b875::t_8f142389935346 1-34
+skills/jj-team-lifecycle/roles/reviewer/commands/review-spec.md
+  s_105f4901c5b875::t_8b75072020f928 1-44
+skills/jj-team-lifecycle/roles/reviewer/role.md
+  s_105f4901c5b875::t_f57add33587931 1-69
+skills/jj-team-lifecycle/roles/supervisor/role.md
+  s_105f4901c5b875::t_95e04a7bb7642b 1-192
+skills/jj-team-lifecycle/roles/tester/role.md
+  s_105f4901c5b875::t_9c3b32c2f7d2c8 1-87
+skills/jj-team-lifecycle/roles/writer/role.md
+  s_105f4901c5b875::t_46db008d89377a 1-95
+skills/jj-team-lifecycle/specs/knowledge-transfer.md
+  s_105f4901c5b875::t_0ccf44d638f456 1-114
+skills/jj-team-lifecycle/specs/pipelines.md
+  s_105f4901c5b875::t_74e25fbd548e15 1-140
+skills/jj-team-lifecycle/specs/quality-gates.md
+  s_105f4901c5b875::t_64fc8dbc947e37 1-130
+skills/jj-team-lifecycle/templates/architecture.md
+  s_105f4901c5b875::t_867eadc480e54c 1-254
+skills/jj-team-lifecycle/templates/epics.md
+  s_105f4901c5b875::t_9f9470213e4dd8 1-196
+skills/jj-team-lifecycle/templates/product-brief.md
+  s_105f4901c5b875::t_4eaae30be2a991 1-133
+skills/jj-team-lifecycle/templates/requirements.md
+  s_105f4901c5b875::t_9046a85b7f1079 1-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "632122155fc055d636baf19c9a3a1a7c1ffe298a",
+  "prompts": {},
+  "sessions": {
+    "s_105f4901c5b875": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fd6bc-22f8-7902-8a91-036e40f70bd5",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

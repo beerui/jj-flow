@@ -1,0 +1,22 @@
+skills/jj-end/SKILL.md
+  s_8a25a43566b262::t_74b9ff2a333f8d 17-32,38-39,90,92,115-116,155,158,205,214,244,246-255,268-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "2a6a6d54ba17b86f1dc08c2957a44df952ad1c7c",
+  "prompts": {},
+  "sessions": {
+    "s_8a25a43566b262": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "019fea9d-f61f-7221-ab06-62dd17902bb1",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

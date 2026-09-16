@@ -1,0 +1,32 @@
+docs/commands/cli.md
+  s_6f4d0bf2ef73fa::t_6b392972118bae 172,174
+docs/deployment.md
+  s_6f4d0bf2ef73fa::t_6d4703a55e2c2d 6-8,11
+docs/maintenance.md
+  s_6f4d0bf2ef73fa::t_98932795f8b83f 32,35
+  s_6f4d0bf2ef73fa::t_4407701af54290 9-12,14-18
+ARCHITECTURE.md
+  s_6f4d0bf2ef73fa::t_51734cf88553c0 131
+  s_6f4d0bf2ef73fa::t_319bb9def2c709 68
+CHANGELOG.md
+  s_6f4d0bf2ef73fa::t_0ba6a7101ffdf1 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "9dacc594ad534180788672a9fc52e3509ec44b61",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "刘勇杰-Linux <beerui2021@gmail.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+docs/exec-plans/active/2026-09-03-docs-site-vitepress.md
+  s_6f4d0bf2ef73fa::t_a453dca92b172b 671
+src/harnessGc.mjs
+  s_6f4d0bf2ef73fa::t_5ec3a5ab62163f 2
+  s_6f4d0bf2ef73fa::t_58e2c41fc6b3e1 15-26
+  s_6f4d0bf2ef73fa::t_5dcea15dce743d 53-54,58,60-63,65
+scripts/check-harness.mjs
+  s_6f4d0bf2ef73fa::t_81fcfc68eac5ca 449
+  s_6f4d0bf2ef73fa::t_074766216d1c45 424,431
+  s_6f4d0bf2ef73fa::t_8cbd4a566e5bdd 418
+  s_6f4d0bf2ef73fa::t_5ce90264580ad1 467-469
+  s_6f4d0bf2ef73fa::t_12ea91c6c0413f 538-540
+  s_6f4d0bf2ef73fa::t_de342c8d69d100 502
+docs/design-docs/docs-site-vitepress.md
+  s_6f4d0bf2ef73fa::t_c1ef4cde5ab46d 159
+tests/harness-check.test.mjs
+  s_6f4d0bf2ef73fa::t_a29d9301f3e28c 161
+  s_6f4d0bf2ef73fa::t_14de3c39c62349 182
+  s_6f4d0bf2ef73fa::t_baa4240fd217c5 193
+scripts/check-docs.mjs
+  s_6f4d0bf2ef73fa::t_a04b4def0fa681 23-24,33,37,41,59,62
+harness-manifest.json
+  s_6f4d0bf2ef73fa::t_813661e8d982cc 321
+  s_6f4d0bf2ef73fa::t_58e2b68d82f327 274,278,282,286,290,294,298,302
+  s_6f4d0bf2ef73fa::t_41c6e5be152941 333-335
+docs/milestones/h5-gc-baseline.json
+  s_6f4d0bf2ef73fa::t_4bc9c3c226b3bc 3,5,9,33,42,48-52,56-68,72-151,162,168,172-184,197-198,200-201,204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "aeae7533ea0e168dfe1b454e9605f58506c12f33",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "刘勇杰-Linux <beerui2021@gmail.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}

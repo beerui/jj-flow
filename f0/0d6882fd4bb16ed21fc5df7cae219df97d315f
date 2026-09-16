@@ -1,0 +1,205 @@
+docs/commands/jj-end.md
+  s_4f95c2e3875c8c::t_80dfac164d7ddb 25-27
+AGENTS.md
+  s_4f95c2e3875c8c::t_c4dc8464bd4632 7
+docs/commands/jj-review.md
+  s_4f95c2e3875c8c::t_3957517b784807 5
+docs/installation.md
+  s_4f95c2e3875c8c::t_cb2a5bb889ddc1 47
+  s_4f95c2e3875c8c::t_ca6eb842c0a375 23
+  s_4f95c2e3875c8c::t_8b80e6f4b4cea5 18
+  s_4f95c2e3875c8c::t_002a838329c8ae 64-66
+CHANGELOG.md
+  s_4f95c2e3875c8c::t_6ad0928c8f585c 7
+docs/commands.md
+  s_4f95c2e3875c8c::t_ed04f524a5d4ec 7
+docs/writing-guide.md
+  s_4f95c2e3875c8c::t_9a6b9080da6d4a 46-55
+  s_4f95c2e3875c8c::t_72d44c87720f58 151
+  s_4f95c2e3875c8c::t_ca885ce0e993d4 86
+  s_4f95c2e3875c8c::t_5c85eedbdaa445 208
+  s_4f95c2e3875c8c::t_209a0b887dbf16 14
+docs/commands/jj.md
+  s_4f95c2e3875c8c::t_1f81c186c34d3a 5
+docs/commands/jj-team-swarm.md
+  s_4f95c2e3875c8c::t_69806e62a9b2d2 7
+docs/pitfalls.md
+  s_4f95c2e3875c8c::t_2045b8639383b2 81
+docs/commands/jj-init.md
+  s_4f95c2e3875c8c::t_14c8094294b950 78
+  s_4f95c2e3875c8c::t_436bc6dc2ca99b 59
+  s_4f95c2e3875c8c::t_7cfae40eb07c67 36-38
+  s_4f95c2e3875c8c::t_1dcd5ee924545b 45
+  s_4f95c2e3875c8c::t_381e3906729f10 68
+docs/design-docs/docs-site-vitepress.md
+  s_4f95c2e3875c8c::t_b89b5e6dd20cd9 28-29,189,210-211,213,224,229
+docs/index.md
+  s_4f95c2e3875c8c::t_923cc30e363d1a 21
+docs/commands/jj-ralph.md
+  s_4f95c2e3875c8c::t_4e728c0c5438a1 191
+  s_4f95c2e3875c8c::t_846b9d99ee195e 66
+  s_4f95c2e3875c8c::t_2ca79f23e9ed8b 34
+  s_4f95c2e3875c8c::t_a159a748f176ec 162,164
+  s_4f95c2e3875c8c::t_2772e8727034e3 31
+  s_4f95c2e3875c8c::t_f5fd4abd439ad2 87
+docs/commands/jj-same.md
+  s_4f95c2e3875c8c::t_1fd353f6602c6f 86
+docs/maintenance.md
+  s_4f95c2e3875c8c::t_665d9a163819e6 47
+docs/exec-plans/completed/2026-09-03-docs-site-vitepress.md
+  s_4f95c2e3875c8c::t_c1e611a3f2be0b 752,767,778,804,807-809
+docs/commands/cli.md
+  s_4f95c2e3875c8c::t_83bf7b953cbe87 38
+docs/commands/jj-evaluated.md
+  s_4f95c2e3875c8c::t_b3782511b9a227 24
+docs/concepts-paths.md
+  s_4f95c2e3875c8c::t_07d08b2e989b03 12
+  s_4f95c2e3875c8c::t_12ee62b0e31123 8-9
+docs/concepts-knowledge.md
+  s_4f95c2e3875c8c::t_36df6f91b49158 9
+ARCHITECTURE.md
+  s_4f95c2e3875c8c::t_0f5f1f438ce7d4 32
+  s_4f95c2e3875c8c::t_76c2c79d3c99b3 42
+docs/commands/jj-dispatch.md
+  s_4f95c2e3875c8c::t_b21af83595f06a 5
+docs/usage.md
+  s_4f95c2e3875c8c::t_fb5fd57000a988 3,5,7
+  s_4f95c2e3875c8c::t_935884daff5e34 11,13-14
+  s_4f95c2e3875c8c::t_dfd169a0e8399f 38
+  s_4f95c2e3875c8c::t_381c5effac313e 61
+docs/design-docs/ai-native-sdlc.md
+  s_0a1fdf7e8a0a56::t_cd7d8206058d82 73
+docs/evaluations/2026-07-31-readme-pnpm-rollback.md
+  s_64c418359cd940::t_87a682816ad60c 113
+docs/exec-plans/active/2026-09-10-ralph-review-process-wait.md
+  s_64c418359cd940::t_1aa697583eadfd 17,32,48,51,84
+docs/exec-plans/completed/2026-08-31-ai-native-sdlc.md
+  s_0a1fdf7e8a0a56::t_ab5fdd2bad8e28 75
+docs/exec-plans/completed/2026-08-31-jj-flow-labs.md
+  s_0a1fdf7e8a0a56::t_27e272e2cda645 91
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p2.md
+  s_a78f71b1a6fd98::t_6cc79a0233c908 100
+docs/exec-plans/completed/2026-09-03-ralph-plans-workspace-p2-lite.md
+  s_a78f71b1a6fd98::t_368bbe5fed49f5 68,76,78
+docs/exec-plans/index.md
+  s_64c418359cd940::t_7dc57bb828e672 16-17
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_64c418359cd940::t_4f3b0b68618394 21,40,63
+docs/skill-zh-bridge/jj-review/README.zh.md
+  s_64c418359cd940::t_2218da24b8e701 50
+docs/exec-plans/completed/2026-09-07-ralph-skill-slim.md
+  s_f64346e1de0710::t_d6c31856163dea 15,96
+claude-commands/jj.md
+  s_4f95c2e3875c8c::t_d6dc3de999ef60 32
+docs/design-docs/harness-engineering.md
+  s_4f95c2e3875c8c::t_2ba54efe136ee2 99
+docs/design-docs/index.md
+  s_4f95c2e3875c8c::t_498badb50f9bd6 23
+docs/design-docs/jj-team-coordinate.md
+  s_4f95c2e3875c8c::t_874b1dad75140d 115
+docs/design-docs/jj-team-lifecycle.md
+  s_4f95c2e3875c8c::t_6212ba17b10d74 106,158
+docs/design-docs/portfolio-knowledge.md
+  s_4f95c2e3875c8c::t_9208a673e197b7 26
+docs/design-docs/ralph-archive-elevation.md
+  s_4f95c2e3875c8c::t_4322707d48ffb0 16,130,144,162,175,183,245,257,266
+docs/design-docs/ralph-knowledge-contribute.md
+  s_4f95c2e3875c8c::t_bf1a86508781e6 7,11,64,71,183,194,197,212,225,239,281,288
+docs/design-docs/ralph-plans-workspace.md
+  s_4f95c2e3875c8c::t_b8918330000a8e 378
+docs/design-docs/ralph-skill-slim.md
+  s_4f95c2e3875c8c::t_f6c713c9b1342a 27,122,131,240,406,408,816
+docs/evaluations/EP-20260911-merchants-persona-spawn-report.md
+  s_4f95c2e3875c8c::t_74e5d2213957db 10,33,36,43,56,62
+docs/exec-plans/active/2026-09-11-persona-spawn-gym.md
+  s_4f95c2e3875c8c::t_432ef2aacbd7e0 1,5,9,24,30,32,37,41,61-62,70,73,77,81,83,92,95-96,102,117,128
+docs/exec-plans/active/2026-09-11-same-handoff-assignment.md
+  s_4f95c2e3875c8c::t_6330b3eda27afd 1,5,11,21-22,27-28,37,46
+docs/exec-plans/completed/2026-09-02-ralph-plans-workspace-p1.md
+  s_4f95c2e3875c8c::t_f79ff58dd14951 80
+docs/skill-zh-bridge/README.md
+  s_4f95c2e3875c8c::t_5224e7461ebf31 14
+docs/skill-zh-bridge/jj-dispatch/README.zh.md
+  s_4f95c2e3875c8c::t_adee1da04d6d0e 21,59
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_4f95c2e3875c8c::t_f6afaa12b554a1 54
+docs/skill-zh-bridge/jj-evaluated/README.zh.md
+  s_4f95c2e3875c8c::t_e2e32af99bce88 41
+docs/skill-zh-bridge/jj-same/README.zh.md
+  s_4f95c2e3875c8c::t_342d5a14761eeb 23,41,97,193
+docs/skill-zh-bridge/jj-team-coordinate/README.zh.md
+  s_4f95c2e3875c8c::t_0882657c037412 49
+docs/skill-zh-bridge/jj-team-swarm/README.zh.md
+  s_4f95c2e3875c8c::t_fa24df5214dc49 48
+docs/skill-zh-bridge/jj/README.zh.md
+  s_4f95c2e3875c8c::t_a9c6cfbd2dc493 20
+docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/ralph-router-rewrite-report.md
+  s_4f95c2e3875c8c::t_fd8e0c9d0c0284 70,94
+docs/skill-zh-bridge/sessions/TC-skill-en-zh-20260803/artifacts/rev-end-eval-rewrite-report.md
+  s_4f95c2e3875c8c::t_fd5cd925449f5a 96
+docs/skill-zh-bridge/skill-en-zh-rewrite/README.zh.md
+  s_4f95c2e3875c8c::t_20c4eb63ec3936 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "f00d6882fd4bb16ed21fc5df7cae219df97d315f",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_4f95c2e3875c8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe443e61-5c7b-4ca2-afde-3518df6b6004",
+        "model": "composer-2.5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_a78f71b1a6fd98": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a06130-9b86-7d02-ac2e-615f7947bd51",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_f64346e1de0710": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07bfc-8ddc-7cf1-8e40-4f23ffff6c78",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

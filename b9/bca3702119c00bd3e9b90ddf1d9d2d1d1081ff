@@ -1,0 +1,28 @@
+skills/jj-ralph/scripts/ralph_ops.mjs
+  s_64c418359cd940::t_5b489c281a27d9 74
+CHANGELOG.md
+  s_64c418359cd940::t_bf29fcfe0fc7bd 7
+skills/jj-ralph/references/integrations.md
+  s_64c418359cd940::t_05b3a16f09270b 45,63
+tests/ralph/assets.contract.mjs
+  s_64c418359cd940::t_a3723cefd39fe4 222,238-242,414-417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "b9bca3702119c00bd3e9b90ddf1d9d2d1d1081ff",
+  "prompts": {},
+  "sessions": {
+    "s_64c418359cd940": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a08b75-6428-73c3-885f-c5e23f61a8e7",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

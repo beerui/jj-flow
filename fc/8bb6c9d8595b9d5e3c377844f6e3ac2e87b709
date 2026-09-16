@@ -1,0 +1,32 @@
+skills/jj-end/SKILL.md
+  s_73ed81795f9863::t_384a80f9219108 236,368,376-390,393,396,399,402,406
+tests/jj-end-contract.test.mjs
+  s_73ed81795f9863::t_9dde3ae9914a5f 51,53-57,60-62
+docs/commands/jj-end.md
+  s_73ed81795f9863::t_e77d2b7110e0e2 21,48
+docs/skill-zh-bridge/jj-end/README.zh.md
+  s_73ed81795f9863::t_a36c5e5852ff16 31
+CHANGELOG.md
+  s_73ed81795f9863::t_80865b1c19e471 9
+claude-commands/jj-end.md
+  s_73ed81795f9863::t_2750636b21ad11 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "fc8bb6c9d8595b9d5e3c377844f6e3ac2e87b709",
+  "prompts": {},
+  "sessions": {
+    "s_73ed81795f9863": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07964-46b1-7a91-8321-48f3504e61aa",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

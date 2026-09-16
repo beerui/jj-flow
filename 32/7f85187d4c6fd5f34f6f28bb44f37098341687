@@ -1,0 +1,51 @@
+docs/skill-zh-bridge/jj-ralph/README.zh.md
+  s_eea67d07d4c8bc::t_3c4b61a35a0a64 104
+skills/jj-ralph/references/phases.md
+  s_eea67d07d4c8bc::t_5037c8cd3a165a 7,117
+  s_eea67d07d4c8bc::t_8a07b24648640d 109
+  s_eea67d07d4c8bc::t_da2f02de76c5a4 85
+skills/jj-ralph/references/artifact-layout.md
+  s_eea67d07d4c8bc::t_fea497d8c0af81 32
+  s_eea67d07d4c8bc::t_bd06e2ec609908 72
+skills/jj-ralph/references/tiny-example.md
+  s_eea67d07d4c8bc::t_31c91be3a8d0ad 12
+CHANGELOG.md
+  s_eea67d07d4c8bc::t_f8df3bf5fd3684 7-8
+  s_eea67d07d4c8bc::t_945e96b8ef5605 9
+docs/commands/jj-ralph.md
+  s_eea67d07d4c8bc::t_740bf6cc529a3c 52
+docs/usage.md
+  s_eea67d07d4c8bc::t_d18b6a33a13a52 40
+package.json
+  s_eea67d07d4c8bc::t_1ed187cb5085a5 3
+tests/jj-ralph-contract.test.mjs
+  s_eea67d07d4c8bc::t_402582f98b9e3e 519,522,528-533,538-542,544-547,550-551
+  s_eea67d07d4c8bc::t_b8fbf73c727ba0 394-396,427-429,445-446,515-518,520-521,523-527,534-537,543,548-549,552-553
+skills/jj-ralph/SKILL.md
+  s_eea67d07d4c8bc::t_294b2de073d7ab 47
+  s_eea67d07d4c8bc::t_b673db3044c0fe 44,53,93,236
+  s_eea67d07d4c8bc::t_088aa1383761c9 23,52,90,121
+claude-commands/jj-ralph.md
+  s_eea67d07d4c8bc::t_c3fde5a156c832 26,29
+package-lock.json
+  s_eea67d07d4c8bc::t_52300cd5b233cb 3,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "327f85187d4c6fd5f34f6f28bb44f37098341687",
+  "prompts": {},
+  "sessions": {
+    "s_eea67d07d4c8bc": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a07a83-1235-7e33-b2ef-9f51212674d5",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

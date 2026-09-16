@@ -1,0 +1,53 @@
+src/grokHostAdapter.mjs
+  s_0a1fdf7e8a0a56::t_0f3e0cccf00bd0 1-253,257,262-290
+  s_0a1fdf7e8a0a56::t_a18dbf352eb818 254-256,258-261
+scripts/build-docs.mjs
+  s_0a1fdf7e8a0a56::t_47a70c9048750b 112
+CHANGELOG.md
+  s_0a1fdf7e8a0a56::t_e3d620e9c1da69 7
+tests/grok-host-adapter.test.mjs
+  s_0a1fdf7e8a0a56::t_575cf46e4af5eb 54,88,132,256-263
+  s_0a1fdf7e8a0a56::t_1680b368176f08 120
+  s_0a1fdf7e8a0a56::t_cc99891220f5ac 143
+  s_0a1fdf7e8a0a56::t_3778139e01a1dc 1-53,55-87,89-119,121-131,133-142,144-255,264
+src/harnessDoctor.mjs
+  s_0a1fdf7e8a0a56::t_a9eb1f053e3cbb 3,7,19,23-24,61-67,72-73
+  s_0a1fdf7e8a0a56::t_a8936c35dfb41e 95-97
+docs/exec-plans/active/2026-09-01-grok-host-adapter-phase2.md
+  s_0a1fdf7e8a0a56::t_11eae644315dcc 1-45
+docs/exec-plans/active/2026-07-30-grok-dispatch-execution.md
+  s_0a1fdf7e8a0a56::t_e30a736408b6f9 58
+docs/design-docs/grok-host-adapter.md
+  s_0a1fdf7e8a0a56::t_d3e1bac1b25ec1 231-237
+docs/exec-plans/active/2026-07-31-dispatch-upgrade-backlog.md
+  s_0a1fdf7e8a0a56::t_f3be268ed8697d 35
+docs/design-docs/index.md
+  s_0a1fdf7e8a0a56::t_f64af12e7d6156 25
+tests/harness-doctor.test.mjs
+  s_0a1fdf7e8a0a56::t_514c781a73a7b9 17-19
+docs/milestones/real-host-acceptance.md
+  s_0a1fdf7e8a0a56::t_c5576cfc43504b 23
+ARCHITECTURE.md
+  s_0a1fdf7e8a0a56::t_45afef652df368 51
+docs/exec-plans/index.md
+  s_0a1fdf7e8a0a56::t_45db32d0284bad 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "5454f39496bd6bab5ead4250d9d129e97ea8ea79",
+  "prompts": {},
+  "sessions": {
+    "s_0a1fdf7e8a0a56": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0569f-4634-76a2-a497-1e9417fb5396",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}

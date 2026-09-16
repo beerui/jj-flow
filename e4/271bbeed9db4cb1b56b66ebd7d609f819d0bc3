@@ -1,0 +1,26 @@
+tests/docs-site.test.mjs
+  s_6f4d0bf2ef73fa::t_21e33dd7ce6935 7-8,12-15,19-26,29-32,35-40,43-46,49,51-53
+scripts/check-project.mjs
+  s_6f4d0bf2ef73fa::t_4510dfa9782696 51-54
+scripts/check-docs.mjs
+  s_6f4d0bf2ef73fa::t_f183a5fe223bf7 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e4271bbeed9db4cb1b56b66ebd7d609f819d0bc3",
+  "prompts": {},
+  "sessions": {
+    "s_6f4d0bf2ef73fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "723bd00d-3317-4b6d-a4b7-b5b139c33766",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "刘勇杰-Linux <beerui2021@gmail.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*"
+      }
+    }
+  }
+}
