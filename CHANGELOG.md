@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+暂无。
+
+## 0.2.4 — 2026-09-17 10:46
+
 - **Claude 接上 dispatch（Mode S）**：新增 `/jj-dispatch` 斜杠命令与 `host_id=claude-code` 会话宿主。默认与 Grok 相同：当前对话串行、project-branch、写 attestation；缺多会话能力时降级 Mode S，禁止占位 session。不关闭 Wave 2、不升 A2。合约：`tests/jj-dispatch-contract.test.mjs`、`tests/grok-host-contract.test.mjs`、`tests/claude-host-adapter.test.mjs`、`tests/install-skill.test.mjs`、`tests/skill-inventory.test.mjs`。
 - **文档信息架构重组**：概念章收敛为五页（Loop 两层图并入证据页、记忆速览并入知识与记忆页），`project-plan` 与 M6 验收移出站点归档，侧栏「参考」新增折叠的历史验收组。
 - **CLI 参考校准**：`commands/cli.md` 按 `src/cli.mjs` 补齐 `agents` 安装平台、`task status/context`、`resume`/`abandon`/`remediate` 与 `migrate --prune-archive`，旧 `tasks/` 路径改为扁平布局，新增 ralph 运维节；`jj-ralph` 命令页拆分瘦身，CLI 与监控内容迁往 CLI 参考。
