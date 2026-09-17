@@ -37,13 +37,13 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 | 把当前仓接入全局地图、梳理项目、补知识库 | init | 先提案，确认后写入 |
 | 只改当前这一个仓，从做到验收 | ralph | 五步闭环，完成后可继续改 |
 | 把项目A 做好的能力搬到项目B / 项目C | same | 按目标仓自己的写法适配 |
-| 多个项目一起派、一起盯 | dispatch | 预览 → 你批准 → 派发（无 Claude 入口） |
+| 多个项目一起派、一起盯 | dispatch | 预览 → 你批准 → 派发 |
 | 把审查结论写进任务 | review | 只读，不改业务代码 |
 | 提交、推送、合进集成分支 | end | 只动 Git |
 
 **快速判断：** 一个仓用 **ralph**；要搬家用 **same**；多个仓统一批准用 **dispatch**；只收工用 **end**。不想记入口时，直接说 `$jj` / `/jj`，由它帮你选择入口。
 
-可选（**不算**验收通过）：team-coordinate 多角色、team-lifecycle 固定 SDLC、team-swarm 多方案搜索、evaluated 离线复盘（无 Claude 入口）。
+可选（**不算**验收通过）：team-coordinate 多角色、team-lifecycle 固定 SDLC、team-swarm 多方案搜索、evaluated 离线复盘。
 
 ## 对话怎么说
 

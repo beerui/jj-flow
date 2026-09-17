@@ -1,46 +1,46 @@
 # 第一次使用
 
-本页演示如何在**当前任务**内完成第一个需求并归档（仅用 **ralph**）。文末简要说明 same / dispatch 的入口。
+本页在**当前仓库**里走完一个 ralph 需求并归档。另外两个入口（same / dispatch）在文末各用一句话说明。
 
-## 0. 确认已安装
+## 第 0 步：确认入口可用
 
-在业务仓库根目录打开对话（Codex / Claude / Grok / Qoder），试输入 `$jj-ralph` 或 `/jj-ralph` 确认入口可用。若无补全，请先[安装](installation.md)。
+在业务仓库根目录打开对话（Codex / Claude / Grok / Qoder），试输入 `$jj-ralph` 或 `/jj-ralph`，出现补全即可。没有补全就先[安装](installation.md)。
 
 下面示例统一写 `$jj-ralph`，其他工具把前缀换成 `/`。
 
-## 1. 准备工作区
+## 第 1 步：准备工作区
 
 - 在**要修改的仓库根目录**打开对话
-- 先切换到该需求的功能分支；Agent 在当前分支上工作，**不会自动切换分支**
+- 先切到该需求的功能分支；Agent 在当前分支上工作，**不会自动切换分支**
 
-## 2. 用一句话说需求
+## 第 2 步：用一句话说需求
 
 ```text
 $jj-ralph 票面预览的关闭按钮点了没反应
 ```
 
-不需要格式，不需要编号。可以更具体：
+不需要格式，不需要编号。想更具体也可以：
 
 ```text
 $jj-ralph 先改项目A：登录成功后密码过期要弹提示，只做登录成功那条路
 ```
 
-## 3. 接下来会发生什么
+## 第 3 步：接下来会发生什么
 
-Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报后写入 `progress.md`。spawn 前会先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」「派遣 reviewer 审查改动代码」），不要静默等待。不要在主对话里改业务代码，也不要执行 `ralph_ops` / `jj ralph`。
+主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报，写入 `progress.md`。spawn 前会先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」），不会静默等待。主对话不改业务代码，也不执行 `ralph_ops` / `jj ralph` 命令行。
 
 | 步骤 | Agent 在做什么 | 你会看到 |
 |------|---------------|----------|
-| 对齐 | 确认目标和"怎样算做完"，写入短合同 | `.workflow/ralph/task-…/task_plan.md` 出现，里面有目标和验收项 |
-| 计划 | 列要改的文件和步骤（给派单用） | `task_plan.md` 多出步骤 |
-| 派单实施 | 每轮一份 `ASSIGNMENT-TASK`（精确文件），spawn 前先说「派遣前端开发实现任务」，`description` 以 `[implementer]` 开头。同一仓库上一轮实施已结束则续上，不冷启动；换仓交接则新开 | 聊天里那一行进度；`assignments/`；代码 diff；`progress.md` |
-| 审查（大功能） | spawn 前先说「派遣 reviewer 审查改动代码」，`description` 以 `[reviewer]` 开头。审查还在跑时不要再派交接。小改跳过 | 聊天里那一行进度；`reviews/…/findings.md`：`[OK]`/`[WARN]`/`[BLOCK]` |
+| 对齐 | 确认目标和"怎样算做完"，写入短合同 | `.workflow/ralph/task-…/task_plan.md` 出现，含目标与验收项 |
+| 计划 | 列出要改的文件和步骤（给派单用） | `task_plan.md` 多出步骤 |
+| 派单实施 | 每轮写一份 `ASSIGNMENT-TASK`（精确文件），spawn 前先说「派遣前端开发实现任务」，`description` 以 `[implementer]` 开头；同一仓库上一轮实施已结束则 `resume_from` 续接，不冷启动 | 聊天里的派遣进度；`assignments/`；代码 diff；`progress.md` |
+| 审查（大功能） | spawn 前先说「派遣 reviewer 审查改动代码」，`description` 以 `[reviewer]` 开头；小改与纯文案跳过 | 派遣进度；`reviews/…/findings.md`：`[OK]` / `[WARN]` / `[BLOCK]` |
 | 你验收 | 审查通过后等你测 | 经你确认后对照验收项收口 |
 | 归档 | 记录定稿 | 任务目录移入 `.workflow/ralph/completed/`，收到一段短报告 |
 
 还会停下来等你：分析时或 MUST / 范围 / 验收事后仍确认不了（先问，不要凭猜测推进）、你说了"先不写代码"、要做不可逆的事（推送 / 合分支 / 删数据）。
 
-## 4. 怎么确认真的做完了
+## 第 4 步：怎样算真的做完了
 
 不要只看聊天总结，看仓库：
 
@@ -50,15 +50,15 @@ Agent 按客服闭环走。主对话是 team-lead：对齐需求、写派单、s
 
 三样都对得上，才算做完。
 
-## 5. 做完之后的三条路
+## 第 5 步：做完之后的三条路
 
 | 你想 | 示例说法 | 去哪一页 |
 |------|--------|----------|
-| 再改一点 / 加一点 | 「tip 应是 6px 不是 8px」「close 也跟着下移」——直接说，Agent 接着同一条任务改，不用编号 | [ralph](commands/jj-ralph.md) |
+| 再改一点 / 加一点 | 「tip 应是 6px 不是 8px」——直接说，Agent 接着同一条任务改，不用编号 | [ralph](commands/jj-ralph.md) |
 | 提交并合进 dev | `$jj-end` 或「收工」——ralph 自己不动 Git | [end](commands/jj-end.md) |
 | 把这个能力搬到项目B / 项目C | 「交接到 项目B 项目C」——源仓要先提交 | [same](commands/jj-same.md) |
 
-归档时可复用结论会写入本机 `~/.jj-flow/memory/`；全局知识库仅在你主动提出并经确认后写入。
+归档时，可复用结论会写入本机 `~/.jj-flow/memory/`；全局知识库仅在你主动提出并经确认后写入。
 
 ## 另外两个入口，一句话
 
@@ -70,7 +70,7 @@ $jj-same 交接到 项目B 项目C
 
 Agent 写下本轮交接任务、到每个目标仓调研，再带派单前缀派执行人按目标仓自己的写法改。分支不对会停下来问你。→ [same](commands/jj-same.md)
 
-**dispatch——多个项目一起派**（Codex / Grok / Qoder 有，Claude 没有）
+**dispatch——多个项目一起派**
 
 ```text
 $jj-dispatch 把 README 的装依赖改成 pnpm，预览分发到项目A、项目B、项目C
@@ -78,7 +78,7 @@ $jj-dispatch 把 README 的装依赖改成 pnpm，预览分发到项目A、项�
 
 先看到预览表，**你说批准** 才真正派出去。源仓库没提交会被拦住。→ [dispatch](commands/jj-dispatch.md)
 
-## 怎样算做完（四个入口对照）
+## 四个入口的「算做完」对照
 
 | 你在用 | 怎样算完 |
 |--------|----------|

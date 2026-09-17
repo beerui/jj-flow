@@ -13,7 +13,7 @@
 | [init](commands/jj-init.md) | 把项目接入全局地图、梳理项目、补知识库 | 全平台 |
 | [ralph](commands/jj-ralph.md) | 在当前仓库从分析做到验收、归档 | 全平台 |
 | [same](commands/jj-same.md) | 把一个同源仓做好的能力迁到别的仓 | 全平台 |
-| [dispatch](commands/jj-dispatch.md) | 多个项目先预览、批准，再一起派发 | Codex / Grok / Qoder（无 Claude 入口） |
+| [dispatch](commands/jj-dispatch.md) | 多个项目先预览、批准，再一起派发 | 全平台 |
 | [review](commands/jj-review.md) | 只读审查；有活跃任务时结论写进任务，无任务时只回结论 | 全平台 |
 | [end](commands/jj-end.md) | 提交、推送并按规则合进集成分支 | 全平台 |
 | [jj](commands/jj.md) | 说不清时帮你选上面哪个入口 | 全平台 |
@@ -57,7 +57,7 @@ $jj-ralph
 | 工具 | 前缀 | 例子 |
 |------|------|------|
 | Codex | `$` | `$jj-ralph` |
-| Claude | `/` | `/jj-same`（没有 `/jj-dispatch`） |
+| Claude | `/` | `/jj-dispatch` |
 | Grok / Qoder | `/` | `/jj-dispatch` |
 
 前缀和可用范围以[宿主说明](concepts-hosts.md)为准；维护用的命令行在侧栏“维护者 → CLI 参考”，不建议拿来代替日常对话入口。

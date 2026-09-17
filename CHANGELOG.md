@@ -4,9 +4,11 @@
 
 ## Unreleased
 
+- **Claude 接上 dispatch（Mode S）**：新增 `/jj-dispatch` 斜杠命令与 `host_id=claude-code` 会话宿主。默认与 Grok 相同：当前对话串行、project-branch、写 attestation；缺多会话能力时降级 Mode S，禁止占位 session。不关闭 Wave 2、不升 A2。合约：`tests/jj-dispatch-contract.test.mjs`、`tests/grok-host-contract.test.mjs`、`tests/claude-host-adapter.test.mjs`、`tests/install-skill.test.mjs`、`tests/skill-inventory.test.mjs`。
 - **文档信息架构重组**：概念章收敛为五页（Loop 两层图并入证据页、记忆速览并入知识与记忆页），`project-plan` 与 M6 验收移出站点归档，侧栏「参考」新增折叠的历史验收组。
 - **CLI 参考校准**：`commands/cli.md` 按 `src/cli.mjs` 补齐 `agents` 安装平台、`task status/context`、`resume`/`abandon`/`remediate` 与 `migrate --prune-archive`，旧 `tasks/` 路径改为扁平布局，新增 ralph 运维节；`jj-ralph` 命令页拆分瘦身，CLI 与监控内容迁往 CLI 参考。
 - **用户文档口径统一**：首页 / 安装 / 宿主说明补 AGENTS 兼容入口与 `.claude/agents`，知识库写入改为「主动提出并经确认后」，README 按 docs 新口径重写，维护说明新增文档地图与五端 SSOT 说明。
+- **用户文档整轮重写**：开始组 4 页、命令页 11 页、术语表按统一骨架重写（一句话定位 / 写法 / 适用与边界 / 第一次这样用 / 常用说法 / 做完之后 / 记录在哪），踩坑页按阶段分组；jj-dispatch 页补 `proposed_mode` / `base_action` 列说明与 attestation 硬门。
 
 ## 0.2.3 — 2026-09-14 08:06
 

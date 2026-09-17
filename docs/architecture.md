@@ -37,6 +37,7 @@ swarm:      对抗搜索   → TAS-* best-solution
 | `src/scenarioRunner.mjs` / `dispatchTrace.mjs` | 可重放场景与纯 replay |
 | `src/hostTrialRunner.mjs` | 半真实 Host trial |
 | `src/grokHostAdapter.mjs` / `grokHostTrialRunner.mjs` | Grok session bind + 真试跑（Wave 2 / A2 已关；JSON 不得自关） |
+| `src/claudeHostAdapter.mjs` | Claude Code Mode S 会话绑定（`host_id=claude-code`；不关闭 Wave 2） |
 | `src/harnessGc.mjs` / `check-harness.mjs` | 仓库 Harness 门禁与熵扫描 |
 | `docs/` | 用户文档 SSOT → `npm run docs:build` |
 

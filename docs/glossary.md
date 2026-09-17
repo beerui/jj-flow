@@ -33,6 +33,6 @@
 | 记忆热层 | `~/.jj-flow/memory/<project_key>.md`；归档晋升、你确认后置顶、注入有条数上限 |
 | sandbox attestation（沙箱证明） | 运行时沙箱留下的执行证明；算数证据之一 |
 | Mode W / Mode P | Mode W：隔离工作区 + 命名分支；Mode P：一任务一真实子会话；都只是拓扑，不算无人值守升级依据 |
-| evaluated | 离线评估 / 复盘：用真实对话导出评估 jj-same、jj-ralph、jj-dispatch；无 Claude 入口 |
+| evaluated | 离线评估 / 复盘：用真实对话导出评估 jj-same、jj-ralph、jj-dispatch |
 
 更深入的架构词见 [架构](architecture.md)。

@@ -1,25 +1,25 @@
 # jj-flow
 
-用**对话**在多个相关项目里把“改功能、迁功能、一起派任务”做完，并且**能核对、能接着做**。
+用**对话**在多个相关项目里把「改功能、迁功能、一起派任务」做完，并且**能核对、能接着做**。
 
 支持：Codex、Claude、Grok、Qoder，另提供 AGENTS 兼容入口（`~/.agents`）。
 
-> 聊天里说“做完了”不算数。算数的是仓库里的记录、Git 提交和审查结果。
+> 聊天里说"做完了"不算数。算数的是仓库里的记录、Git 提交和审查结果。
 
 ## 三步开始
 
 1. [安装](installation.md) 对话入口（约一分钟）
-2. 看[第一次使用](usage.md)，在业务仓库里走完一个小需求
-3. 以后按下表选择入口，用日常中文说要做什么
+2. 看[第一次使用](usage.md)，在业务仓库走完一个小需求
+3. 以后按下面的表选入口，用日常中文说要做什么
 
-卡住了先看[常见踩坑](pitfalls.md)；拿不准入口时，可用 [jj](commands/jj.md) 分流。
+卡住了先看[常见踩坑](pitfalls.md)；拿不准入口时，直接说 `$jj` / `/jj`，由它帮你选择入口。
 
 ## 我该用哪个？
 
 | 你想… | 用这个 | 一句话说明 |
 |--------|--------|------------|
 | 把当前仓接入全局地图、梳理项目、补知识库 | [init](commands/jj-init.md) | 先提案，确认后写入 |
-| 只改当前这一个仓，从做到验收 | [ralph](commands/jj-ralph.md) | 五步闭环，完成后可继续改 |
+| 只改当前这一个仓，从做到验收 | [ralph](commands/jj-ralph.md) | 五步任务闭环，完成后可继续改 |
 | 把项目A 做好的能力搬到项目B / 项目C | [same](commands/jj-same.md) | 按目标仓自己的写法适配 |
 | 多个项目一起派、一起盯 | [dispatch](commands/jj-dispatch.md) | 预览 → 你批准 → 派发 |
 | 把审查结论写进任务 | [review](commands/jj-review.md) | 只读，不改业务代码 |
@@ -27,34 +27,31 @@
 
 **快速判断：** 一个仓用 **ralph**；要搬家用 **same**；多个仓统一批准用 **dispatch**；只收工用 **end**。
 
-可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘（无 Claude 入口）。
+可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘。
 
 ## 对话入口
 
-在**业务项目**的对话里使用前缀：Codex 用 `$jj-ralph`，其他工具通常用 `/jj-ralph`；完整平台差异见[宿主说明](concepts-hosts.md)。不想记入口时，直接说 `$jj` / `/jj`，由它帮你选择入口。
+在**业务项目**的对话里使用前缀：Codex 用 `$jj-…`，其他工具通常用 `/jj-…`；平台差异见[宿主说明](concepts-hosts.md)。
 
 ## 它们怎么配合
 
 ```text
-一个仓库做完 ──ralph──► 可以说“交接到…”
+一个仓库做完 ──ralph──► 可以说"交接到…"
                               │
                               ▼
-                         same 迁到别的仓库
+                          same 迁到别的仓库
                               │
         多个仓库一起派 ──dispatch──► 批准后分别做
                               │
-                         end 提交 / 合分支
+                          end 提交 / 合分支
 ```
 
-全部入口：[命令总览](commands.md)、名词：[术语](glossary.md)
+## 文档导航
 
-## 维护与进阶
-
-| 主题 | 链接 |
-|------|------|
-| 架构 | [架构](architecture.md) |
-| 设计 | [设计文档](design-docs/index.md)、[Agent Harness](design-docs/harness-engineering.md) |
-| 执行计划 | [执行计划](exec-plans/index.md) |
-| ADR | [ADR](adr/index.md) |
-| 里程碑验收 | [真实 Host](milestones/real-host-acceptance.md)、[M7](milestones/m7-acceptance.md)、[H5](milestones/h5-acceptance.md) |
-| 改本仓库文档 | [维护说明](maintenance.md) |
+| 章节 | 适合谁 | 内容 |
+|------|--------|------|
+| 开始（本组） | 新用户 | 安装、第一次使用、常见踩坑 |
+| [工作流](commands.md) | 日常使用 | 六大入口 + 可选引擎，每个入口一页 |
+| 概念 | 想懂「为什么」 | [术语](glossary.md)、[证据怎么算数](concepts-evidence.md)、[目录怎么放](concepts-paths.md)、[宿主与 Mode S](concepts-hosts.md)、[知识与记忆](concepts-knowledge.md) |
+| [维护者](maintenance.md) | 改本仓库的人 | [架构](architecture.md)、CLI 参考、写作规范、部署 |
+| 参考 | 深究者 | [设计文档](design-docs/index.md)（含 [Agent Harness](design-docs/harness-engineering.md)）、[执行计划](exec-plans/index.md)、[ADR](adr/index.md)、历史验收：[真实 Host](milestones/real-host-acceptance.md)、[M7](milestones/m7-acceptance.md)、[H5](milestones/h5-acceptance.md) |
