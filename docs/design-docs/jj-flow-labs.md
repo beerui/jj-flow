@@ -87,7 +87,7 @@ dispatch: control-plane manifest -> 单次确定性 tick -> host actions -> rece
 | CI 调模型 / 自动 promote skill | `$jj-evaluated` 红灯；`ai-native-sdlc.md` 切片 5 |
 | 把 labs / lab 仓放进 npm 包 | `package.json` `files` 现含 `skills/`、`src/`、`examples/`、`docs/`；**排除 `labs/`**；sibling 仓本就不在产品树 |
 | 把 `.claude` / `.codex` / `.cursor` 当 lab SSOT | Skill SSOT 仍是顶层 `skills/<id>/` |
-| 发明 Claude `/jj-dispatch` 或 `/jj-evaluated` | 有意不暴露 |
+| 发明 Claude `/jj-evaluated` | 有意不暴露 |
 | 把 host-guardrails 升格为协议 | `examples/host-guardrails/` 声明不是协议；过 lab **不**依赖它 |
 | 用聊天、thread、memory 推进 lab 的 ralph/dispatch 状态 | 与生产同一不变量 |
 | 默认 auto commit/push/merge/release | 仅当场景**显式**要求 `$jj-end`，且落地 `dev` 不是 `staging`（EP-20260828）。**无** `jj end` CLI（`src/cli.mjs` 无此命令）；end 是 skill-only |

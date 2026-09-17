@@ -26,7 +26,7 @@ allowed-tools:
 3. 任务全流程 / ralph / 归档 / **归档后再改·废弃** → `/jj-ralph`（同 run resume 优先；见 skill 无终态冻结）
 4. 任务审查 / review 落盘 REV（含已归档 run）→ `/jj-review`
 5. 收工 / 提交并合入 dev·develop·main → `/jj-end`（**只 Git**，不关死 ralph）
-6. 多项目调度 → `$jj-dispatch`（Codex/Qoder/Grok；Claude **无** slash = intentional）
+6. 多项目调度 → `/jj-dispatch`（Claude Mode S，`host_id=claude-code`）
 7. 离线评估（experimental）→ `$jj-evaluated`（无 Claude `/jj-evaluated`）
 
 Skill 权威正文只在 `skills/`（多端 SSOT）；本目录仅 Claude 斜杠命令入口。改 skill 后需 `jj install-skill --platform all --force`。

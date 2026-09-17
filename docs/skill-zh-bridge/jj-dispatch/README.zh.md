@@ -8,7 +8,7 @@
 ## 技能用途
 
 多项目调度：PREVIEW→批准→DISPATCH→tick/resume；控制面默认 `~/.jj-flow`。  
-平台：Codex / Qoder / Grok；**故意无** Claude `/jj-dispatch` slash。
+平台：Codex / Qoder / Grok / Claude。Claude slash 为 `/jj-dispatch`（Mode S，`host_id=claude-code`）；不关闭 Wave 2。
 统筹只写home目录；每个 lead/target 业务仓还要完整 Ralph `task-<slug>`（Goal/验收/Steps），不能只用 `ANL-*`。同一 delivery / 同一会话线程在该仓已有活跃 Ralph 时复用（含 `host.thread_id`），禁止再 init 第二条。多轮对话不能推进 plane。DISPATCH 之后实施走 `$jj-same` 对话路径：本轮 ASSIGNMENT + 目标仓调研 + 带人设提示词 spawn；`distribution_prompt` 是统筹索引，不是子代理操作说明，也不是人设提示词。
 
 ## 仓库规范（2026-08-03）
@@ -18,7 +18,7 @@
 | 编辑源 | 顶层 `skills/jj-dispatch/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj-dispatch`、`~/.grok/skills/jj-dispatch` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明） |
+| Claude | `.claude/skills` + `.claude/commands/jj-dispatch.md`（Mode S） |
 
 ## 英文化状态
 
@@ -33,12 +33,13 @@
 
 | English SSOT | 中文要点 |
 | --- | --- |
-| [SKILL.md](../../../skills/jj-dispatch/SKILL.md) | 跨项目调度入口；Gates 1–8；目录默认 `~/.jj-flow`；四动作 PREVIEW/DISPATCH/RECONCILE/BIND_THREAD；Agent 写 plane（对话不跑 CLI）；Grok Mode S；机械 CLI 矩阵仅给 CLI 用户；回退入口；host tokens；与 jj-same 关系；明确不做 |
+| [SKILL.md](../../../skills/jj-dispatch/SKILL.md) | 跨项目调度入口；Gates 1–8；目录默认 `~/.jj-flow`；四动作 PREVIEW/DISPATCH/RECONCILE/BIND_THREAD；Agent 写 plane（对话不跑 CLI）；Grok/Claude Mode S；机械 CLI 矩阵仅给 CLI 用户；回退入口；host tokens；与 jj-same 关系；明确不做 |
 | [references/happy-path.md](../../../skills/jj-dispatch/references/happy-path.md) | 用户主线；Gates 1–8 全文；real-host PENDING；分支/workspace 判断表与 CREATE 基线新鲜度（EP-20260803）；delivery 状态链 |
 | [references/agent-write-plane.md](../../../skills/jj-dispatch/references/agent-write-plane.md) | 用户不跑 CLI 时 Agent 落盘硬门禁：状态天花板 A；`produced_commit` B；session/C4 C；自检清单 D/C5/C6；T-task-result-sync |
 | [references/control-project.md](../../../skills/jj-dispatch/references/control-project.md) | 目录/naming；control_root；注册项目；intake/delivery 字段；恢复规则；成功回执/checkpoint；Reviewer/Developer 闭环；schema 检索键 |
 | [references/rollback.md](../../../skills/jj-dispatch/references/rollback.md) | 控制面诚实前进（非 git 时光机）；reopen/block/rework/abandon；Mode S 软字段；**G-menu** 用户点选 git；rollbackPrep；closeDelivery |
 | [references/grok-dispatch-execution.md](../../../skills/jj-dispatch/references/grok-dispatch-execution.md) | Grok 默认 Mode S；W/P 后置；Workflow 非 checkpoint；attestation/receipt 路径；PREFLIGHT；实现波次 2a/2b/2c/3 |
+| [references/claude-dispatch-execution.md](../../../skills/jj-dispatch/references/claude-dispatch-execution.md) | Claude `/jj-dispatch` Mode S（`host_id=claude-code`）；不关闭 Wave 2 |
 | [agents/openai.yaml](../../../skills/jj-dispatch/agents/openai.yaml) | 宿主短描述 + default_prompt（Mode S / 门禁摘要） |
 | `references/*.schema.json` / `host-action-contract.json` | 机器契约；本轮未改（本就无中文 prose） |
 | `scripts/plane-self-check.mjs` | Agent 可选自检脚本；本轮未改 |

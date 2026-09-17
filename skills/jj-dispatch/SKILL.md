@@ -1,11 +1,11 @@
 ---
 name: jj-dispatch
-description: "Multi-project dispatch control plane: PREVIEW → approve task_keys → DISPATCH → tick/resume. Triggers: $jj-dispatch, jj-dispatch, 调度, 分发, 预览, PREVIEW, DISPATCH, 回滚, TASK-ID, delivery, cross-project dispatch. Coordination state defaults to ~/.jj-flow (configurable). From a business-repo cwd: recover TASK-ID, approve keys, bind real sessions + attestation. Not task loop (jj-ralph), not port/implement (jj-same), not task review (jj-review). No Claude /jj-dispatch slash (intentional)."
+description: "Multi-project dispatch control plane: PREVIEW → approve task_keys → DISPATCH → tick/resume. Triggers: $jj-dispatch, /jj-dispatch, jj-dispatch, 调度, 分发, 预览, PREVIEW, DISPATCH, 回滚, TASK-ID, delivery, cross-project dispatch. Coordination state defaults to ~/.jj-flow (configurable). From a business-repo cwd: recover TASK-ID, approve keys, bind real sessions + attestation. Not task loop (jj-ralph), not port/implement (jj-same), not task review (jj-review). Claude: /jj-dispatch Mode S (host_id=claude-code)."
 ---
 
 # jj-dispatch
 
-Cross-project dispatch entry. Platforms: **Codex / Qoder / Grok**. **No Claude slash is intentional** (do not add `/jj-dispatch`).
+Cross-project dispatch entry. Platforms: **Codex / Qoder / Grok / Claude**. Claude slash is `/jj-dispatch` (Mode S, `host_id=claude-code`).
 
 > **real-host acceptance: COMPLETED (Grok / A2)** — [docs/milestones/real-host-acceptance.md](../../../docs/milestones/real-host-acceptance.md)
 >
@@ -21,8 +21,8 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 | 2 | intent=`UNKNOWN` | `RECONCILE` / manual BIND only; never recreate the same key |
 | 3 | no task_keys approval | `PREVIEW_ONLY` read-only |
 | 4 | write branch/workspace uncertain; **base stale on CREATE** | decision table (`behind_count` / `base_action` = `FF_LOCAL_MASTER` \| `CREATE_FROM_LOCAL_MASTER` \| `NEEDS_CONFIRM` \| `BLOCKED`); no DISPATCH until confirmed; CREATE only from freshened **local** `master` (never `CREATE_FROM_ORIGIN`; never silent CREATE from `dev`) |
-| 5 | missing Codex capabilities | Codex: BLOCKED, plane unchanged; **Grok → Mode S** |
-| 6 | approved and path ready | write intent → BIND (Grok: real session + attestation) |
+| 5 | missing Codex capabilities | Codex: BLOCKED, plane unchanged; **Grok / Claude → Mode S** |
+| 6 | approved and path ready | write intent → BIND (session hosts: real session + attestation) |
 | 7 | receipt / already bound | tick/resume; no CLI → Agent writes plane |
 | 8 | mark VERIFIED | commit + review + real session + **attestation file** + T-task-result-sync |
 
@@ -36,7 +36,7 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 | Branch/workspace uncertain or `confidence=low` | Output decision table; ask user | 🛑 no DISPATCH until written confirm |
 | CREATE needed, `behind_count>0`, local `master` clean | `git fetch` → `FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER` (`checkout -b <feat> master`) | Dirty/diverged / cannot fetch: `NEEDS_CONFIRM` or `BLOCKED`; no silent `reset --hard` |
 | Codex missing REQUIRED capabilities | BLOCKED; plane unchanged | Do not forge APIs or projectless degrade |
-| Grok missing multi-session caps | **Degrade Mode S** (serial + project-branch) | Still forbid synthetic `session-…` faking BOUND |
+| Grok / Claude missing multi-session caps | **Degrade Mode S** (serial + project-branch) | Still forbid synthetic `session-…` faking BOUND |
 | RECONCILE 0 or many thread candidates | This call BLOCKED; intent stays `UNKNOWN` | User picks handle → manual BIND |
 | User says “done / VERIFIED” without evidence | Cap at `EVIDENCE_READY`/`RUNNING` | 🛑 no VERIFIED until commit+review+session+attestation file |
 | No CLI for tick/closeout | Agent writes plane/attestation/receipt per agent-write-plane; optional `plane-self-check.mjs` | Self-check C5/C6 fail → fix plane, do not raise status |
@@ -129,21 +129,23 @@ Fields and Review loop → [control-project.md](references/control-project.md).
 
 Without CLI, the **Agent may and must** write plane / task / attestation / receipt per [agent-write-plane.md](references/agent-write-plane.md) (status ceiling, `produced_commit`, session bind C4, self-check C5/C6, **T-task-result-sync**). Mechanical optional: `node skills/jj-dispatch/scripts/plane-self-check.mjs --manifest …`.
 
-## Grok Mode S (default) / Mode W (isolation) / Mode P (opt-in)
+## Mode S (default) / Mode W (isolation) / Mode P (opt-in)
+
+Grok (`host_id=grok-build`) and Claude (`host_id=claude-code`) share session-host Mode S. Claude details → [claude-dispatch-execution.md](references/claude-dispatch-execution.md).
 
 | Question | Answer |
 | --- | --- |
 | Protocol multi-task? | Yes (multiple task_key) |
-| Default multi Grok session? | **No** (Mode S). Mode P is opt-in child session 1:1 per write `task_key`, not default |
+| Default multi session? | **No** (Mode S). Mode P is opt-in child session 1:1 per write `task_key`, not default |
 | Isolation worktree? | **Mode W**: exclusive-worktree on a **named branch tip**; dirty main / user isolation / occupied checkout |
-| Must use Grok Workflow? | **No**; Workflow **must not** advance checkpoints |
+| Must use Grok Workflow / Claude Task as checkpoint? | **No**; Workflow / subagents **must not** advance checkpoints or BIND |
 | User runs CLI? | **No**; Agent writes attestation/receipt/plane |
 
 PREFLIGHT #5: Mode S + isolation → 🛑 **STOP** DISPATCH (plane unchanged). Mode P + isolation → 🛑 **STOP** (use Mode W). Mode W without an isolation reason → `NEEDS_CONFIRM`. Silent detached HEAD is forbidden. Mode P write sessions cannot be shared; placeholder `session-*-YYYYMMDD` cannot BIND.
 
 Helpers: `src/dispatchWorkspaceMode.mjs` (pure selection) · `src/dispatchWorktree.mjs` (create/bind/cleanup). Mode W / Mode P do **not** raise A3/A4.
 
-Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md).
+Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md). Claude Mode S → [claude-dispatch-execution.md](references/claude-dispatch-execution.md).
 
 **Parallel capacity (guidance only):** one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only. This line does **not** change CAS / receipt / `task_key` / VERIFIED.
 
@@ -192,7 +194,8 @@ Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing ass
 - Do not advance checkpoints from thread stop or model prose alone
 - Do not hand-write `VERIFIED` without `produced_commit` / real session / **attestation file**
 - Do not synthesize `session-…` placeholders to fake BOUND
-- Do not add Claude `/jj-dispatch`
+- Do not treat a Claude/Grok subagent id as the bound session
+- Do not claim Wave 2 / A2 because Claude `/jj-dispatch` is installed
 - Do not treat control root as a business source project or as a substitute Ralph workspace
 - Do not leave a DISPATCH wave with only `~/.jj-flow/.workflow/tasks/TASK-*/ANL-*.md` and no per-project `.workflow/ralph/task-*`
 - Do not treat `distribution_prompt` as the worker spec or 人设提示词; do not parent-`search_replace` after DISPATCH
@@ -209,6 +212,7 @@ Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing ass
 | [control-project.md](references/control-project.md) | Directories, intake, fields, Review loop |
 | [rollback.md](references/rollback.md) | Rollback / reopen |
 | [grok-dispatch-execution.md](references/grok-dispatch-execution.md) | Grok Mode S/W/P |
+| [claude-dispatch-execution.md](references/claude-dispatch-execution.md) | Claude `/jj-dispatch` Mode S (`host_id=claude-code`) |
 | [control-plane.schema.json](references/control-plane.schema.json) | Key lookup before writing plane |
 | [host-action-contract.json](references/host-action-contract.json) | capability / host actions |
 | [task-receipt.schema.json](references/task-receipt.schema.json) | Receipts |

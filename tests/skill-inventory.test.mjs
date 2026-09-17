@@ -118,3 +118,17 @@ test('repository jj-same Claude command is within thin budget', () => {
     'jj-same.md has ' + lineCount + ' lines, budget is ' + CLAUDE_COMMAND_MAX_LINES
   );
 });
+
+test('repository jj-dispatch Claude command is within thin budget', () => {
+  const dispatchCmd = path.join(root, 'claude-commands', 'jj-dispatch.md');
+  assert.ok(fs.existsSync(dispatchCmd));
+  const text = fs.readFileSync(dispatchCmd, 'utf8');
+  const lineCount = text.length === 0 ? 0 : text.replace(/\n$/, '').split('\n').length;
+  assert.ok(
+    lineCount <= CLAUDE_COMMAND_MAX_LINES,
+    'jj-dispatch.md has ' + lineCount + ' lines, budget is ' + CLAUDE_COMMAND_MAX_LINES
+  );
+  assert.match(text, /^---\r?\nname: jj-dispatch/m);
+  assert.match(text, /skills\/jj-dispatch\/SKILL\.md/);
+  assert.match(text, /claude-code/);
+});

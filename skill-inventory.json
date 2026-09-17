@@ -65,10 +65,10 @@
     },
     {
       "id": "jj-dispatch",
-      "claude_command": null,
+      "claude_command": "jj-dispatch.md",
       "user_invocable": true,
-      "platforms": ["codex", "qoder", "grok"],
-      "note": "Platforms: codex/qoder/grok (no Claude slash intentional). Docs must not say Codex-only. Host: codex-app+thread or grok-build+session; PREVIEW host-agnostic; DISPATCH needs real sandbox attestation. Grok Wave 2 completed / max_unattended_level=A2."
+      "platforms": ["codex", "qoder", "grok", "claude"],
+      "note": "Platforms: codex/qoder/grok/claude. Docs must not say Codex-only. Host: codex-app+thread, grok-build+session, or claude-code+session (Mode S); PREVIEW host-agnostic; DISPATCH needs real sandbox attestation. Grok Wave 2 completed / max_unattended_level=A2. Claude slash is Mode S skill path, not Wave 2."
     },
     {
       "id": "jj-evaluated",

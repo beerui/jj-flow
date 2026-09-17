@@ -30,24 +30,27 @@ const controlPlaneSchema = JSON.parse(
 );
 const appCapabilities = [...REQUIRED_APP_CAPABILITIES];
 
-test('host contract enumerates codex-app, grok-build, and lab-harness with handle kinds', () => {
-  assert.deepEqual(HOST_IDS, ['codex-app', 'grok-build', 'lab-harness']);
+test('host contract enumerates codex-app, grok-build, lab-harness, and claude-code with handle kinds', () => {
+  assert.deepEqual(HOST_IDS, ['codex-app', 'grok-build', 'lab-harness', 'claude-code']);
   assert.deepEqual(HANDLE_KINDS, ['thread', 'session']);
   assert.deepEqual(hostContract.host_ids, [...HOST_IDS]);
   assert.deepEqual(hostContract.handle_kinds, [...HANDLE_KINDS]);
   assert.equal(HOST_PROFILES['codex-app'].handle_kind, 'thread');
   assert.equal(HOST_PROFILES['grok-build'].handle_kind, 'session');
   assert.equal(HOST_PROFILES['lab-harness'].handle_kind, 'session');
+  assert.equal(HOST_PROFILES['claude-code'].handle_kind, 'session');
   assert.equal(HOST_PROFILES['grok-build'].create_action, 'CREATE_THREAD');
   assert.equal(HOST_PROFILES['grok-build'].reconcile_action, 'RECONCILE_THREAD');
   assert.equal(isApprovedSessionHost('grok-build'), true);
   assert.equal(isApprovedSessionHost('lab-harness'), true);
+  assert.equal(isApprovedSessionHost('claude-code'), true);
   assert.equal(isApprovedSessionHost('codex-app'), false);
   assert.deepEqual(HOST_ACTION_TYPES, ['CREATE_THREAD', 'RECONCILE_THREAD']);
   for (const capability of REQUIRED_APP_CAPABILITIES) {
     assert.ok(HOST_PROFILES['grok-build'].capability_equivalents[capability]);
     assert.ok(HOST_PROFILES['codex-app'].capability_equivalents[capability]);
     assert.ok(HOST_PROFILES['lab-harness'].capability_equivalents[capability]);
+    assert.ok(HOST_PROFILES['claude-code'].capability_equivalents[capability]);
   }
 });
 
@@ -58,11 +61,13 @@ test('control-plane schema exposes handle_kind on intents', () => {
 test('resolveHandleKind forces session for grok-build and thread for codex-app', () => {
   assert.equal(resolveHandleKind('grok-build'), 'session');
   assert.equal(resolveHandleKind('lab-harness'), 'session');
+  assert.equal(resolveHandleKind('claude-code'), 'session');
   assert.equal(resolveHandleKind('codex-app'), 'thread');
   assert.equal(resolveHandleKind('host-trial-local'), 'thread');
   assert.equal(resolveHandleKind('host-trial-local', 'session'), 'session');
   assert.throws(() => resolveHandleKind('grok-build', 'thread'), /handle_kind=session/);
   assert.throws(() => resolveHandleKind('lab-harness', 'thread'), /handle_kind=session/);
+  assert.throws(() => resolveHandleKind('claude-code', 'thread'), /handle_kind=session/);
   assert.throws(() => resolveHandleKind('codex-app', 'session'), /handle_kind=thread/);
 });
 

@@ -9,10 +9,10 @@ export const RECEIPT_KINDS = Object.freeze(['TASK_RESULT', 'REVIEW_RESULT']);
 export const RECEIPT_STATUSES = Object.freeze(['COMPLETED', 'BLOCKED']);
 
 /** Approved host adapters. Trial/local hosts may use other host_id strings. */
-export const HOST_IDS = Object.freeze(['codex-app', 'grok-build', 'lab-harness']);
+export const HOST_IDS = Object.freeze(['codex-app', 'grok-build', 'lab-harness', 'claude-code']);
 
 /** Session hosts that may share one real session id across task_keys (Mode S). */
-export const SESSION_HOST_IDS = Object.freeze(['grok-build', 'lab-harness']);
+export const SESSION_HOST_IDS = Object.freeze(['grok-build', 'lab-harness', 'claude-code']);
 
 export function isApprovedSessionHost(hostId) {
   return SESSION_HOST_IDS.includes(hostId);
@@ -129,6 +129,41 @@ export const HOST_PROFILES = Object.freeze({
       'sandbox_evidence_ref'
     ]),
     evidence_must_declare: Object.freeze(['handle_kind=session', 'gym-not-real-host'])
+  }),
+  'claude-code': Object.freeze({
+    host_id: 'claude-code',
+    handle_kind: 'session',
+    create_action: 'CREATE_THREAD',
+    reconcile_action: 'RECONCILE_THREAD',
+    required_capabilities: Object.freeze([
+      'list_projects',
+      'list_threads',
+      'create_thread',
+      'read_thread',
+      'send_message_to_thread',
+      'worktree',
+      'sandbox'
+    ]),
+    capability_equivalents: Object.freeze({
+      list_projects: 'control-project path + git identity registry',
+      list_threads: 'Claude Code conversation/session index (~/.claude/projects) or current session UUID',
+      create_thread: 'CREATE_SESSION_TASK: declare/bind current Claude conversation for task_key',
+      read_thread: 'structured receipt or agreed artifact path for the session',
+      send_message_to_thread: 'inject distribution_prompt into the bound conversation with audit ref',
+      worktree: 'write workspace path: project root on named branch (default) or exclusive worktree when isolation required',
+      sandbox: 'bound attestation JSON (effective boundary), not model prose'
+    }),
+    attestation_required_fields: Object.freeze([
+      'host_id',
+      'handle_kind',
+      'thread_id',
+      'task_key',
+      'agent_name',
+      'sandbox_mode',
+      'effective_sandbox_mode',
+      'sandbox_evidence_ref'
+    ]),
+    evidence_must_declare: Object.freeze(['handle_kind=session'])
   })
 });
 

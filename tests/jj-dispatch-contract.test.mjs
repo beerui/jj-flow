@@ -1743,4 +1743,7 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /Do not require CLI/);
   assert.match(skill, /Conversational `\$jj-dispatch` never runs this table/);
   assert.match(skill, /never `jj ralph init` CLI/);
+  assert.match(skill, /host_id=claude-code/);
+  assert.match(skill, /\/jj-dispatch/);
+  assert.doesNotMatch(skill, /No Claude slash is intentional|Do not add Claude `\/jj-dispatch`/);
 });

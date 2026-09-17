@@ -21,8 +21,8 @@ Exceptions and gates **outrank** the main line.
 2. **Any `dispatch_intent` with `status=UNKNOWN`** → only `RECONCILE` or manual `BIND_THREAD`; never create_thread / write a second intent for the same `task_key`.
 3. **No explicit approval of this round's task_keys** → `PREVIEW` (`action=PREVIEW`, `status=PREVIEW_ONLY`); read-only; no intent write; no create_thread.
 4. **Write-responsibility target branch / workspace mode uncertain** → output self-check decision table first and confirm with the user; no DISPATCH / create_thread / intent write until confirmed; user may override `project-branch` / `exclusive-worktree` / target branch name.
-5. **Approved but missing REQUIRED_APP_CAPABILITIES** → Codex App: DISPATCH rejected (`ok=false`, `BLOCKED`), plane unchanged, no intent write. **Grok Build**: do not fake whole-wave BLOCKED solely for “no multi-session create/list”; **degrade to Mode S** (single-session serial + project-branch), see [grok-dispatch-execution.md](grok-dispatch-execution.md). Still forbid forged capabilities or synthetic sessions faking BOUND.
-6. **Approved, branch/workspace confirmed (or unambiguous), and (Codex capabilities complete / or Grok Mode S/W/P)** → DISPATCH: persist intent(`PENDING_THREAD`) first → Codex: `CREATE_THREAD` → `BIND_THREAD`; Grok: **Mode S** bind current real session id (shared across task_keys allowed) + write attestation file; **Mode W** when isolation is required (exclusive-worktree, named branch tip, `execution_mode=W`); **Mode P** when the user opts into parallel child sessions (`execution_mode=P`, write session 1:1). PREFLIGHT #5: Mode S + isolation → BLOCKED, plane unchanged; Mode P + isolation → BLOCKED (use Mode W).
+5. **Approved but missing REQUIRED_APP_CAPABILITIES** → Codex App: DISPATCH rejected (`ok=false`, `BLOCKED`), plane unchanged, no intent write. **Grok Build / Claude Code**: do not fake whole-wave BLOCKED solely for “no multi-session create/list”; **degrade to Mode S** (single-session serial + project-branch), see [grok-dispatch-execution.md](grok-dispatch-execution.md) and [claude-dispatch-execution.md](claude-dispatch-execution.md). Still forbid forged capabilities or synthetic sessions faking BOUND.
+6. **Approved, branch/workspace confirmed (or unambiguous), and (Codex capabilities complete / or session-host Mode S/W/P)** → DISPATCH: persist intent(`PENDING_THREAD`) first → Codex: `CREATE_THREAD` → `BIND_THREAD`; Grok (`host_id=grok-build`) / Claude (`host_id=claude-code`): **Mode S** bind current real session id (shared across task_keys allowed) + write attestation file; **Mode W** when isolation is required (exclusive-worktree, named branch tip, `execution_mode=W`); **Mode P** when the user opts into parallel child sessions (`execution_mode=P`, write session 1:1). PREFLIGHT #5: Mode S + isolation → BLOCKED, plane unchanged; Mode P + isolation → BLOCKED (use Mode W).
 7. **Receipt present or need to advance already-bound tasks** → tick/resume (with CLI: `jj dispatch-tick`; **without CLI, Agent edits plane directly**, must follow [agent-write-plane.md](agent-write-plane.md)).
 8. **Mark target/delivery VERIFIED** (or development DONE) → first satisfy terminal evidence (git commit / review / real session id + **attestation file**). If not met: at most `EVIDENCE_READY` / `RUNNING`; never write VERIFIED because the user said “done / merged”. **T-task-result-sync**: in the same plane write that promotes VERIFIED, refresh task dir `result.md` / `progress.md`; forbid plane VERIFIED while result still says EVIDENCE_READY.
 
@@ -44,7 +44,7 @@ When a `TASK-ID` exists, recover index and manifest first: conversational path r
 | current_branch @ path | `git branch --show-current` (main worktree) |
 | dirty | whether there are dirty changes **not belonging to this task** |
 | active_write | whether the same project already has an active write intent |
-| proposed_mode | Grok `S` (default, `project-branch`), `W` (`exclusive-worktree`), or opt-in `P` (child session 1:1, still `project-branch`). |
+| proposed_mode | Session host `S` (default, `project-branch`), `W` (`exclusive-worktree`), or opt-in `P` (child session 1:1, still `project-branch`). |
 | base / origin_base | integration base ref and tip (default **local** `master` / `origin/master`) |
 | behind_count | `git rev-list --count <base>..<remote>/<base>` (must `git fetch` before CREATE) |
 | base_action | `FF_LOCAL_MASTER` / `CREATE_FROM_LOCAL_MASTER` / `NEEDS_CONFIRM` / `BLOCKED` |
@@ -80,6 +80,7 @@ Any stage may enter delivery BLOCKED; bind anomaly intent -> UNKNOWN -> RECONCIL
 | [agent-write-plane.md](agent-write-plane.md) | Agent hand-writes plane / no-CLI closeout |
 | [control-project.md](control-project.md) | Directories, intake, fields, Review loop |
 | [grok-dispatch-execution.md](grok-dispatch-execution.md) | Grok Mode S/W/P |
+| [claude-dispatch-execution.md](claude-dispatch-execution.md) | Claude `/jj-dispatch` Mode S |
 | [rollback.md](rollback.md) | Rollback / reopen / fake VERIFIED |
 | [host-action-contract.json](host-action-contract.json) | capability and host actions |
 | [task-receipt.schema.json](task-receipt.schema.json) | Receipt shape |

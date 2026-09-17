@@ -12,7 +12,7 @@ description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-init, jj-s
 | Host | Entry |
 | --- | --- |
 | Codex / Qoder / Grok | `$jj-init` / `$jj-same` / `$jj-ralph` / `$jj-review` / `$jj-end` / `$jj-dispatch`; optional `$jj-team-coordinate` / `$jj-team-lifecycle` / `$jj-team-swarm`; experimental `$jj-evaluated` |
-| Claude Code | `/jj-init` / `/jj-same` / `/jj-ralph` / `/jj-review` / `/jj-end` / `/jj-team-coordinate` / `/jj-team-lifecycle` / `/jj-team-swarm` (**no** `/jj-dispatch`, **no** `/jj-evaluated` — intentional) |
+| Claude Code | `/jj-init` / `/jj-same` / `/jj-ralph` / `/jj-review` / `/jj-end` / `/jj-dispatch` / `/jj-team-coordinate` / `/jj-team-lifecycle` / `/jj-team-swarm` (**no** `/jj-evaluated` — intentional) |
 
 ## Pre-route checks (read-only)
 
@@ -29,7 +29,7 @@ Before choosing a target skill, probe when available (read if present, skip if m
 ```text
 1. Join global map / 梳理项目 / first-time KB bootstrap                           → $jj-init  (Claude: /jj-init)
 2. Same-origin multi-repo migration / handoff consume / sync_key / continuous sync  → $jj-same  (Claude: /jj-same)
-3. Multi-target approval / delivery_id / task_key / control-project schedule         → $jj-dispatch (Codex/Qoder/Grok; no Claude slash)
+3. Multi-target approval / delivery_id / task_key / control-project schedule         → $jj-dispatch (Claude: /jj-dispatch Mode S)
 4. Task ANALYZE→ARCHIVE loop / capability map / accept+archive / **post-archive continue·abandon** → $jj-ralph (Claude: /jj-ralph)
 5. Task read-only review / write REV-*.json (includes latest soft-archived run) → $jj-review (Claude: /jj-review)
 6. Task git closeout: commit → push work → merge integration                 → $jj-end   (Claude: /jj-end; does **not** kill ralph)
@@ -46,7 +46,7 @@ Decision hints:
 - **Multi-role execution** (explicit “team coordinate”, dynamic roles, TC session) → `jj-team-coordinate`; nested under ralph DELIVER when useful — **does not** replace ralph/dispatch facts
 - **Fixed SDLC pipeline** (brief/PRD/architecture/epics, CHECKPOINT gates, team-lifecycle-v4) → `jj-team-lifecycle` (TLV4-*); not a substitute for coordinate when roles must be dynamic
 - **Search / ACO / adversarial multi-hypothesis** → `jj-team-swarm` (TAS-*); not for tiny edits; not a substitute for coordinate implement pipelines
-- `jj-dispatch`: install on **Codex / Qoder / Grok**; **no Claude slash = intentional** (do not write “Codex only”)
+- `jj-dispatch`: install on **Codex / Qoder / Grok / Claude**; Claude slash is `/jj-dispatch` (Mode S, `host_id=claude-code`; do not write “Codex only”)
 - `jj-evaluated`: experimental; **do not** invent a `/jj-evaluated` Claude command
 
 ## Execution contract

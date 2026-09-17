@@ -17,7 +17,7 @@
 | 编辑源 | 顶层 `skills/jj/` |
 | 发布 | npm `files` 含 `skills/`；install 分发到各宿主 |
 | 宿主安装目录 | 如 `~/.codex/skills/jj`、`~/.grok/skills/jj` — **勿当编辑源** |
-| Claude | 仅 `.claude/commands/` 斜杠命令入口（若清单声明）；**无** `/jj-dispatch`、**无** `/jj-evaluated`（intentional） |
+| Claude | `.claude/skills` + `.claude/commands/` 斜杠命令入口（若清单声明）；有 `/jj-dispatch`（Mode S）；**无** `/jj-evaluated`（intentional） |
 
 ## 英文化状态
 
@@ -42,7 +42,7 @@
 | 优先级 | 意图 | 目标 skill |
 | --- | ---: | --- |
 | 1 | 同源多仓迁移 / handoff / 持续同步 | `jj-same` |
-| 2 | 多目标批准 / delivery_id / task_key / 控制项目调度 | `jj-dispatch`（无 Claude slash） |
+| 2 | 多目标批准 / delivery_id / task_key / 控制项目调度 | `jj-dispatch`（Claude：`/jj-dispatch` Mode S） |
 | 3 | 任务闭环 / 能力地图 / 验收归档 / 归档后续作·废弃 | `jj-ralph`（同 run resume 优先） |
 | 4 | 任务只读审查 / REV-*.json | `jj-review` |
 | 5 | 任务 git 收工 | `jj-end`（不关死 ralph） |
@@ -57,7 +57,7 @@
 
 1. 不通过 shell 执行 `jj-same` 等同名对话命令；`npx`/`jj` 用于安装或机械步骤  
 2. 无 control 不伪造成 dispatch  
-3. `jj-dispatch`：Codex / Qoder / Grok 安装；无 Claude slash = intentional（勿写「仅 Codex」）  
+3. `jj-dispatch`：Codex / Qoder / Grok / Claude 安装；Claude slash 为 `/jj-dispatch`（Mode S，`host_id=claude-code`；勿写「仅 Codex」）
 4. 禁止虚构 `/jj-evaluated` Claude 命令  
 
 ## 刻意不对照的内容

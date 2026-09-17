@@ -9,6 +9,8 @@
 This document defines **how to run `$jj-dispatch` / `/jj-dispatch` on Grok Build**.
 The control-plane state machine is unchanged; it only specifies the **Grok host execution layer + skill behavior + artifact conventions**.
 
+Claude Code reuses the same Mode S/W/P rules with `host_id=claude-code`. See [claude-dispatch-execution.md](claude-dispatch-execution.md). Do not treat Claude skill install as Grok Wave 2.
+
 ---
 
 ## 0. Architecture rulings (multi-session? Workflow?)

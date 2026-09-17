@@ -444,7 +444,7 @@ test('installSkill can install Claude full skills and slash commands', () => {
   assert.ok(installed.skills.includes('jj-dispatch'));
   assert.ok(installed.commands.includes('jj-same'));
   assert.ok(installed.commands.includes('jj-ralph'));
-  assert.equal(installed.commands.includes('jj-dispatch'), false);
+  assert.equal(installed.commands.includes('jj-dispatch'), true);
   assert.ok(installed.agents.includes('jj-implementer'));
   assert.ok(installed.agents.includes('jj-reviewer'));
   assert.ok(installed.agents.includes('jj-researcher'));
@@ -458,7 +458,7 @@ test('installSkill can install Claude full skills and slash commands', () => {
   assert.equal(fs.existsSync(path.join(skillsTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-same.md')), true);
   assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-ralph.md')), true);
-  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-dispatch.md')), false);
+  assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-dispatch.md')), true);
   // Claude slash entry must stay thin; full protocol lives under skills/jj-same SSOT.
   const claudeSame = fs.readFileSync(path.join(commandsTarget, 'jj-same.md'), 'utf8');
   assert.match(claudeSame, /^---\r?\nname: jj-same/m);
@@ -468,6 +468,11 @@ test('installSkill can install Claude full skills and slash commands', () => {
   assert.doesNotMatch(claudeSame, /[Mm]aestro|maestro explore/);
   assert.ok(claudeSame.split(/\r?\n/).length <= 40, 'Claude jj-same.md must stay thin (<=40 lines)');
   assert.match(claudeSame, /\/jj-same|# \/jj-same/);
+  const claudeDispatch = fs.readFileSync(path.join(commandsTarget, 'jj-dispatch.md'), 'utf8');
+  assert.match(claudeDispatch, /^---\r?\nname: jj-dispatch/m);
+  assert.match(claudeDispatch, /skills\/jj-dispatch\/SKILL\.md|Authoritative procedure|薄入口|SSOT/);
+  assert.match(claudeDispatch, /claude-code/);
+  assert.ok(claudeDispatch.split(/\r?\n/).length <= 40, 'Claude jj-dispatch.md must stay thin (<=40 lines)');
   assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-feat.md')), false);
   assert.equal(fs.existsSync(path.join(commandsTarget, 'jj-fix.md')), false);
   assert.doesNotMatch(claudeSame, /jj-same\s+"/);
@@ -534,7 +539,7 @@ test('installSkill can install Codex skills and Claude skills+commands together'
   assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeSkillsTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-same.md')), true);
-  assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-dispatch.md')), false);
+  assert.equal(fs.existsSync(path.join(claudeTarget, 'jj-dispatch.md')), true);
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(qoderTarget, 'jj-dispatch', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(grokTarget, 'jj-same', 'SKILL.md')), true);

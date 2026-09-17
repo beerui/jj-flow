@@ -1,10 +1,11 @@
 /**
- * C4 — Grok Mode S attestation path helpers (files, not host:string refs).
+ * C4 — session-host Mode S attestation path helpers (files, not host:string refs).
  * Pure path builders + optional write; does not touch control-plane status.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { isApprovedSessionHost } from './dispatchHostContract.mjs';
 import {
   executionModeForEnvironment,
   validateAttestationExecutionMode
@@ -43,7 +44,7 @@ export function attestationAbsolutePath(controlRoot, deliveryId, taskKey) {
 }
 
 /**
- * Build attestation JSON for grok-build BIND (development or review).
+ * Build attestation JSON for session-host BIND (Grok / Claude / lab).
  */
 export function buildGrokAttestation({
   task_key,
@@ -64,8 +65,8 @@ export function buildGrokAttestation({
 } = {}) {
   if (!task_key) throw new Error('task_key is required');
   if (!session_id || typeof session_id !== 'string') throw new Error('session_id is required');
-  if (host_id !== 'grok-build' && host_id !== 'lab-harness') {
-    throw new Error('host_id must be grok-build or lab-harness');
+  if (!isApprovedSessionHost(host_id)) {
+    throw new Error('host_id must be an approved session host');
   }
   const isRead = access === 'read'
     || (agent_name && String(agent_name).includes('reviewer'))
@@ -119,6 +120,11 @@ export function writeGrokAttestation(controlRoot, {
 /** Gym-only Mode S attestation. Does not close real-host Wave 2. */
 export function writeLabAttestation(controlRoot, options = {}) {
   return writeGrokAttestation(controlRoot, { ...options, host_id: 'lab-harness' });
+}
+
+/** Claude Code Mode S attestation. Does not close real-host Wave 2. */
+export function writeClaudeAttestation(controlRoot, options = {}) {
+  return writeGrokAttestation(controlRoot, { ...options, host_id: 'claude-code' });
 }
 
 /** True if ref looks like an attestation file path (not host:session string). */

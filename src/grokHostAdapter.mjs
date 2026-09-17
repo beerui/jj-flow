@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { writeGrokAttestation } from './dispatchAttestation.mjs';
 import { bindThread, reconcileDispatch } from './dispatchControlPlane.mjs';
+import { isApprovedSessionHost } from './dispatchHostContract.mjs';
 import { assertNamedBranchTip } from './dispatchWorktree.mjs';
 import { executionModeForEnvironment } from './dispatchWorkspaceMode.mjs';
 
@@ -81,10 +82,12 @@ export function grokSkillInstalled({
 }
 
 /**
- * Scriptable BIND for a grok-build session. Writes attestation then bindThread.
- * Mode W callers must pass an exclusive worktree that already has a named branch.
+ * Scriptable BIND for an approved session host (Grok / Claude / lab).
+ * Writes attestation then bindThread. Mode W callers must pass an exclusive
+ * worktree that already has a named branch.
  */
-export function bindGrokSessionTask({
+export function bindSessionTask({
+  hostId = GROK_HOST_ID,
   plane,
   controlRoot,
   deliveryId,
@@ -102,8 +105,11 @@ export function bindGrokSessionTask({
   effectiveBoundarySource = 'declared-coordinator',
   executionMode = null
 } = {}) {
+  if (!isApprovedSessionHost(hostId)) {
+    return { ok: false, reason: `host ${hostId} is not an approved session host`, plane };
+  }
   if (!plane || !controlRoot || !deliveryId || !taskKey || !sessionId || !projectId) {
-    return { ok: false, reason: 'bindGrokSessionTask requires plane, controlRoot, deliveryId, taskKey, sessionId, projectId', plane };
+    return { ok: false, reason: 'bindSessionTask requires plane, controlRoot, deliveryId, taskKey, sessionId, projectId', plane };
   }
   if (PLACEHOLDER_SESSION.test(sessionId)) {
     return { ok: false, reason: 'placeholder session-<slug>-YYYYMMDD cannot BIND', plane };
@@ -135,7 +141,7 @@ export function bindGrokSessionTask({
       deliveryId,
       task_key: taskKey,
       session_id: sessionId,
-      host_id: GROK_HOST_ID,
+      host_id: hostId,
       agent_name: resolvedAgent,
       execution_mode: resolvedMode,
       sandbox_mode: resolvedSandbox,
@@ -157,7 +163,7 @@ export function bindGrokSessionTask({
       taskKey,
       threadId: sessionId,
       projectId,
-      hostId: GROK_HOST_ID,
+      hostId,
       handleKind: GROK_HANDLE_KIND,
       agentName: resolvedAgent,
       sandboxMode: resolvedSandbox,
@@ -171,12 +177,17 @@ export function bindGrokSessionTask({
       plane: next,
       attestation_ref: attestation.rel,
       wave2_closed: false,
-      host_id: GROK_HOST_ID,
+      host_id: hostId,
       handle_kind: GROK_HANDLE_KIND
     };
   } catch (error) {
     return { ok: false, reason: error.message, plane, attestation_ref: attestation.rel };
   }
+}
+
+/** Scriptable BIND for a grok-build session. */
+export function bindGrokSessionTask(options = {}) {
+  return bindSessionTask({ ...options, hostId: GROK_HOST_ID });
 }
 
 export function reconcileGrokSession(plane, { taskKey, candidates } = {}) {
