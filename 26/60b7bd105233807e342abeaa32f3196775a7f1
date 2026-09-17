@@ -1,0 +1,35 @@
+docs/usage.md
+  s_70eb68e9c511b4::t_bfd50c8f49439e 73
+README.md
+  s_70eb68e9c511b4::t_5d60bbf9f51d5a 40
+docs/concepts-hosts.md
+  s_70eb68e9c511b4::t_400f389ca3523d 14
+  s_70eb68e9c511b4::t_d72da6a22bc201 8
+docs/commands.md
+  s_70eb68e9c511b4::t_c6e212d5dd3330 16,60
+CHANGELOG.md
+  s_70eb68e9c511b4::t_40ba810042c7d1 7
+docs/pitfalls.md
+  s_70eb68e9c511b4::t_d1c0f25616a13c 62
+docs/architecture.md
+  s_70eb68e9c511b4::t_4efaf582984bec 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "2660b7bd105233807e342abeaa32f3196775a7f1",
+  "prompts": {},
+  "sessions": {
+    "s_70eb68e9c511b4": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0a9b5-6c3b-7492-8194-24d17631290f",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
