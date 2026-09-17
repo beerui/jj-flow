@@ -1,7 +1,0 @@
-{
-  "dryRun": true,
-  "scopeMode": "all",
-  "bridgeRoot": "docs/skill-zh-bridge",
-  "ssotRoot": "skills",
-  "autoYes": true
-}

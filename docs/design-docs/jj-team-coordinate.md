@@ -7,7 +7,7 @@
 > 完整 bridge CLI / 真机 Codex 验收仍未关闭。
 >
 > 关联：`ARCHITECTURE.md`（控制面不变量）、`jj-ralph.md`、`task-assignment-ux.md`、`grok-host-adapter.md`  
-> 人类中文对照（非 Agent SSOT）：`docs/skill-zh-bridge/jj-team-coordinate/README.zh.md`
+> 用户命令页：`docs/commands/jj-team-coordinate.md`
 >
 > 来源 skill：Claude 侧 `team-coordinate`（动态 role-spec + `team-worker`）
 >

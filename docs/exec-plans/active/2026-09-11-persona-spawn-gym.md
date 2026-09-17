@@ -78,7 +78,7 @@ Grok：`resume_from` 续已结束的同类型执行人（继承 transcript + **c
 - [x] P2 skill / 合约 / eval（G-ralph-5 / G-review-5 / G-same-3）
 - [x] P2 Family gym 第三轮隔离副本 `.tmp/persona-flow-p2/`：TASK2 `resume_from` TASK1；HANDOFF 新开（不同 cwd）
 - [x] P2 全量 `npm run verify` + `git diff --check`
-- [x] P2 文档对齐（CHANGELOG gym 路径、episode 第三轮、zh-bridge G-review-5 / G-same-3、usage 续执行人）
+- [x] P2 文档对齐（CHANGELOG gym 路径、episode 第三轮、usage 续执行人；G-review-5 / G-same-3 在 eval）
 - [x] 真人仓基线：承接 `task-260911-risk-setting` `node --test test/order-risk-config.test.js` 22 pass；无未勾 Step 故未 spawn
 - [x] 审查执行人 `reasoning_effort: high`（`agents/jj-reviewer.md`；不 inherit / 不用 `xhigh`；不降父进程 `high`；实施 / 调研仍 inherit）
 

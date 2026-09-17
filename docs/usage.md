@@ -27,14 +27,15 @@ $jj-ralph 先改项目A：登录成功后密码过期要弹提示，只做登录
 
 ## 第 3 步：接下来会发生什么
 
-主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报，写入 `progress.md`。spawn 前会先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」），不会静默等待。主对话不改业务代码，也不执行 `ralph_ops` / `jj ralph` 命令行。
+主对话是 team-lead：对齐需求、写派单、spawn 子代理；子代理做完带证据回报，写入 `progress.md`。spawn 前先在聊天里说明这一步在做什么。主对话不修改业务代码，也不执行 `ralph_ops` / `jj ralph` 命令行。
+
+派遣宣告、占位、续接的规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
 
 | 步骤 | Agent 在做什么 | 你会看到 |
 |------|---------------|----------|
 | 对齐 | 确认目标和"怎样算做完"，写入短合同 | `.workflow/ralph/task-…/task_plan.md` 出现，含目标与验收项 |
 | 计划 | 列出要改的文件和步骤（给派单用） | `task_plan.md` 多出步骤 |
-| 派单实施 | 每轮写一份 `ASSIGNMENT-TASK`（精确文件），spawn 前先说「派遣前端开发实现任务」，`description` 以 `[implementer]` 开头；同一仓库上一轮实施已结束则 `resume_from` 续接，不冷启动 | 聊天里的派遣进度；`assignments/`；代码 diff；`progress.md` |
-| 审查（大功能） | spawn 前先说「派遣 reviewer 审查改动代码」，`description` 以 `[reviewer]` 开头；小改与纯文案跳过 | 派遣进度；`reviews/…/findings.md`：`[OK]` / `[WARN]` / `[BLOCK]` |
+| 派单实施 | 每轮写一份 `ASSIGNMENT-TASK`（精确文件），`description` 以 `[implementer]` 开头；大功能另派 `[reviewer]`，小改与纯文案跳过 | 聊天里先说明这一步在做什么；`assignments/`；代码 diff；`progress.md`；`reviews/…/findings.md`：`[OK]` / `[WARN]` / `[BLOCK]` |
 | 你验收 | 审查通过后等你测 | 经你确认后对照验收项收口 |
 | 归档 | 记录定稿 | 任务目录移入 `.workflow/ralph/completed/`，收到一段短报告 |
 
@@ -56,13 +57,13 @@ $jj-ralph 先改项目A：登录成功后密码过期要弹提示，只做登录
 |------|--------|----------|
 | 再改一点 / 加一点 | 「tip 应是 6px 不是 8px」——直接说，Agent 接着同一条任务改，不用编号 | [ralph](commands/jj-ralph.md) |
 | 提交并合进 dev | `$jj-end` 或「收工」——ralph 自己不动 Git | [end](commands/jj-end.md) |
-| 把这个能力搬到项目B / 项目C | 「交接到 项目B 项目C」——源仓要先提交 | [same](commands/jj-same.md) |
+| 把这个能力迁到项目B / 项目C | 「交接到 项目B 项目C」——源仓要先提交 | [same](commands/jj-same.md) |
 
 归档时，可复用结论会写入本机 `~/.jj-flow/memory/`；全局知识库仅在你主动提出并经确认后写入。
 
 ## 另外两个入口，一句话
 
-**same——搬到别的同源项目**
+**same——迁到别的同源项目**
 
 ```text
 $jj-same 交接到 项目B 项目C

@@ -155,7 +155,6 @@ const forbiddenFiles = [
   'skills/jj-validate/SKILL.md',
   'skills/jj-evolve/SKILL.md',
   'skills/skill-en-zh-rewrite/SKILL.md',
-  'docs/skill-zh-bridge/skill-en-zh-rewrite/README.zh.md',
   'claude-commands/jj-delivery.md',
   'claude-commands/jj-validate.md',
   'claude-commands/jj-evolve.md',

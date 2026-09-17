@@ -5,10 +5,10 @@ Main-path index. Details and long flows live in [workflow-core.md](workflow-core
 ## Numbered main path
 
 1. **Ralph-handoff-first**: lead `.workflow/ralph/<run_id>/.state/run.json` (live flat `task-<slug>/`; leftover `tasks/<id>/` or `RALPH-*/run.json` ok) → `run.handoff`; when `ready=true`, do not redo source analysis.
-2. Resolve target roles and authorization scope (user natural language; with control, read-only manifest). **Same turn:** pin each target repo’s live Ralph (same session / review-slice first; else dispatch `task-<slug>`; else lead `run_id`). Missing Ralph → init/resume **in that repo**. Do not write ANL body under `~/.jj-flow`. Do not call `ensureDispatchRalphRuns`.
-3. **Branch purpose + CREATE base freshness preflight** (hard gate): [branch-purpose-preflight.md](branch-purpose-preflight.md) (purpose 1–5 + base freshness 6–10; CREATE only from freshened **local** `master` — default `create_from=master`; `base_action` = `FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER`; forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev`).
+2. Resolve target roles and authorization scope (user natural language; with control, read-only manifest). **Same turn:** pin each target repo’s live Ralph (same session / review-slice first; else dispatch `task-<slug>`; else lead `run_id`). Missing Ralph → write/resume **in that repo** per SKILL **Write plane** (single home for `jj ralph init` / ANL-under-home / `ensureDispatchRalphRuns` forbids).
+3. **Branch purpose + CREATE base freshness preflight** (hard gate): [branch-purpose-preflight.md](branch-purpose-preflight.md).
 4. Confirm **`EXECUTION_READY`**; if not met, `BLOCKED` / caveat — do not change business code.
-5. Narrowest plan + **implement**: conversational `$jj-same` writes this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF` and announces **派遣调研** / **派遣交接实施** before spawn with the matching 人设提示词 (`[research]` / `[implementer]`; not parent edits). A live `[reviewer]` still running → do not spawn (G-same-2). Mechanical/CLI may same-turn business code + focused tests (not plan-status-only).
+5. Narrowest plan + **implement**: conversational `$jj-same` writes this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF` and spawns per [assignment-spawn.md](../../jj/references/assignment-spawn.md) with the matching 人设提示词 (not parent edits). Mechanical/CLI may same-turn business code + focused tests (not plan-status-only).
 6. Layered verification and evidence (static/focused tests; runtime defaults to user confirmation or `N/A`).
 7. **Internally** re-check the final diff against the five criteria (do not show to the user).
 8. Minimal artifact and family-plan updates; fill canonical handoff artifacts when needed.
@@ -55,10 +55,10 @@ After same / port work, give the user **only** compact facts, for example:
 
 | Scenario | Rule |
 | --- | --- |
-| **With** `$jj-dispatch` control project | **Read-only** manifest: `origin_project`, `requirement_owner`, `lead_project`, `reference_implementation`, `targets`, `task_key`. This skill only ports / adapts / syncs checkpoints; **do not** invent control tasks or change approval snapshots. Implement in each target’s Ralph — not in `~/.jj-flow/.workflow/tasks/TASK-*`. Do **not** call `ensureDispatchRalphRuns` (dispatch owns scaffold). |
-| **Without** control project | Compatible with `source=A targets=B,C`; lead project may hold the family coordination plan. **Family plan ≠ dispatch approval** — no authoritative `task_key`; do not fake a scheduled delivery. Still init/reuse a full Ralph in **each** target repo. |
+| **With** `$jj-dispatch` control project | **Read-only** manifest: `origin_project`, `requirement_owner`, `lead_project`, `reference_implementation`, `targets`, `task_key`. This skill only ports / adapts / syncs checkpoints; **do not** invent control tasks or change approval snapshots. Implement in each target’s Ralph — not in `~/.jj-flow/.workflow/tasks/TASK-*`. Scaffold ownership: SKILL Write plane. |
+| **Without** control project | Compatible with `source=A targets=B,C`; lead project may hold the family coordination plan. **Family plan ≠ dispatch approval** — no authoritative `task_key`; do not fake a scheduled delivery. Still write/reuse a full Ralph in **each** target repo (SKILL Write plane). |
 
-Business-task artifacts go under that repo’s `.workflow/ralph/task-<slug>/`; **forbid** a private `.workflow/jj-same/` tree and **forbid** treating `control_root` TASK files as the implement home. The `jj-flow` repo itself does not treat `.workflow` as a fact source.
+Business-task artifacts go under that repo’s `.workflow/ralph/task-<slug>/`. Private `.workflow/jj-same/` and `control_root` TASK-as-implement-home forbids → SKILL Write plane + Hard constraints. The `jj-flow` repo itself does not treat `.workflow` as a fact source.
 
 ## Other references
 

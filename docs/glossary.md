@@ -28,8 +28,8 @@
 | 会话执行引擎 | team-*：只管「本轮如何执行」；验收仍认 ralph/dispatch |
 | init | 把当前仓接入全局地图、梳理项目、补知识库（先提案，确认后写入） |
 | 派单 / `ASSIGNMENT-*` | 写给执行人的独占输入文件（TASK / REVIEW / FIX / RESEARCH / HANDOFF）；执行人只读派单，不读聊天 |
-| 派遣 / 执行人 | 「派遣…」是派单前的可见宣告；执行人是被指名的子代理（jj-implementer / jj-reviewer 等） |
-| `resume_from` | 同一人设 + 同一目录的后续派单续用已有子代理，不冷启动 |
+| 派遣 / 执行人 | 「派遣…」是派单前的可见宣告；执行人是被指名的子代理（`jj-implementer` / `jj-reviewer` 等），指名规则见 `skills/jj/references/assignment-spawn.md` |
+| `resume_from` | 同一人设、同一目录的后续派单用于续接已有子代理，不冷启动；规则见 `skills/jj/references/assignment-spawn.md` |
 | 记忆热层 | `~/.jj-flow/memory/<project_key>.md`；归档晋升、你确认后置顶、注入有条数上限 |
 | sandbox attestation（沙箱证明） | 运行时沙箱留下的执行证明；算数证据之一 |
 | Mode W / Mode P | Mode W：隔离工作区 + 命名分支；Mode P：一任务一真实子会话；都只是拓扑，不算无人值守升级依据 |

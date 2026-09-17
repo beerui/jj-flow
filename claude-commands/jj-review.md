@@ -1,6 +1,6 @@
 ---
 name: jj-review
-description: Adapter — 客服 ASSIGNMENT-REVIEW spawn; never host /review. Bind findings.md + REV-*.json when a run exists; otherwise review working tree/HEAD. No init. No business-code changes.
+description: 只读审查入口：写 ASSIGNMENT-REVIEW 并 spawn 只读审查者；不调用宿主 /review。有 run 则绑定 findings.md + REV-*.json；无 run 审查工作区 / HEAD，不 init。
 argument-hint: run_id/task_thread/review_thread/reviewed_commit
 allowed-tools:
   - Read
@@ -15,6 +15,16 @@ allowed-tools:
 
 # /jj-review
 
-User: $ARGUMENTS
+用户输入：$ARGUMENTS
 
-Parent is team-lead. Do not re-read this command or jj-review references at startup. Locate a ralph run if present (explicit `run_id`, else `.workflow/ralph/index.md` **活跃** first). Write `ASSIGNMENT-REVIEW` (this-round files). Before spawn, one user-visible line **派遣审查** (e.g. 派遣reviewer审查改动代码); do not wait silently. Then `spawn_subagent` (`jj-reviewer`; missing → `general-purpose`) this turn with `description` starting `[reviewer]` (never `[reviewer] local changes`); do not review in this chat; **do not** call host `/review`; **do not** run `review-record` / `context --review`. A live `[reviewer]` still running → do not spawn `$jj-same`. Follow-up on a bound run with `REV-*` is a **delta** + `resume_from` last completed `jj-reviewer` (G-review-5). Bound: findings.md + `REV-n.json` files (`HIGH`→`high`); reply `[OK]`/`[BLOCK]` this turn. Unspecified and no run → unbound; do not init. Full rules: skill `jj-review`. G-review-1 / G-review-2 / G-review-3 / G-review-4 / G-review-5.
+权威 skill：`skills/jj-review/SKILL.md`。派单协议见 `skills/jj/references/assignment-spawn.md`，此处不再重复。
+
+要点：
+
+1. 主对话是 team-lead：写本轮 `ASSIGNMENT-REVIEW`，随后 `spawn_subagent` 只读审查者 `jj-reviewer`（缺失则 `general-purpose`），独占输入为该派单文件。
+2. 不在本对话内进行审查；**不要**调用宿主 `/review`；**不要**执行 `review-record` / `context --review`。
+3. 有 ralph run 则绑定：`findings.md` + `REV-n.json`（`HIGH` → `high`）；本轮回复 `[OK]` / `[BLOCK]`。
+4. 未指定且无 run → 不绑定，审查工作区或 `HEAD`，不 init。
+5. 未指定时读 `.workflow/ralph/index.md` 的**活跃**首行定位 run；拿不准先询问用户。
+
+细则以权威 skill 为准。

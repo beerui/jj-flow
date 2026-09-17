@@ -20,7 +20,7 @@
 
 | 你想做的 | 去这里 |
 |----------|--------|
-| 把项目A 做好的能力搬到项目B / 项目C | [same](jj-same.md) |
+| 把项目A 做好的能力迁到项目B / 项目C | [same](jj-same.md) |
 | 多个项目一起派、一起盯 | [dispatch](jj-dispatch.md) |
 | 只想提交、合分支 | [end](jj-end.md) |
 | 把当前仓加进全局项目地图 | [init](jj-init.md) |
@@ -31,7 +31,7 @@
 2. 切到该需求的功能分支；ralph 在当前分支上工作，**不会自动切换分支**
 3. 已经[安装](../installation.md)了 skill
 
-已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。spawn 前先在聊天里说这一步在做什么（例如「派遣前端开发实现任务」），不要静默等待。不要打开 skill 手册当作启动清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
+已知当前任务时，Agent 作为 team-lead 读 `index.md` 和 `task_plan.md`，写派单并 spawn 子代理去做。不要打开 skill 手册当作启动清单，也不要执行 `ralph_ops` / `jj ralph`。人读合同仍是 Goal / 验收 / Steps，验证写进 `progress.md`。
 
 ## 第一次这样用
 
@@ -43,16 +43,18 @@ $jj-ralph 先改项目A：登录成功后如果密码过期要弹提示，只做
 
 **Agent 会做：**
 
+派遣宣告、占位、续接的规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
+
 1. **对齐**——确认目标和"怎样算做完"（验收项），写入短合同。主对话是 team-lead，不在这里改业务代码
 2. **计划**——列出要改哪些文件、分几步（给派单用）
-3. **派单实施**——每轮写一份 `ASSIGNMENT-TASK`（读这些 / 交付必须是精确文件），spawn 前先说 **派遣前端开发实现任务**（「按审查改」则说 **派遣按审查改**），再 spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）。同一对话、同一仓库上一轮实施已结束 → `resume_from` 续接，不冷启动；换审查员或换仓库才新开。这一轮结束就停，等下一轮，不连做 Task n+1
-4. **审查（大功能）**——验证通过后写改动摘要，spawn 前先说 **派遣 reviewer 审查改动代码**，再 spawn `jj-reviewer`（`description` 以 `[reviewer]` 开头）。本轮只有文案 / 样式、以及小改，跳过审查。审查还在跑时不再派交接执行人
+3. **派单实施**——每轮写一份 `ASSIGNMENT-TASK`（读这些 / 交付必须是精确文件），派遣宣告、占位、续接按上述协议，spawn `jj-implementer` 子代理（缺失则 `general-purpose`；`description` 以 `[implementer]` 开头）。这一轮结束就停，等下一轮，不连做 Task n+1
+4. **审查（大功能）**——验证通过后写改动摘要，派遣宣告、占位、续接按上述协议，spawn `jj-reviewer`（`description` 以 `[reviewer]` 开头）。本轮只有文案 / 样式、以及小改，跳过审查
 5. **你验收**——审查 `[OK]` / `[WARN]` 之后等你测过，再对照验收项收口
 6. **归档**——记录定稿，任务目录移入 `completed/`
 
 一轮一派单，子代理汇报后停。大功能审完要等你验收，不会直接收工。还会停下来的情况：MUST / 范围 / 验收事后仍确认不了（先问，不要凭猜测推进）、你说了"先不写代码"、要做推送这类不可逆的事。
 
-**你会看到：** 先是聊天里的派遣进度，然后仓库里多出 `.workflow/ralph/task-…/`：
+**你会看到：** 聊天里先说明这一步在做什么，然后仓库里多出 `.workflow/ralph/task-…/`：
 
 | 文件 | 里面是什么 |
 |------|-----------|
@@ -134,7 +136,7 @@ $jj-ralph 验收不算，退回去改
 | 方向错了 | 「改坏了」 | 同一任务换做法，重写步骤 |
 | 先不做了 | 「这个先不做了，产品砍了」 | 标成废弃；以后说「还要做」能救回 |
 | 完全另一件事 | 「另外做一件…」 | 这时才新开一条任务 |
-| 搬到别的仓 | 「交接到 项目B 项目C」 | 交给 [same](jj-same.md)；源仓要先提交 |
+| 迁到别的仓 | 「交接到 项目B 项目C」 | 交给 [same](jj-same.md)；源仓要先提交 |
 | 提交 / 推送 / 合分支 | `$jj-end` 或「收工」 | 交给 [end](jj-end.md)，只动 Git |
 
 ## 收尾与边界

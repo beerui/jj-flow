@@ -35,7 +35,7 @@ The `jj-flow` repo itself still follows Harness rules and does not treat `.workf
 - Fast implement: when the user explicitly authorizes implement and stable source commit/diff, final requirement sources, and target call chain are enough for `EXECUTION_READY`, reuse existing canonical refs; if missing, write a minimal source-cited ledger into the target `task_plan.md` (id may still be `ANL-TARGET`), then the narrowest Steps and code. Do not rebuild full source analysis or blueprint only for formal completeness before coding; fill handoff-required canonical artifacts before `HANDOFF_READY`.
 - Prepare-handoff mode: the source Ralph / optional `BLP/REQ` hold shared semantics; each target owns only its Ralph ADAPT + implement + review.
 - Multi-target port: one shared source handoff; each target repo writes only its own Ralph. Do not copy ANL bodies into `control_root`.
-- Family / coordination plan: with a `$jj-dispatch` control project, the control manifest holds cross-project tasks, threads, status, decisions, and artifact refs; the lead Ralph holds only its own plan. Without control, the lead may keep a family coordination note. Neither replaces each target’s Ralph `task_plan.md`. same does **not** call `ensureDispatchRalphRuns`.
+- Family / coordination plan: with a `$jj-dispatch` control project, the control manifest holds cross-project tasks, threads, status, decisions, and artifact refs; the lead Ralph holds only its own plan. Without control, the lead may keep a family coordination note. Neither replaces each target’s Ralph `task_plan.md`. Write-plane forbids (including `ensureDispatchRalphRuns`) → SKILL **Write plane**.
 - Migration handoff snapshot: prefer source Ralph `run.handoff`. Leftover `ANL-SOURCE/requirement-baseline/{snapshot_id}/handoff-snapshot.yaml` is read-only; multiple targets reuse via path, not by copying into target repos.
 - When the current repo is not the target, clarify the shared blueprint owner repo before starting. Other targets consume that blueprint via `@file` or direct path; do not copy an untraceable requirements set.
 - Each repo’s artifact IDs resolve only in that repo’s `.workflow/state.json`; across repos, do not assume `blueprint:BLP-*` or `analyze:ANL-*` auto-resolve.
@@ -55,7 +55,7 @@ The `jj-flow` repo itself still follows Harness rules and does not treat `.workf
 | Implement and verify | Implement execution | Target Ralph `progress.md` / `findings.md` / `.state/events.jsonl` | `EXC-*`, `VRF-*` ids |
 | Code review | `$jj-review` | Target Ralph `reviews/review-*/findings.md` + `.state/reviews/REV-*.json` | `REV-*` |
 
-If the target repo has no Ralph `task-<slug>/`, write that repo’s `.workflow/ralph/task-<slug>/` documents (`task_plan.md` / `progress.md` / `findings.md` / `index.md`). Never `jj ralph init` CLI. Do not hand-forge artifact IDs or treat `control_root` TASK files as completion. Leftover `.workflow/state.json` ids are optional citations only.
+If the target repo has no Ralph `task-<slug>/`, write that repo’s `.workflow/ralph/task-<slug>/` documents per SKILL **Write plane** (never CLI init). Do not hand-forge artifact IDs or treat `control_root` TASK files as completion. Leftover `.workflow/state.json` ids are optional citations only.
 
 ## Content mapping
 

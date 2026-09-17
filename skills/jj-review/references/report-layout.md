@@ -13,6 +13,8 @@
 
 ## Selecting a run
 
+Conversational locate rules live in SKILL.md Immediate step 1 (single operational home). This section is the CLI / layout mirror:
+
 - Explicit `run_id` → use that run; missing → BLOCKED (do not init).
 - Unspecified → **currently working** run from `.workflow/ralph/index.md` first (one file; do not glob the tree yet):
   1. Read `## 活跃` (CLI heading `## 活跃（根目录 \`task-*\`)`). Skip the `（无）` placeholder.

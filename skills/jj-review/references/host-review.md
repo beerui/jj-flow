@@ -2,32 +2,25 @@
 
 `jj-review` is an **adapter**: persist `REV-*.json` only when a ralph run is bound.
 
-Review **is** the 客服 assignment path: write `ASSIGNMENT-REVIEW`, spawn a read-only reviewer with exclusive `task_paths` (SKILL.md step 4 / G-review-2). Do **not** call host `/review` / `code-review` / `[reviewer] local changes` (or any entry that auto-collects the dirty tree) — not for bound first, not for unbound, not for 当前的全部改动. 全部改动 = list those files in the assignment and still spawn.
+Review **is** the 客服 assignment path. Operational steps (locate / scope / spawn / persist / reply) live in SKILL.md Immediate actions. Spawn protocol: [assignment-spawn.md](../../jj/references/assignment-spawn.md). Do **not** call host `/review` / `code-review` / `[reviewer] local changes` (or any entry that auto-collects the dirty tree) — not for bound first, not for unbound, not for 当前的全部改动. Bound first never enters the host-callable `/review` step.
 
-Policy SSOT: [review-policy.md](review-policy.md) (passes, importance, nit cap, skip generated, compliance vs `task_plan.md` ## Steps).
+Policy SSOT (passes, importance, nit cap, skip generated, compliance vs Steps): [review-policy.md](review-policy.md).
 
 Do not hard-code a product name (Codex / Claude / Grok / Qoder, etc.) in skill prose except to forbid a known dirty-tree entry (Grok `/review`).
 
 ## Discovery order
 
-Never first-match host `/review`. Bound first never enters the host-callable `/review` step.
+Never first-match host `/review`. Prefer in order:
 
-1. **User-specified**  
-   User gives a review artifact path, pastes findings, or names a completed review session → parse and map directly, `source=user_provided`.
+1. **User-specified** → `source=user_provided` (SKILL step 3)
+2. **客服 assignment spawn** → SKILL step 4 (follow-up / delta → SKILL step 3b). Exclusive input = `ASSIGNMENT-REVIEW` + listed `task_paths` / task diff. Prompt forbids Start broad / repo grep / list_dir. Do **not** match host `/review` / `code-review`.
+3. **Unavailable → fallback** → SKILL Fallback (`source=fallback_inline`). Note: `user_provided` is step 1, **not** fallback.
 
-2. **客服 assignment spawn (G-review-2)** — write `ASSIGNMENT-REVIEW`, announce **派遣审查** (e.g. 派遣 reviewer 审查改动代码) then spawn one `jj-reviewer` (missing → `general-purpose`). description **starts with** `[reviewer]` (never `[reviewer] local changes`). Exclusive input = that file + listed `task_paths` / task diff. Prompt first paragraph forbids Start broad / repo grep / list_dir. Stop here. Do **not** match host `/review` / `code-review` commands. Do not wait silently. A live `[reviewer]` still running → do not spawn `$jj-same` over it (G-review-4 / `01a08fa6`).
-
-3. **Unavailable → fallback**
-   Spawn impossible, or the call failed and the user asks to continue → `source=fallback_inline` for minimal inline review (see SKILL.md).
-   Note: `user_provided` is step 1, **not** fallback.
-
-One `$jj-review` invocation runs **only one** host review path; do not chain multiple full review engines.
-
-**Across invocations in the same thread for the same bound run:** a follow-up `$jj-review` (typical after 「按审查改」) is a **delta review**. Reuse the latest `REV-*` / host `<review_file>`; inspect files changed since last `reviewed_commit`. `resume_from` last completed `jj-reviewer` same cwd (G-review-5). Do **not** spawn a second full-repo reviewer subagent with empty context (`effective_context_source=new`). Hosts whose review skill always one-shots a new subagent (Grok `/review`: “The reviewer is not resumed; this is a one-shot review”) **must not be re-invoked** for that follow-up. Fresh whole-tree spawn only when the user explicitly asks 重新全量审查 / fresh whole-tree review. Bound first review is exclusive assignment spawn (SKILL.md step 4 / G-review-2), not `/review` local. See SKILL.md step 3b / G-review-1 / EP-20260907.
+One `$jj-review` invocation runs **only one** review path. Across invocations in the same thread for the same bound run: **delta review** (SKILL 3b). Hosts whose review skill always one-shots a new subagent (Grok `/review`: “The reviewer is not resumed; this is a one-shot review”) **must not be re-invoked** for that follow-up. Follow-up must not re-call `/review`. Fresh whole-tree spawn only when the user explicitly asks 重新全量审查.
 
 ## Host discovery matrix (Codex / Grok / Claude)
 
-Discover entries by **capability name**, not marketing product pages. Search tools / skills / slash / agents already loaded in the session:
+Discover entries by **capability name**, not marketing product pages:
 
 | Host | Prefer (capability / entry shape) | How to confirm available | Typical artifact or output |
 | --- | --- | --- | --- |
@@ -38,12 +31,12 @@ Discover entries by **capability name**, not marketing product pages. Search too
 Shared rules (all hosts):
 
 1. **Do not match host `/review` / `code-review`.** Spawn the assignment reviewer. `verify` / `npm test` / CI green are **not** a review.
-2. Prefer **user-provided** artifacts (discovery step 1 above the matrix).
+2. Prefer **user-provided** artifacts (discovery step 1).
 3. Subagents must be **read-only**; they must not change business code.
 4. No discoverable entry → only after SKILL.md 🔴 fallback checkpoint (user OK or paste) → `source=fallback_inline`; record the reason in `host_review.note`.
 5. 🔴 Discovery hard-stop: if the user requires “must use host review” and no entry exists → `BLOCKED`, name the missing entry; do not silent-fallback; do not init ralph.
-6. Same-thread follow-up of a bound run that already has `REV-*` / a host review file → delta (SKILL.md 3b). Do not take the fresh-subagent path again.
-7. Bound first `$jj-review` (G-review-2): exclusive assignment spawn. Do not invoke a host entry that auto-collects the whole dirty tree.
+6. Same-thread follow-up of a bound run that already has `REV-*` / a host review file → delta (SKILL 3b). Do not take the fresh-subagent path again.
+7. Bound first `$jj-review`: exclusive assignment spawn. Do not invoke a host entry that auto-collects the whole dirty tree.
 
 ## Context to pass when invoking host review
 

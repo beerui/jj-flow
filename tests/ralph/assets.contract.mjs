@@ -283,23 +283,14 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
     'jj ralph locate',
     'CHECKPOINT (unconfirmed requirement)',
     'ask first',
-    'Golden Q&A — G-ralph-1',
-    'Golden Q&A — G-ralph-2',
-    'Golden Q&A — G-ralph-3',
-    'Golden Q&A — G-ralph-4',
     'team-lead',
     'spawn_subagent',
-    '派遣开发实现',
-    '派遣前端开发实现任务',
-    '派遣按审查改',
-    '派遣审查',
-    '[implementer]',
+    'assignment-spawn.md',
     'Start broad',
-    '审查还在跑',
-    '01a08fa6',
-    'never sample session/commit ids',
-    'Do not wait silently',
+    'exact paths',
     'next unchecked Step',
+    'no lifetime iteration stop',
+    'Occupancy',
     'ASSIGNMENT-TASK',
     'ASSIGNMENT-REVIEW',
     'ASSIGNMENT-FIX',
@@ -315,7 +306,7 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   for (const forbidden of [/\bintensity\b/, /accept-layer/, /CHECKPOINT \(strict\)/, /init must infer/, /init infers/, /--intensity/, /tiny,\s*strict/, /map-find/]) {
     assert.doesNotMatch(skill, forbidden);
   }
-  const conversational = skill.split('## Conversational documents')[1].split('### Golden Q&A')[0];
+  const conversational = skill.split('## Conversational documents')[1];
   assert.deepEqual([...conversational.matchAll(/^\| `([^`]+)` \|/gm)].map((match) => match[1]), [
     'task_plan.md', 'progress.md', 'findings.md', 'assignments/', 'index.md', '.state/run.json'
   ]);
@@ -332,21 +323,47 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(skill, /must-evidence\.md/);
   assert.doesNotMatch(skill, /artifact-layout\.md/);
   assert.doesNotMatch(skill, /\]\(references\/(?:ops|phases)\.md\)/);
-  assert.match(skill, /Do \*\*not\*\* open skill `references\/` from this entry/);
+  assert.match(skill, /This skill's `references\/` are file shapes for CLI and docs, not a startup checklist/);
+  assert.doesNotMatch(skill, /Golden Q&A — G-ralph/);
+  assert.doesNotMatch(skill, /01a08fa6/);
+  assert.doesNotMatch(skill, /Do \*\*not\*\* re-read this SKILL/);
+  assert.doesNotMatch(skill, /empty CAP hits are valid/);
   assert.match(skill, /Call `spawn_subagent` \(`jj-implementer`; missing → `general-purpose`\) in this turn/);
   assert.match(skill, /Spawn `jj-reviewer` \(missing → `general-purpose`\)/);
-  assert.match(skill, /resume_from/);
-  assert.match(skill, /G-ralph-5/);
-  assert.match(skill, /same cwd/);
-  assert.match(skill, /send_subagent_message/);
-  assert.match(skill, /11× cold General/);
-  assert.match(skill, /empty CAP hits are valid/);
+  const spawn = read('skills/jj/references/assignment-spawn.md');
+  for (const marker of [
+    'Do not wait silently',
+    'Occupancy',
+    '审查还在跑',
+    'resume_from',
+    'same cwd',
+    'send_subagent_message',
+    '派遣开发实现',
+    '派遣前端开发实现任务',
+    '派遣按审查改',
+    '派遣审查',
+    '派遣 reviewer 审查改动代码',
+    '派遣调研',
+    '派遣交接实施',
+    '[implementer]',
+    '[reviewer]',
+    '[research]',
+    '[reviewer] local changes',
+    'description **starts with**',
+    'exact paths',
+    '以现有代码为准',
+    'never sample session/commit ids'
+  ]) {
+    assert.match(spawn, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  assert.match(spawn, /\$jj-ralph/);
+  assert.match(spawn, /\$jj-review/);
+  assert.match(spawn, /\$jj-same/);
   const immediate = skill.split('## Immediate actions')[1].split('## Red checkpoints')[0];
   assert.match(immediate, /append `progress\.md`/);
   assert.match(immediate, /MUST finalize/);
   assert.match(immediate, /ASSIGNMENT-TASK/);
-  assert.match(immediate, /派遣前端开发实现任务/);
-  assert.match(immediate, /派遣 reviewer 审查改动代码/);
+  assert.match(immediate, /assignment-spawn\.md/);
   assert.match(immediate, /用户验收/);
   assert.doesNotMatch(skill, /## Happy path/);
   assert.match(immediate, /Never `ralph_ops\.mjs`/);
@@ -385,13 +402,27 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   }
   assert.match(userCmd, /team-lead/);
   assert.match(userCmd, /spawn `jj-implementer`/);
-  assert.match(userCmd, /派遣前端开发实现任务/);
-  assert.match(userCmd, /派遣 reviewer 审查改动代码/);
+  assert.match(userCmd, /assignment-spawn\.md/);
+  assert.doesNotMatch(userCmd, /派遣前端开发实现任务/);
+  assert.doesNotMatch(userCmd, /派遣 reviewer 审查改动代码/);
+  assert.doesNotMatch(userCmd, /不要静默等待/);
+  assert.doesNotMatch(userCmd, /审查还在跑/);
   assert.doesNotMatch(userCmd, /ops\.md/);
   assert.doesNotMatch(userCmd, /phases\.md/);
   assert.doesNotMatch(userCmd, /artifact-layout\.md/);
   assert.doesNotMatch(userCmd, /must-evidence\.md/);
   assert.doesNotMatch(userCmd, /tiny-example\.md/);
+
+  const usagePage = read('docs/usage.md');
+  assert.match(usagePage, /assignment-spawn\.md/);
+  assert.doesNotMatch(usagePage, /派遣前端开发实现任务/);
+  assert.doesNotMatch(usagePage, /派遣 reviewer 审查改动代码/);
+  assert.doesNotMatch(usagePage, /静默等待/);
+
+  const glossary = read('docs/glossary.md');
+  assert.match(glossary, /assignment-spawn\.md/);
+  assert.doesNotMatch(glossary, /派遣前端开发实现任务/);
+  assert.doesNotMatch(glossary, /同一人设 \+ 同一目录/);
 
   const integrations = read('skills/jj-ralph/references/integrations.md');
   for (const marker of ['Idle offer', 'knowledge-confirm', 'hot_memory', 'MasterGo', 'blocked_reasons', 'do_not_port']) {
@@ -460,16 +491,20 @@ test('ralph schemas, samples, skill and command assets exist with key markers', 
   assert.doesNotMatch(command, /map-find/);
   assert.match(command, /不要.*`--intensity`/);
   assert.doesNotMatch(command, /只有 intensity|tiny\/standard\/strict/);
-  assert.match(command, /未要求 commit\/push\/review\/handoff\/dispatch 不做/);
+  assert.match(skill, /Do not commit \/ push \/ review \/ handoff \/ dispatch unless the user asked/);
   assert.doesNotMatch(command, /finalize.*→.*\$jj-end/);
   assert.doesNotMatch(command, /[Mm]aestro/);
   assert.match(command, /team-lead/);
   assert.match(command, /spawn_subagent/);
-  assert.match(command, /派遣开发实现/);
-  assert.match(command, /派遣审查/);
+  assert.match(command, /assignment-spawn\.md/);
+  assert.doesNotMatch(command, /派遣开发实现/);
+  assert.doesNotMatch(command, /派遣审查/);
+  assert.doesNotMatch(command, /不要静默等待/);
+  assert.doesNotMatch(command, /审查还在跑/);
   assert.match(command, /\$jj-review/);
   assert.match(command, /不要.*`review-record`/);
-  assert.match(command, /不跑 `ralph_ops\.mjs` \/ `jj ralph`/);
+  assert.match(command, /不执行 `ralph_ops\.mjs` \/ `jj ralph`/);
+  assert.ok(command.trimEnd().split(/\r?\n/).length <= 40, 'Claude jj-ralph.md must stay thin (<=40 lines)');
   assert.doesNotMatch(command, /审查用 `context --review`/);
   assert.doesNotMatch(command, /`--context-file` 校验后写回/);
   assert.doesNotMatch(command, /交付 PASS 必须走 `ralph_ops`/);
@@ -519,7 +554,7 @@ test('ralph asks first when requirement cannot be confirmed', () => {
   assert.match(layout, /No empty `## 存疑` at init/);
   assert.match(layout, /tiny` is not exempt/);
   assert.doesNotMatch(layout, /\*\*No `## 存疑`\*\*/);
-  assert.match(command, /需求确认不了先问/);
+  assert.match(skill, /ask first/);
   assert.match(userCmd, /确认不了（先问，不要凭猜测推进）/);
   assert.match(userCmd, /MUST \/ 范围 \/ 验收事后仍确认不了/);
   assert.match(usage, /MUST \/ 范围 \/ 验收事后仍确认不了/);

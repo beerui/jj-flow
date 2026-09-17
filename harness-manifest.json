@@ -334,7 +334,7 @@
       "skills/jj-end/SKILL.md"
     ],
     "site_builder": "docs/.vitepress/sidebar.mjs",
-    "excluded_paths": ["docs/other", "docs/evaluations", "docs/skill-zh-bridge"],
+    "excluded_paths": ["docs/other", "docs/evaluations"],
     "removed_entrypoints": [
       "$jj-delivery",
       "/jj-delivery",

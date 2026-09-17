@@ -3,19 +3,16 @@
   "source_episode": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md",
   "skill_or_path": "skills/jj-review/SKILL.md",
   "invariants": [
-    { "type": "contains", "text": "Golden Q&A — G-review-2" },
+    { "type": "not_contains", "text": "Golden Q&A — G-review" },
     { "type": "contains", "text": "exclusive input" },
     { "type": "contains", "text": "task_paths" },
     { "type": "contains", "text": "ASSIGNMENT-REVIEW" },
     { "type": "contains", "text": "jj-reviewer" },
-    { "type": "contains", "text": "派遣审查" },
-    { "type": "contains", "text": "派遣 reviewer 审查改动代码" },
-    { "type": "contains", "text": "starts with** `[reviewer]`" },
-    { "type": "contains", "text": "G-review-4" },
-    { "type": "contains", "text": "01a08fa6" },
-    { "type": "contains", "text": "Do not wait silently" },
+    { "type": "contains", "text": "assignment-spawn.md" },
+    { "type": "contains", "text": "Occupancy" },
     { "type": "contains", "text": "Do **not** invoke Grok `/review`" },
     { "type": "contains", "text": "[reviewer] local changes" },
+    { "type": "file_exists", "path": "skills/jj/references/assignment-spawn.md" },
     { "type": "file_exists", "path": "skills/jj-review/references/host-review.md" },
     { "type": "file_exists", "path": "docs/evaluations/EP-20260910-ralph-review-fastpath-report.md" }
   ]

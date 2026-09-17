@@ -7,7 +7,6 @@
 > 完整 bridge CLI / 真机 Codex 验收仍未关闭。
 >
 > 关联：`ARCHITECTURE.md`、`jj-team-coordinate.md`、`jj-team-swarm.md`、`jj-ralph.md`  
-> 人类中文对照（非 Agent SSOT）：`docs/skill-zh-bridge/jj-team-lifecycle/README.zh.md`  
 > 用户命令页：`docs/commands/jj-team-lifecycle.md`
 >
 > 产品 id：`jj-team-lifecycle`（inventory 约束 `^jj(-[a-z0-9]+)*$`）  

@@ -10,7 +10,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SITE_URL = 'https://beerui.github.io/jj-flow/';
 const GITHUB_URL = 'https://github.com/beerui/jj-flow';
 
-// 排除清单与 harness 共用同一真源：docs/other、docs/evaluations、docs/skill-zh-bridge
+// 排除清单与 harness 共用同一真源：docs/other、docs/evaluations
 const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'harness-manifest.json'), 'utf8'));
 const srcExclude = (manifest.documentation_policy?.excluded_paths || []).map((p) => `${p.replace(/^docs\//, '')}/**`);
 

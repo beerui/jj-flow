@@ -7,26 +7,26 @@ description: "Multi-project dispatch control plane: PREVIEW → approve task_key
 
 Cross-project dispatch entry. Platforms: **Codex / Qoder / Grok / Claude**. Claude slash is `/jj-dispatch` (Mode S, `host_id=claude-code`).
 
-> **real-host acceptance: COMPLETED (Grok / A2)** — [docs/milestones/real-host-acceptance.md](../../../docs/milestones/real-host-acceptance.md)
->
-> **VERIFIED must bind attestation file evidence** (`sandbox_evidence_ref` → `attestations/*.json`, including review). Verbal/chat VERIFIED is forbidden.
-
-Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not invent parallel enums**. Conversational `$jj-dispatch` writes the plane as documents (PREVIEW → approved `task_keys` → DISPATCH → tick/resume). Never require CLI. VERIFIED needs `produced_commit` + review + real session + **attestation file** + **T-task-result-sync**. Implement in targets via `$jj-same` assignment + 人设提示词 spawn, not `distribution_prompt` body.
+Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not invent parallel enums**. Conversational `$jj-dispatch` writes the plane as documents (PREVIEW → approved `task_keys` → DISPATCH → tick/resume). Never require CLI. **VERIFIED** needs `produced_commit` + review + real session + **attestation file** (`sandbox_evidence_ref` → `attestations/*.json`) + **T-task-result-sync**. Verbal/chat VERIFIED is forbidden. real-host acceptance status → [happy-path.md](references/happy-path.md#real-host-acceptance). Implement in targets via `$jj-same` assignment + 人设提示词 spawn, not `distribution_prompt` body.
 
 ## Gates 1–8 (first match wins)
+
+Compact index; detail + decision table → [happy-path.md](references/happy-path.md).
 
 | # | Gate | Action |
 | --- | --- | --- |
 | 1 | intake incomplete | `INTAKE_REQUIRED` only |
 | 2 | intent=`UNKNOWN` | `RECONCILE` / manual BIND only; never recreate the same key |
 | 3 | no task_keys approval | `PREVIEW_ONLY` read-only |
-| 4 | write branch/workspace uncertain; **base stale on CREATE** | decision table (`behind_count` / `base_action` = `FF_LOCAL_MASTER` \| `CREATE_FROM_LOCAL_MASTER` \| `NEEDS_CONFIRM` \| `BLOCKED`); no DISPATCH until confirmed; CREATE only from freshened **local** `master` (never `CREATE_FROM_ORIGIN`; never silent CREATE from `dev`) |
+| 4 | write branch/workspace uncertain; **base stale on CREATE** | decision table (`behind_count` / `base_action`); no DISPATCH until confirmed; CREATE grammar → happy-path |
 | 5 | missing Codex capabilities | Codex: BLOCKED, plane unchanged; **Grok / Claude → Mode S** |
 | 6 | approved and path ready | write intent → BIND (session hosts: real session + attestation) |
 | 7 | receipt / already bound | tick/resume; no CLI → Agent writes plane |
 | 8 | mark VERIFIED | commit + review + real session + **attestation file** + T-task-result-sync |
 
 ## Failure recovery (if X → Y)
+
+Trigger → first fix → still failed. CREATE freshness detail → [happy-path.md](references/happy-path.md#branch-and-workspace-decision-table-write-responsibilities-before-dispatch).
 
 | Trigger | First fix | Still failed → |
 | --- | --- | --- |
@@ -86,33 +86,15 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 
 ## Directory configuration
 
-**Product default control_root = `~/.jj-flow`** (not `/portfolio`).
+**Product default `control_root` = `~/.jj-flow`**. Config / env / CLI override order and Portfolio examples → [control-project.md](references/control-project.md). Inspect: `jj doctor` → home / map / knowledge; JSON / `user_view` → [cli-agent.md](../jj/references/cli-agent.md).
 
-| Item | Value |
-| --- | --- |
-| Config dir | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`, else **`~/.jj-flow`** |
-| Config file | `<configDir>/naming.json` (install writes `~/.jj-flow/naming.json`) |
-| Inspect | `jj doctor` → home / map / knowledge. JSON / `user_view`: [cli-agent.md](../jj/references/cli-agent.md) |
-
-| Config key | Meaning | Product default | Env var |
-| --- | --- | --- | --- |
-| `dispatch.control_root` | plane / task / receipt | **`~/.jj-flow`** | `JJ_DISPATCH_CONTROL_ROOT` |
-| `dispatch.portfolio_root` | business-repo tree | null | `JJ_PORTFOLIO_ROOT` |
-| `dispatch.knowledge_root` | Portfolio KB | **`~/.jj-flow/knowledge`** | `PORTFOLIO_KB_ROOT` |
-| `project_map` | project map | **`~/.jj-flow/map.md`** | `JJ_PROJECT_MAP` |
-
-CLI overrides: `--control-root` / `--manifest`. Order: CLI → env → naming.json → **`~/.jj-flow`**.
-
-| | **User starts** | **State written** |
+| Config key | Product default | Env var |
 | --- | --- | --- |
-| Product default | any business-repo cwd | **`~/.jj-flow`** |
-| Portfolio example (not default) | e.g. `/portfolio/project-a` | only after naming config, e.g. `/portfolio/dispatch-control` |
+| `dispatch.control_root` | **`~/.jj-flow`** | `JJ_DISPATCH_CONTROL_ROOT` |
+| `dispatch.knowledge_root` | **`~/.jj-flow/knowledge`** | `PORTFOLIO_KB_ROOT` |
+| `project_map` | **`~/.jj-flow/map.md`** | `JJ_PROJECT_MAP` |
 
-Details → [control-project.md](references/control-project.md).
-
-### Global map (read-only here)
-
-Install scaffolds empty `map.md` + `knowledge/` under `~/.jj-flow`. Unindexed cwd does not block PREVIEW. Map join / KB bootstrap → `$jj-init`. Missing home → `jj home init`, continue.
+Unindexed cwd does not block PREVIEW. Map join / KB bootstrap → `$jj-init`. Missing home → `jj home init`, continue.
 
 ## Four actions
 
@@ -131,23 +113,19 @@ Without CLI, the **Agent may and must** write plane / task / attestation / recei
 
 ## Mode S (default) / Mode W (isolation) / Mode P (opt-in)
 
-Grok (`host_id=grok-build`) and Claude (`host_id=claude-code`) share session-host Mode S. Claude details → [claude-dispatch-execution.md](references/claude-dispatch-execution.md).
+Grok (`host_id=grok-build`) and Claude (`host_id=claude-code`) share session-host Mode S. Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md); Claude → [claude-dispatch-execution.md](references/claude-dispatch-execution.md).
 
 | Question | Answer |
 | --- | --- |
 | Protocol multi-task? | Yes (multiple task_key) |
-| Default multi session? | **No** (Mode S). Mode P is opt-in child session 1:1 per write `task_key`, not default |
-| Isolation worktree? | **Mode W**: exclusive-worktree on a **named branch tip**; dirty main / user isolation / occupied checkout |
-| Must use Grok Workflow / Claude Task as checkpoint? | **No**; Workflow / subagents **must not** advance checkpoints or BIND |
+| Default multi session? | **No** (Mode S). Mode P is opt-in child session 1:1 per write `task_key` |
+| Isolation worktree? | **Mode W**: exclusive-worktree on a **named branch tip** |
+| Must use Workflow / Task as checkpoint? | **No**; subagents **must not** advance checkpoints or BIND |
 | User runs CLI? | **No**; Agent writes attestation/receipt/plane |
 
 PREFLIGHT #5: Mode S + isolation → 🛑 **STOP** DISPATCH (plane unchanged). Mode P + isolation → 🛑 **STOP** (use Mode W). Mode W without an isolation reason → `NEEDS_CONFIRM`. Silent detached HEAD is forbidden. Mode P write sessions cannot be shared; placeholder `session-*-YYYYMMDD` cannot BIND.
 
-Helpers: `src/dispatchWorkspaceMode.mjs` (pure selection) · `src/dispatchWorktree.mjs` (create/bind/cleanup). Mode W / Mode P do **not** raise A3/A4.
-
-Full spec → [grok-dispatch-execution.md](references/grok-dispatch-execution.md). Claude Mode S → [claude-dispatch-execution.md](references/claude-dispatch-execution.md).
-
-**Parallel capacity (guidance only):** one person, **2–3** independent streams (separate worktrees). Shared files stay serial. Stop adding streams when review cannot keep up. `$jj-review` reports only. This line does **not** change CAS / receipt / `task_key` / VERIFIED.
+Helpers: `src/dispatchWorkspaceMode.mjs` · `src/dispatchWorktree.mjs`. Mode W / Mode P do **not** raise A3/A4.
 
 ## CLI matrix (mechanical / CLI-users only)
 
@@ -164,50 +142,28 @@ Conversational `$jj-dispatch` never runs this table. Agent writes plane as docum
 | plane self-check | `plane-self-check.mjs --manifest …` |
 | Contracts | `npm run harness:check` |
 
-## Rollback
+## Rollback / host contract / same
 
-“Roll back target / fake VERIFIED / stop task” → [rollback.md](references/rollback.md). Default **no** auto merge/push/force-push; `reopenTarget` / `blockDispatchIntent` / `requestRework` write `events[]` + `revision++`.
+- Rollback → [rollback.md](references/rollback.md). Default **no** auto merge/push/force-push.
+- Host actions / capabilities → [host-action-contract.json](references/host-action-contract.json): actions `CREATE_THREAD` / `RECONCILE_THREAD`; capabilities `list_projects` / `list_threads` / `create_thread` / `read_thread` / `send_message_to_thread` / `worktree` / `sandbox`. Write default `project-branch`; isolation → `exclusive-worktree`. Roles → [control-project.md](references/control-project.md).
+- `$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, research in each target repo, then spawn with **人设提示词** prefix. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 人设提示词. Do not parent-`search_replace` after DISPATCH. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
 
-## Host action contract tokens
+## Hard constraints
 
-Authoritative: [host-action-contract.json](references/host-action-contract.json).
-
-- Actions: `CREATE_THREAD` · `RECONCILE_THREAD`
-- Capabilities: `list_projects` · `list_threads` · `create_thread` · `read_thread` · `send_message_to_thread` · `worktree` · `sandbox`
-- Write default `project-branch`; isolation → `exclusive-worktree`
-
-Role fields: `origin_project` · `requirement_owner` · `lead_project` · `reference_implementation` · `targets` (→ control-project.md).
-
-## Relation to `jj-same`
-
-`$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, research in each target repo, then spawn with **人设提示词** prefix. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 人设提示词. Do not parent-`search_replace` after DISPATCH. Analysis / adapt / verify / sync checkpoints stay `jj-same`. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
-
-Sample: `01a08e5b` — DISPATCH rebound `d53a16510` then `$jj-same`; missing assignment + 人设提示词 was the miss (G-same-1).
-
-## Explicitly out of scope / MUST NOT
-
-- Do not require user to open control root or create a new control repo per wave
-- **Do not require CLI** for PREVIEW / approve / closeout
-- No long-running daemon / DB / full multi-agent engine
-- **By default no** auto merge, push, or release
-- **Before CREATE**: `git fetch`, ff-only freshen **local** `master` when behind+clean, then `checkout -b <feat> master` only; forbid `CREATE_FROM_ORIGIN` and silent CREATE from `dev`/`develop`
-- Do not advance checkpoints from thread stop or model prose alone
-- Do not hand-write `VERIFIED` without `produced_commit` / real session / **attestation file**
-- Do not synthesize `session-…` placeholders to fake BOUND
-- Do not treat a Claude/Grok subagent id as the bound session
-- Do not claim Wave 2 / A2 because Claude `/jj-dispatch` is installed
-- Do not treat control root as a business source project or as a substitute Ralph workspace
-- Do not leave a DISPATCH wave with only `~/.jj-flow/.workflow/tasks/TASK-*/ANL-*.md` and no per-project `.workflow/ralph/task-*`
-- Do not treat `distribution_prompt` as the worker spec or 人设提示词; do not parent-`search_replace` after DISPATCH
-- Do not forge host APIs or “degrade to projectless” on capability failure
-- Do not treat skill install or `host:trial` as real Host acceptance
-- 🛑 **STOP** DISPATCH without approved keys + confirmed branch/mode; 🛑 **STOP** VERIFIED without attestation-bound evidence — recover via [Failure recovery](#failure-recovery-if-x--y)
+- **Do not require CLI** for PREVIEW / approve / closeout; do not require user to open control root or create a new control repo per wave.
+- No long-running daemon / DB / full multi-agent engine; **by default no** auto merge, push, or release.
+- CREATE freshness → happy-path (local `master` only; no `CREATE_FROM_ORIGIN`; no silent CREATE from `dev`/`develop`).
+- Do not advance checkpoints from thread stop or model prose alone; do not hand-write `VERIFIED` without `produced_commit` / real session / **attestation file**; do not synthesize `session-…` placeholders to fake BOUND; do not treat a Claude/Grok subagent id as the bound session.
+- Do not claim Wave 2 / A2 because Claude `/jj-dispatch` is installed; do not treat skill install or `host:trial` as real Host acceptance; do not forge host APIs or “degrade to projectless” on capability failure.
+- Do not treat control root as a business source project or substitute Ralph workspace; do not leave a DISPATCH wave with only `~/.jj-flow/.workflow/tasks/TASK-*/ANL-*.md` and no per-project `.workflow/ralph/task-*`.
+- Do not treat `distribution_prompt` as the worker spec or 人设提示词; do not parent-`search_replace` after DISPATCH.
+- 🛑 **STOP** DISPATCH without approved keys + confirmed branch/mode; 🛑 **STOP** VERIFIED without attestation-bound evidence — recover via [Failure recovery](#failure-recovery-if-x--y).
 
 ## References
 
 | File | When to read |
 | --- | --- |
-| [happy-path.md](references/happy-path.md) | Gates 1–8 detail, decision table, PENDING |
+| [happy-path.md](references/happy-path.md) | Gates 1–8 detail, decision table, PENDING, real-host acceptance |
 | [agent-write-plane.md](references/agent-write-plane.md) | Agent plane writes A–D / C4–C6 / T-task-result-sync |
 | [control-project.md](references/control-project.md) | Directories, intake, fields, Review loop |
 | [rollback.md](references/rollback.md) | Rollback / reopen |

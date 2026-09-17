@@ -1,6 +1,6 @@
 # jj-dispatch Happy Path
 
-Main path and gate index. Agent plane-write rules → [agent-write-plane.md](agent-write-plane.md); fields/directories → [control-project.md](control-project.md).
+Main path and **Gates 1–8 / CREATE decision-table home** (SKILL keeps the compact index). Agent plane-write rules → [agent-write-plane.md](agent-write-plane.md); fields/directories → [control-project.md](control-project.md).
 
 ## User-visible main line
 

@@ -58,7 +58,7 @@ npm run harness:gc
 
 改后分发到宿主：`node src/cli.mjs install-skill --platform all --force`（五端：codex / claude / qoder / grok / agents）。
 
-派单协议（客服派单）：`jj-ralph` / `jj-same` / `jj-review` 的独占派单固定 spawn `agents/` 命名子代理（`jj-implementer`、`jj-researcher`、`jj-reviewer`），缺失才回退 `general-purpose`；执行人只读派单文件，不读 parent 聊天或 skill `references/`。同一人设 + 同一目录的后续切片用 `resume_from` 续接，不冷启动。
+派单协议（客服派单）：`jj-ralph` / `jj-same` / `jj-review` 的独占派单固定 spawn `agents/` 命名子代理（`jj-implementer`、`jj-researcher`、`jj-reviewer`），缺失时才回退 `general-purpose`；执行人只读派单文件，不读父会话聊天或 skill `references/`。派遣宣告、占位、续接的规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
 
 命令行全集见 [CLI 参考](commands/cli.md)（维护/调试用，不写进用户教程）。
 

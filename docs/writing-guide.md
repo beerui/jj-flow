@@ -10,7 +10,7 @@
 |------|------|------|
 | 发版日志 | `CHANGELOG.md`（站点经 `docs/changelog.md` 包含） | 受 release-please 约束，见 §4 |
 | 用户文档 | `docs/**/*.md` | VitePress 站点源 |
-| Skill 协议 | `skills/**/SKILL.md`、`references/*.md` | 英文 SSOT；中文对照仅部分 skill 有（`docs/skill-zh-bridge/`，已排除出站点） |
+| Skill 协议 | `skills/**/SKILL.md`、`references/*.md` | 英文 SSOT；用户可读中文在 `docs/commands/` 等站点页 |
 | 斜杠命令薄入口 | `claude-commands/*.md` | 行数门禁 ≤40 行 |
 | 仓库规则 | `AGENTS.md`、`ARCHITECTURE.md` | 修改后需同步事实层 |
 
@@ -195,7 +195,7 @@
 ## 6. 不做什么
 
 - **不**凭喜好改术语：已成约定的项目术语（ralph、same、dispatch、CAP、DEL-* 等）保留；`ralph_ops` 仅在机械脚本 / 维护面语境保留，对话路径语境写「不执行 CLI」。
-- **不**改英文 SSOT skill 正文：英文协议改 `skills/`，中文对照改 `docs/skill-zh-bridge/`。
+- **不**把用户文档当 skill 运行时 SSOT：英文协议只改 `skills/`；中文用户说明改 `docs/commands/` 等站点页。
 - **不**用 chat/thread/memory 推进 checkpoint。
 - **不**改已发布 CHANGELOG 段落，除非维护者明确批准。
 - **不**为"通顺"删掉证据引用（合约测试、eval 编号、commit）。

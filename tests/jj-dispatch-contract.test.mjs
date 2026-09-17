@@ -1724,6 +1724,7 @@ function softIntent({
 
 test('dispatch skill brief template includes hot memory injection', () => {
   const skill = fs.readFileSync(new URL('../skills/jj-dispatch/SKILL.md', import.meta.url), 'utf8');
+  const happy = fs.readFileSync(new URL('../skills/jj-dispatch/references/happy-path.md', import.meta.url), 'utf8');
   assert.match(skill, /Hot memory/);
   assert.match(skill, /~\/\.jj-flow\/memory/);
   assert.match(skill, /do not pad/i);
@@ -1738,12 +1739,20 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /人设提示词/);
   assert.match(skill, /distribution_prompt` is a plane index/);
   assert.match(skill, /not\*\* the worker spec/);
-  assert.match(skill, /G-same-1/);
-  assert.match(skill, /01a08e5b/);
+  assert.doesNotMatch(skill, /G-same-1/);
+  assert.doesNotMatch(skill, /01a08e5b/);
+  assert.doesNotMatch(skill, /d53a16510/);
   assert.match(skill, /Do not require CLI/);
   assert.match(skill, /Conversational `\$jj-dispatch` never runs this table/);
   assert.match(skill, /never `jj ralph init` CLI/);
   assert.match(skill, /host_id=claude-code/);
   assert.match(skill, /\/jj-dispatch/);
   assert.doesNotMatch(skill, /No Claude slash is intentional|Do not add Claude `\/jj-dispatch`/);
+  assert.match(skill, /Compact index; detail \+ decision table/);
+  assert.match(skill, /## Hard constraints/);
+  assert.doesNotMatch(skill, /## Explicitly out of scope/);
+  assert.doesNotMatch(skill, /real-host acceptance: COMPLETED/);
+  assert.match(happy, /Gates 1–8 \/ CREATE decision-table home/);
+  assert.match(happy, /## real-host acceptance/);
+  assert.match(happy, /CREATE base freshness/);
 });

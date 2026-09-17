@@ -8,7 +8,7 @@
 > 关联：`jj-team-coordinate.md`（多角色流水线）、`ARCHITECTURE.md`、`jj-ralph.md`  
 > 产品 id：`jj-team-swarm`（session 前缀 **`TAS`** 保持稳定）  
 > 别名：`team-adversarial-swarm` / TAS  
-> 人类中文对照（非 Agent SSOT）：`docs/skill-zh-bridge/jj-team-swarm/README.zh.md`
+> 用户命令页：`docs/commands/jj-team-swarm.md`
 
 ## 1. 摘要
 

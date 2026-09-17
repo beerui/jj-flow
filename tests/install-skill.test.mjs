@@ -464,6 +464,10 @@ test('installSkill can install Claude full skills and slash commands', () => {
   assert.match(claudeSame, /^---\r?\nname: jj-same/m);
   assert.match(claudeSame, /skills\/jj-same\/SKILL\.md|Authoritative procedure|薄入口|SSOT/);
   assert.match(claudeSame, /EXECUTION_READY|HANDOFF_READY|Ralph-handoff-first|handoff/);
+  assert.match(claudeSame, /assignment-spawn\.md/);
+  assert.doesNotMatch(claudeSame, /派遣调研/);
+  assert.doesNotMatch(claudeSame, /派遣交接实施/);
+  assert.doesNotMatch(claudeSame, /不要静默等待/);
   assert.doesNotMatch(claudeSame, /grill-me|grill-with-doc|workflow-grill/);
   assert.doesNotMatch(claudeSame, /[Mm]aestro|maestro explore/);
   assert.ok(claudeSame.split(/\r?\n/).length <= 40, 'Claude jj-same.md must stay thin (<=40 lines)');

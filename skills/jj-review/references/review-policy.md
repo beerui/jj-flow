@@ -52,15 +52,13 @@ Check dimensions (from 客服 reviewer; put them in `ASSIGNMENT-REVIEW`):
 | Regressions | broken edges, silent behavior change |
 | Security | secrets, injection, auth bypass (CRITICAL) |
 
-Do **not** invoke host `/review`. Parent writes the assignment; spawn one read-only reviewer.
-
 | Verdict | When | Gate `outcome` |
 | --- | --- | --- |
 | `[OK]` | no CRITICAL/HIGH; dimensions ADEQUATE+ | `PASS` |
 | `[WARN]` | MEDIUM only | `PASS` (nits; UAT allowed) |
 | `[BLOCK]` | CRITICAL/HIGH or a dimension WEAK | `NEEDS_CHANGES` |
 
-Dual-write `REV-*.json` for accept/archive. Chat uses the verdict, not `通过。`.
+Dual-write `REV-*.json` for accept/archive. Chat uses the verdict, not `通过。`. Host `/review` forbid and spawn path → SKILL.md / host-review.md (not repeated here).
 
 ## Mapping
 

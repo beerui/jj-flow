@@ -424,7 +424,7 @@ ABANDONED 同样搬进 `completed/`（先例见 §2.1 末条：exec-plans 的 `c
 - `skills/jj-ralph/references/artifact-layout.md`：新增「File shape (`progress.md`)」小节，落 §4.2 的结构与规则 1–7；「When the task / approach / MUST changes」清单第 6 条扩成「append a new `## 轮次 N` heading first, then the ⟲ block, then new iterations」。
 - `skills/jj-ralph/SKILL.md`：Immediate actions 第 4 点与 Failure modes「User changes approach」行加「open a new round in progress.md; never edit prior rounds」；Scripts 段加 shell 追加示例；恢复口径「read last 30 lines」。
 - `skills/jj-ralph/references/post-complete-continue.md`：`resume` 后第一步写 `## 轮次 N` 标题；`tiny-example.md` 补最小人读轨样例。
-- `docs/skill-zh-bridge/jj-ralph/README.zh.md` 同步；`docs/commands/jj-ralph.md`「做完还要改」段加一句。
+- `docs/commands/jj-ralph.md`「做完还要改」段加一句。
 - 过渡期读法：`rg -v '^- \d{4}-\d{2}-\d{2}T' progress.md | tail -30`。
 - 可选：`evals/regression/` 加一条确定性用例——给定「已 COMPLETED + 用户纠正」的 fixture，期望产物含新 `## 轮次 2` 且轮次 1 字节不变（`$jj-evaluated`）。
 - 验证：`node --test tests/jj-ralph-contract.test.mjs`（P2+b 起有 skill 文案标记断言）、`npm run docs:check`、`git diff --check`；`node src/cli.mjs install-skill --platform all --force` 分发。

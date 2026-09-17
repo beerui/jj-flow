@@ -65,6 +65,7 @@ test('jj-init skill and command assets exist', () => {
     'skills/jj-init/SKILL.md',
     'skills/jj-init/agents/openai.yaml',
     'skills/jj/references/cli-agent.md',
+    'skills/jj/references/assignment-spawn.md',
     'claude-commands/jj-init.md',
     'docs/commands/jj-init.md',
     'src/jjInit.mjs'

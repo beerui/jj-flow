@@ -44,7 +44,7 @@ accept PASS 之后 **MUST `finalize`**（map-merge + 归档进 `completed/`）�
 
 ### 4.2 / 4.3 skill 与用户文档
 
-SKILL：accept PASS 后 MUST finalize。用户文档与 zh-bridge 同步同一批 marker。
+SKILL：accept PASS 后 MUST finalize。用户文档（`docs/commands/jj-ralph.md`）同步同一批 marker。
 
 ### 4.4 `gate_set=undefined`
 

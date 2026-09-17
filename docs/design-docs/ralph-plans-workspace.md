@@ -194,7 +194,7 @@ task_key 即 `.plans` 的 `task-<name>` 语义，**自带 `task-` 前缀**（如
 
 由 `jj ralph init`（ANALYZE 前）生成骨架，skill 文案与模板同步修改。
 
-**章节名一律中文（已定）**。边界要分清：这三个 md 是**业务仓工作区产物**，首要读者是中文使用者，标题用中文；`skills/**` 的指令正文仍是英文 SSOT（中文只出 `docs/skill-zh-bridge/` 对照）。二者不冲突——前者是产物内容，后者是 agent 运行时协议。机器可解析的标识符（`run_id` / `task_key` / `evidence_class` 取值 / 阶段名 / gate 名）保持英文，不参与本次中文化。
+**章节名一律中文（已定）**。边界要分清：这三个 md 是**业务仓工作区产物**，首要读者是中文使用者，标题用中文；`skills/**` 的指令正文仍是英文 SSOT；用户可读中文在 `docs/commands/` 等站点页。二者不冲突——前者是产物内容，后者是 agent 运行时协议。机器可解析的标识符（`run_id` / `task_key` / `evidence_class` 取值 / 阶段名 / gate 名）保持英文，不参与本次中文化。
 
 **task_plan.md**
 
@@ -544,7 +544,7 @@ extract(验收) => ""                        ← 直接返回空串
 | `agents/jj-workflow-reviewer.toml:9` | 1 | **初稿整份遗漏**。reviewer agent 定义正文写「对照 plan.md ## Current」，是运行时协议载体，漏改直接让 agent 找错段名 |
 | `skills/jj-ralph/references/phases.md:7,:129` | 2 | `## Flagged concerns` 是 ANALYZE gate 判据；:129 是 product-consistency 判据表述 |
 | `skills/jj-ralph/references/post-complete-continue.md:41,:42` | 2 | resume 时写 `## Current` / `## Superseded` 与 `## Tasks` 重命名兜底 |
-| `docs/skill-zh-bridge/jj-ralph/README.zh.md` | — | 与 SKILL.md 同步的对照件 |
+| `docs/commands/jj-ralph.md` | — | 用户命令页（与 SKILL 产品规则对齐） |
 | `tests/jj-ralph-contract.test.mjs` | **8**（另有 **:237**） | 骨架断言与 Current/Landed/Superseded 用例。**:237 的 `assert.equal((plan.match(/^## Tasks$/m)||[]).length, 0)` 中文化后恒真，变成假绿断言，须改为断言中文段名存在** |
 
 **skill 指令正文仍是英文 SSOT**——上表改的是这些文档中**引用的产物章节名**，不是指令语言本身。二者边界：产物内容中文，运行时协议英文。

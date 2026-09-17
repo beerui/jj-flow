@@ -369,31 +369,12 @@ All-`self-merge` conflicts are **not** a stop; classify → resolve → continue
 
 ## Final Response
 
-Closeout finish (landed, already synced, or aborted after `merge --abort` / return to work): **exactly one Chinese line**. No hash dump, no pushed-branch list, no extra prose.
+Finish-line templates (已合并 / 已回退) → SKILL.md **Final Response** (single home). Here only the exception notes:
 
-When work ≠ integration (either `return_to` value; report the actual current branch):
-
-```text
-已合并：<work_branch> → <integration> · 当前在 <HEAD after return>
-```
-
-Same-branch closeout (`work_branch == integration`):
-
-```text
-已合并：<integration> · 当前在 <integration>
-```
-
-When the merge was rolled back (`merge --abort`, unhandleable, or other closeout abort that left dest unlanded):
-
-```text
-已回退：<one-line reason> · 当前在 <HEAD after return>
-```
-
-`<HEAD after return>` is `git rev-parse --abbrev-ref HEAD` after step 7 (or after abort return). All-`self-merge` that continued to land uses `已合并`. Abort is **not** closeout success — use `已回退` plus the classify table when unhandleable.
-
-The pre-execution `work→integration` plan line still prints before steps 4–6.
-
-**dry_run / user forbade push/merge / hard-stop before merge:** keep the field table / blockers. Do not pretend `已合并`. If HEAD is known, still print `当前分支：<HEAD>` in the table (not as the finish line).
+- `<HEAD after return>` is `git rev-parse --abbrev-ref HEAD` after step 7 (or after abort return).
+- All-`self-merge` that continued to land uses `已合并`. Abort is **not** closeout success — use `已回退` plus the classify table when unhandleable. Classify table is user-visible only on STOP; do not list auto-resolved files.
+- The pre-execution `work→integration` plan line still prints before steps 4–6.
+- **dry_run / user forbade push/merge / hard-stop before merge:** keep the field table / blockers. Do not pretend `已合并`. If HEAD is known, still print `当前分支：<HEAD>` in the table (not as the finish line).
 
 ## Boundaries
 

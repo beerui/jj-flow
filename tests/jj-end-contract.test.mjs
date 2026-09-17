@@ -15,6 +15,14 @@ test('jj-end starts with the portable batch runner and reads detailed policy onl
   assert.match(entry, /end_ops\.mjs execute --plan-file/)
   assert.match(entry, /Do not reread the full policy/)
   assert.match(entry, /does not mean every conflict is unhandleable/)
+  assert.match(entry, /## Policy \(read on exception\)/)
+  assert.doesNotMatch(entry, /## Integration and scope/)
+  assert.doesNotMatch(entry, /## Invariants/)
+  assert.match(entry, /## Final Response/)
+  assert.doesNotMatch(
+    fs.readFileSync(path.join(root, 'skills/jj-end/references/git-policy.md'), 'utf8'),
+    /已合并：<work_branch> → <integration>/
+  )
 })
 
 test('jj-end does not treat staging git-log as integration convention', () => {

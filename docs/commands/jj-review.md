@@ -36,9 +36,11 @@ $jj-review 审一下刚才的改动
 
 **Agent 会做：**
 
-1. 找到当前（或最近）的 ralph 任务。主对话是 team-lead，不在主进程里做审查，**也不执行** `review-record` / `context --review`
-2. 写 `ASSIGNMENT-REVIEW`（来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），spawn 前先说 **派遣审查**（例如「派遣 reviewer 审查改动代码」），再 spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；审查执行人推理力度固定 `high`，不用最高档）
-3. 同一任务已有 `REV-*` / findings 时，再审只看相对上一份的改动（delta），`resume_from` 上一名 `jj-reviewer`，不新开全量审查
+派遣宣告、占位、续接的规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
+
+1. 找到当前（或最近）的 ralph 任务。主对话是 team-lead，不在本对话内进行审查，**也不执行** `review-record` / `context --review`
+2. 写 `ASSIGNMENT-REVIEW`（来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），派遣宣告、占位、续接按上述协议，spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；审查执行人的推理力度固定为 `high`，不用最高档）
+3. 同一任务已有 `REV-*` / findings 时，再审只看相对上一份的改动（delta），派遣宣告、占位、续接按上述协议
 4. 绑定任务时把 `findings.md` 和 `REV-n.json` 当文档写进任务目录；本轮只有文案 / 样式会跳过审查
 
 审查员只读派单列出的文件；通过测试不会自动变成审查通过。

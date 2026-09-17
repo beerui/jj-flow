@@ -5,26 +5,25 @@ description: Task read-only review adapter using 客服 assignment protocol. Wri
 
 # jj-review
 
-Produce a **read-only review** using the 客服 assignment protocol. Do **not** invoke host `/review` / `[reviewer] local changes` (not even for 当前的全部改动). Parent is team-lead: write `ASSIGNMENT-REVIEW-*.md`. **Before the spawn tool call**, one user-visible line: **派遣审查** (e.g. 派遣 reviewer 审查改动代码). Do not wait silently (Grok may hold later text until the worker returns). Then call `spawn_subagent` (`jj-reviewer`; missing → `general-purpose`) this turn — `description` **starts with** `[reviewer]` then names `run_id` and listed files (never `[reviewer] local changes`); exclusive input is that file. Follow-up same cwd: `resume_from` last completed `jj-reviewer` (G-review-5). Do not resume an implementer. Do **not** perform the review in this chat. Saying you will spawn without calling it fails. Do **not** re-read this SKILL or `report-layout.md` / `host-review.md` / `review-policy.md` at startup. Verdict `[OK]` / `[WARN]` / `[BLOCK]`. Bind a ralph run when one exists; otherwise review the working tree or HEAD. **Do not** init a run to hold a review. A live `[reviewer]` still running → do **not** spawn `$jj-same` / RESEARCH over it (G-review-4 / `01a08fa6`).
+Produce a **read-only review** using the 客服 assignment protocol. Do **not** invoke host `/review` / `[reviewer] local changes` (not even for 当前的全部改动). Parent is team-lead: write `ASSIGNMENT-REVIEW-*.md`. Spawn protocol (Announce / Occupancy / Resume / Description): [assignment-spawn.md](../jj/references/assignment-spawn.md). Then call `spawn_subagent` (`jj-reviewer`; missing → `general-purpose`) this turn — exclusive input is that file. Do **not** perform the review in this chat. Follow Immediate actions. Verdict `[OK]` / `[WARN]` / `[BLOCK]`. Bind a ralph run when one exists; otherwise review the working tree or HEAD. **Do not** init a run to hold a review.
 
 **One pass** (locate → scope → assignment spawn → persist if bound → finish reply). Pause only on 🔴 CHECKPOINT / 🛑 STOP.
 
 **May** write into soft-archived / `COMPLETED` runs (no terminal freeze).
 
-## Red-light blacklist (never do)
+## Red-light (unique forbids)
 
-| # | Forbidden | Why |
-|---|-----------|-----|
-| 1 | Change business code / open fix tasks / enter dispatch | Read-only adapter |
-| 2 | Init or hand-build a ralph run to hold a review | Unbound review instead; never init |
-| 3 | Call host `/review` / `[reviewer] local changes` | 客服 assignment spawn is the review path (G-review-2) |
-| 4 | Treat `npm test` / `npm run verify` / CI green as `[OK]` | Verify ≠ review |
-| 5 | Chain multiple full review engines in one invocation | One assignment spawn only |
-| 6 | Drop `source` / `host_review` on persist | Need provenance |
-| 7 | Advance dispatch VERIFIED / write control-plane manifests | Use `$jj-dispatch` |
-| 8 | Bind steps to one host product marketing name | Capability discovery only |
-| 9 | Spawn a second full-repo reviewer subagent for the same bound run in the same thread when a prior `REV-*` or findings.md exists | EP-20260907. Follow-up is delta |
-| 10 | Bound first `$jj-review` via Grok `/review` | Exclusive `ASSIGNMENT-REVIEW` + `task_paths`, never the dirty tree (G-review-2) |
+| Forbidden | Why |
+|---|-----|
+| Treat `npm test` / `npm run verify` / CI green as `[OK]` | Verify ≠ review |
+| Chain multiple full review engines in one invocation | One assignment spawn only |
+| Drop `source` / `host_review` on persist | Need provenance |
+| Advance dispatch VERIFIED / write control-plane manifests | Use `$jj-dispatch` |
+| Bind steps to one host product marketing name | Capability discovery only |
+| Spawn a second full-repo reviewer subagent for the same bound run in this thread when a prior `REV-*` or findings.md exists | Follow-up is delta |
+| Bound first `$jj-review` via Grok `/review` | Exclusive `ASSIGNMENT-REVIEW` + `task_paths`, never the dirty tree |
+
+Read-only / never-init / never host `/review` are already in the opener and Immediate actions.
 
 ## Inputs → outputs
 
@@ -61,7 +60,7 @@ Produce a **read-only review** using the 客服 assignment protocol. Do **not** 
    - Scope = files changed since last `reviewed_commit` (or current dirty vs that commit). Do **not** re-scan the whole tree.
    - Re-check prior OPEN findings against the new diff. Do not rubber-stamp.
    - Do **not** spawn a fresh full-repo reviewer subagent (`[reviewer] local changes` or equivalent) with empty context.
-   - Same cwd last completed `jj-reviewer` → `resume_from` that id (G-review-5). Do not resume an implementer as reviewer.
+   - Follow-up spawn per assignment-spawn.md on last completed `jj-reviewer`.
    - Write a new `ASSIGNMENT-REVIEW` that lists only the delta + OPEN items. Do **not** re-call `/review`. Fresh whole-tree assignment only when the user explicitly asks 重新全量审查 (still spawn; never `/review`).
    - First review of this run in this thread (no prior REV/findings): go to step 4.
 
@@ -70,10 +69,8 @@ Produce a **read-only review** using the 客服 assignment protocol. Do **not** 
    Same as 客服 `ASSIGNMENT-REVIEW`: explicit file list, read-only source, findings only. Current slice = this-round ASSIGNMENT files + that diff, not the dirty tree — unless the user asked 当前的全部改动 / 重新全量审查, in which case list those files **in the assignment** and still spawn (never `/review`).
 
    - Write `.workflow/ralph/<id>/assignments/ASSIGNMENT-REVIEW-<n>.md` in the 客服 shape: 来自 team-lead / 范围（只读）/ 检查维度（类型安全、null 处理、API 契约、回归；安全=CRITICAL）/ 产出格式 / 短句回报. Unbound: write under `.workflow/review-assignment.md` (chat-only persist).
-   - **Before the spawn tool call:** **派遣审查** (e.g. 派遣 reviewer 审查改动代码; follow-up → **派遣审查（delta）**). Do not wait silently.
-   - Spawn **one** read-only reviewer (`jj-reviewer`; missing → `general-purpose`). Description **starts with** `[reviewer]` then names `run_id` and listed files (e.g. `[reviewer] Review task-… files`). Never `[reviewer] local changes`. First review this thread: new spawn. Follow-up: `resume_from` last completed `jj-reviewer` same cwd. `jj-reviewer` pins `reasoning_effort: high` (not inherit/`xhigh`); do not lower parent `high`.
+   - Follow assignment-spawn.md, then spawn **one** read-only reviewer (`jj-reviewer`; missing → `general-purpose`). Description names `run_id` and listed files. Never `[reviewer] local changes`. `jj-reviewer` pins `reasoning_effort: high` (not inherit/`xhigh`); do not lower parent `high`.
    - **exclusive input** = the `ASSIGNMENT-REVIEW` file (plus listed `task_paths` / that diff). Prompt first paragraph: 只读 listed files；不要 Start broad；不要 grep the whole repo；不要 `list_dir` the tree；不要再 spawn. Direct-import listed files only. Do **not** locate ralph, read jj-review/jj-ralph SKILL, or grep the whole repo. Do not `list_dir` the tree. Read listed files then write findings.
-   - Do **not** invoke Grok `/review` (or any host entry that auto-collects the whole dirty tree).
    - Other dirty files are noise; do not review them unless they are direct imports of listed files.
    - Reviewer writes `reviews/review-<slice>/findings.md` (HIGH / MEDIUM / LOW + `file:line`; conclusion `[OK]` / `[WARN]` / `[BLOCK]`). Stop. Do not persist CLI.
    - At most **one** reviewer subagent per `$jj-review`. Follow-ups use step 3b.
@@ -91,7 +88,7 @@ Produce a **read-only review** using the 客服 assignment protocol. Do **not** 
    - `reviews/review-<slice>/findings.md` already written by the reviewer
    - `.state/reviews/REV-n.json` (n = max+1 or 1): `schema_version` `jj-flow/ralph-review/1.0`; `outcome` from step 5; findings `severity` **lowercase** (`HIGH`→`high`, `MEDIUM`→`medium`, `LOW`→`low`); `status` `OPEN`; `acceptance` short close condition; `reviewed_commit` = HEAD ≥7 chars; `review_scope` `working_tree` or `commit`; `source=host_builtin`; `host_review.method=subagent`, `entry=assignment-reviewer`
    - Patch `run.json`: `review.latest_review_id`; `review.reviews[]` (id / path / outcome / reviewed_commit / review_scope); `artifact_refs.latest_review_ref` (`reviews/REV-n.json`); `[OK]`/`[WARN]` → `accept_layers.judgment=PASS`; `[BLOCK]` → `FAIL`; `judgment_mode=review`
-   Mechanical `jj ralph review-record` exists for CLI users only. Write fails → still finish step 7; say 门禁 JSON 未写上. Do not grep `FINDING_SEVERITIES`.
+   Mechanical `jj ralph review-record` exists for CLI users only. Write fails → still finish step 7; say 门禁 JSON 未写入. Do not grep `FINDING_SEVERITIES`.
 
 7. **Final reply** — Chinese, no `PASS REV-*` / `working_tree` dump, no host/source table. This turn **must** include the verdict even if persist is unfinished.
 
@@ -110,38 +107,8 @@ Produce a **read-only review** using the 客服 assignment protocol. Do **not** 
    ```
 
    Bound `working_tree` PASS is temporary; archive needs a later REV json with `review_scope=commit` (same documents). `$jj-end` is Git only after ralph `finalize`.
-   This adapter stays **read-only**. Do not change business code or start a fix in the same turn. Wait for the user to say 「按审查改」 / `$jj-ralph` before DELIVER.
+   Do not start a fix in the same turn. Wait for the user to say 「按审查改」 / `$jj-ralph` before DELIVER.
    `BLOCKED` / host missing / write fail: STOP template + missing evidence.
-
-### Golden Q&A — G-review-1 (must not regress)
-
-**Q:** Same thread, bound run `task-buyer-enter-dynamic` already has `REV-n` from a host `[reviewer]` subagent. User says `/jj-review` again after 「按审查改」. Spawn another `[reviewer] local changes` with empty context?
-
-**A:** No. This is a **delta review** (step 3b). Reuse the latest `REV-*` / findings.md as the checklist; inspect only files changed since last `reviewed_commit`. Re-check prior OPEN items; do not rubber-stamp. `resume_from` last completed `jj-reviewer` same cwd (G-review-5). Do **not** spawn a second full-repo reviewer subagent unless the user explicitly asks for a fresh whole-tree review. Regression: `EP-20260907-grok-review-subagent-waves`.
-
-### Golden Q&A — G-review-2 (must not regress)
-
-**Q:** Bound first `$jj-review` on a dirty tree that also has other tasks' files. Call Grok `/review` so it can collect local changes?
-
-**A:** No. Conversational review is a 客服 assignment (step 4): write `ASSIGNMENT-REVIEW`, exclusive input is that file + listed files. Announce **派遣审查** (e.g. 派遣 reviewer 审查改动代码) then spawn one `jj-reviewer` (missing → `general-purpose`); description **starts with** `[reviewer]` and must not be `[reviewer] local changes`. Prompt first paragraph forbids Start broad / repo grep / list_dir. Do not wait silently. Do **not** invoke Grok `/review` (it always scans the whole dirty tree). 当前的全部改动 / 重新全量审查 still spawn with a wider file list in the assignment — never `/review`. Read listed files then write findings — do not grep the repo. Sample miss: `01a08ea0` reviewer 92 tools / 27 greps; `01a08fa0` spawned with no step line; `01a08fa6` grepped despite the ban.
-
-### Golden Q&A — G-review-4 (must not regress)
-
-**Q:** Reviewer `01a08fc5` still running. User `/jj-same 分发当前任务到 采购商端H5`. Spawn RESEARCH this turn (description `Research buyer H5 port`)?
-
-**A:** No. Occupancy wins. Announce 审查还在跑; keep the `[reviewer]` pager row; do not spawn same until the reviewer returns. `user_cancel` on the review poll is not a license to overwrite the reviewer with an unlabeled General. Miss: `01a08fa6` RESEARCH 09:28:03 vs REVIEW done 09:28:07.
-
-### Golden Q&A — G-review-3 (must not regress)
-
-**Q:** Reviewer wrote `[BLOCK]` in findings.md. `review-record` rejects `HIGH`. Grep ralph scripts / Read skeleton / retry CLI before telling the user?
-
-**A:** No. Conversational persist is findings.md + `REV-n.json` files. Map `HIGH`→`high` in the JSON. Reply `[BLOCK]` this turn. Never `review-record` / `context --review`. Wait 「按审查改」. Sample: `01a08ea0` 06:40 findings done, parent still on CLI at 06:45.
-
-### Golden Q&A — G-review-5 (must not regress)
-
-**Q:** First review `jj-reviewer` completed. User 「按审查改」 then `$jj-review`. Cold-spawn a new reviewer? `resume_from` the implementer?
-
-**A:** No. Follow-up is delta + `resume_from` the completed `jj-reviewer` (same cwd, same type). Do not resume an implementer. Host `/review` is still forbidden. `send_subagent_message` only steers a live reviewer, never a new slice.
 
 ## Fallback (host unavailable only)
 
@@ -166,7 +133,6 @@ Still read-only; persist `REV-*.json` only when bound; explain in `summary` / `h
 | 🔴 fallback without user OK | Offer paste or continue | STOP until user chooses |
 | unstructured host output | Map via tables; `unknown`/`1` | Undecidable → `BLOCKED` |
 | bound persist / `HIGH` vs `high` | Write `REV-n.json` with lowercase severity; still reply `[BLOCK]`/`[OK]` | Do not grep ralph scripts; never `review-record` |
-| bound CLI unavailable | Conversational already writes files; CLI is maintenance-only | Write fails → still finish reply |
 | bound PASS/NEEDS_CHANGES, commit <7 | Resolve SHA from scope/user | Still missing → `BLOCKED` |
 | OPEN findings vs PASS | Force `NEEDS_CHANGES` | No soft-PASS; nits may be WAIVED |
 | Write `AGENTS.md` / `instruction-correction.md` from this skill | Stay read-only; report only | Developer / ralph writes corrections |

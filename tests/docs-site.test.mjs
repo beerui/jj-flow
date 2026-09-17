@@ -52,3 +52,11 @@ test('maintenance docs describe the VitePress workflow', () => {
     assert.ok(md.includes(needle), `maintenance.md missing ${needle}`);
   }
 });
+
+test('maintenance docs point at assignment-spawn, do not restate spawn protocol', () => {
+  const md = fs.readFileSync(path.join(root, 'docs', 'maintenance.md'), 'utf8');
+  assert.match(md, /assignment-spawn\.md/);
+  assert.doesNotMatch(md, /同一人设 \+ 同一目录/);
+  assert.doesNotMatch(md, /不冷启动/);
+  assert.doesNotMatch(md, /派遣前端开发实现任务/);
+});

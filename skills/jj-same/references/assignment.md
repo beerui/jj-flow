@@ -1,10 +1,10 @@
 # 交接派单形状（客服）
 
-Conversational `$jj-same` writes these under each **target** Ralph `assignments/`（lead 可留一份本轮索引）。Exclusive spawn input. 执行人不读 parent 聊天。
+Conversational `$jj-same` writes these under each **target** Ralph `assignments/`（lead 可留一份本轮索引）。Exclusive spawn input. 执行人不读父会话聊天。
 
 本轮只写**这一轮**（源 commit 的有效增量），不要把整个 DEL 的旧 Goal/五条验收再当作执行人操作说明。`distribution_prompt` 是统筹索引，不是派单，也不是人设提示词。
 
-Spawn 时 prompt = **匹配的人设提示词 prefix**（调研或实施，不要混在一段）+ 本文件。`description` 以 `[research]` 或 `[implementer]` 开头。不要让执行人打开本目录其它手册。`## 读这些` / `## 交付` 必须是精确路径，禁止「以现有代码为准」。运行中的 `[reviewer]` 未结束时不要写 RESEARCH spawn。
+Spawn 时 prompt = SKILL 里匹配的 **人设提示词 prefix**（调研或实施，不要混在一段）+ 本文件。Description tag、exact paths、Occupancy：assignment-spawn.md。不要让执行人打开本目录其它手册。
 
 ## ASSIGNMENT-RESEARCH-<target>.md
 
@@ -17,7 +17,7 @@ Spawn 时 prompt = **匹配的人设提示词 prefix**（调研或实施，不�
 ## 读这些
 
 1. 源仓 commit `<sha>` 的本轮 diff（文件列表 + 行为）
-2. 目标仓 listed 对应路径（exact paths；不要全仓 grep / list_dir）
+2. 目标仓列出的对应路径（exact paths；不要全仓 grep / list_dir）
 3. 目标仓 live `task_plan.md`（对照，**不要改 Goal 条文**；可建议本轮 Steps）
 
 ## 交付
@@ -39,12 +39,12 @@ Spawn 时 prompt = **匹配的人设提示词 prefix**（调研或实施，不�
 
 ## ASSIGNMENT-HANDOFF-<target>.md
 
-在调研回报之后写。实施 spawn 的 exclusive 输入。
+在调研回报之后写。实施 spawn 的独占输入。
 
 ```markdown
 # 交接：<target> — <本轮切片标题>
 
-来自 team-lead。调研见 `assignments/RESEARCH-<target>.md`。本 slice **只做**下列交付。
+来自 team-lead。调研见 `assignments/RESEARCH-<target>.md`。本轮切片**只做**下列交付。
 请先一句话确认目标理解与第一步，再开工。
 
 源：`<repo>` @ `<sha>`。决策：DIRECT | ADAPT | EXTEND。
@@ -69,7 +69,7 @@ Spawn 时 prompt = **匹配的人设提示词 prefix**（调研或实施，不�
 ## 验证
 
 - rg / 读回本轮选择器或行为
-- 有测试则跑聚焦测试；无浏览器则静态核对并写明
+- 有测试则执行聚焦测试；无浏览器则静态核对并写明
 
 完成后短句汇报（做了什么 / 路径 / 证据），等下一目标或 team-lead。
 ```
