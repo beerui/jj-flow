@@ -1,0 +1,18 @@
+CHANGELOG.md
+  h_9115cfa70f54a6 7-10
+package-lock.json
+  h_9115cfa70f54a6 3,9
+package.json
+  h_9115cfa70f54a6 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "be224a4f9c44a334ec21823be59a42a5aa1d3c71",
+  "prompts": {},
+  "humans": {
+    "h_9115cfa70f54a6": {
+      "author": "刘勇杰 <motou2017@163.com>"
+    }
+  }
+}
