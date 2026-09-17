@@ -1,0 +1,201 @@
+tests/jj-end-contract.test.mjs
+  s_126c27db61778e::t_6eba5de29578bb 18-25
+skills/jj-same/SKILL.md
+  s_126c27db61778e::t_bb90d191511749 10
+  s_126c27db61778e::t_14c09b3a35771a 14,17-18,20,56,76,81,86,90,105,107,109,111,113-117,123
+  s_0e79063a1b4817::t_6135bfda214b9d 16,22
+  s_2f41ef46cd9a7b::t_92ae3150c8103b 15
+skills/jj-review/references/review-policy.md
+  s_126c27db61778e::t_9fc0ad3f1337c6 61
+skills/jj-dispatch/references/happy-path.md
+  s_126c27db61778e::t_c9fd36bddb4b49 3
+docs/writing-guide.md
+  s_126c27db61778e::t_f59ccc26b84c48 13,198
+skills/jj/references/assignment-spawn.md
+  s_2f41ef46cd9a7b::t_076ae348191e1f 1-2,4-25
+  s_0e79063a1b4817::t_d7e60c5b985590 3,26-28,30-39
+  s_0e79063a1b4817::t_30f881b1889be6 29
+skills/jj-review/references/report-layout.md
+  s_126c27db61778e::t_6e8a1f361ce65c 16-17
+tests/jj-review-contract.test.mjs
+  s_0e79063a1b4817::t_0cb033de178a4f 54-55,75-76,126,156,165-166
+  s_2f41ef46cd9a7b::t_c1e7d207cfa50e 10,80
+  s_2f41ef46cd9a7b::t_81e99b1f206b13 19-26
+  s_2f41ef46cd9a7b::t_23b38284ac22c2 9,56-57,72-74,77-78,152-154,157,160-161
+  s_2f41ef46cd9a7b::t_be8256b088d633 11-18
+  s_126c27db61778e::t_b96f8bfdc5b421 65,81-82
+skills/jj-same/references/happy-path.md
+  s_126c27db61778e::t_7faac4731115fe 8-9,58-59,61
+  s_0e79063a1b4817::t_8c7d61abc256d2 11
+skills/jj-same/references/onboarding.md
+  s_126c27db61778e::t_4685344b64bbde 3,5,7
+docs/design-docs/jj-team-coordinate.md
+  s_126c27db61778e::t_fb68576034bd7e 10
+skills/jj-review/references/host-review.md
+  s_126c27db61778e::t_5db8d39f9f26bb 5,7,13,15-17,19,23,34,38-39
+evals/regression/EP-20260911-ralph-docs-not-cli.json
+  s_2f41ef46cd9a7b::t_33424a94c14ada 15
+tests/install-skill.test.mjs
+  s_2f41ef46cd9a7b::t_31375715f16e91 467-470
+tests/jj-dispatch-contract.test.mjs
+  s_0e79063a1b4817::t_c73bbc46b8c698 1742-1744
+  s_126c27db61778e::t_2bc2e9d6133087 1727,1751-1757
+harness-manifest.json
+  s_126c27db61778e::t_126e187444b456 337
+tests/ralph/assets.contract.mjs
+  s_2f41ef46cd9a7b::t_8bdb14c934b069 292-293,309,327-330
+  s_2f41ef46cd9a7b::t_61d1bbd52cbd00 416-426
+  s_2f41ef46cd9a7b::t_a930c2dca5e709 288,326,333-346,356-361,366
+  s_0e79063a1b4817::t_1d784b2ac81999 290,347-355,494,506-507,557
+  s_2f41ef46cd9a7b::t_edab1fbe935883 405-409
+  s_2f41ef46cd9a7b::t_9b1c505db107db 499-503
+skills/jj-ralph/SKILL.md
+  s_0e79063a1b4817::t_31820aed064c94 22-23,34,38-39,43,52,54
+  s_2f41ef46cd9a7b::t_e8c3ef324b00f8 41-42,44,67
+  s_0e79063a1b4817::t_69d39f416e30d5 11,46
+evals/regression/EP-20260911-ralph-lead-spawn.json
+  s_2f41ef46cd9a7b::t_e42518853cf3c7 12
+  s_2f41ef46cd9a7b::t_7035cae38f6214 9,13
+evals/regression/EP-20260910-review-assignment-exclusive.json
+  s_0e79063a1b4817::t_35cc91f20f1a9d 6
+  s_2f41ef46cd9a7b::t_310424a77f4a7b 11-12,15
+evals/regression/EP-20260911-p2-resume-teammates.json
+  s_2f41ef46cd9a7b::t_55c581eecdce2b 4
+  s_2f41ef46cd9a7b::t_b1c06f0cb458b9 9-10
+skills/jj-end/references/git-policy.md
+  s_126c27db61778e::t_8bf8978bd30245 372,374-377
+docs/design-docs/ralph-auto-closeout.md
+  s_126c27db61778e::t_f53b038c6a6c27 47
+tests/jj-same-contract.test.mjs
+  s_2f41ef46cd9a7b::t_9b4f2e9e635e73 92-100
+  s_126c27db61778e::t_2bd6118abb92a8 53-58,69,71,73-78,81-89
+  s_2f41ef46cd9a7b::t_65836b419485f4 90,101-109
+  s_0e79063a1b4817::t_8620504b07403d 24-26,110-115
+  s_2f41ef46cd9a7b::t_5d28d1ab971e3d 12,21-23,27-31,39,42
+  s_386624d5342579::t_34af15904c2a74 91
+skills/jj-dispatch/SKILL.md
+  s_126c27db61778e::t_807e1cdc74871e 10,14,21,29,89,91,93-95,97,116,121-123,128,145,147,149,151,153-160,166
+tests/jj-init.test.mjs
+  s_2f41ef46cd9a7b::t_8a3881533e3925 68
+docs/design-docs/ralph-workspace-layout.md
+  s_126c27db61778e::t_e4bbf059f069f2 427
+docs/exec-plans/active/2026-09-11-persona-spawn-gym.md
+  s_126c27db61778e::t_910dcb86913b70 81
+skills/jj-review/SKILL.md
+  s_126c27db61778e::t_283315b2ff8d5e 23
+  s_0e79063a1b4817::t_d397e20e0d51dd 8,72
+  s_126c27db61778e::t_c6bf0823f9eabb 14,16-22,24,26,110
+  s_2f41ef46cd9a7b::t_66378d5fad5414 63
+skills/jj-same/references/assignment.md
+  s_126c27db61778e::t_15e79515dcf6da 7
+evals/regression/EP-20260911-merchants-persona-spawn.json
+  s_2f41ef46cd9a7b::t_cdf2a6f17bb47e 8,10
+  s_2f41ef46cd9a7b::t_62b0a741882a64 7
+evals/regression/EP-20260917-assignment-spawn.json
+  s_0e79063a1b4817::t_4f8dcad71c3a07 19-26
+  s_2f41ef46cd9a7b::t_6586f505cb42c9 1-18,27-31
+claude-commands/jj-ralph.md
+  s_0e79063a1b4817::t_d09d4612cad113 18-19,22-23
+tests/docs-site.test.mjs
+  s_2f41ef46cd9a7b::t_eec163ae0e1c09 55-62
+skills/jj-same/references/artifact-routing.md
+  s_126c27db61778e::t_7304486f9d8e0e 38,58
+skills/jj-end/SKILL.md
+  s_126c27db61778e::t_6283ec7a1fb91a 34,36
+docs/.vitepress/config.mjs
+  s_126c27db61778e::t_cf8fdfd7598d13 13
+evals/regression/EP-20260911-same-handoff-assignment.json
+  s_0e79063a1b4817::t_08a440d0470e75 6-7
+  s_2f41ef46cd9a7b::t_45ed79b9378906 14
+  s_2f41ef46cd9a7b::t_4c075d931a4169 13,20
+docs/design-docs/jj-team-swarm.md
+  s_126c27db61778e::t_33eb880ed75791 11
+evals/regression/EP-20260907-grok-review-subagent-waves.json
+  s_0e79063a1b4817::t_066017e81826fb 6
+evals/regression/EP-20260911-review-docs-not-cli.json
+  s_0e79063a1b4817::t_10dca459dc5e19 6-7
+docs/design-docs/ralph-plans-workspace.md
+  s_126c27db61778e::t_5869107b58b034 197,547
+docs/commands/jj-ralph.md
+  s_028652c089af1b::t_e92abe37931a70 23,34,46-47,50-51,57,139
+docs/commands/jj-same.md
+  s_028652c089af1b::t_3ac341d70e8881 1,43-44,47-48,51,55,57
+docs/glossary.md
+  s_028652c089af1b::t_1dc431b00c9fc1 31-32
+docs/commands/jj-review.md
+  s_d1c954fa97acd6::t_c7998572a61980 39-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.32",
+  "base_commit_sha": "38d60e73e28b83890d3e417d75c51648c2bb993d",
+  "prompts": {},
+  "sessions": {
+    "s_028652c089af1b": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0ade6-fe3d-7bd2-a075-1305c24604a1",
+        "model": "grok-4.5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_0e79063a1b4817": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0ae0f-e1a2-7910-a46d-2e45929c115a",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_126c27db61778e": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0ae32-bdd7-7463-9495-6fe0e891ffef",
+        "model": "grok-4.5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_2f41ef46cd9a7b": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0ad7f-5a24-7da0-95f6-e6039296b8c3",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_386624d5342579": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0adf5-3364-7430-9a5b-1f2b523ee860",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_d1c954fa97acd6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0ae76-674d-7c40-83b8-d91767fc0c95",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
