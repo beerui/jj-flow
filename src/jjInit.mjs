@@ -222,27 +222,60 @@ function describePackage(file, projectKey, items) {
   };
 }
 
+export const INIT_PREVIEW_PROJECT_CAP = 12;
+export const INIT_PREVIEW_CWD_TITLE_CAP = 3;
+export const INIT_PREVIEW_PENDING_KEY_CAP = 5;
+
+function pendingKnowledge(project) {
+  return (project.knowledge || []).filter((row) => !row.ingested);
+}
+
+function formatPendingCount(pending, titles) {
+  if (!pending.length) return '  待投喂=0';
+  if (!titles.length) return `  待投喂=${pending.length}`;
+  return `  待投喂=${pending.length}  ${titles.join('；')}`;
+}
+
 export function formatInitPreviewView(payload) {
   const lines = ['jj-flow 接入提案'];
   lines.push(`主目录  ${payload?.home?.root || ''}`);
   lines.push(`地图    ${payload?.indexed_count ?? 0} 个已索引`);
   const families = payload?.families || [];
   if (families.length) lines.push(`现有家族  ${families.join('、')}`);
-  for (const project of payload?.projects || []) {
+  const projects = payload?.projects || [];
+  const isRoot = Boolean(payload?.root);
+  const shown = projects.slice(0, INIT_PREVIEW_PROJECT_CAP);
+  const rest = projects.slice(INIT_PREVIEW_PROJECT_CAP);
+  for (const project of shown) {
     const status = project.status === 'indexed' ? '已在地图' : '待加入';
-    const pending = (project.knowledge || []).filter((row) => !row.ingested);
+    const pending = pendingKnowledge(project);
+    const titles = isRoot
+      ? []
+      : pending.map((row) => row.title).filter(Boolean).slice(0, INIT_PREVIEW_CWD_TITLE_CAP);
     const aliasText = (project.aliases || []).filter(Boolean).join(',');
     const familyText = project.family
       ? `  家族=${project.family}${project.family_source === 'guess' ? '（建议）' : ''}`
       : '';
-    const pendingText = pending.length
-      ? `  待投喂=${pending.length}  ${pending.map((row) => row.title).filter(Boolean).join('；')}`
-      : '  待投喂=0';
     lines.push(
       `  ${status}  ${project.name}  (${project.project_key})`
       + (aliasText ? `  aliases=${aliasText}` : '')
-      + `  ${project.path}${familyText}${pendingText}`
+      + `  ${project.path}${familyText}${formatPendingCount(pending, titles)}`
     );
+  }
+  if (rest.length) {
+    lines.push(`其余 ${rest.length} 仓：${rest.map((project) => project.project_key).filter(Boolean).join(', ')}`);
+  }
+  if (isRoot) {
+    const pendingKeys = projects
+      .map((project) => ({
+        key: project.project_key,
+        n: pendingKnowledge(project).length
+      }))
+      .filter((row) => row.key && row.n > 0)
+      .slice(0, INIT_PREVIEW_PENDING_KEY_CAP);
+    if (pendingKeys.length) {
+      lines.push(pendingKeys.map((row) => `${row.key} ${row.n}`).join('  '));
+    }
   }
   return lines.join('\n');
 }
@@ -299,6 +332,7 @@ export function previewInit({ cwd = process.cwd(), root = null } = {}) {
       knowledge_root: knowledgeRoot,
       created: home.created
     },
+    root: root ? path.resolve(root) : null,
     families: listFamilies(map),
     indexed_count: (map.projects || []).length,
     projects

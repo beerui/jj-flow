@@ -7,20 +7,15 @@ description: "Onboard jj-flow home: join ~/.jj-flow/map.md, group families, back
 
 Write `~/.jj-flow/map.md` and bootstrap home knowledge after the user confirms. Delivery skills only **read** the map.
 
-`$jj-ralph init` opens a task **run**. This skill is machine/project onboarding.
-
 ## Immediate actions
 
-Users do not run CLI. Resolve: `jj` on PATH, else `node <repo>/bin/jj.mjs`, else `npx @brewer/jj-flow`. `--json` is for you. Never paste JSON. `user_view` is a hint, not a paste target.
+Users do not run CLI. Invoke per [cli-agent.md](../jj/references/cli-agent.md).
 
-1. `jj init preview [--cwd] [--root DIR] [--json]` — create empty `~/.jj-flow` if missing; list indexed vs proposed rows and pending `knowledge-contribution.json`. Default = cwd only. `--root` = that directory + its **immediate** child repos.
-2. 🔴 **CHECKPOINT:** show a **short** Chinese proposal (中文名称 / aliases / family / pending count) — not the raw CLI dump.
-   - One line per project: `已在地图|待加入  名称  (key)  path  家族=…  待投喂=N`
-   - Cap **12** project lines; then `其余 M 仓：key1, key2, …` and ask which to join.
-   - Do not list contribution titles except: cwd row ≤3 titles; `--root` only `key N` for ≤5 keys with N>0.
-   - Name: user speech wins; else AGENTS.md heading or package/dir name — **do not invent a Chinese product name**.
-   - Family: user speech wins. Else **suggest** an existing map family (same parent-dir siblings, or name/alias/path contains that family, longest unique hit — e.g. `中国大集管理后台` + `D:\2025` siblings → `大集`). Preview shows `家族=大集（建议）`. Do **not** invent a new family. Ambiguous / no signal → empty and ask. 「加入」without override uses the suggestion (`join` also guesses if `--family` omitted).
-   - Already indexed: skip join; only ingest packages they approve.
+1. `jj init preview [--cwd] [--root DIR] [--json]`. Default = cwd. User names a root directory → `--root DIR` (that directory + its **immediate** child repos).
+2. 🔴 **CHECKPOINT:** show `user_view`. Remainder keys → ask which to join.
+   - Name: user speech wins; else keep preview's name — **do not invent a Chinese product name**.
+   - Family: user speech wins; else **suggest** preview's family. Do not invent a new family. Empty / ambiguous → ask. 「加入」without override uses the suggestion (`join` guesses if `--family` omitted).
+   - Already indexed: skip join; ingest only approved packages.
 3. After yes: `jj init join --path … --name "…" [--aliases a,b] [--family "…"]`. Then `jj init ingest --run-id …` or `--file …` for each approved package.
 4. Short report: home path, joined rows, ingest counts.
 
@@ -28,16 +23,16 @@ Users do not run CLI. Resolve: `jj` on PATH, else `node <repo>/bin/jj.mjs`, else
 
 | Trigger | First fix | Still fails |
 | --- | --- | --- |
-| Missing home | preview creates empty structure | Do not invent `/portfolio` paths |
+| Missing home | preview creates empty structure | Use paths preview reports; do not invent home/map locations |
 | User did not confirm | Stop writes | Continue unindexed |
-| Path already indexed | Report `exists` | Do not duplicate the row |
+| Path already indexed | Report `exists`; skip join | Ingest only if they approve packages |
 | Ingest file missing / no `project_key` | Skip that package | Fail-open; map row still valid |
 
 ## Not this skill
 
 | Intent | Use |
 | --- | --- |
-| New ralph run | `$jj-ralph` |
+| New ralph run / `$jj-ralph init` | `$jj-ralph` |
 | This-run feed after archive | `$jj-ralph` 「写入知识库」 |
 | Read paths / whether cwd is indexed | `jj doctor` (short Chinese `user_view`) |
 | Port / dispatch | `$jj-same` / `$jj-dispatch` |

@@ -92,7 +92,7 @@ Control-plane authority: `src/dispatchControlPlane.mjs` + schema; **do not inven
 | --- | --- |
 | Config dir | `$JJ_GLOBAL_CONFIG_DIR` / `$DAJI_CONFIG_DIR`, else **`~/.jj-flow`** |
 | Config file | `<configDir>/naming.json` (install writes `~/.jj-flow/naming.json`) |
-| Inspect | `jj doctor` (default text / JSON `user_view`) → home / map / knowledge. Do **not** paste `--json` to the user |
+| Inspect | `jj doctor` → home / map / knowledge. JSON / `user_view`: [cli-agent.md](../jj/references/cli-agent.md) |
 
 | Config key | Meaning | Product default | Env var |
 | --- | --- | --- | --- |

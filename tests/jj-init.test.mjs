@@ -5,7 +5,17 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { runCli } from '../src/cli.mjs';
-import { guessProjectFamily, guessProjectName, ingestInit, joinInit, previewInit } from '../src/jjInit.mjs';
+import {
+  INIT_PREVIEW_CWD_TITLE_CAP,
+  INIT_PREVIEW_PENDING_KEY_CAP,
+  INIT_PREVIEW_PROJECT_CAP,
+  formatInitPreviewView,
+  guessProjectFamily,
+  guessProjectName,
+  ingestInit,
+  joinInit,
+  previewInit
+} from '../src/jjInit.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -54,6 +64,7 @@ test('jj-init skill and command assets exist', () => {
   for (const rel of [
     'skills/jj-init/SKILL.md',
     'skills/jj-init/agents/openai.yaml',
+    'skills/jj/references/cli-agent.md',
     'claude-commands/jj-init.md',
     'docs/commands/jj-init.md',
     'src/jjInit.mjs'
@@ -61,6 +72,8 @@ test('jj-init skill and command assets exist', () => {
     assert.ok(fs.existsSync(path.join(root, rel)), `missing ${rel}`);
   }
   const skill = fs.readFileSync(path.join(root, 'skills/jj-init/SKILL.md'), 'utf8');
+  const dispatch = fs.readFileSync(path.join(root, 'skills/jj-dispatch/SKILL.md'), 'utf8');
+  const cliAgent = fs.readFileSync(path.join(root, 'skills/jj/references/cli-agent.md'), 'utf8');
   for (const marker of [
     'jj init preview',
     'jj init join',
@@ -69,13 +82,18 @@ test('jj-init skill and command assets exist', () => {
     '$jj-ralph',
     'do not invent a Chinese product name',
     'user_view',
-    'bin/jj.mjs',
+    'cli-agent.md',
     'user speech wins',
     'suggest'
   ]) {
     assert.match(skill, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.doesNotMatch(skill, /jj ralph init is this skill/i);
+  assert.doesNotMatch(skill, /Cap \*\*12\*\*/);
+  assert.match(cliAgent, /bin\/jj\.mjs/);
+  assert.match(cliAgent, /Never paste JSON/);
+  assert.match(cliAgent, /user_view/);
+  assert.match(dispatch, /cli-agent\.md/);
 });
 
 test('preview proposes cwd without writing a map row', () => {
@@ -249,6 +267,50 @@ test('init join writes configured project_map, not default home map', () => {
     assert.equal(preview.projects[0].status, 'indexed');
     assert.equal(path.resolve(preview.home.map_path), path.resolve(alt, 'map.md'));
   });
+});
+
+test('init preview user_view caps project lines and titles', () => {
+  const extra = INIT_PREVIEW_PROJECT_CAP + 3;
+  const projects = Array.from({ length: extra }, (_, i) => ({
+    status: 'proposed',
+    name: `n${i}`,
+    project_key: `k${i}`,
+    path: `/p/${i}`,
+    aliases: [],
+    family: '',
+    knowledge: i === 0
+      ? Array.from({ length: INIT_PREVIEW_CWD_TITLE_CAP + 1 }, (_, n) => ({
+        title: `t${n + 1}`,
+        ingested: false
+      }))
+      : (i <= INIT_PREVIEW_PENDING_KEY_CAP
+        ? [{ title: `extra${i}`, ingested: false }]
+        : [])
+  }));
+  const cwdView = formatInitPreviewView({
+    home: { root: '/home' },
+    indexed_count: 0,
+    families: [],
+    projects
+  });
+  assert.match(cwdView, new RegExp(`其余 3 仓：k${INIT_PREVIEW_PROJECT_CAP}, k${INIT_PREVIEW_PROJECT_CAP + 1}, k${INIT_PREVIEW_PROJECT_CAP + 2}`));
+  assert.equal([...cwdView.matchAll(/待加入/g)].length, INIT_PREVIEW_PROJECT_CAP);
+  assert.match(cwdView, /待投喂=4  t1；t2；t3/);
+  assert.doesNotMatch(cwdView, /t4/);
+
+  const rootView = formatInitPreviewView({
+    home: { root: '/home' },
+    indexed_count: 0,
+    families: [],
+    root: '/cluster',
+    projects
+  });
+  assert.doesNotMatch(rootView, /t1/);
+  assert.doesNotMatch(rootView, /extra1/);
+  assert.match(rootView, /待投喂=4(?!\s+t)/);
+  assert.match(rootView, /k0 4/);
+  assert.match(rootView, new RegExp(`k${INIT_PREVIEW_PENDING_KEY_CAP - 1} 1`));
+  assert.doesNotMatch(rootView, new RegExp(`k${INIT_PREVIEW_PENDING_KEY_CAP} 1`));
 });
 
 test('jj init CLI preview / join / ingest', () => {

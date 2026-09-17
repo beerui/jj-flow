@@ -4,7 +4,9 @@
 
 ## Unreleased
 
-暂无。
+- **jj-init 提案由 CLI 截短**：`formatInitPreviewView` 最多 12 行项目，cwd 至多 3 个贡献标题，`--root` 至多 5 个待写入 key；skill 不再复述这些数字。合约：`tests/jj-init.test.mjs`。
+- **init 用户文档不再复述推断算法**：命令页只写提案带建议、确认后写入；名称与家族猜测仍只在 CLI。
+- **Agent CLI 调用规则一处**：`skills/jj/references/cli-agent.md` 写明如何解析 `jj` 以及不要把 JSON 贴给用户；`jj-init` / `jj-dispatch` 指向该文件。合约：`tests/jj-init.test.mjs`。
 
 ## 0.2.4 — 2026-09-17 10:46
 
