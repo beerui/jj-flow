@@ -170,6 +170,88 @@ export function projectAgentsCommandsTarget({ cwd = process.cwd() } = {}) {
   return path.join(cwd, '.agents', 'commands');
 }
 
+/** Windows path comparison is case-insensitive; resolve and fold before comparing. */
+function samePath(left, right) {
+  const a = path.resolve(left);
+  const b = path.resolve(right);
+  return process.platform === 'win32' ? a.toLowerCase() === b.toLowerCase() : a === b;
+}
+
+function oppositeScope(scope) {
+  if (scope === 'user') return 'project';
+  if (scope === 'project') return 'user';
+  return null;
+}
+
+/**
+ * The same asset's two official landing spots. Mirrors exactly the fallbacks each platform
+ * branch in `buildAssetJobs` already uses, so classification can never invent a sibling the
+ * branch itself would not have produced.
+ */
+function officialScopeTargets(platform, asset, {
+  cwd, homeDir, codexHome, claudeHome, qoderHome, grokHome, agentsHome
+}) {
+  const table = {
+    codex: {
+      skills: [defaultCodexTarget({ homeDir, codexHome }), projectCodexTarget({ cwd })],
+      agents: [defaultCodexAgentsTarget({ homeDir, codexHome }), projectCodexAgentsTarget({ cwd })]
+    },
+    qoder: {
+      skills: [defaultQoderTarget({ homeDir, qoderHome }), projectQoderTarget({ cwd })]
+    },
+    grok: {
+      skills: [defaultGrokTarget({ homeDir, grokHome }), projectGrokTarget({ cwd })],
+      agents: [defaultGrokAgentsTarget({ homeDir, grokHome }), projectGrokAgentsTarget({ cwd })]
+    },
+    agents: {
+      skills: [defaultAgentsSkillsTarget({ homeDir, agentsHome }), projectAgentsSkillsTarget({ cwd })],
+      commands: [defaultAgentsCommandsTarget({ homeDir, agentsHome }), projectAgentsCommandsTarget({ cwd })]
+    },
+    claude: {
+      skills: [defaultClaudeSkillsTarget({ homeDir, claudeHome }), projectClaudeSkillsTarget({ cwd })],
+      commands: [defaultClaudeTarget({ homeDir, claudeHome }), projectClaudeTarget({ cwd })],
+      agents: [defaultClaudeAgentsTarget({ homeDir, claudeHome }), projectClaudeAgentsTarget({ cwd })]
+    }
+  };
+  const pair = table[platform]?.[asset];
+  return pair ? { user: pair[0], project: pair[1] } : null;
+}
+
+/**
+ * `cwd === homeDir` makes both scopes the same directory, and a sibling would then shadow its
+ * own target — silently installing nothing. Treat that as no sibling.
+ */
+function safeSiblingTarget(sibling, target) {
+  if (!sibling) return null;
+  const resolved = path.resolve(sibling);
+  return samePath(resolved, target) ? null : resolved;
+}
+
+/**
+ * Path equality — not CLI intent — decides the scope, so `--target ~/.claude/skills` still
+ * counts as the user scope and stays protected. A genuinely custom target gets no sibling,
+ * which is what keeps `--target` installs and the direct-API tests on their old behavior.
+ */
+function classifyJobScope({ target, userTarget, projectTarget }) {
+  const resolved = path.resolve(target);
+  if (projectTarget && samePath(resolved, projectTarget)) {
+    return { scope: 'project', siblingTarget: safeSiblingTarget(userTarget, resolved) };
+  }
+  if (userTarget && samePath(resolved, userTarget)) {
+    return { scope: 'user', siblingTarget: safeSiblingTarget(projectTarget, resolved) };
+  }
+  return { scope: 'custom', siblingTarget: null };
+}
+
+function withJobScope(job, scopeContext) {
+  const pair = officialScopeTargets(job.platform, job.asset, scopeContext);
+  if (!pair) return { ...job, scope: 'custom', siblingTarget: null };
+  return {
+    ...job,
+    ...classifyJobScope({ target: job.target, userTarget: pair.user, projectTarget: pair.project })
+  };
+}
+
 export function installSkill({
   platform = 'codex',
   sourceDir,
@@ -195,12 +277,14 @@ export function installSkill({
   qoderHome,
   grokHome,
   agentsHome,
+  cwd = process.cwd(),
   force = false,
   dryRun = false
 } = {}) {
   const platforms = normalizePlatforms(platform);
   const jobs = buildAssetJobs({
     platforms,
+    cwd,
     targetDir,
     codexSourceDir,
     codexAgentsSourceDir,
@@ -240,22 +324,70 @@ export function installSkill({
   for (const job of jobs) {
     for (const entry of job.entries) {
       const dest = path.join(job.target, entry.targetName);
-      planned.push({
-        job,
-        entry,
-        dest,
-        exists: fs.existsSync(dest)
+      planned.push({ job, entry, dest, exists: fs.existsSync(dest) });
+    }
+  }
+
+  // Skip-and-report: a copy already present at the sibling scope suppresses a NEW write in
+  // this scope. Never deletes. `--force` opts back into a second copy, so the whole scan is
+  // skipped there. Already-present same-scope copies stay the plain `exists` case below, so
+  // idempotent re-runs do not read as shadowed; they surface as `duplicates` instead, which
+  // is report-only and never affects what gets written.
+  const shadowed = [];
+  const duplicates = [];
+  if (!force) {
+    const sourceDigests = new Map();
+    for (const item of planned) {
+      const siblingTarget = item.job.siblingTarget;
+      if (!siblingTarget) continue;
+      const siblingPath = path.join(siblingTarget, item.entry.targetName);
+      if (!fs.existsSync(siblingPath)) continue;
+      const record = {
+        path: item.dest,
+        sibling_path: siblingPath,
+        target: item.job.target,
+        sibling_target: siblingTarget,
+        platform: item.job.platform,
+        asset: item.job.asset,
+        name: item.entry.name,
+        target_name: item.entry.targetName,
+        kind: item.entry.kind,
+        scope: item.job.scope,
+        sibling_scope: oppositeScope(item.job.scope)
+      };
+      if (item.exists) {
+        duplicates.push({ ...record, reason: 'duplicate-existing' });
+        continue;
+      }
+      if (!sourceDigests.has(item.entry.source)) {
+        sourceDigests.set(item.entry.source, digestPath(item.entry.source));
+      }
+      const sourceDigest = sourceDigests.get(item.entry.source);
+      const siblingDigest = digestPath(siblingPath);
+      const siblingKind = fs.lstatSync(siblingPath).isDirectory() ? 'directory' : 'file';
+      shadowed.push({
+        ...record,
+        sibling_kind: siblingKind,
+        source_digest: sourceDigest,
+        sibling_digest: siblingDigest,
+        reason: sourceDigest === siblingDigest && siblingKind === item.entry.kind
+          ? 'identical-elsewhere'
+          : 'diverged-elsewhere'
       });
     }
   }
 
+  const shadowedDests = new Set(shadowed.map((record) => record.path));
   const conflicts = planned.filter((item) => item.exists).map((item) => item.dest);
-  const toWrite = force ? planned : planned.filter((item) => !item.exists);
+  const toWrite = force
+    ? planned
+    : planned.filter((item) => !item.exists && !shadowedDests.has(item.dest));
   const skipped = force ? [] : planned.filter((item) => item.exists).map((item) => item.dest);
   const added = toWrite.map((item) => item.dest);
 
   let home = null;
   if (!dryRun) {
+    const writtenByJob = new Set();
     for (const item of toWrite) {
       fs.mkdirSync(item.job.target, { recursive: true });
       if (item.entry.kind === 'directory' && fs.existsSync(item.dest)) {
@@ -266,8 +398,13 @@ export function installSkill({
         force: true,
         errorOnExist: false
       });
+      writtenByJob.add(item.job);
     }
     for (const job of jobs) {
+      // A fully shadowed scope gets no empty directory and no phantom ownership manifest.
+      // An existing manifest still gets rewritten so retired-asset cleanup keeps running.
+      const manifestPath = path.join(job.target, INSTALL_MANIFEST_FILENAME);
+      if (!writtenByJob.has(job) && !fs.existsSync(manifestPath)) continue;
       fs.mkdirSync(job.target, { recursive: true });
       writeInstallManifest(job);
       removeRetiredAssets(job.target, job.asset);
@@ -302,6 +439,21 @@ export function installSkill({
   const showSkip = skipped.length && (
     status === 'added' || status === 'up-to-date' || (dryRun && toWrite.length)
   );
+  const shadowRoots = [...new Set(shadowed.map((record) => record.sibling_target))].sort();
+  const diverged = shadowed.filter((record) => record.reason === 'diverged-elsewhere').length;
+  const shadowHint = shadowed.length
+    ? `; ${shadowed.length} asset(s) already present at ${shadowRoots.join(', ')}`
+      + (diverged ? ` (${diverged} differ from this package — verify which copy you want)` : '')
+      + ' — skipped to avoid duplicate host entries; use --force to install a second copy'
+    : '';
+  const duplicateScopes = [...new Set(duplicates.map((record) => record.scope))].sort();
+  const duplicatePlatforms = [...new Set(duplicates.map((record) => record.platform))].sort();
+  const duplicateHint = duplicates.length
+    ? `; ${duplicates.length} asset(s) are already installed in BOTH scopes`
+      + ` (${duplicatePlatforms.join(', ')}${duplicateScopes.length ? `: ${duplicateScopes.join(' + ')}` : ''})`
+      + ` — preview removing one with \`jj uninstall-skill --platform ${duplicatePlatforms[0]}`
+      + `${duplicateScopes.includes('project') ? ' --project' : ''} --dry-run\``
+    : '';
   return {
     ...summary,
     ok: true,
@@ -309,11 +461,13 @@ export function installSkill({
     conflicts,
     added,
     skipped,
+    shadowed,
+    duplicates,
     manifest_paths: jobs.map((job) => path.join(job.target, INSTALL_MANIFEST_FILENAME)),
     jj_flow_home: home ? home.root : null,
     map_path: home ? home.map_path : null,
     knowledge_root: home ? home.knowledge_root : null,
-    message: `${action}${showSkip ? skipHint : ''}`
+    message: `${action}${showSkip ? skipHint : ''}${shadowHint}${duplicateHint}`
       + (home ? `; home ${home.root}` : '')
   };
 }
@@ -343,12 +497,14 @@ export function uninstallSkill({
   qoderHome,
   grokHome,
   agentsHome,
+  cwd = process.cwd(),
   force = false,
   dryRun = false
 } = {}) {
   const platforms = normalizePlatforms(platform);
   const jobs = buildAssetJobs({
     platforms,
+    cwd,
     targetDir,
     codexSourceDir,
     codexAgentsSourceDir,
@@ -518,6 +674,7 @@ function resolveClaudeInstallTargets({
 
 function buildAssetJobs({
   platforms,
+  cwd = process.cwd(),
   targetDir,
   codexSourceDir,
   codexAgentsSourceDir,
@@ -541,7 +698,8 @@ function buildAssetJobs({
   grokHome,
   agentsHome
 }) {
-  return platforms.flatMap((name) => {
+  const scopeContext = { cwd, homeDir, codexHome, claudeHome, qoderHome, grokHome, agentsHome };
+  const jobs = platforms.flatMap((name) => {
     if (name === 'codex') {
       const skillSource = path.resolve(codexSourceDir);
       const skillTarget = path.resolve(codexTargetDir || targetDir || defaultCodexTarget({ homeDir, codexHome }));
@@ -678,6 +836,7 @@ function buildAssetJobs({
       }
     ];
   });
+  return jobs.map((job) => withJobScope(job, scopeContext));
 }
 
 function writeInstallManifest(job) {

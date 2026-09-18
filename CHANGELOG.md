@@ -6,6 +6,10 @@
 
 暂无。
 
+## 0.2.6 — 2026-09-18 16:55
+
+- **安装器跨层级去重**：用户级与项目级此前互不感知，先后执行 `install-skill` 与 `--project` 会让同一资产出现重复入口。现在写入前若另一层级已有同名资产则默认跳过，在 `shadowed` 中点名 sibling 路径；两层都已存在时由 `duplicates` 报出并附卸载预览命令（只报告不删除）。`--force` 可强制装第二份。被跳过的层级不留下空目录与幽灵 ownership manifest。合约：`tests/install-skill.test.mjs`。
+
 ## 0.2.5 — 2026-09-18 15:37
 
 - **移除 skill-zh-bridge**：删除 `docs/skill-zh-bridge/`；英文 skill 协议以 `skills/` 为唯一 SSOT，中文用户说明仅保留在 `docs/commands/` 等站点页。同步 `docs/writing-guide.md`、design-docs 入口、`harness-manifest.json` 排除清单与 `scripts/check-project.mjs`。已完结的 exec-plans / evaluations 历史路径不回溯改写。

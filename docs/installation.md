@@ -42,6 +42,13 @@ npx @brewer/jj-flow@latest install-skill --platform agents
 
 不加 `--project` 时，装到各工具的用户全局目录（如 Claude：`~/.claude`；Codex：`~/.codex`；Grok：`~/.grok`；AGENTS：`~/.agents`）。
 
+**同一份资产只会装一处。** 用户级和项目级各有一份同名入口时，你的工具会把它们并列显示，出现重复的 `/jj-init`。所以若另一层级已经装过，本次会**跳过**并在输出里点名（`shadowed` 字段），装出来仍是干净的一份。确实要两个层级各留一份，加 `--force`。反过来，如果发现自己已经重复装了，先清掉不想要的那一层：
+
+```bash
+npx @brewer/jj-flow@latest uninstall-skill --platform claude --project --dry-run   # 先预览
+npx @brewer/jj-flow@latest uninstall-skill --platform claude --project             # 移除项目级那一份
+```
+
 ## 升级与卸载
 
 再次执行安装命令会**补上缺失的 skill**，默认不覆盖已有文件；**覆盖已有安装**请加 `--force`。升级后新开一轮对话，试输入 `/jj` 确认新入口出现。

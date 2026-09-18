@@ -36,6 +36,7 @@ jj uninstall-skill [--platform codex|claude|qoder|grok|agents|all] [--project | 
 
 - 默认不按名称前缀扫描未知文件；只动 ownership 登记资产
 - 再次执行 `install-skill` 会补上缺失 skill（如 `jj-init`），默认不覆盖已有文件；覆盖安装请加 `--force`
+- 同一资产已装在另一层级（用户级 / 项目级）时默认跳过，输出 `shadowed` 点名 sibling 路径；两层都已存在时由 `duplicates` 报出并附卸载预览命令。要装第二份加 `--force`
 - 本地改过或历史未登记：默认拒绝，审查后 `--force`
 - 用户装入口仍可在 [安装](../installation.md) 用一行 `npx … install-skill`；装好后请走对话，不必再学 CLI
 - `install-skill` 会在 `~/.jj-flow` 生成空 `naming.json` / `map.md` / `knowledge/`（已有文件不覆盖）

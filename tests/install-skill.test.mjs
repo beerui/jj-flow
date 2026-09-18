@@ -44,9 +44,12 @@ const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import
 const packageVersion = packageJson.version;
 const currentReleaseLog = loadCurrentReleaseLog();
 const TEST_JJ_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-install-home-'));
+// A project scope distinct from TEST_JJ_HOME, so the user-scope and project-scope targets
+// never alias and sibling-scope detection sees an empty project by default.
+const TEST_PROJECT = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-install-project-'));
 
 function install(opts = {}) {
-  return installSkill({ homeDir: TEST_JJ_HOME, ...opts });
+  return installSkill({ homeDir: TEST_JJ_HOME, cwd: TEST_PROJECT, ...opts });
 }
 
 function withJjHome(fn) {
@@ -57,6 +60,27 @@ function withJjHome(fn) {
   } finally {
     if (prev === undefined) delete process.env.JJ_FLOW_HOME;
     else process.env.JJ_FLOW_HOME = prev;
+  }
+}
+
+const HOST_HOME_ENV = ['CODEX_HOME', 'CLAUDE_HOME', 'QODER_HOME', 'GROK_HOME', 'AGENTS_HOME'];
+
+/**
+ * Point every host's user-scope home at a throwaway directory for the duration of `fn`.
+ * Without this, a project-scope install is shadowed by whatever the developer already has in
+ * their real user scope (and vice versa), so the test would assert against their machine.
+ */
+function withIsolatedHostHomes(fn) {
+  const prev = new Map(HOST_HOME_ENV.map((key) => [key, process.env[key]]));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-install-host-home-'));
+  for (const key of HOST_HOME_ENV) process.env[key] = path.join(root, key.toLowerCase());
+  try {
+    return fn();
+  } finally {
+    for (const [key, value] of prev) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
   }
 }
 
@@ -801,7 +825,7 @@ test('CLI install-skill can install Claude skills and command assets', () => {
 });
 
 test('CLI install-skill can target the current project', () => {
-  withJjHome(() => {
+  withJjHome(() => withIsolatedHostHomes(() => {
   const workspace = makeWorkspace('jj-flow-install-project-');
   const stdout = createStdout();
   const status = runCli(['install-skill', '--platform', 'all', '--project', '--dry-run', '--json'], { cwd: workspace, stdout });
@@ -839,7 +863,7 @@ test('CLI install-skill can target the current project', () => {
   assert.equal(fs.existsSync(path.join(workspace, '.grok', 'skills', 'jj-same', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.agents', 'skills', 'jj-ralph', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(workspace, '.agents', 'commands', 'jj-ralph.md')), true);
-  });
+  }));
 });
 
 test('CLI help keeps user-facing labels in Chinese', () => {
@@ -947,6 +971,138 @@ test('installSkill adds a missing skill without overwriting local edits', () => 
   assert.equal(fs.readFileSync(ralphPath, 'utf8'), ralphEdited);
   assert.ok(result.added.some((file) => file.endsWith(path.join('jj-init'))));
   assert.ok(result.skipped.some((file) => file.endsWith(path.join('jj-ralph'))));
+});
+
+test('CLI install-skill --project skips assets already installed at the user scope', () => {
+  withJjHome(() => withIsolatedHostHomes(() => {
+    const workspace = makeWorkspace('jj-flow-scope-project-');
+    const userHome = process.env.CLAUDE_HOME;
+
+    const userStdout = createStdout();
+    assert.equal(runCli(['install-skill', '--platform', 'claude', '--json'], { cwd: workspace, stdout: userStdout }), 0);
+    const userResult = JSON.parse(userStdout.output);
+    assert.deepEqual(userResult.shadowed, []);
+    assert.equal(fs.existsSync(path.join(userHome, 'skills', 'jj-init', 'SKILL.md')), true);
+
+    const projectStdout = createStdout();
+    assert.equal(runCli(['install-skill', '--platform', 'claude', '--project', '--json'], { cwd: workspace, stdout: projectStdout }), 0);
+    const projectResult = JSON.parse(projectStdout.output);
+
+    assert.ok(projectResult.shadowed.length > 0);
+    assert.ok(projectResult.shadowed.every((record) => record.reason === 'identical-elsewhere'));
+    assert.ok(projectResult.shadowed.every((record) => record.scope === 'project'));
+    assert.ok(projectResult.shadowed.every((record) => record.sibling_scope === 'user'));
+    assert.ok(projectResult.shadowed.every((record) => record.platform === 'claude'));
+    assert.equal(projectResult.shadowed[0].sibling_target, path.join(userHome, 'skills'));
+    assert.match(projectResult.message, /already present at/);
+
+    // The skipped scope gets no assets, no empty directory, and no phantom ownership manifest.
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills', 'jj-init')), false);
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-init.md')), false);
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills')), false);
+  }));
+});
+
+test('CLI install-skill --project --force installs a second copy despite the user scope', () => {
+  withJjHome(() => withIsolatedHostHomes(() => {
+    const workspace = makeWorkspace('jj-flow-scope-force-');
+    runCli(['install-skill', '--platform', 'claude', '--json'], { cwd: workspace, stdout: createStdout() });
+
+    const stdout = createStdout();
+    assert.equal(runCli(['install-skill', '--platform', 'claude', '--project', '--force', '--json'], { cwd: workspace, stdout }), 0);
+    const result = JSON.parse(stdout.output);
+
+    assert.deepEqual(result.shadowed, []);
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills', 'jj-init', 'SKILL.md')), true);
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'commands', 'jj-init.md')), true);
+  }));
+});
+
+test('CLI install-skill --project marks a diverged sibling copy as diverged-elsewhere', () => {
+  withJjHome(() => withIsolatedHostHomes(() => {
+    const workspace = makeWorkspace('jj-flow-scope-diverged-');
+    const userHome = process.env.CLAUDE_HOME;
+    runCli(['install-skill', '--platform', 'claude', '--json'], { cwd: workspace, stdout: createStdout() });
+    fs.appendFileSync(path.join(userHome, 'skills', 'jj-init', 'SKILL.md'), '\n# stale copy\n');
+
+    const stdout = createStdout();
+    assert.equal(runCli(['install-skill', '--platform', 'claude', '--project', '--json'], { cwd: workspace, stdout }), 0);
+    const result = JSON.parse(stdout.output);
+
+    const jjInit = result.shadowed.find((record) => record.asset === 'skills' && record.name === 'jj-init');
+    assert.equal(jjInit.reason, 'diverged-elsewhere');
+    assert.notEqual(jjInit.source_digest, jjInit.sibling_digest);
+    assert.ok(result.shadowed.some((record) => record.reason === 'identical-elsewhere'));
+    assert.match(result.message, /differ from this package/);
+  }));
+});
+
+test('installSkill reports pre-existing cross-scope duplicates without removing them', () => {
+  withJjHome(() => withIsolatedHostHomes(() => {
+    const workspace = makeWorkspace('jj-flow-scope-dupes-');
+    runCli(['install-skill', '--platform', 'claude', '--json'], { cwd: workspace, stdout: createStdout() });
+    runCli(['install-skill', '--platform', 'claude', '--project', '--force', '--json'], { cwd: workspace, stdout: createStdout() });
+
+    const stdout = createStdout();
+    assert.equal(runCli(['install-skill', '--platform', 'claude', '--project', '--json'], { cwd: workspace, stdout }), 0);
+    const result = JSON.parse(stdout.output);
+
+    assert.ok(result.duplicates.length > 0);
+    assert.ok(result.duplicates.every((record) => record.reason === 'duplicate-existing'));
+    assert.match(result.message, /BOTH scopes/);
+    assert.match(result.message, /jj uninstall-skill --platform claude --project/);
+    // report-only: both copies survive
+    assert.equal(fs.existsSync(path.join(workspace, '.claude', 'skills', 'jj-init', 'SKILL.md')), true);
+    assert.equal(fs.existsSync(path.join(process.env.CLAUDE_HOME, 'skills', 'jj-init', 'SKILL.md')), true);
+  }));
+});
+
+test('installSkill treats cwd === homeDir as no sibling instead of shadowing itself', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-scope-self-'));
+
+  const result = installSkill({ platform: 'claude', homeDir: home, cwd: home });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.shadowed, []);
+  assert.equal(fs.existsSync(path.join(home, '.claude', 'skills', 'jj-init', 'SKILL.md')), true);
+});
+
+test('installSkill leaves a custom target unscoped so it is never shadowed', () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-scope-custom-home-'));
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'jj-scope-custom-project-'));
+  const custom = path.join(project, 'custom', 'skills');
+
+  installSkill({ platform: 'claude', homeDir: home, cwd: project });
+  installSkill({
+    platform: 'claude',
+    homeDir: home,
+    cwd: project,
+    claudeSkillsTargetDir: projectClaudeSkillsTarget({ cwd: project }),
+    claudeTargetDir: projectClaudeTarget({ cwd: project }),
+    claudeAgentsTargetDir: projectClaudeAgentsTarget({ cwd: project })
+  });
+
+  const result = installSkill({ platform: 'claude', homeDir: home, cwd: project, targetDir: custom });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.shadowed, []);
+  assert.equal(fs.existsSync(path.join(custom, 'jj-init', 'SKILL.md')), true);
+});
+
+test('uninstall-skill --project after a shadowed install keeps the user copy', () => {
+  withJjHome(() => withIsolatedHostHomes(() => {
+    const workspace = makeWorkspace('jj-flow-scope-uninstall-');
+    const userHome = process.env.CLAUDE_HOME;
+    runCli(['install-skill', '--platform', 'claude', '--json'], { cwd: workspace, stdout: createStdout() });
+    runCli(['install-skill', '--platform', 'claude', '--project', '--json'], { cwd: workspace, stdout: createStdout() });
+
+    const stdout = createStdout();
+    assert.equal(runCli(['uninstall-skill', '--platform', 'claude', '--project', '--json'], { cwd: workspace, stdout }), 0);
+    const result = JSON.parse(stdout.output);
+
+    assert.equal(result.status, 'not-installed');
+    assert.equal(fs.existsSync(path.join(userHome, 'skills', 'jj-init', 'SKILL.md')), true);
+  }));
 });
 
 function createStdout() {

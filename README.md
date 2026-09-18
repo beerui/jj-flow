@@ -28,7 +28,7 @@
 npx @brewer/jj-flow@latest install-skill --platform all --project
 ```
 
-装进本项目的 Codex / Claude / Grok / Qoder / AGENTS 配置目录（Claude 另含 `.claude/agents` 命名子代理）。覆盖已有安装请加 `--force`；卸载先预览：`uninstall-skill --platform all --dry-run --json`。协调状态、项目地图和知识库默认写 `~/.jj-flow`；写入须经你确认。
+装进本项目的 Codex / Claude / Grok / Qoder / AGENTS 配置目录（Claude 另含 `.claude/agents` 命名子代理）。覆盖已有安装请加 `--force`；卸载先预览：`uninstall-skill --platform all --dry-run --json`。同一资产只装一处：另一层级已有同名入口时默认跳过并提示，避免出现重复的 `/jj-init`。协调状态、项目地图和知识库默认写 `~/.jj-flow`；写入须经你确认。
 
 ## 我该用哪个？
 
