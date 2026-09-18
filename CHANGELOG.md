@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+暂无。
+
+## 0.2.5 — 2026-09-18 15:37
+
 - **移除 skill-zh-bridge**：删除 `docs/skill-zh-bridge/`；英文 skill 协议以 `skills/` 为唯一 SSOT，中文用户说明仅保留在 `docs/commands/` 等站点页。同步 `docs/writing-guide.md`、design-docs 入口、`harness-manifest.json` 排除清单与 `scripts/check-project.mjs`。已完结的 exec-plans / evaluations 历史路径不回溯改写。
 - **jj-dispatch 按 skill-design-principles 收敛**：Gates / CREATE 决策表详文移入 `references/happy-path.md`；入口保留紧凑门禁与 Failure recovery。目录配置与 Host contract 改为指针；MUST NOT 收敛为 Hard constraints。real-host 验收横幅说明移至 happy-path。合约：`tests/jj-dispatch-contract.test.mjs`。
 - **jj-end / jj-review 按 skill-design-principles 收敛**：`jj-end` 入口只留 runner 步骤与 Final Response，Integration / Invariants 详表移入 `git-policy.md`；finish 行模板以 SKILL 为唯一正文。`jj-review` Red-light 只留独特禁令；`host-review.md` 以宿主矩阵与映射表为主，操作步骤指向 SKILL 的 Immediate actions。合约：`tests/jj-end-contract.test.mjs`、`tests/jj-review-contract.test.mjs`。
