@@ -15,7 +15,7 @@ Claude Code uses the same session-host Mode S path as Grok. Control-plane schema
 | Session handle | Current Claude Code conversation UUID |
 | Env fallbacks | `CLAUDE_SESSION_ID` / `CLAUDE_CODE_SESSION_ID` / `CLAUDE_CONVERSATION_ID` if the host exposes them |
 | Missing multi-session APIs | **Degrade Mode S** (same as Grok gate 5). Do not BLOCK the whole wave. |
-| Subagents / Task tool | Not BIND identity. Mode S may share one coordinator session across `task_key`s. |
+| Subagents / Task tool | Not BIND identity. Mode S may share one coordinator session across `task_key`s. Independent-project `$jj-same` writes may be parallel; same-project writes stay serial. |
 | Wave 2 / A2 | **Not closed** on this path. Skill install is not real-host acceptance. |
 
 ## BIND minimum

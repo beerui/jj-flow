@@ -78,6 +78,13 @@
       "note": "experimental; minimal runner (episode-validate + evaluated_ops); no Claude command; do not invent /jj-evaluated slash"
     },
     {
+      "id": "jj-team",
+      "claude_command": "jj-team.md",
+      "user_invocable": true,
+      "platforms": ["codex", "qoder", "grok", "claude"],
+      "note": "Team-mode umbrella entry (CCteam-creator protocol). Measures real parallelism before sizing a roster; then stands up a persistent team or routes to a sibling engine. State under ~/.jj-flow/team/<slug>/; does not advance ralph/dispatch checkpoints; does not write a repo-root CLAUDE.md; generic review rubric RD-1..RD-4. Design: docs/design-docs/jj-team.md"
+    },
+    {
       "id": "jj-team-coordinate",
       "claude_command": "jj-team-coordinate.md",
       "user_invocable": true,

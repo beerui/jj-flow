@@ -36,7 +36,7 @@ Trigger → first fix → still failed. CREATE freshness detail → [happy-path.
 | Branch/workspace uncertain or `confidence=low` | Output decision table; ask user | 🛑 no DISPATCH until written confirm |
 | CREATE needed, `behind_count>0`, local `master` clean | `git fetch` → `FF_LOCAL_MASTER` → `CREATE_FROM_LOCAL_MASTER` (`checkout -b <feat> master`) | Dirty/diverged / cannot fetch: `NEEDS_CONFIRM` or `BLOCKED`; no silent `reset --hard` |
 | Codex missing REQUIRED capabilities | BLOCKED; plane unchanged | Do not forge APIs or projectless degrade |
-| Grok / Claude missing multi-session caps | **Degrade Mode S** (serial + project-branch) | Still forbid synthetic `session-…` faking BOUND |
+| Grok / Claude missing multi-session caps | **Degrade Mode S** (shared coordinator BIND + project-branch; independent-project writes may be parallel) | Still forbid synthetic `session-…` faking BOUND |
 | RECONCILE 0 or many thread candidates | This call BLOCKED; intent stays `UNKNOWN` | User picks handle → manual BIND |
 | User says “done / VERIFIED” without evidence | Cap at `EVIDENCE_READY`/`RUNNING` | 🛑 no VERIFIED until commit+review+session+attestation file |
 | No CLI for tick/closeout | Agent writes plane/attestation/receipt per agent-write-plane; optional `plane-self-check.mjs` | Self-check C5/C6 fail → fix plane, do not raise status |
@@ -118,7 +118,8 @@ Grok (`host_id=grok-build`) and Claude (`host_id=claude-code`) share session-hos
 | Question | Answer |
 | --- | --- |
 | Protocol multi-task? | Yes (multiple task_key) |
-| Default multi session? | **No** (Mode S). Mode P is opt-in child session 1:1 per write `task_key` |
+| Default multi session BIND? | **No** (Mode S shares the coordinator session). Mode P is opt-in child session 1:1 per write `task_key` |
+| Independent-project writes? | **Yes, parallel** under Mode S via `$jj-same` implementers (different `project_id` / cwd). Same-project writes stay serial. Subagents do **not** BIND. Mode P is **not** required for that parallelism |
 | Isolation worktree? | **Mode W**: exclusive-worktree on a **named branch tip** |
 | Must use Workflow / Task as checkpoint? | **No**; subagents **must not** advance checkpoints or BIND |
 | User runs CLI? | **No**; Agent writes attestation/receipt/plane |
@@ -146,7 +147,7 @@ Conversational `$jj-dispatch` never runs this table. Agent writes plane as docum
 
 - Rollback → [rollback.md](references/rollback.md). Default **no** auto merge/push/force-push.
 - Host actions / capabilities → [host-action-contract.json](references/host-action-contract.json): actions `CREATE_THREAD` / `RECONCILE_THREAD`; capabilities `list_projects` / `list_threads` / `create_thread` / `read_thread` / `send_message_to_thread` / `worktree` / `sandbox`. Write default `project-branch`; isolation → `exclusive-worktree`. Roles → [control-project.md](references/control-project.md).
-- `$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, research in each target repo, then spawn with **人设提示词** prefix. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 人设提示词. Do not parent-`search_replace` after DISPATCH. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
+- `$jj-dispatch` = control plane, not sync implementer. Approved targets hand to `$jj-same` **conversational path** (客服): write this-round `ASSIGNMENT-RESEARCH` / `ASSIGNMENT-HANDOFF`, then spawn **this turn per independent target** (research, then implementers) with **人设提示词** prefix. Same-project writes stay serial. `distribution_prompt` is a plane index (delivery / source sha / approved keys) — **not** the worker spec and **not** 人设提示词. Do not parent-`search_replace` after DISPATCH. Legacy `source=A targets=B,C` → `origin_project/requirement_owner/lead_project=A`, `reference_implementation=null`, `targets=[B,C]`.
 
 ## Hard constraints
 

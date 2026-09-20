@@ -122,6 +122,8 @@ export function ensureJjFlowHome({
       '| `knowledge/` | Global knowledge index (`index/search.json`) |',
       '| `.workflow/dispatch/` | Multi-project dispatch state |',
       '| `.workflow/tasks/` | Task index |',
+      '| `memory/` | Per-project hot memory (`<project_key>.md`) |',
+      '| `team/` | Team-mode state (`/jj-team`, `<project_key>/`) |',
       '',
       'Do not put business source code here.',
       'Join the map and bootstrap knowledge via `$jj-init` after the user agrees.',

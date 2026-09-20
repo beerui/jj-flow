@@ -18,14 +18,16 @@ Claude Code reuses the same Mode S/W/P rules with `host_id=claude-code`. See [cl
 | Question | Ruling |
 | --- | --- |
 | Is the protocol “multi-task”? | **Yes**: multiple `task_key` / responsibility |
-| Is Grok **default execution** multi-session? | **No**. Default **Mode S**: one coordinator session completes serially |
+| Is Grok **default BIND** multi-session? | **No**. Default **Mode S**: one coordinator session BIND, shared across write `task_key`s |
+| Independent-project writes? | **Yes, parallel** under Mode S via `$jj-same` implementers (different `project_id` / cwd). Same-project writes stay serial. Subagent ids are not BIND identity |
 | Must use Grok **Workflow (Rhai)**? | **No**. Workflow may explore / parallel read-only; **must not** advance control-plane checkpoints or replace receipts |
-| When multi-session / Mode P? | Opt-in when Mode S throughput is insufficient; child session 1:1 per write `task_key`; **not default** |
+| When multi-session / Mode P? | Opt-in when a **distinct child session BIND** per write `task_key` is wanted (1:1); **not default**; **not** a prerequisite for parallel implementers |
 
 ```text
 User-visible: business-repo natural language → PREVIEW → approve → implement → commit/closeout
-Grok default execution: Mode S (single-session serial + project-branch)
-Optional acceleration: Mode W (isolation worktree) | Mode P (opt-in child session 1:1) | Workflow (not truth source)
+Grok default BIND: Mode S (shared coordinator session + project-branch)
+Grok default execute: independent-project `$jj-same` writes may be parallel; same-project writes serial
+Optional: Mode W (isolation worktree) | Mode P (opt-in child session BIND 1:1) | Workflow (not truth source)
 Truth source: control_root control-plane.json + attestations + receipts + git commit
 ```
 
@@ -89,9 +91,11 @@ Upgrade goals: **prevent 1–2 becoming default; fold 3 into Mode S; write 4 int
 ## 3. Execution modes
 
 ```text
-Mode S — Session Serial (default, Grok MVP)
-  One coordinator session completes each task_key serially.
-  handle = real coordinator session id (multiple task_key may share the same id).
+Mode S — Shared coordinator session (default)
+  BIND: one real coordinator session id shared across write task_keys.
+  Execute: `$jj-same` may spawn write implementers this turn in parallel for independent projects
+    (different project_id / cwd). Same-project writes stay serial (`depends_on` / active-writer).
+  handle = real coordinator session id (not a subagent id).
   workspace = project-branch @ project.path.
   progress notes execution=same-session | execution_mode=S.
 
@@ -99,19 +103,20 @@ Mode W — Worktree Isolated
   exclusive-worktree, named branch tip, forbid silent detached.
   Only when: main repo has unrelated dirty, same-project active write, or user requires isolation.
 
-Mode P — Parallel Sessions (opt-in, not default)
-  One real child session per write task_key (1:1). Workspace stays project-branch.
+Mode P — Distinct child-session BIND (opt-in, not default)
+  One real child session BIND per write task_key (1:1). Workspace stays project-branch.
   Isolation still requires Mode W; Mode P + isolation → BLOCKED.
   Do not promote a temporary subagent / Workflow run id to the bound session.
+  Mode P is **not** required for parallel `$jj-same` implementers on independent projects.
 ```
 
 ### 3.1 Selection
 
 | Condition | Mode |
 | --- | --- |
-| Default / targets ≤3 / small ADAPT | **S** |
+| Default / targets ≤3 / small ADAPT | **S** (BIND shared; independent-project writes may be parallel) |
 | isolation | **W** |
-| User requests parallel / S throughput insufficient (opt-in) | **P** |
+| User requests a **distinct child session BIND** per write `task_key` | **P** |
 | Same project multi-write | forbid parallel; `depends_on` serial |
 
 ### 3.2 vs Codex / Workflow
@@ -134,7 +139,7 @@ Contract `REQUIRED_APP_CAPABILITIES` as written for Codex is often incomplete on
 
 - Cannot multi-session create/list → **enter Mode S**; do not fake whole-wave BLOCKED and stall.
 - Do not use placeholder sessions to fake BOUND.
-- Real session id + attestation file → may BIND. Mode S may share one coordinator session; Mode P write `task_key` must use a distinct child session.
+- Real session id + attestation file → may BIND. Mode S may share one coordinator session; independent-project `$jj-same` writes may still be parallel. Mode P write `task_key` must use a distinct child session.
 - Still C3: no `produced_commit` → no VERIFIED.
 
 ---
@@ -150,7 +155,7 @@ INTAKE (CONFIRMED)
        persist intents PENDING_THREAD
        Mode S: BIND real session + write attestation file
        (do not create fake sessions; do not force Mode P)
-  → EXECUTE (same-session serial project-branch)
+  → EXECUTE (same-session BIND; independent-project `$jj-same` HANDOFF may be parallel)
        write code → minimal verify → write receipt → git commit → produced_commit
   → advance plane (Agent disk write follows C3; optional plane-self-check / dispatch-tick)
   → VERIFIED only when commit-level evidence is complete
@@ -252,7 +257,7 @@ Natural-language “done” must not advance checkpoints.
 
 ## 6. Skill behavior (effective immediately on Grok)
 
-1. **Default Mode S**; do not unapproved parallel multi-repo writes (serial OK).
+1. **Default Mode S BIND** (shared coordinator session). Independent-project write implementers **may spawn this turn in parallel**. Same-project writes stay serial. Mode P is only for distinct child-session BIND, not a prerequisite for that parallelism.
 2. PREVIEW includes branch table + `proposed_mode=S|W|P`.
 3. Source MUST changes uncommitted → **do not write DISPATCH for targets**.
 4. intent: `host_id=grok-build`, `handle_kind=session`, `thread_id`=real session; **every BOUND intent (including review) writes attestation file (C4)**.
@@ -349,6 +354,8 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 - Placeholder session id
 - Workflow/subagent directly marks VERIFIED
 - Same-project parallel write without depends_on
+- Treating Mode S as “must spawn one implementer at a time across different projects”
+- Requiring Mode P before parallel `$jj-same` implementers on independent projects
 
 ---
 
@@ -358,6 +365,7 @@ Without CLI the skill **must** hand-write equivalent attestation/receipt/plane f
 | --- | --- | --- |
 | 2026-07-30 | Grok defaults Mode S | no mature multi-session API; small live edits already work; aligns with same |
 | 2026-07-30 | multi-session/Mode P deferred | fake BIND risk > throughput gain |
+| 2026-09-20 | Mode S independent-project writes may be parallel | Session `01a0b4a7` serialized HANDOFF after parallel RESEARCH; user model is different subagents per project. BIND stays coordinator-shared. Mode P remains distinct-session BIND, not a spawn gate |
 | 2026-09-01 | Mode P mechanical opt-in | RECONCILE/attestation landed; write session 1:1; not default; isolation still Mode W |
 | 2026-07-30 | Workflow not checkpoint authority | Rhai runtime ≠ control-plane CAS |
 | 2026-07-30 | user does not run CLI | Agent disk write + optional self-check |

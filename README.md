@@ -43,7 +43,7 @@ npx @brewer/jj-flow@latest install-skill --platform all --project
 
 **快速判断：** 一个仓用 **ralph**；要搬家用 **same**；多个仓统一批准用 **dispatch**；只收工用 **end**。不想记入口时，直接说 `$jj` / `/jj`，由它帮你选择入口。
 
-可选（**不算**验收通过）：team-coordinate 多角色、team-lifecycle 固定 SDLC、team-swarm 多方案搜索、evaluated 离线复盘。
+可选（**不算**验收通过）：team 常驻团队、team-coordinate 多角色、team-lifecycle 固定 SDLC、team-swarm 多方案搜索、evaluated 离线复盘。
 
 ## 对话怎么说
 

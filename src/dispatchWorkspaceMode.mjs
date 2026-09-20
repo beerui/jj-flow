@@ -1,9 +1,12 @@
 /**
  * Grok Mode S/W/P selection and PREFLIGHT #5 (pure; no git).
  *
- * Mode S = coordinator session serial + project-branch at project.path.
+ * Mode S = shared coordinator BIND + project-branch at project.path.
+ *   Independent-project writes may run in parallel via `$jj-same` subagents;
+ *   same-project writes stay serial. Subagent ids are not BIND identity.
  * Mode W = exclusive-worktree on a named branch tip (isolation).
- * Mode P = opt-in child session 1:1 per write task_key; still project-branch.
+ * Mode P = opt-in child session 1:1 BIND per write task_key; still project-branch.
+ *   Mode P is not required for parallel implementers on independent projects.
  *
  * Isolation is an explicit signal (dirty main / active write / user request).
  * Mode P is not default and cannot satisfy isolation (use Mode W).

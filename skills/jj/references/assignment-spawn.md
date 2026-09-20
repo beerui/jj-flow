@@ -18,6 +18,8 @@ Parent is team-lead. `$jj-ralph` / `$jj-review` / `$jj-same` follow these rules 
 
 A live `[reviewer]` still running → **do not spawn** another slice (including `$jj-same` / RESEARCH). Announce 审查还在跑; keep `[reviewer]` labeled. Occupancy wins over spawn-this-turn. `send_subagent_message` only steers that live child, never a different slice.
 
+Multiple live `[research]` / `[implementer]` **this turn** are allowed when **cwd differs** (independent projects). Same cwd write stays serial. Do not serialize independent-project HANDOFF behind Mode S.
+
 ## Resume
 
 Same type + same cwd + completed → `resume_from` that id with a new exclusive assignment.

@@ -1737,6 +1737,15 @@ test('dispatch skill brief template includes hot memory injection', () => {
   assert.match(skill, /ASSIGNMENT-RESEARCH/);
   assert.match(skill, /ASSIGNMENT-HANDOFF/);
   assert.match(skill, /人设提示词/);
+  assert.match(skill, /Independent-project writes\?/);
+  assert.match(skill, /Yes, parallel/);
+  assert.match(skill, /this turn per independent target/);
+  assert.match(skill, /Same-project writes stay serial/);
+  const grokExec = fs.readFileSync(new URL('../skills/jj-dispatch/references/grok-dispatch-execution.md', import.meta.url), 'utf8');
+  assert.match(grokExec, /Independent-project writes\?/);
+  assert.match(grokExec, /may spawn this turn in parallel/);
+  assert.match(grokExec, /Mode P is \*\*not\*\* required for parallel/);
+  assert.doesNotMatch(grokExec, /do not unapproved parallel multi-repo writes/);
   assert.match(skill, /distribution_prompt` is a plane index/);
   assert.match(skill, /not\*\* the worker spec/);
   assert.doesNotMatch(skill, /G-same-1/);

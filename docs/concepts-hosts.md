@@ -13,13 +13,14 @@
 
 ## Grok / Claude 的「一个会话做完」（Mode S）
 
-- 默认：**不用** 为每个任务再开一个会话  
+- 默认：**不用** 为每个任务再开一个会话；多个写任务绑在当前这条会话上
+- 不同项目可以由不同执行人 **同时** 改；同一项目仍一次一个写手
 - 状态仍写在调度记录里，不靠聊天当作账本
 - **不用** 你手动敲命令行
 
 主仓有无关脏文件、或你明确要求隔离时，改用 **Mode W**：单独 worktree + **命名的功能分支**，不要 detached HEAD。Mode W 只是工作区拓扑，**不能**当作真宿主验收。
 
-用户明确要求并行、且不需要 isolation 时，可用 **Mode P**：每个写任务绑定一个真实子会话（1:1），工作区仍是 project-branch。不能用 placeholder session 冒充多会话；临时 subagent 不能当作持久 session。Mode P + 隔离需求 → 停下来改用 Mode W。
+用户明确要求 **每个写任务另绑一个真实子会话**、且不需要 isolation 时，可用 **Mode P**（1:1），工作区仍是 project-branch。不同仓同时改 **不必** 先开 Mode P。不能用 placeholder session 冒充多会话；临时 subagent 不能当作持久 session。Mode P + 隔离需求 → 停下来改用 Mode W。
 
 Mode W / Mode P 只是工作区与会话的拓扑，**不能**因此上调无人值守等级（A3 / A4 仍要真宿主验收）。日常用法见 [dispatch](commands/jj-dispatch.md)。
 

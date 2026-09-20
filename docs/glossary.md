@@ -16,7 +16,7 @@
 | 调度记录 / control-plane | 多项目派发的状态文件 |
 | 验收通过 / VERIFIED | 记录和证据齐了；**不等于** 已推送远端 |
 | 功能分支 / project-branch | 默认在命名好的 feature 分支上改 |
-| Mode S | Grok 上：尽量 **一个会话** 串行完成多个任务 |
+| Mode S | Grok / Claude 上：多个写任务绑在 **同一个会话**；不同项目可同时派执行人，同一项目仍串行 |
 | PENDING | 证据不够，不能当「已通过」 |
 | 证据 | 提交、审查文件、调度记录等 **可核对** 的东西 |
 | intensity（tiny / standard / strict） | 分析、计划写多详细、验收多严；对话路径一律五步，tiny 只是写得更短 |

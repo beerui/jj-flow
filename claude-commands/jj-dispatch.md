@@ -17,7 +17,7 @@ User: $ARGUMENTS
 
 Authoritative procedure: `skills/jj-dispatch/SKILL.md` (multi-host SSOT). This file is a thin Claude entry only.
 
-host_id=`claude-code`, handle_kind=`session`. Default **Mode S**: current Claude conversation, serial, project-branch. Isolation → Mode W. Subagents are not BIND identity.
+host_id=`claude-code`, handle_kind=`session`. Default **Mode S**: current Claude conversation BIND, project-branch; independent-project `$jj-same` writes may be parallel. Isolation → Mode W. Subagents are not BIND identity.
 
 1. **PREVIEW** first; do not write intent until the user approves this round’s `task_keys`.
 2. **BIND** the current Claude session UUID (`CLAUDE_SESSION_ID` / `CLAUDE_CODE_SESSION_ID` if present). No `session-*-YYYYMMDD`.
