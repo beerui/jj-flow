@@ -158,6 +158,33 @@ test('Harness check rejects a removed entrypoint presented as current', () => {
   });
 });
 
+// non_documentation_paths 是 doc-scan-surface 的第二条解释规则。这两条规则各有一
+// 种坏法看起来都不像自己坏了：一条指向不存在的路径时不报错，只让差集里少一条解释，
+// 表现是某个新文件突然「未解释」；一条同时落在当前文档面上时，「为什么这个文件不在
+// 表格 lint 面里」会有两个答案。所以两条都必须是红的——没有反面控制的守卫不是守卫。
+test('Harness check rejects a non_documentation_paths entry that is not on disk', () => {
+  withTemporaryManifest((manifest, tempDir) => {
+    manifest.documentation_policy.non_documentation_paths = [repositoryRelative(path.join(tempDir, 'vanished-tree'))];
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    assert.ok(result.findings.some((finding) => finding.rule_id === 'HNS-DOC-010' && /vanished-tree$/.test(finding.path)));
+  });
+});
+
+test('Harness check rejects a path declared both current documentation and non-documentation', () => {
+  withTemporaryManifest((manifest) => {
+    manifest.documentation_policy.non_documentation_paths = ['README.md'];
+  }, (manifestPath) => {
+    const result = checkHarnessRepository({ manifestPath });
+    assert.equal(result.ok, false);
+    const finding = result.findings.find((item) => item.rule_id === 'HNS-DOC-011');
+    assert.ok(finding, 'README.md 已在 current_files 里，两边都声明必须报');
+    assert.equal(finding.path, 'README.md');
+    assert.ok(finding.next_action);
+  });
+});
+
 test('Harness check requires every design doc to be indexed', () => {
   withTemporaryManifest((manifest, tempDir) => {
     const designDir = path.join(tempDir, 'design-docs');

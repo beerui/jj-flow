@@ -322,19 +322,16 @@
     }
   ],
   "documentation_policy": {
-    "current_roots": ["docs"],
+    "current_roots": ["docs", "skills"],
     "current_files": [
       "README.md",
       "AGENTS.md",
       "ARCHITECTURE.md",
-      "skill-inventory.json",
-      "skills/jj/SKILL.md",
-      "skills/jj-ralph/SKILL.md",
-      "skills/jj-dispatch/SKILL.md",
-      "skills/jj-end/SKILL.md"
+      "skill-inventory.json"
     ],
     "site_builder": "docs/.vitepress/sidebar.mjs",
     "excluded_paths": ["docs/other", "docs/evaluations"],
+    "non_documentation_paths": ["agents", "claude-commands", "examples", ".github", "scripts/lab-overlays", "CHANGELOG.md"],
     "removed_entrypoints": [
       "$jj-delivery",
       "/jj-delivery",

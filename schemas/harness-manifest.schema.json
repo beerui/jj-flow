@@ -75,6 +75,12 @@
         "current_files": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/repositoryPath" } },
         "site_builder": { "$ref": "#/$defs/repositoryPath" },
         "excluded_paths": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/repositoryPath" } },
+        "non_documentation_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/repositoryPath" },
+          "description": "Markdown the repo owns that is not current documentation at all — the install-skill distribution sources, example fixtures, templates, the release-please root changelog. scripts/doc-scan-surface.mjs uses this key (with excluded_paths) to require every file in the gap between the two lint surfaces to be named. Matching is excluded_paths' own: an entry matches the path itself or anything under it."
+        },
         "removed_entrypoints": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "negative_context_markers": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "removed_outputs": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },

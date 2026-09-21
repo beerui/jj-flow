@@ -53,6 +53,7 @@
     "docs:preview": "vitepress preview docs",
     "docs:check": "node scripts/check-docs.mjs",
     "docs:pointers": "node scripts/lint-doc-pointers.mjs",
+    "docs:surfaces": "node scripts/doc-scan-surface.mjs",
     "lab:check": "node scripts/lab-check.mjs --suite mechanical --json",
     "evaluated:check": "node skills/jj-evaluated/scripts/evaluated_ops.mjs regression --dir evals/regression --json",
     "verify": "npm run ralph:check && npm run end:check && npm test && npm run check && npm run harness:check && npm run harness:gc && npm run scenario:check && npm run host:trial && npm run docs:check && npm run evaluated:check && npm run lab:check",

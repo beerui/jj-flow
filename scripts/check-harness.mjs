@@ -363,6 +363,22 @@ function checkDocumentationPolicy({ cwd, policy, addFinding, stats, manifestPath
   const excluded = (Array.isArray(policy.excluded_paths) ? policy.excluded_paths : [])
     .map((entry) => resolveRepositoryPath(cwd, entry, addFinding, 'HNS-DOC-002'))
     .filter(Boolean);
+  // non_documentation_paths 是 doc-scan-surface 的第二条解释规则。声明它就要让它
+  // 活着：一条指向不存在路径的规则不会报错，只会让扫描面差集里少一条解释——
+  // 而少一条解释的表现是某个新文件突然「未解释」，看起来像别的地方坏了。
+  const nonDocumentation = (Array.isArray(policy.non_documentation_paths) ? policy.non_documentation_paths : [])
+    .map((entry) => resolveRepositoryPath(cwd, entry, addFinding, 'HNS-DOC-009'))
+    .filter(Boolean);
+  for (const target of nonDocumentation) {
+    if (!fs.existsSync(target)) {
+      addFinding(
+        'HNS-DOC-010',
+        target,
+        'non_documentation_paths 声明的路径不存在。',
+        '恢复该路径或从 documentation_policy.non_documentation_paths 移除。'
+      );
+    }
+  }
   const documentFiles = new Set();
   for (const rootEntry of Array.isArray(policy.current_roots) ? policy.current_roots : []) {
     const root = resolveRepositoryPath(cwd, rootEntry, addFinding, 'HNS-DOC-003');
@@ -381,6 +397,20 @@ function checkDocumentationPolicy({ cwd, policy, addFinding, stats, manifestPath
       continue;
     }
     documentFiles.add(file);
+  }
+
+  // 一个文件不能同时是「当前文档」和「不是文档」。两边都声明的话，
+  // doc-scan-surface 的差集里就有一个被两条规则同时解释的文件，而它报的是第一条
+  // 命中的规则——于是「为什么这个文件不在表格 lint 面里」有两个答案，等于没有答案。
+  for (const file of documentFiles) {
+    if (nonDocumentation.some((entry) => isWithin(file, entry))) {
+      addFinding(
+        'HNS-DOC-011',
+        file,
+        '同一路径既在当前文档面里、又在 non_documentation_paths 里。',
+        '从其中一个声明里移除它。'
+      );
+    }
   }
 
   const removedEntrypoints = Array.isArray(policy.removed_entrypoints) ? policy.removed_entrypoints : [];

@@ -8,7 +8,7 @@ description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style 
 > **Layer:** execution engine (not a delivery control path)
 > **Upstream protocol:** Claude `CCteam-creator` (persistent teammates + planning-with-files)
 > **Product id / install dir:** `jj-team`
-> **State root:** `<main checkout>/.workflow/.team/TEAM-<project_key>-<YYYYMMDD>/` (`$JJ_FLOW_HOME` moves only the fallback root; resolved by `src/homeLayout.mjs`)
+> **State root:** `<main checkout>/.workflow/.team/TEAM-<project_key>-<YYYYMMDD>/` (`$JJ_FLOW_HOME` moves only the fallback root). Resolution — the main-checkout rule, the two git commands, and the fallback table — has exactly one copy, in [specs/state-layout.md](specs/state-layout.md); read it there rather than trusting a restatement here. `src/homeLayout.mjs` resolves **only** that fallback root (`$JJ_FLOW_HOME || ~/.jj-flow`) and the `~/.jj-flow/` home files — it has no `.team/` resolver, so it is not what picks the root above.
 > **Design:** [docs/design-docs/jj-team.md](../../docs/design-docs/jj-team.md)
 
 Team-mode entry. Two jobs: **measure how much work can actually run in parallel**, then **provision the team sized by that number**.

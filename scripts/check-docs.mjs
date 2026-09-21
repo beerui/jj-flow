@@ -33,6 +33,18 @@ if (lintDocTables([], { cwd: ROOT, manifest }) !== TABLE_LINT.clean) {
   failCheck('文档表格结构缺陷（见上方 doc-tables 输出）');
 }
 
+// 2b. 两条文档 lint 的扫描面差集。指针 lint 取 git、表格 lint 取 manifest 的
+//     documentation_policy，两个面从来不是一样宽，而没有任何东西数过这个差。这里补上：
+//     差集里每个文件都必须被 manifest 一条有名字的规则解释（excluded_paths 或
+//     non_documentation_paths），解释不了的非零即红。放在构建之前，理由同第 2 步。
+//     差集本身多大不在这里钉：它会随仓自己长，要盯的是「没有无名文件」。
+const { main: docScanSurface, EXIT: SURFACE } = await import(
+  pathToFileURL(path.join(ROOT, 'scripts/doc-scan-surface.mjs')).href
+);
+if (docScanSurface([], { cwd: ROOT, manifest }) !== SURFACE.clean) {
+  failCheck('两条文档 lint 的扫描面差集里有未解释文件（见上方 doc-scan-surface 输出）');
+}
+
 // 3. 构建到临时目录（dead link 在这里暴露）
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
 const build = spawnSync(

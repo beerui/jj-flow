@@ -89,9 +89,9 @@ jj-flow 主路径不变：
 **两条代价，明说：**
 
 1. **兜底路径上账本不随仓走。** 第二个克隆该仓的开发者看不到团队状态。这是兜底换来的代价；若日后可分享性成为硬需求，那是**新设计**，不是在仓里加一个指向 home 的指针文件——两个落点比一个更糟。
-2. **一个 `project_key` 默认一个活跃团队。** 真正并发的第二个团队在目录名后加 `-<n>`，靠文件内的 `project_key`（权威）而非目录名被找到。
+2. **一个 `project_key` 默认一个活跃团队。** 真正并发的第二个团队在目录名后加 `-<n>`，而**发现靠的是目录名 glob**——`read <team root>/TEAM-<project_key>-*/team-session.json`，仓内与兜底两条路径是同一句，没有第二种发现方式。文件内的 `project_key` 是**身份权威**：它回答「这个团队叫什么」，不回答「目录名拼对没有」，并且**不是从目录名推出来的**。
 
-**`project_key` 的权威位置是 `team-session.json` 的那个字段**，目录名只是便利。需要**计算**键时，产品里只有一份实现：`resolveProjectKeyFromCwd`（`src/projectMap.mjs`）。如实记一笔：**jj-team 路径上一个调用方都没有**（jj-team 没有运行时），所以不能写成「团队键由它解析」；它同时是 `~/.jj-flow/memory/<pk>.md` 的命名函数，那才是必须与它一致的硬理由。搬迁之后这条发现的分量也削弱了——发现根变成仓内目录后，`project_key` 不再回答「我找不找得到这个团队」，只回答「这个团队叫什么」；它只在兜底路径里仍是发现键，那一处仍须以代码为准。
+**`project_key` 的权威位置是 `team-session.json` 的那个字段**，目录名只是便利。需要**计算**键时，产品里只有一份实现：`resolveProjectKeyFromCwd`（`src/projectMap.mjs`）。如实记一笔：**jj-team 路径上一个调用方都没有**（jj-team 没有运行时），所以不能写成「团队键由它解析」；它同时是 `~/.jj-flow/memory/<pk>.md` 的命名函数，那才是必须与它一致的硬理由。搬迁之后这条发现的分量也削弱了——发现根变成仓内目录后，`project_key` 不再回答「我找不找得到这个团队」，只回答「这个团队叫什么」；**发现键在两条路径上都是目录名 glob**，所以它连兜底路径上的发现键都不是——那一处仍须以代码为准。
 
 **本次改动了 `src/homeLayout.mjs`**：home README 是 `~/.jj-flow/` 结构的 SSOT，`team/` 那一行的描述必须说清它是**兜底落点**，否则下一个读 README 的 agent 会以为它是一个全局层。改动仅限 README 文本一行，镜像 `skills/jj-ralph/scripts/lib/homeLayout.mjs` 由 `ralph:check` 强制同步（`scripts/sync-ralph-skill-lib.mjs` 规定单向拷贝：`src/homeLayout.mjs` → 副本；两份都手改 = 一次 FAIL，且错因看起来像别的地方）。注意 `writeIfMissing` 语义：**已存在的 home README 不会被回填**。
 
