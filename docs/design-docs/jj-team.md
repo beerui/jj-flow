@@ -136,6 +136,8 @@ skill 必须说明「一轮没有调用 `/jj-team` 的对话」该怎么处理�
 
 一条公式，不设例外：`implementers = 测得道数`；researcher / reviewer 按活的性质加，**不从道数推导**。一条规则比一条带对冲的规则可测得多。
 
+公式要守的不变量在「道数」的定义上：**owner 是 team-lead 的在飞改动不是可派道**。它没有可派对象，计入就会按这条公式推出一个闲着的 implementer —— 恰是本节防腐条款要盯的失败模式。所以它和「卡在决策上」同级排除，落进 `parallelism.excluded`，而不是在公式外再开一个例外。
+
 **为什么 0 道也预置。** 0 道买到的是工作方式本身——规划文件、决策留痕、审查分离、可恢复；reviewer 一开始就在位，所以审查分离从第 0 秒成立，任何一条道一解锁就能立刻派。**但不生成任何 implementer**：0 道预置的是一个骨架，不是凑出来的人。
 
 **防腐条款（本设计最容易被侵蚀的地方）**：数字必须仍然决定花名册规模，且花名册里永远不许有闲着的 implementer。守不住这两条，门就退化成装饰。
@@ -165,7 +167,7 @@ Phase 5 结束时打一条**固定、可 grep** 的横幅：
 
 **诚实边界**：压缩后花名册可能不在上下文里，重调一次 `/jj-team` 是修复路径。若实践中这一步仍嫌重，升级方向是 `UserPromptSubmit` hook——那需要**推翻**「常驻范围=同会话、不加 hook」这条已定决策，不是悄悄加宽 skill description。
 
-**风险**：`team-snapshot.md` 的陈旧检测依赖快照头记录**已加载 skill** 各文件的修改时间（业务仓里没有 `skills/jj-team/`，必须记宿主实际加载路径）。已写入 `specs/state-layout.md`；未做机械校验。
+**风险**：`team-snapshot.md` 的陈旧检测依赖快照头记录**已加载 skill** 各文件的修改时间（业务仓里没有 `skills/jj-team/`，必须记宿主实际加载路径）。已写入 `specs/state-layout.md`，并已机械化：`skills/jj-team/scripts/snapshot_stale.mjs` 复读每个登记路径，按 0 / 1 / 2 退出码回答「新 / 旧 / 无法验证」，快照新增或删除了 skill 文件同样算旧（纯 mtime 比对看不见新增文件）；mtime 由脚本产出，不许手写。剩下的是仓库门禁摸不到 home 里的快照本身，所以机械化落在 Phase 0 / `check` / `resume` 的调用点与合约测试上，不由 `npm run verify` 代跑。
 
 ## 9. 审查维度（通用）
 
@@ -205,12 +207,12 @@ custodian 的主要价值是把反复出现的人工审查转成自动化检查�
 
 ## 12. 未关闭项
 
-- [x] **预置链路实测（2026-09-18）**：本仓 `~/.jj-flow/team/` 此前不存在，Phase 0 判定为「无活跃团队」→ 预置成功，`team-session.json` 落盘 `status: active`；量得 1 道。**花名册定为 team-lead + reviewer（`implementers = 0`）——这个 0 不是公式给的**：按 §7 的 `implementers = measured lanes`，1 道应为 1 个 implementer，真正的原因是那唯一一条道的 owner 是 team-lead 本人（见本节末条 open item）。
+- [x] **预置链路实测（2026-09-18）**：本仓 `~/.jj-flow/team/` 此前不存在，Phase 0 判定为「无活跃团队」→ 预置成功，`team-session.json` 落盘 `status: active`；量得 1 道，且那唯一一条道的 owner 是 team-lead 本人。**花名册定为 team-lead + reviewer（`implementers = 0`）**：当时这个 0 是判断得出的；`owner_is_team_lead` 落进公式之后，同一次测量现在由公式给出同一个 0——改的是道数的定义，不是给公式开特例（见本节 owner 排除条）。
 - [ ] 同会话免前缀未实测：起完之后轮次 2 裸给任务，确认仍在同一团队上下文里
 - [ ] 会话绑定只在 Claude Code 上确定可读（`CLAUDE_SESSION_ID` 优先）；Codex / Grok / Qoder 的 `unknown` 降级路径未实测
-- [ ] 快照陈旧检测目前是文档规则，未机械化（§8 风险）
+- [x] 快照陈旧检测已机械化（2026-09-20）：`skills/jj-team/scripts/snapshot_stale.mjs` 以退出码 0 / 1 / 2 回答「新 / 旧 / 无法验证」，`specs/state-layout.md` 固定 stamp 格式；调用点接进 Phase 0 / `check` / `resume`，行为由 `tests/jj-team-snapshot-stale.test.mjs` 覆盖。§8 风险段同步改写。
 - [ ] 降级宿主（串行花名册）未实测
 - [ ] **并发降级会话不可区分**（已知限制，非未处理 bug）：同一项目两个会话在读不到会话 id 的宿主上都会走「静默恢复唯一未绑定团队」这条路，resume 同一个团队 —— 文件里没有任何字段能区分它们，那条「唯一未绑定」的条件**不构成约束**。代价是两会话可能交错写 `progress.md`；不代价是不丢数据（`team-session.json` 整体重写、`progress.md` 只追加）。要真正约束需要引入会话级标记，属新设计。
 - [ ] 0 道预置的可证伪条件（§7）未到评估时点
-- [ ] **并行度公式未区分道的 owner**：team-lead 自有的在飞改动会被算成一条可派的道，从而推出一个闲着的 implementer —— 恰是 §7 防腐条款要盯的失败。候补排除项 `owner-is-team-lead`。
+- [x] **并行度公式已排除 owner 是 team-lead 的道（2026-09-20，排除项名 `owner-is-team-lead`）**：在飞改动归 team-lead 本人时不计入可派道数，与「卡在决策上」同级记进 `parallelism.excluded`；公式本身不变，改的是「道数」的定义。SKILL 测量表、`specs/state-layout.md` 字段表、`references/team-manual.md` 与合约测试同步。2026-09-18 那次 `implementers = 0` 即此例。
 - [ ] **无编号散文复述不受门禁保护**（已知限制，靠编辑纪律而非断言）：门禁只禁「设计文档出现规则编号」与「枚举会话 id 阶梯」——这两条可变异验证且不误伤合法内容。一份**不含编号、改用中文散文复述规则**的副本仍会逃逸。**不再加断言**：能抓它的断言只能对中文散文做形状匹配（正是本文件记录过的假绿），而结构化廉价比方会被 §7 自己的花名册表误伤。所以这条靠编辑时自觉 —— 但它是**具名的**限制，不是没人知道的缺口。

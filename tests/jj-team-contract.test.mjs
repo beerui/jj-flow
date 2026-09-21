@@ -122,6 +122,83 @@ test('heavy work is excluded before counting lanes', () => {
   assert.match(skill, /File-set collisions/);
 });
 
+test('the sizing formula excludes lanes owned by team-lead', () => {
+  // A lane the team-lead owns itself has nobody to dispatch it to. Counting it
+  // would make `implementers = measured lanes` spawn someone idle — the exact
+  // failure the formula's own anti-drift clause is there to catch. So the fix
+  // belongs in the definition of the count, not in an exception beside it.
+  const skill = read('skills/jj-team/SKILL.md');
+  const measure = skill.split('## Parallelism measurement')[1].split('\n## ')[0];
+  // Named as a measurement step, in the same numbered voice as the other
+  // exclusions — not buried in prose where an editor could drop it.
+  assert.match(measure, /^\d+\. \*\*Owner-is-team-lead\*\* — in-flight work the team-lead owns itself/m);
+  // ...and the formula sentence carries it. A lone list item would read as advice.
+  assert.match(measure, /A lane owned by team-lead is not an assignable lane/);
+  assert.match(measure, /excluded from it exactly like a blocked one/);
+  // The consequence stays pinned: the count must not buy an idle seat.
+  assert.match(measure, /never spawn an idle implementer/i);
+  // The field table records it inside the same excluded{} set as the other three,
+  // so a recovering session sees the same four keys.
+  const layout = read('skills/jj-team/specs/state-layout.md');
+  assert.match(
+    layout,
+    /excluded\{substantively_complete, blocked_on_decision, blocked_on_live_host, owner_is_team_lead\}/,
+    'parallelism.excluded must list all four exclusions'
+  );
+  // The manual states the rule where a teammate reads it.
+  assert.match(read('skills/jj-team/references/team-manual.md'), /owner_is_team_lead/);
+  // The design doc closed the item instead of deleting it — the closed reason is
+  // the 2026-09-18 measurement that produced implementers = 0.
+  const design = read('docs/design-docs/jj-team.md');
+  assert.match(design, /\[x\][^\n]*owner-is-team-lead/, 'the open item must be closed, by name');
+  // The example must apply the rule it just defined. It used to read
+  // "1 lane → team-lead + 1 implementer + reviewer" for the very event whose only
+  // lane the team-lead owned, i.e. a worked example that contradicts step 5.
+  // The whole paragraph, not its first line: a contradiction added further down was
+  // invisible to a first-line cut, which is how the earlier one survived a review.
+  const example = skill.split('**Worked example**')[1].split('\n\n')[0];
+  assert.match(example, /`implementers = 0`/, 'the worked example must size off the exclusion it defines');
+  assert.doesNotMatch(example, /1 implementer/, 'the worked example must not roster an implementer for an unassignable lane');
+  // ...and the closed item must not keep claiming the 0 came from outside the formula.
+  assert.doesNotMatch(
+    design,
+    /这个 0 不是公式给的/,
+    'the closed item must not contradict the exclusion now recorded in the formula'
+  );
+});
+
+test('snapshot staleness is a mechanical check, not an editorial rule', () => {
+  // The old state was a prose rule in the spec. The check now exists as code,
+  // is reachable from every call site that would otherwise trust by eye, and
+  // its behaviour is covered by tests/jj-team-snapshot-stale.test.mjs.
+  assert.ok(exists('skills/jj-team/scripts/snapshot_stale.mjs'), 'the check must ship as a script');
+  const skill = read('skills/jj-team/SKILL.md');
+  assert.match(skill, /scripts\/snapshot_stale\.mjs/);
+  // The exit contract is stated where it is used: 0 fresh / 1 stale / 2 cannot tell.
+  assert.match(skill, /`0` fresh \/ `1` stale \/ `2` unverifiable/);
+  // "Cannot tell" must not be readable as a pass — that is the whole exit code 2.
+  assert.match(skill, /Exit `2` means "cannot tell"[\s\S]{0,120}not a pass/);
+  // It is a hard boundary, not a suggestion.
+  assert.match(mustNotColumn(skill), /Trust a snapshot stamp by eye/);
+  // Both call sites that would trust the snapshot name the check.
+  assert.match(skill, /\| `check` \/ `status` \|[^|]*snapshot staleness check/);
+  assert.match(skill, /\| `resume` \|[^|]*stale or unverifiable snapshot stamp/);
+  // The spec defines the stamp format exactly once, fenced so it is parseable.
+  const layout = read('skills/jj-team/specs/state-layout.md');
+  assert.match(layout, /staleness-stamp v1/);
+  assert.match(layout, /```stamp/);
+  assert.match(layout, /scripts\/snapshot_stale\.mjs/);
+  // The design doc records it as mechanized, and the §8 risk paragraph agrees.
+  const design = read('docs/design-docs/jj-team.md');
+  assert.match(design, /scripts\/snapshot_stale\.mjs/);
+  assert.match(design, /快照陈旧检测已机械化/);
+  assert.doesNotMatch(design, /未做机械校验/, 'the design doc must not still call it un-mechanized');
+  // The user page tells the reader how to run it and that exit 2 is not a pass.
+  const page = read('docs/commands/jj-team.md');
+  assert.match(page, /snapshot_stale\.mjs --team-dir/);
+  assert.match(page, /`2` 不算通过/);
+});
+
 test('review rubric is the fixed generic four, not project-invented', () => {
   const skill = read('skills/jj-team/SKILL.md');
   for (const id of ['RD-1', 'RD-2', 'RD-3', 'RD-4']) {

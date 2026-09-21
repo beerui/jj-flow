@@ -4,7 +4,8 @@
 
 ## Unreleased
 
-暂无。
+- **`jj-team` 快照陈旧检测机械化**：`team-snapshot.md` 头部的 staleness stamp 此前只是散文规则，由人眼比对。新增 `skills/jj-team/scripts/snapshot_stale.mjs` 复读每个登记路径，以退出码回答：`0` 一致、`1` 陈旧（点名改了哪个文件）、`2` 无法验证（没有快照、stamp 读不出、skill 路径已不在）——**无法验证与通过是两回事，故单独一个退出码**。stamp 记录的是**已加载 skill** 的宿主路径（业务仓里没有 `skills/jj-team/`）与其各文件 mtime，mtime 由 `--stamp` 产出、禁止手写；skill 文件在快照后新增或删除同样判定为陈旧，纯 mtime 比对看不见这一类变化。该检查接入 Phase 0 / `check` / `resume` 三个原本靠肉眼信任快照的调用点。合约：`tests/jj-team-contract.test.mjs`、`tests/jj-team-snapshot-stale.test.mjs`。
+- **`jj-team` 并行度公式排除 team-lead 自有的道**：在飞改动归 team-lead 本人时没有可派对象，计入道数会让 `implementers = measured lanes` 推出一个闲着的 implementer，正是该公式防腐条款要盯的失败。现与「卡在决策上」同级排除，记入 `parallelism.excluded`；公式本身不变，改的是道数的定义，不是在公式旁再开一个例外。同一事件的范本随之改正：`SKILL.md` 的 worked example 与 设计文档 §12 首条原先给出「team-lead + 1 implementer + reviewer」，在那唯一一条道的 owner 是 team-lead 时与该条目自相矛盾，现按 `implementers = 0` 陈述，并由合约测试钉住（范本不套公式同样算漂移）。合约：`tests/jj-team-contract.test.mjs`。
 
 ## 0.2.7 — 2026-09-20 14:36
 

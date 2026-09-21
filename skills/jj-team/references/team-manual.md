@@ -52,6 +52,8 @@ Filled in per team. Default shape:
 
 **One sizing formula, no exceptions:** `implementers = measured lanes`. `researcher` and `reviewer` are added because the work needs them, not derived from the lane count. Never scale to a catalog.
 
+**What the count excludes.** A lane the team-lead owns itself is not an assignable lane, so it is excluded from the count exactly like a blocked one — otherwise the formula would size a roster with someone idle on it. Record it under `parallelism.excluded.owner_is_team_lead`.
+
 At **0 lanes** the roster is team-lead + `reviewer` and no implementer directories are created. The reviewer is there because review separation is real work even with nothing in flight — that is what makes a 0-lane team a team rather than a folder of documents. Never spawn an implementer with nothing to do.
 
 ## Task assignment
@@ -92,7 +94,7 @@ Direct message, no task folder, no review:
 | Fast scan | Read each teammate's `progress.md` |
 | Deep dive | Read their `findings.md` index → then the specific task folder |
 | Direction | Read the team's `task_plan.md` |
-| Recover | Read `team-snapshot.md` → check staleness → resume or spawn → read each `findings.md` index → rebuild tasks |
+| Recover | Read `team-snapshot.md` → check staleness (`scripts/snapshot_stale.mjs --team-dir <team dir>`; exit `1` = regenerate first, `2` = cannot verify) → resume or spawn → read each `findings.md` index → rebuild tasks |
 
 Read order: **progress** (where it is) → **findings** (what it hit) → **task_plan** (what the goal is).
 

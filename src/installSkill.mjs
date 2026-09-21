@@ -396,7 +396,12 @@ export function installSkill({
       fs.cpSync(item.entry.source, item.dest, {
         recursive: item.entry.kind === 'directory',
         force: true,
-        errorOnExist: false
+        errorOnExist: false,
+        // A snapshot's staleness stamp is a record of source mtimes, so a copy that
+        // restamps "now" makes every stamped file read as newer. Some platforms do
+        // that by default, so the requirement has to be stated here rather than
+        // inherited from whatever the host's copy happens to do.
+        preserveTimestamps: true
       });
       writtenByJob.add(item.job);
     }

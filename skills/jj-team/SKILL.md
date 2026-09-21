@@ -28,6 +28,7 @@ This skill is the **umbrella**. The three sibling engines stay independent and a
 | Score review on the generic rubric in [references/review-dimensions.md](references/review-dimensions.md) | Invent repo-specific review dimensions |
 | Keep reviewer read-only on source | Let reviewer edit project source |
 | Resume an existing live team instead of provisioning a second one | Auto-close a team on a timer, or fabricate a session id you could not read |
+| Check `team-snapshot.md` staleness with `scripts/snapshot_stale.mjs` (exit `0`/`1`/`2`) | Trust a snapshot stamp by eye, or hand-write an mtime into it |
 | Resolve the session binding yourself | Ask the user to paste a session id |
 
 **Identity separation:** `TEAM-*` ≠ `TC-*` ≠ `TLV4-*` ≠ `TAS-*` ≠ `RALPH-*` ≠ `DEL-*`.
@@ -44,9 +45,12 @@ Measure in this order:
 2. **Substantively-complete** — items marked active but whose remaining tasks are all done. These are **archive work, not development work**. Count them as 0.
 3. **Blocked-on-decision** — items waiting on a product decision. Count as 0 until the decision lands.
 4. **Blocked-on-live-host** — items needing a real Grok/Codex session or manual acceptance. These are **human-serial**, not agent-parallel. Count as 0 for team sizing.
-5. **File-set collisions** — items that touch the same file cannot run in parallel. Group by file set; each group is 1 lane.
+5. **Owner-is-team-lead** — in-flight work the team-lead owns itself. It is not assignable to an implementer, so counting it would size a roster with someone idle on it — the exact failure the anti-drift clause below exists to catch. Count it as 0 and name it in the report.
+6. **File-set collisions** — items that touch the same file cannot run in parallel. Group by file set; each group is 1 lane.
 
 `parallelism = number of lanes with genuinely unblocked work`
+
+**A lane owned by team-lead is not an assignable lane.** The count exists to size implementers, so a lane nobody can be dispatched to is excluded from it exactly like a blocked one. `implementers = measured lanes` then holds without an exception: the team-lead's own in-flight change costs zero implementers, not one idle seat.
 
 The number picks the roster. **It never decides whether a team exists.**
 
@@ -61,7 +65,7 @@ The number picks the roster. **It never decides whether a team exists.**
 
 **Do not let this become decorative.** Two rules keep it honest: the number must still determine the roster size, and the roster must never contain an implementer with nothing to do. If either slips, the gate has stopped paying for itself — see the falsifiable condition in design doc §5.
 
-**Worked example** (this repo, 2026-09-18): 7 active exec-plans + 1 in-flight change measured to **parallelism 1** — 3 plans were substantively complete, 3 remaining items were all optional and needed a live Grok session, and the in-flight change was already committed. 1 lane → roster of team-lead + 1 implementer + reviewer; the 3 blocked items are reported as blockers, not padded into roles. Re-measuring against the design-doc backlog gave 3 lanes, but 2 of the 3 were gated on a product decision.
+**Worked example** (this repo, 2026-09-18): 7 active exec-plans + 1 in-flight change measured to **parallelism 1** — 3 plans were substantively complete, 3 remaining items were all optional and needed a live Grok session, and the in-flight change was the team-lead's own, already committed. Step 5 applies to that lane: it has nobody to be dispatched to, so the roster sizes off **0** — team-lead + reviewer, `implementers = 0` — and the 3 blocked items are reported as blockers, not padded into roles. Re-measuring against the design-doc backlog gave 3 lanes, but 2 of the 3 were gated on a product decision.
 
 **Report the measurement before proposing a roster.** The report always leads with the number, then the blockers, then the roster it implies.
 
@@ -151,6 +155,8 @@ Recovery works instead through:
 2. `~/.jj-flow/team/<project_key>/team-snapshot.md` — full onboarding prompts, verbatim
 3. Re-invoking `/jj-team` — hits R1 and reloads [references/team-manual.md](references/team-manual.md) on demand
 
+The snapshot is only trustworthy if it is not stale, and that is **mechanical, not editorial**: `node scripts/snapshot_stale.mjs --team-dir ~/.jj-flow/team/<project_key>/` re-reads every stamped skill file and exits `0` fresh / `1` stale / `2` unverifiable. Run it before trusting the cached prompts — at Phase 0, on `check`, and on `resume`. Exit `2` means "cannot tell" (no snapshot, no parseable stamp, skill root gone); it is not a pass. Stamp format and the regeneration procedure: [specs/state-layout.md](specs/state-layout.md).
+
 At the end of Phase 5, print this banner verbatim (a stable string, so it can be found in the transcript later):
 
 ```text
@@ -203,7 +209,7 @@ User invokes /jj-team <request>
   -> Phase 3: propose the roster the number implies -> ONE confirmation
   -> Phase 4: create team-session.json + planning files -> spawn the roster
               (at 0 lanes: team-lead + reviewer only, no implementer directories)
-  -> Phase 5: write team-snapshot.md -> print the banner -> hand control to team-lead
+  -> Phase 5: write team-snapshot.md (staleness stamp emitted by scripts/snapshot_stale.mjs --stamp) -> print the banner -> hand control to team-lead
   -> Bare turns run work directly (see Session contract)
   -> Phase boundary: re-measure parallelism, re-size the roster, run harness checklist
   -> Team complete -> archive the team, update the snapshot
@@ -213,8 +219,8 @@ User invokes /jj-team <request>
 
 | Command | Action |
 | --- | --- |
-| `check` / `status` | Print roster + task state from the state files; no advancement |
-| `resume` | Reconcile state files with live agents; report drift |
+| `check` / `status` | Print roster + task state from the state files; run the snapshot staleness check (exit `1` → regenerate before trusting cached prompts); no advancement |
+| `resume` | Reconcile state files with live agents; report drift, including a stale or unverifiable snapshot stamp |
 | `remeasure` | Re-run the parallelism measurement at a phase boundary |
 | `rebuild` | Stand up a fresh roster at a phase boundary (never mid-development) |
 | `pause` | Set `status: paused`; teammates may be reaped |
@@ -233,7 +239,7 @@ User invokes /jj-team <request>
 | Re-invoked with a live team for this session | Resume, do not init |
 | Team stale (`now - last_seen_at > 14d`, no live teammates) | Print one line and offer `close`; do not close it yourself |
 | Request fits a sibling engine better | Delegate to it by name and stop |
-| `team-snapshot.md` stale vs this skill | Regenerate it; tell the user which source won |
+| `team-snapshot.md` stale vs this skill | The check exits `1` and names each changed file — regenerate the stamp (`scripts/snapshot_stale.mjs --stamp`), never re-type mtimes by hand; tell the user which source won |
 | Teammate lost after compaction | Resume from `team-snapshot.md` prompts |
 
 ## Host compatibility

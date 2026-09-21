@@ -107,6 +107,8 @@ const requiredFiles = [
   'skills/jj-same/scripts/collect-port-evidence.ps1',
   'skills/jj-same/scripts/extract_session_evidence.py',
   'skills/jj-same/scripts/README.md',
+  'skills/jj-team/scripts/snapshot_stale.mjs',
+  'tests/jj-team-snapshot-stale.test.mjs',
   'claude-commands/jj.md',
   'claude-commands/jj-same.md',
   'claude-commands/jj-dispatch.md',

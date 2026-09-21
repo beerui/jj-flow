@@ -228,6 +228,47 @@ test('installSkill agents platform writes ~/.agents and removes retired skills',
   assert.equal(fs.existsSync(path.dirname(retired)), false);
 });
 
+test('installSkill preserves source mtimes so a snapshot stamp survives a reinstall', () => {
+  // The staleness stamp records each skill source file's mtime and a copy that
+  // restamps "now" makes every stamped file read as newer — so a reinstall would
+  // turn every snapshot stale on the platforms whose copy does not preserve mtime.
+  // This is why the copy must ask for it in code instead of inheriting OS luck.
+  const startedAt = Date.now();
+  const workspace = makeWorkspace('jj-flow-install-mtime-');
+  const target = path.join(workspace, '.grok', 'skills');
+  install({ platform: 'grok', grokTargetDir: target, force: true });
+
+  const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  // The stamp records an mtime as an ISO string, i.e. at millisecond precision, so
+  // millisecond equality is the property that matters. Sub-millisecond bits cannot
+  // survive a copy, and asserting them would fail for the wrong reason.
+  const stampMtime = (abs) => fs.statSync(abs).mtime.toISOString();
+  for (const rel of [
+    path.join('jj-ralph', 'SKILL.md'),
+    // a nested file: the interesting case is the recursive copy, not the top level
+    path.join('jj-same', 'references', 'continuous-sync.md')
+  ]) {
+    const src = path.join(repoRoot, 'skills', rel);
+    const dst = path.join(target, rel);
+    // Guard against a vacuous comparison: if the source mtime were "now", equality
+    // would hold for a copy that stamped now too, and the assertion would prove nothing.
+    assert.ok(fs.statSync(src).mtimeMs < startedAt, rel + ': the source mtime must predate this run');
+    assert.equal(stampMtime(dst), stampMtime(src), rel + ' must keep the mtime of its source');
+  }
+
+  // The behaviour above is invisible on hosts whose copy preserves mtimes anyway
+  // (Windows does), so the requirement is also stated where every platform can see it.
+  // The claim is the outcome — mtimes survive the copy — and either mechanism that
+  // delivers it satisfies the claim. Naming one mechanism in the message would make a
+  // behaviourally equivalent rewrite fail with a diagnosis about the wrong thing.
+  const installSource = fs.readFileSync(path.join(repoRoot, 'src', 'installSkill.mjs'), 'utf8');
+  assert.match(
+    installSource,
+    /preserveTimestamps:\s*true|utimesSync/,
+    'installSkill must preserve source mtimes across the copy — via preserveTimestamps or an explicit utimes'
+  );
+});
+
 test('installSkill scaffolds ~/.jj-flow map and knowledge without clobbering', () => {
   const workspace = makeWorkspace('jj-flow-install-home-');
   const target = path.join(workspace, 'skills');

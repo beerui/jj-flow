@@ -69,7 +69,7 @@ Reuses the sibling shape at `skills/jj-team-coordinate/SKILL.md:241-273` where i
 | `skill_id` | reused | `"jj-team"`. |
 | `host_mode` | reused | `full \| codex-degraded \| generic-degraded` — same enum, same paths as the sibling. |
 | `host` | new | `{host_id, session_id, session_id_source, bound_at, previous_session_ids[]}`. |
-| `parallelism` | new | `{measured, measured_at, lanes[], excluded{substantively_complete, blocked_on_decision, blocked_on_live_host}}`. Drives the roster and proves the number was actually taken. |
+| `parallelism` | new | `{measured, measured_at, lanes[], excluded{substantively_complete, blocked_on_decision, blocked_on_live_host, owner_is_team_lead}}`. Drives the roster and proves the number was actually taken. |
 | `roles` | reused container | The sibling's entries are `name/prefix/responsibility_type/inner_loop/role_spec`; this skill uses only `name` / `role` / `model` / `lane`. Container name kept, fields trimmed. |
 | `tasks` | new (≙ sibling `pipeline`) | `[{task_id, description, status, created_at, closed_at}]`. The sibling's `pipeline` is a dependency DAG; this is a ledger. **Do not treat them as the same thing.** |
 | `why_team` | reused + 1 | The sibling enum (`parallel-modules \| multi-angle-analysis \| role-isolation \| capability-split \| resume-team`, per `skills/jj-team-coordinate/roles/coordinator/role.md:186`) plus `persistent-ledger`, which is for a team provisioned as a ledger rather than for concurrency — that is, whenever no implementer was spawned (`implementers == 0`). A team at 1 lane whose lane is genuinely assignable is `parallel-modules`, not `persistent-ledger`. |
@@ -137,11 +137,40 @@ Step 3 — always bump last_seen_at / updated_at
 Written once every teammate is spawned. Contains:
 
 - Generation time, project, language
-- A staleness stamp: the modification time of each file of the **loaded skill** (`jj-team/SKILL.md`, `references/*`, `specs/*`) at snapshot time. Record the host path the skill was actually loaded from, not a repo-relative guess — a business-repo team has no `skills/jj-team/` in its own tree.
+- A staleness stamp: the modification time of each file of the **loaded skill** (`SKILL.md`, plus everything under `references/`, `specs/` and `scripts/`) at snapshot time. Record the host path the skill was actually loaded from, not a repo-relative guess — a business-repo team has no `skills/jj-team/` in its own tree.
 - The roster (name, role, model) and the measured lane count
 - Every onboarding prompt, complete
 
-**Regenerate when** anything under `skills/jj-team/` changed after the snapshot. Compare the stamp against the current file times; if the sources are newer, tell the user and ask whether to resume from the cached prompts or rebuild from current sources.
+### The staleness stamp, exactly
+
+One fenced block, fence label `stamp`. Nothing else in the file may use that label.
+
+````text
+```stamp
+staleness-stamp v1
+skill_root: /absolute/path/the/skill/was/loaded/from
+generated_at: 2026-09-20T04:00:00.000Z
+SKILL.md	2026-09-20T03:12:44.123Z
+references/roles.md	2026-09-19T22:01:07.000Z
+specs/state-layout.md	2026-09-20T03:12:44.123Z
+```
+````
+
+The header line is the format version; `skill_root` and `generated_at` are `key: value`; every remaining line is a relative path, a tab, and that file's mtime in ISO-8601. **Never hand-write an mtime** — emit the block with `node scripts/snapshot_stale.mjs --stamp` (run from the loaded skill copy, so the recorded `skill_root` is the host path) and paste it in. A guessed mtime is a ledger lie that stays invisible until it misroutes.
+
+**Checking it is mechanical, not editorial.** `node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped path and exits:
+
+| Exit | Meaning |
+| --- | --- |
+| `0` | fresh — every stamped file unchanged, and no source file unaccounted for |
+| `1` | stale — a file is newer than its stamp, or a file appeared / disappeared since |
+| `2` | unverifiable — no snapshot, no parseable stamp, or the stamped `skill_root` is gone |
+
+Exit `2` is a separate code on purpose: "cannot tell" is not "changed", and folding the two together would make a missing stamp read as a pass. A file that appeared since the snapshot counts as stale even though no mtime moved — a pure mtime comparison cannot see it.
+
+Run it at Phase 0, on `check`, and on `resume` — anywhere the snapshot would otherwise be trusted by eye.
+
+**Regenerate when** anything under the skill changed after the snapshot. The check tells you that with an exit code and the name of each offending file; the fix is a new stamp from `--stamp`, then tell the user whether the cached prompts or the current sources won.
 
 ## Archiving
 
