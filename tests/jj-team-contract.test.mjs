@@ -680,29 +680,54 @@ test('Phase 0 binds a session and never fabricates an id', () => {
   assert.doesNotMatch(skill, /^R1  live/m, 'the R-table must live in exactly one file');
   // ...and the Lifecycle diagram is not a fourth copy either. It used to spell
   // `resolve + bind (R1-R6)` inline — one line standing in for six rows. O1
-  // rewrites that line into an explicit "provision a second team", which is the
-  // one outcome R6's totality clause exists to prevent, and which no phrase
-  // check on the *table* can see. So the guard is on the line itself: it must
-  // point at the spec, name the resume outcome, and offer no provisioning branch.
+  // rewrites that arrow item into an explicit "provision a second team", which
+  // is the one outcome R6's totality clause exists to prevent, and which no
+  // phrase check on the *table* can see. So the guard is on the arrow item
+  // itself: it must point at the spec, name the resume outcome, and offer no
+  // provisioning branch.
   //
-  // Why forbidding `provision` on that one line is not over-tight: R6's own row
-  // does provision (nothing found), so the line is not allowed to enumerate the
-  // table — it points. Any outcome a one-line summary *does* name is a claim
-  // about the branches, and the only claim a reader acts on is "re-invoking never
-  // quietly gives me a second team".
+  // Why forbidding `provision` on that one arrow item is not over-tight: R6's
+  // own row does provision (nothing found), so the item is not allowed to
+  // enumerate the table — it points. Any outcome the summary *does* name is a
+  // claim about the branches, and the only claim a reader acts on is
+  // "re-invoking never quietly gives me a second team".
   const lifecycle = skill.slice(
     skill.indexOf('## Lifecycle'),
     skill.indexOf('## Commands')
   );
   assert.ok(lifecycle.length > 0, 'precondition: the Lifecycle section was located');
-  const phase0 = lifecycle.split('\n').find((l) => l.includes('Phase 0'));
-  assert.ok(phase0, 'precondition: the Phase 0 line was located');
-  assert.match(phase0, /specs\/state-layout\.md/, 'the Phase 0 line points at the spec; it does not restate the table');
-  assert.match(phase0, /resume/, 'the Phase 0 line still names the resume outcome');
+  // The Phase 0 arrow item is two physical lines: the arrow line plus an
+  // indented continuation carrying R6's totality clause. Slicing to the one
+  // line that says "Phase 0" left the continuation unchecked, so moving the
+  // forbidden branch down there kept both negations green — a false green, not
+  // a gap in coverage, because the assertion message claimed to guard a line
+  // whose slice did not hold the branch it forbade. The scope is therefore the
+  // whole arrow item.
+  //
+  // The end boundary is the next arrow line rather than a literal search for
+  // "Phase 1", so the guard survives the item being reflowed to three lines;
+  // the precondition still pins that next line to Phase 1, which is the end
+  // the fix asked for and makes a lost phase loud instead of silent.
+  const lifecycleLines = lifecycle.split('\n');
+  const phase0Start = lifecycleLines.findIndex((l) => l.includes('Phase 0'));
+  assert.ok(phase0Start >= 0, 'precondition: the Phase 0 arrow item was located');
+  const phase0End = lifecycleLines.findIndex((l, i) => i > phase0Start && /^\s*->/.test(l));
+  assert.ok(phase0End > phase0Start, 'precondition: the arrow item after Phase 0 was located');
+  assert.ok(
+    lifecycleLines[phase0End].includes('Phase 1'),
+    'precondition: the arrow item after Phase 0 is Phase 1'
+  );
+  const phase0 = lifecycleLines.slice(phase0Start, phase0End).join('\n');
+  // The two positive assertions are what keep the negations from being vacuous:
+  // a slice that located nothing cannot match the spec pointer, so a green
+  // negation run is evidence the slice really held this arrow item. Dropping
+  // them would turn the negations below into a guard that cannot fail.
+  assert.match(phase0, /specs\/state-layout\.md/, 'the Phase 0 arrow item points at the spec; it does not restate the table');
+  assert.match(phase0, /resume/, 'the Phase 0 arrow item still names the resume outcome');
   assert.doesNotMatch(
     phase0,
     /provision/i,
-    'the Phase 0 line must not offer provisioning as a branch — R6 makes the table total'
+    'the Phase 0 arrow item must not offer provisioning as a branch — R6 makes the table total'
   );
   assert.doesNotMatch(
     phase0,
