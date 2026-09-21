@@ -104,7 +104,7 @@ The join key is `host.session_id`. Phase 0 resolution, first match wins:
 
 ```text
 Step 0 — identity
-  host_id, host_mode            = detect (once per session)
+  host_id, capabilities         = detect (once per session)
   session_id, session_id_source = per the host table below
   project_key                   = authoritative: the field in team-session.json;
                                   to compute one there is exactly one implementation,

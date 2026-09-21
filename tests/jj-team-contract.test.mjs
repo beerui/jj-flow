@@ -584,6 +584,15 @@ test('team-session.json reuses the sibling enums and is the Phase 0 read target'
   // next host instead of removing it, which is why the rejection is recorded.
   assert.doesNotMatch(layout, /^\| `host_mode` \|/m, 'host_mode must not remain a field of its own');
   assert.match(layout, /replaces the sibling's `host_mode`/, 'the replacement must be declared, not silent');
+  // Step 0's pseudocode must name the two bits, not the retired enum: someone
+  // executing it literally writes host_mode back into team-session.json, which
+  // is exactly what the split removed. The row-form ban above cannot see this —
+  // :107 is pseudocode inside a code fence, not a table row, so without a count
+  // the word survives in precisely the one place a reader copies from.
+  // Counted, not merely present: the guard is only real if the total is 1 (the
+  // declaration above) rather than 0, which would also pass a "must not appear".
+  const hostModeMentions = (layout.match(/host_mode/g) || []).length;
+  assert.equal(hostModeMentions, 1, 'host_mode may be named once, where the replacement is declared — found ' + hostModeMentions);
   assert.match(layout, /\{teammates, task_board\}/, 'the two capability bits must be named');
   // ...and this repo's host must be recorded by the combination that forced the
   // change. Without this the spec names two bits but never says which host has
