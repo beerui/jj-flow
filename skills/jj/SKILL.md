@@ -49,7 +49,7 @@ Decision hints:
 - **Search / ACO / adversarial multi-hypothesis** → `jj-team-swarm` (TAS-*); not for tiny edits; not a substitute for coordinate implement pipelines
 - `jj-dispatch`: install on **Codex / Qoder / Grok / Claude**; Claude slash is `/jj-dispatch` (Mode S, `host_id=claude-code`; do not write “Codex only”)
 - `jj-evaluated`: experimental; **do not** invent a `/jj-evaluated` Claude command
-- **Persistent team / team mode / 起团队 / parallel lanes** → `jj-team` (`TEAM-*` state under `~/.jj-flow/team/`); it **measures real parallelism first** and **sizes the roster** from that number — invoking it always provisions, so the count never becomes a refusal. After it provisions, a bare turn in the same session is a team task with no prefix. When a single-round engine fits better it routes onward to the three below
+- **Persistent team / team mode / 起团队 / parallel lanes** → `jj-team` (`TEAM-*` state under the main checkout's `.workflow/.team/`; a repo that declares `.workflow/` forbidden falls back to `~/.jj-flow/team/`); it **measures real parallelism first** and **sizes the roster** from that number — invoking it always provisions, so the count never becomes a refusal. After it provisions, a bare turn in the same session is a team task with no prefix. When a single-round engine fits better it routes onward to the three below
 
 ## Execution contract
 

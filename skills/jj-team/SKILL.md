@@ -1,6 +1,6 @@
 ---
 name: jj-team
-description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style team (roster + planning files + generic review rubric) whose state lives in ~/.jj-flow/team/<project_key>/, sized by a real parallelism measurement; afterwards a plain user turn is a team task with no prefix. Routes to a sibling engine (coordinate / lifecycle / swarm) when the request is a single round. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team, $jj-team, Team Mode, 团队模式, 起团队."
+description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style team (roster + planning files + generic review rubric) whose state lives in the main checkout's .workflow/.team/TEAM-<project_key>-<date>/, sized by a real parallelism measurement; afterwards a plain user turn is a team task with no prefix. Routes to a sibling engine (coordinate / lifecycle / swarm) when the request is a single round. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team, $jj-team, Team Mode, 团队模式, 起团队."
 ---
 
 # jj-team
@@ -8,7 +8,7 @@ description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style 
 > **Layer:** execution engine (not a delivery control path)
 > **Upstream protocol:** Claude `CCteam-creator` (persistent teammates + planning-with-files)
 > **Product id / install dir:** `jj-team`
-> **State root:** `~/.jj-flow/team/<project_key>/` (override with `$JJ_FLOW_HOME`; resolved by `src/homeLayout.mjs`)
+> **State root:** `<main checkout>/.workflow/.team/TEAM-<project_key>-<date>/` (`$JJ_FLOW_HOME` moves only the fallback root; resolved by `src/homeLayout.mjs`)
 > **Design:** [docs/design-docs/jj-team.md](../../docs/design-docs/jj-team.md)
 
 Team-mode entry. Two jobs: **measure how much work can actually run in parallel**, then **provision the team sized by that number**.
@@ -22,13 +22,13 @@ This skill is the **umbrella**. The three sibling engines stay independent and a
 | MUST | MUST NOT |
 | --- | --- |
 | Measure parallelism **before** choosing a team size | Pick a roster from a role catalog first, then look for work |
-| Keep all team state under `~/.jj-flow/team/<project_key>/` | Write team state into the repo, `.plans/`, or `.workflow/` |
+| Keep all team state under `<main checkout>/.workflow/.team/TEAM-<project_key>-<date>/` | Write team state into the repo outside `.workflow/.team/`, into `.plans/`, or into a linked worktree's own `.workflow/` (that forks the ledger) |
 | Keep the operating manual in this skill's `references/` | Create a repo-root `CLAUDE.md` (AGENTS.md is the product SSOT) |
 | Stay behind `/jj-team` — load only when invoked | Inject anything into `jj-ralph` / `jj-same` / `jj-review` entries |
 | Score review on the generic rubric in [references/review-dimensions.md](references/review-dimensions.md) | Invent repo-specific review dimensions |
 | Keep reviewer read-only on source | Let reviewer edit project source |
 | Resume an existing live team instead of provisioning a second one | Auto-close a team on a timer, or fabricate a session id you could not read |
-| Check `team-snapshot.md` staleness with `scripts/snapshot_stale.mjs` (exit `0`/`1`/`2`) | Trust a snapshot stamp by eye, or hand-write an mtime into it |
+| Check `team-snapshot.md` staleness with `scripts/snapshot_stale.mjs` (exit `0`/`1`/`2`/`3`) | Trust a snapshot stamp by eye, or hand-write an mtime into it |
 | Resolve the session binding yourself | Ask the user to paste a session id |
 
 **Identity separation:** `TEAM-*` ≠ `TC-*` ≠ `TLV4-*` ≠ `TAS-*` ≠ `RALPH-*` ≠ `DEL-*`.
@@ -116,7 +116,7 @@ What matters at the call site:
 
 | Mode | When | Where |
 | --- | --- | --- |
-| **ccteam** (this skill) | Persistent team across multiple tasks; planning files + roster + generic review rubric; long-running work | `~/.jj-flow/team/<project_key>/` |
+| **ccteam** (this skill) | Persistent team across multiple tasks; planning files + roster + generic review rubric; long-running work | `.workflow/.team/TEAM-*` (main checkout) |
 | coordinate | Session-scoped multi-role pipeline; dynamic role-specs; one task | `/jj-team-coordinate` → `.workflow/.team/TC-*` |
 | lifecycle | Fixed SDLC document chain (spec → design → tasks) | `/jj-team-lifecycle` → `.workflow/.team/TLV4-*` |
 | swarm | Multi-hypothesis adversarial search | `/jj-team-swarm` → `.workflow/.team/TAS-*` |
@@ -126,24 +126,29 @@ Delegate by naming the sibling and stopping — do not reimplement its pipeline.
 ## Team state layout
 
 ```text
-~/.jj-flow/team/<project_key>/
-  team-session.json     -- live binding + roster + parallelism (read FIRST on resume)
-  task_plan.md          -- navigation map (team-lead owns)
-  findings.md           -- team-level findings log
-  progress.md           -- chronological work log
-  decisions.md          -- decisions + rationale
-  team-snapshot.md      -- full un-abridged onboarding prompts (recovery)
-  archive/<team_id>/    -- superseded teams and logs
-  <agent-name>/
-    task_plan.md / findings.md / progress.md
-    <prefix>-<task>/    -- per-task folder: task_plan / findings / progress
+<main checkout>/.workflow/.team/
+├── TEAM-<project_key>-<date>/   -- one live team
+│   team-session.json     -- live binding + roster + parallelism (read FIRST on resume)
+│   task_plan.md          -- navigation map (team-lead owns)
+│   findings.md           -- team-level findings log
+│   progress.md           -- chronological work log
+│   decisions.md          -- decisions + rationale
+│   team-snapshot.md      -- full un-abridged onboarding prompts (recovery)
+│   <agent-name>/
+│     task_plan.md / findings.md / progress.md
+│     <prefix>-<task>/    -- per-task folder: task_plan / findings / progress
+└── archive/<team_id>/    -- superseded teams and logs
 ```
 
-`<project_key>` is the project's key — the **lowercased basename of the row's `path`** in `~/.jj-flow/map.md` (`projectKeyFromPath` in `src/projectMap.mjs`), not the Chinese display name. `~/.jj-flow/memory/<project_key>.md` already uses the same key. Pick it once and keep it: team state is only findable across sessions if the key is stable. The authoritative `project_key` lives **inside** `team-session.json`, so a directory spelled two ways still finds its own history.
+The root is the **main checkout**, not the one you are sitting in: `common = git rev-parse --git-common-dir`, main = `path.resolve(cwd, common, '..')`, falling back to `git rev-parse --show-toplevel`. Two commands that already exist — no new CLI. `path.dirname(common)` is wrong: from the main checkout the command prints a *relative* `.git`, so `dirname` yields `.`. The rule, and the two-repo fallback table, live in [specs/state-layout.md](specs/state-layout.md).
 
-**Why home, not the repo.** The decisive reason is worktrees: `<repo>/.workflow/` inside a worktree is a *different directory* from the one in the main checkout. A team that spans a branch switch, a `jj-end` merge, or a dispatch worktree would have its ledger forked, and the Phase 0 glob would find zero-or-two teams depending on cwd. Home is keyed by **project**, not by checkout. Secondary: a team can span repos (the dispatch family case, which repo-local state structurally cannot express); this product repo forbids `.workflow/` (`harness-manifest.json` → `forbidden_paths`) and would need a special case; and `~/.jj-flow/` is already the documented cross-project state home — `README.md` there routes `.workflow/dispatch/` and `.workflow/tasks/` the same way.
+`<project_key>` is the project's key. The **authoritative** value is the `project_key` field inside `team-session.json`, so a directory spelled two ways still finds its own history. When a key has to be computed, the product has exactly one implementation — `resolveProjectKeyFromCwd` in `src/projectMap.mjs`, the same function that names `~/.jj-flow/memory/<project_key>.md`. Pick it once and keep it stable.
 
-**Two costs, stated honestly:** the ledger does not travel with the repo, so a second developer cloning it sees nothing; and one `project_key` holds one live team by default (a genuinely concurrent second team uses `<project_key>-<n>/`). If shareability ever becomes a requirement, that is a new design — do not bolt a pointer file in the repo onto this one.
+**Why the main checkout.** Three reasons, in order of hardness. First, the root is the same one the three sibling engines already use (`.workflow/.team/TC-*`, `TLV4-*`, `TAS-*`), so one convention covers four engines. Second, a wrong key now **fails loudly**: the Phase 0 glob finds nothing and a team is provisioned fresh, instead of silently landing in a legitimate-looking home directory that belongs to another project. Third, the ledger travels with the repo. The worktree correctness that used to argue *for* home is preserved by the main-checkout rule above — a linked worktree resolves to the same root, so the ledger cannot fork.
+
+**A repo that forbids `.workflow/` falls back to `~/.jj-flow/team/TEAM-<project_key>-<date>/`.** `harness-manifest.json` → `record_system.forbidden_paths` lists `.workflow`, and `scripts/check-harness.mjs` (`HNS-STATE-001`) fails `harness:check` as soon as the path exists — so the repo's own gate decides, not a hand-written exception. This product repo is one of those, and it says so out loud when it falls back. On that path `$JJ_FLOW_HOME` moves the root; on the project-internal path it changes nothing.
+
+**Two costs, stated honestly:** on the fallback path the ledger does not travel with the repo, so a second developer cloning it sees nothing; and one `project_key` holds one live team by default (a genuinely concurrent second team appends `-2` to the directory name).
 
 ## Operating manual (no CLAUDE.md)
 
@@ -151,11 +156,11 @@ Upstream CCteam writes a repo-root `CLAUDE.md` so the team roster survives conte
 
 Recovery works instead through:
 
-1. `~/.jj-flow/team/<project_key>/team-session.json` — the live binding, roster and lane count
-2. `~/.jj-flow/team/<project_key>/team-snapshot.md` — full onboarding prompts, verbatim
+1. `<team root>/team-session.json` — the live binding, roster and lane count
+2. `<team root>/team-snapshot.md` — full onboarding prompts, verbatim
 3. Re-invoking `/jj-team` — hits R1 and reloads [references/team-manual.md](references/team-manual.md) on demand
 
-The snapshot is only trustworthy if it is not stale, and that is **mechanical, not editorial**: `node scripts/snapshot_stale.mjs --team-dir ~/.jj-flow/team/<project_key>/` re-reads every stamped skill file and exits `0` fresh / `1` stale / `2` unverifiable. Run it before trusting the cached prompts — at Phase 0, on `check`, and on `resume`. Exit `2` means "cannot tell" (no snapshot, no parseable stamp, skill root gone); it is not a pass. Stamp format and the regeneration procedure: [specs/state-layout.md](specs/state-layout.md).
+The snapshot is only trustworthy if it is not stale, and that is **mechanical, not editorial**: `node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped skill file and exits `0` fresh / `1` stale / `2` unverifiable / `3` usage. Run it before trusting the cached prompts — at Phase 0, on `check`, and on `resume`. Exit `2` means "cannot tell" (no snapshot, no parseable stamp, skill root gone); it is not a pass. Exit `3` means the command itself was wrong, so nothing was checked — it is neither of the two verdicts above and must not be read as either. Stamp format and the regeneration procedure: [specs/state-layout.md](specs/state-layout.md).
 
 At the end of Phase 5, print this banner verbatim (a stable string, so it can be found in the transcript later):
 
@@ -165,7 +170,7 @@ At the end of Phase 5, print this banner verbatim (a stable string, so it can be
 
 If the team-lead looks disoriented after a compaction, say:
 
-> 读 `~/.jj-flow/team/<project_key>/team-snapshot.md` 恢复团队状态
+> 读 `<team root>/team-snapshot.md` 恢复团队状态
 
 ## Roles
 
@@ -219,12 +224,12 @@ User invokes /jj-team <request>
 
 | Command | Action |
 | --- | --- |
-| `check` / `status` | Print roster + task state from the state files; run the snapshot staleness check (exit `1` → regenerate before trusting cached prompts); no advancement |
+| `check` / `status` | Print roster + task state from the state files; run the snapshot staleness check (exit `1` → regenerate before trusting cached prompts; `3` → the command was mistyped, nothing was checked); no advancement |
 | `resume` | Reconcile state files with live agents; report drift, including a stale or unverifiable snapshot stamp |
 | `remeasure` | Re-run the parallelism measurement at a phase boundary |
 | `rebuild` | Stand up a fresh roster at a phase boundary (never mid-development) |
 | `pause` | Set `status: paused`; teammates may be reaped |
-| `close` | Set `status: completed` + `close_reason`; move the file set into `archive/<team_id>/` |
+| `close` | Set `status: completed` + `close_reason`; move the file set into `archive/<team_id>/` under the team root |
 
 `pause` and `close` are always explicit. **No team is ever auto-closed** — the only automatic signal available is wall clock, and wall clock is exactly what would destroy the only record of a half-finished task.
 
@@ -232,14 +237,14 @@ User invokes /jj-team <request>
 
 | Scenario | Resolution |
 | --- | --- |
-| `~/.jj-flow/` missing | Run `jj home init`, or let this skill create `team/<project_key>/` directly |
-| `$JJ_FLOW_HOME` set | Use it as the state root instead of `~/.jj-flow` |
+| `.workflow/` not writable in the main checkout | Fall back to `~/.jj-flow/team/TEAM-<project_key>-<date>/`, say so out loud, and name the rule that forced it |
+| `$JJ_FLOW_HOME` set | It moves only the fallback root (`~/.jj-flow`); a project that may use its own `.workflow/.team/` ignores it |
 | Session id unreadable | Bind as unbound (`null` + `session_id_source: "unknown"`) and say so; never fabricate |
 | Live team owned by another session | AskUserQuestion — adopt / start alongside / close |
 | Re-invoked with a live team for this session | Resume, do not init |
 | Team stale (`now - last_seen_at > 14d`, no live teammates) | Print one line and offer `close`; do not close it yourself |
 | Request fits a sibling engine better | Delegate to it by name and stop |
-| `team-snapshot.md` stale vs this skill | The check exits `1` and names each changed file — regenerate the stamp (`scripts/snapshot_stale.mjs --stamp`), never re-type mtimes by hand; tell the user which source won |
+| `team-snapshot.md` stale vs this skill | The check exits `1` and names each changed file — regenerate the stamp (`scripts/snapshot_stale.mjs --stamp`), never re-type mtimes by hand; tell the user which source won. Exit `3` is a mistyped command: nothing was checked, so regenerate nothing |
 | Teammate lost after compaction | Resume from `team-snapshot.md` prompts |
 
 ## Host compatibility

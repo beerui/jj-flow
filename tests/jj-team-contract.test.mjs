@@ -76,18 +76,35 @@ test('jj-team ships its manual, roles, state layout and generic rubric', () => {
   }
 });
 
-test('state root is the jj-flow home, never the repo', () => {
+test('the team root is the main checkout, and the fallback is named', () => {
   const skill = read('skills/jj-team/SKILL.md');
-  assert.match(skill, /~\/\.jj-flow\/team\/<project_key>\//);
-  assert.match(skill, /JJ_FLOW_HOME/);
-  // The repo forbids .workflow/ and .plans/ is not a jj-flow convention.
-  const mustNot = mustNotColumn(skill);
-  assert.match(mustNot, /\.workflow/);
-  assert.match(mustNot, /\.plans/);
-
   const layout = read('skills/jj-team/specs/state-layout.md');
-  assert.match(layout, /forbidden_paths/);
-  assert.match(layout, /~\/\.jj-flow\/team\//);
+  for (const doc of [skill, layout]) {
+    assert.match(doc, /\.workflow\/\.team\//, 'the root is the project-internal .team directory');
+    assert.match(doc, /main checkout/i, 'the root is the main checkout, not the current one');
+    assert.match(doc, /git rev-parse --git-common-dir/, 'the main checkout is resolved by an existing git command');
+    assert.match(doc, /path\.resolve\(cwd, common, '\.\.'\)/, 'resolve, never dirname(common)');
+    // The repo-local root is only for repos that may use it; the ones that may
+    // not must be named, with the gate that decides it.
+    assert.match(doc, /forbidden_paths/, 'the fallback trigger is the manifest field, not a prose exception');
+    assert.match(doc, /HNS-STATE-001/, 'the fallback is enforced by the repo\'s own gate');
+    assert.match(doc, /~\/\.jj-flow\/team\//, 'the fallback root is stated');
+    // $JJ_FLOW_HOME used to relocate the whole team state. It must not read
+    // that way any more: a project-internal ledger ignores it entirely.
+    assert.match(doc, /JJ_FLOW_HOME/);
+    assert.match(doc, /moves only the fallback root/, 'the env var must be scoped to the fallback root');
+  }
+  // ...and the user page must not still promise a wholesale move.
+  const page = read('docs/commands/jj-team.md');
+  assert.match(page, /JJ_FLOW_HOME/);
+  assert.doesNotMatch(page, /整体换个位置|整体覆盖/, 'the command page must not promise a wholesale move');
+  // The MUST NOT column keeps the worktree fork and .plans/, and no longer
+  // claims the repo is off limits wholesale.
+  const mustNot = mustNotColumn(skill);
+  assert.match(mustNot, /worktree/i, 'writing into a linked worktree still forks the ledger');
+  assert.match(mustNot, /\.plans/);
+  // No state may be written outside the one root.
+  assert.match(mustNot, /outside .*\.workflow\/\.team\//i);
 });
 
 test('no repo-root CLAUDE.md is introduced', () => {
@@ -95,6 +112,58 @@ test('no repo-root CLAUDE.md is introduced', () => {
   const skill = read('skills/jj-team/SKILL.md');
   assert.match(mustNotColumn(skill), /CLAUDE\.md/);
   assert.match(skill, /team-snapshot\.md/);
+});
+
+test('the home SSOT registers team/ as a fallback directory, not a global layer', () => {
+  // ~/.jj-flow/README.md is generated from this source; a top-level state dir
+  // that the home's own index does not list reads as unsupported.
+  const home = read('src/homeLayout.mjs');
+  assert.match(home, /\| `team\/` \|/);
+  assert.match(home, /\| `memory\/` \|/);
+  // Registering the row is not enough: the description used to read as the
+  // global layer, which sends the next reader to home for a project that can
+  // use its own .workflow/.team/.
+  const row = home.split('\n').find((line) => line.includes('| `team/` |'));
+  assert.ok(row, 'src/homeLayout.mjs must register the team/ row');
+  assert.match(row, /fallback/i, 'the team/ row must say it is a fallback');
+  assert.match(row, /forbid/i, 'the team/ row must name what triggers the fallback');
+  // The portable copy under jj-ralph must stay byte-identical (ralph:check).
+  assert.equal(
+    read('skills/jj-ralph/scripts/lib/homeLayout.mjs'),
+    home,
+    'skills/jj-ralph/scripts/lib/homeLayout.mjs must mirror src/homeLayout.mjs'
+  );
+});
+
+test('the project_key convention is named, not re-invented as a slug', () => {
+  // Three files used to carry three different derivations ("lowercased basename
+  // of the project path", "lowercased basename of the git root walked up from
+  // cwd", "the row's path in map.md"). The rule now names the one
+  // implementation, and the authoritative value is the field on disk.
+  const layout = read('skills/jj-team/specs/state-layout.md');
+  assert.match(layout, /resolveProjectKeyFromCwd/, 'the spec must name the one implementation');
+  assert.match(layout, /authoritative/i, 'the spec must say which value is authoritative');
+  // ...and it must not claim jj-team calls it: nothing on this path does.
+  assert.doesNotMatch(layout, /团队键由它解析/, 'no code on the jj-team path calls it');
+  for (const rel of [
+    'skills/jj-team/SKILL.md',
+    'skills/jj-team/specs/state-layout.md',
+    'docs/commands/jj-team.md'
+  ]) {
+    const doc = read(rel);
+    assert.match(doc, /project_key/, rel + ' must use the product term project_key');
+    assert.match(doc, /team-session\.json/, rel + ' must name where the authoritative value lives');
+  }
+  // A second derivation wording in a reader-facing surface is the drift this
+  // test exists to stop: the spec names the function, the rest must not
+  // re-state the algorithm in their own words.
+  for (const rel of ['skills/jj-team/SKILL.md', 'docs/commands/jj-team.md']) {
+    assert.doesNotMatch(
+      read(rel),
+      /projectKeyFromPath|lowercased basename|小写目录名/,
+      rel + ' must not carry a second derivation wording'
+    );
+  }
 });
 
 test('the measurement sizes the roster — it never vetoes provisioning', () => {
@@ -199,6 +268,54 @@ test('snapshot staleness is a mechanical check, not an editorial rule', () => {
   assert.match(page, /`2` 不算通过/);
 });
 
+test('the staleness exit contract is stated as four codes wherever it is enumerated', () => {
+  // T-6 added exit code 3 (usage) to snapshot_stale.mjs. Every doc that
+  // enumerated the codes still said three, so a reader who only meets the docs
+  // concludes a mistyped command is a snapshot verdict.
+  //
+  // The target list below was built by scanning the whole lane file set with the
+  // widest pattern (a bare `[0-3]`) and reading every hit. The plan's own list
+  // came from scanning four candidate files and was two short: the two
+  // design-doc lines here were found only by scanning all of them. Same root
+  // cause the plan recorded against itself — searching by word misses.
+  const enumerated = [
+    ['skills/jj-team/SKILL.md', /\(exit `0`\/`1`\/`2`\/`3`\)/],
+    ['skills/jj-team/SKILL.md', /`0` fresh \/ `1` stale \/ `2` unverifiable \/ `3` usage/],
+    ['skills/jj-team/specs/state-layout.md', /\| `3` \| usage/],
+    ['skills/jj-team/specs/state-layout.md', /Exit `3` is separate from `2`/],
+    ['docs/commands/jj-team.md', /`3` = 命令本身打错了/],
+    ['docs/design-docs/jj-team.md', /0 \/ 1 \/ 2 \/ 3 退出码回答/],
+    ['docs/design-docs/jj-team.md', /以退出码 0 \/ 1 \/ 2 \/ 3 回答/]
+  ];
+  for (const [rel, pattern] of enumerated) {
+    assert.match(read(rel), pattern, rel + ' must state the fourth exit code at ' + pattern);
+  }
+  // Three further lines name a single code and stay true as written — SKILL.md's
+  // `check` row, its error-handling row, and team-manual.md's Recover row. They
+  // are deliberately NOT claimed here: an assertion that covered them would be
+  // a guarantee this test does not have.
+});
+
+test('the resolution table cannot fall through to a silent second provisioning', () => {
+  // The old R3 required "both ids known". A live team bound to someone else's
+  // id, on a host that cannot read its own id, matched no rule at all — and
+  // "no rule matched" used to mean "provision", i.e. the one outcome this entry
+  // exists to prevent, taken silently.
+  const layout = read('skills/jj-team/specs/state-layout.md');
+  const table = layout.split('Step 0 — identity')[1].split('\n```')[0];
+  // The condition line itself, not the paragraph that explains what used to be
+  // wrong with it — quoting the old wording in prose is how the fix stays
+  // reviewable.
+  const r3 = table.split('\n').find((line) => line.startsWith('R3  '));
+  assert.ok(r3, 'the R3 condition line must be locatable');
+  assert.doesNotMatch(r3, /both ids known/, 'R3 must not require my own id to be readable');
+  assert.match(r3, /the team's host\.session_id is known AND it is not mine/);
+  // ...and the table is total: an unmatched state asks instead of provisioning.
+  assert.match(table, /The table is total/, 'the resolution table must state its own totality');
+  assert.match(table, /NOT a licence to\s+provision|not a licence to provision/i, 'no match must not provision');
+  assert.match(table, /print the state that matched and ask/i);
+});
+
 test('review rubric is the fixed generic four, not project-invented', () => {
   const skill = read('skills/jj-team/SKILL.md');
   for (const id of ['RD-1', 'RD-2', 'RD-3', 'RD-4']) {
@@ -268,32 +385,6 @@ test('docs page is registered in the sidebar and the design index', () => {
 
   const designIndex = read('docs/design-docs/index.md');
   assert.match(designIndex, /\[jj-team\]\(jj-team\.md\)/);
-});
-
-test('the home SSOT registers team/ as a supported directory', () => {
-  // ~/.jj-flow/README.md is generated from this source; a top-level state dir
-  // that the home's own index does not list reads as unsupported.
-  const home = read('src/homeLayout.mjs');
-  assert.match(home, /\| `team\/` \|/);
-  assert.match(home, /\| `memory\/` \|/);
-  // The portable copy under jj-ralph must stay byte-identical (ralph:check).
-  assert.equal(
-    read('skills/jj-ralph/scripts/lib/homeLayout.mjs'),
-    home,
-    'skills/jj-ralph/scripts/lib/homeLayout.mjs must mirror src/homeLayout.mjs'
-  );
-});
-
-test('the project_key convention is named, not re-invented as a slug', () => {
-  for (const rel of [
-    'skills/jj-team/SKILL.md',
-    'skills/jj-team/specs/state-layout.md',
-    'docs/commands/jj-team.md'
-  ]) {
-    const doc = read(rel);
-    assert.match(doc, /project_key/, rel + ' must use the product term project_key');
-    assert.match(doc, /projectKeyFromPath|小写目录名|lowercased basename/, rel + ' must give the derivation');
-  }
 });
 
 test('user-facing command indexes list the new entry', () => {

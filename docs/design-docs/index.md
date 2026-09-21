@@ -28,7 +28,7 @@
 | [Ralph 归档提升](ralph-archive-elevation.md) | Accepted |
 | [jj-evaluated](jj-evaluated.md) | Implemented（MVP runner） |
 | [Grok Host Adapter](grok-host-adapter.md) | Implemented（Grok Wave 2 completed；`max_unattended_level=A2`） |
-| [jj-team](jj-team.md) | Implemented（团队模式入口：**调用即预置**，并行度只定规模不否决；`~/.jj-flow/team/<project_key>/` 状态 + 会话绑定静默 resume + 每轮分类免前缀；不改三个 sibling 引擎；真机多轮验收未做。首版「并行度门否决建队」已修订） |
+| [jj-team](jj-team.md) | Implemented（团队模式入口：**调用即预置**，并行度只定规模不否决；`<主 checkout>/.workflow/.team/TEAM-<project_key>-<date>/` 状态（禁 `.workflow/` 的仓兜底到 `~/.jj-flow/team/`）+ 会话绑定静默 resume + 每轮分类免前缀；不改三个 sibling 引擎；真机多轮验收未做。首版「并行度门否决建队」已修订） |
 | [jj-team-coordinate](jj-team-coordinate.md) | Proposed（P0/P1 文档：skill + 透明协议 + Codex 兼容；bridge CLI 未关闭） |
 | [jj-team-lifecycle](jj-team-lifecycle.md) | Proposed（P0：TLV4 vendor + 固定 SDLC + Codex degraded；bridge CLI 未关闭） |
 | [jj-team-swarm](jj-team-swarm.md) | Proposed（P0：TAS vendor + 透明协议 + Workflow 降级说明） |

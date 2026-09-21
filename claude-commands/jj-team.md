@@ -23,7 +23,7 @@ allowed-tools:
 
 用户输入：$ARGUMENTS
 
-团队模式入口：**量可并行度 → 预置常驻团队**。数字只定规模、不否决；状态 `~/.jj-flow/team/<project_key>/`，权威 skill `skills/jj-team/`。
+团队模式入口：**量可并行度 → 预置常驻团队**。数字只定规模、不否决；状态在主 checkout 的 `.workflow/.team/TEAM-<project_key>-<日期>/`，权威 skill `skills/jj-team/`。
 
 ## 执行要点
 
@@ -33,7 +33,7 @@ allowed-tools:
 4. **一次确认**后生成花名册；0/1 道也预置，0 道只留 team-lead + reviewer，不建 implementer 目录。
 5. **起完即常驻**：同一会话之后直接给任务，不必再打 `/jj-team`；非团队活直接答，不生成队友。
 6. **再路由**：单次任务 / 固定 SDLC 链 / 多假设搜索 → `/jj-team-coordinate`、`/jj-team-lifecycle`、`/jj-team-swarm`，点名即止，不重实现。降级宿主照样跑团队，只是串行。
-7. **不写仓库**：状态只落 `~/.jj-flow/team/<project_key>/`；**不建仓库根 `CLAUDE.md`**；不碰 `jj-ralph` / `jj-same` / `jj-review`。
+7. **不写仓库**：状态只落主 checkout 的 `.workflow/.team/TEAM-<project_key>-<日期>/`（不是当前 checkout；声明禁 `.workflow/` 的仓兜底到 `~/.jj-flow/team/`）；**不建仓库根 `CLAUDE.md`**；不碰 `jj-ralph` / `jj-same` / `jj-review`。
 8. 审查用通用维度（RD-1 产品深度 / RD-2 可测试性 / RD-3 性能 / RD-4 API 优雅）；命令 `check` / `resume` / `remeasure` / `rebuild` / `pause` / `close`，**永不自动关闭**。
 
 细则：skill `SKILL.md` + `docs/design-docs/jj-team.md`。

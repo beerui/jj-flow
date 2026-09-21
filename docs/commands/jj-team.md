@@ -72,7 +72,7 @@
 ```text
 可并行度：2 条道（另有 3 条卡在决策上，不计入）
 花名册：implementer-1 / implementer-2 / reviewer
-状态目录：~/.jj-flow/team/jj-flow/
+状态目录：.workflow/.team/TEAM-<项目>-<日期>/
 
 → 起？ [y/N]
 ```
@@ -135,7 +135,7 @@
 
 - **不推进检查点**：和三个现有引擎一样，团队跑完不等于 ralph/dispatch 验收通过
 - **不与独占派单并用**：`jj-ralph` / `jj-same` / `jj-review` 派的是只读派单文件的命名子代理；`/jj-team` 是另一条执行线，同一个任务不要两条一起跑
-- **不写仓库根 `CLAUDE.md`**：上游 CCteam 会在仓库根写一个，好让花名册扛过上下文压缩；这里不写——它会在 `AGENTS.md` 旁边再造一个真理源头。压缩后要恢复，说一句「读 `~/.jj-flow/team/<project_key>/team-snapshot.md` 恢复团队状态」，或者重打一次 `/jj-team`
+- **不写仓库根 `CLAUDE.md`**：上游 CCteam 会在仓库根写一个，好让花名册扛过上下文压缩；这里不写——它会在 `AGENTS.md` 旁边再造一个真理源头。压缩后要恢复，说一句「读 `.workflow/.team/TEAM-<项目>-<日期>/team-snapshot.md` 恢复团队状态」，或者重打一次 `/jj-team`
 - **审查固定四个通用维度**，不按项目另发明：
 
   | # | 维度 | 权重 |
@@ -149,25 +149,32 @@
 
 - **默认不设 custodian**：机械门禁已经覆盖合规时，custodian 是重复建设；只有出现门禁抓不到、reviewer 又反复标记的模式时才加
 - **永不自动关闭**：唯一的自动信号是时间，而时间恰恰会毁掉半途任务的唯一记录。闲置久了只提示一句，关不关你说了算
-- **快照陈旧由代码判定**：`team-snapshot.md` 头部的 stamp 记着生成时 skill 各文件的修改时间（路径是宿主实际加载路径，业务仓里没有 `skills/jj-team/`）。压缩恢复、`check` 或 `resume` 之前，跑一次 skill 自带的 `scripts/snapshot_stale.mjs --team-dir ~/.jj-flow/team/<project_key>/`：退出码 `0` = 新；`1` = 旧，并点名改了哪个文件，重新生成 stamp；`2` = 无法验证（没有快照、stamp 读不出、skill 路径已不在），**`2` 不算通过**。mtime 由脚本产出，不手写
+- **快照陈旧由代码判定**：`team-snapshot.md` 头部的 stamp 记着生成时 skill 各文件的修改时间（路径是宿主实际加载路径，业务仓里没有 `skills/jj-team/`）。压缩恢复、`check` 或 `resume` 之前，跑一次 skill 自带的 `scripts/snapshot_stale.mjs --team-dir <团队目录>`：退出码 `0` = 新；`1` = 旧，并点名改了哪个文件，重新生成 stamp；`2` = 无法验证（没有快照、stamp 读不出、skill 路径已不在），**`2` 不算通过**；`3` = 命令本身打错了，什么都没检查——它既不是「新」也不是「旧」，别拿去重新生成 stamp。mtime 由脚本产出，不手写
 - **降级不是死路**：宿主没有常驻 teammate 能力时说明 `模式：degraded`，团队照跑，只是串行；只有请求本身就是单轮时才改走 [coordinate](jj-team-coordinate.md)
 
 ## 记录在哪
 
 ```text
-~/.jj-flow/team/<project_key>/
-  team-session.json           团队身份、花名册、测得的道数（恢复时先读它）
-  task_plan.md  findings.md  progress.md  decisions.md
-  team-snapshot.md            完整入职 prompt，恢复用
-  archive/<team_id>/          收工后的团队整体归档
-  <agent-name>/
+<主 checkout>/.workflow/.team/
+  TEAM-<project_key>-<日期>/   一个活跃团队
+    team-session.json           团队身份、花名册、测得的道数（恢复时先读它）
+    task_plan.md  findings.md  progress.md  decisions.md
+    team-snapshot.md            完整入职 prompt，恢复用
+    <agent-name>/
+  archive/<team_id>/            收工后的团队整体归档
 ```
 
-`<project_key>` 用该项目的 key——map.md 那一行 `path` 的小写目录名（代码里是 `projectKeyFromPath`），不是中文名。`~/.jj-flow/memory/<project_key>.md` 用的也是这个键。权威的 `project_key` 写在 `team-session.json` 里，所以目录名即使拼法不同也找得回自己的历史。
+目录名一律用 `team_id`（`TEAM-<project_key>-<日期>`），**不再有 `<project_key>/` 这一层中间层**——`project_key` 的权威位置本来就是 `team-session.json` 里的那个字段，少一层就少一处能拼错的地方。真正并发的第二个团队在目录名后加 `-2`。
 
-**为什么不在仓库里：** 最硬的理由是 worktree——`<repo>/.workflow/` 在 worktree 里是另一份目录，团队一旦跨分支切换或 `jj-end` 合并，账本就会被复制成两份，恢复时会忽而找不到、忽而找到两个。`~/.jj-flow/` 是按**项目**而不是按 checkout 记账的。其次：团队可能跨仓；本产品仓把 `.workflow/` 列为禁止路径；而 `~/.jj-flow/` 本来就是已文档化的跨项目状态区。
+`<project_key>` 的**权威值写在 `team-session.json` 里**，所以目录名即使拼法不同也找得回自己的历史。真要算一个键时，产品里只有一份实现：`resolveProjectKeyFromCwd`（`src/projectMap.mjs`）——`~/.jj-flow/memory/<project_key>.md` 用的也是它，这才是必须与它一致的理由。
 
-代价也说清楚：账本不随仓走，第二个克隆的人看不到；一个项目默认只有一个活跃团队。用 `$JJ_FLOW_HOME` 可以整体换个位置。
+**为什么在仓库里：** 最硬的理由是**错键不再安静**。账本在 home 里时，拼错项目键不会报错——它会落进一个已存在、看着合法的目录，于是「接管」替代了「预置」：你在 `seo-daji-web` 里跑 `/jj-team`，得到的却是 `jj-flow` 的团队。落点改成项目内之后，同一次错键的 glob 返回空，逼出一次新预置。其次是账本随仓走，以及与另外三个引擎同一个发现根（`.workflow/.team/`）。
+
+worktree 那条旧理由没有作废，它换了形态：根永远是**主 checkout**（`git rev-parse --git-common-dir` + `path.resolve(cwd, common, '..')`，不是你现在待的这个 checkout），所以 linked worktree 不会把账本复制成两份。从主 checkout 跑时那条命令返回的是**相对**的 `.git`，所以必须 `resolve` 不能 `dirname`。
+
+**声明把 `.workflow/` 列为禁止路径的仓兜底回 `~/.jj-flow/team/TEAM-<project_key>-<日期>/`**（`harness-manifest.json` → `forbidden_paths`，`harness:check` 只要路径存在就 FAIL）。本产品仓就是其中一个，所以你在它里面看到的是 home 落点——它会明说这是兜底、以及是哪条规则逼的，不会默默换地方。
+
+代价也说清楚：兜底路径上账本不随仓走，第二个克隆的人看不到；一个项目默认只有一个活跃团队。`$JJ_FLOW_HOME` 只挪兜底根，项目内的落点它说了不算。
 
 ## 相关
 
