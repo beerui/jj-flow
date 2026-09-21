@@ -37,7 +37,7 @@ accept PASS 之后 **MUST `finalize`**。`status` 两处输出层带 `next`；`p
 | a | `tests/jj-ralph-contract.test.mjs` userCmd marker 数组与 SKILL 数组是独立循环：新 marker 同步加入 userCmd | 是 |
 | b | §4.6 硬约束 2 的 try/catch 放在 `writeRalphIndex` **内部** | 是 |
 | c | status 告警用中性表述：`phase=ARCHIVE 未完成收尾——先跑 gate/status 核对` | 是 |
-| d | 设计文档表格外 code span 的 `\|` 改成 `|` | 是（补录文档按此写；修订 10 原文仍不在仓） |
+| d | 设计文档表格外 code span 的 `\|` 改成 `\|` | 是（补录文档按此写；修订 10 原文仍不在仓） |
 
 ## 执行清单
 

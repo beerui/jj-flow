@@ -562,7 +562,7 @@ export function inspectAnalyzePlanArtifacts(run, cwd) {
 | `jj ralph init` 文本 | 可能打 `gate_set? lite …` | **不再**打 `gate_set?`；可打事实行 `intensity: tiny` |
 | `jj ralph init --json` | `gate_set_suggestion` | 保留建议对象；可加返回对象 `intensity_inference`（**不**进 `run.json`） |
 | `printRalphHelp`（`src/cli.mjs` ~L1660 说明段） | intensity 当用户预算旋钮；「文本模式打印 gate_set? 行」 | 删掉 `gate_set?` 句。intensity 写成**已记录、可被 `jj ralph init --intensity` 覆写的引擎字段**，不是选档器。用法行可保留 `[--intensity tiny\|standard\|strict]` |
-| `ralph_ops.mjs` `printHelp` Commands 横幅（现 L72、L86） | `init … [--intensity tiny\|standard\|strict] [--lite|--full]`；`gate …\|brief\|close`；L73–L74 / L87 括注教 lite 别名 | **剥掉**这些旗标与括注。对话包装只列五键 `gate`。机械覆写一句指向 `jj ralph` / `ops.md`（D4/D6） |
+| `ralph_ops.mjs` `printHelp` Commands 横幅（现 L72、L86） | `init … [--intensity tiny\|standard\|strict] [--lite\|--full]`；`gate …\|brief\|close`；L73–L74 / L87 括注教 lite 别名 | **剥掉**这些旗标与括注。对话包装只列五键 `gate`。机械覆写一句指向 `jj ralph` / `ops.md`（D4/D6） |
 | `ralph_ops init --lite` / `--full` | 成功写档 | **拒绝** |
 | `ralph_ops init --intensity` | 成功写档 | **拒绝**（机械覆写走 `jj ralph init --intensity` / `initRun({ intensity })`） |
 | `ralph_ops gate --gate close` | 走别名 | **拒绝** |

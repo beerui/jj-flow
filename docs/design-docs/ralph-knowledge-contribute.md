@@ -210,7 +210,7 @@ jj ralph knowledge-contribute --run-id RALPH-x [--hook] [--force]
 | 无 knowledge_root | 仍写本地 package；hook 跳过 |
 | 密钥/路径 | 不把 secrets、绝对本机隐私路径写入 body |
 | 幂等 | `source_id = ralph:{run_id}:{content_hash}`，重复写入 upsert 不炸 |
-| 审计 | progress 一行：`knowledge-contribute written|hook=…` |
+| 审计 | progress 一行：`knowledge-contribute written\|hook=…` |
 
 ## 8. 分波交付
 

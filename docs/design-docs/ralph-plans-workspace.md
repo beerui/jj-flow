@@ -451,7 +451,7 @@ schema 层面：1.1 在 P1 即预留 `gate_set: full | lite` 字段（full = 现
 | # | 位置 | 现状 | 改后 | 处置 |
 | --- | --- | --- | --- | --- |
 | B1 | `src/ralph.mjs:1690` `readRunArtifactText` | `path.join(runDir, ref)` + `existsSync`，失败**返回空串** | ref 带锚点则恒空 → `collectClaimedImplementationPaths`（`:1706`）拿到空清单 → product-consistency gate **静默放行** | §3.3 硬约束禁锚点；P1b 补「ref 解析失败必须抛错而非返回空串」的合约测试 |
-| B2 | `src/ralph.mjs:722` `CAP-` id 派生 | `'CAP-' + run_id.replace(/^RALPH-/,'').toLowerCase()` | run_id=`task-xxx` 时 replace 空转 → `CAP-task-xxx`，与存量 business-map 的 `CAP-<slug>-<日期>` 断代 | 剥离正则改为 `/^(?:RALPH|task)-/`；migrate 时保持存量 CAP id 不变（仅新 run 用新形态） |
+| B2 | `src/ralph.mjs:722` `CAP-` id 派生 | `'CAP-' + run_id.replace(/^RALPH-/,'').toLowerCase()` | run_id=`task-xxx` 时 replace 空转 → `CAP-task-xxx`，与存量 business-map 的 `CAP-<slug>-<日期>` 断代 | 剥离正则改为 `/^(?:RALPH\|task)-/`；migrate 时保持存量 CAP id 不变（仅新 run 用新形态） |
 | B3 | `src/ralph.mjs:1216` `HOF-` id 派生 | `'HOF-' + run_id.replace(/^RALPH-/,'')` | → `HOF-task-xxx`。仍满足 `handoffContract.mjs` 的 `^HOF-[A-Za-z0-9._-]+$`，**不破坏 jj-same**，但 id 出现 `task-` 赘余 | 同 B2 剥离正则；非阻塞，与 B2 同批改 |
 | B4 | `src/ralph.mjs:1260` `SNAP-` id 派生 | `'SNAP-' + run_id.replace(/^RALPH-/,'')` | → `SNAP-task-xxx`。dispatch 侧对 `snapshot_id` **无格式校验**（已 grep 确认），非破坏 | 同 B2；仅整洁性 |
 
@@ -514,8 +514,8 @@ schema 层面：1.1 在 P1 即预留 `gate_set: full | lite` 字段（full = 现
 | `src/ralph.mjs:487-488` | init 骨架硬编码 `'# Analyze'` / `'## MUST'` / `'## Current'` 等 | 换中文模板（§3.4） |
 | `src/ralph.mjs:1615-1616` `extractPlanCurrentSection` | `/^##\s+Current\s*$/im` → `Tasks` → 全文 三级回退 | 扩为**四级**：`当前`（三级标题 `###`）→ `Current` → `Tasks` → 全文。**读端必须容忍 `##` 与 `###` 两种层级**，否则存量文件失配 |
 | `src/ralph.mjs:1597` `extractMarkdownSection` | 起始 `^##\s+<名>$`（`:1600`）与**终止** `^##\s+`（`:1605`）都写死二级 | 改签名为 `extractMarkdownSection(text, heading, level)`：起始匹配 `^#{level}\s+<名>$`，终止匹配 `^#{1,level}\s+`（**层级感知**） |
-| `src/ralph.mjs:1622` `extractAcceptanceActiveText` | 按行过滤 `/\bSUPERSEDED\b/i` | 改为 `/(?:\bSUPERSEDED\b|已取代)/i`，新旧并存 |
-| `src/ralph.mjs:2560` `analyzeRework` | `/SUPERSEDED|failed_must|over_claimed/i` | 同上加 `已取代`；`failed_must` / `over_claimed` 是机器标记，**保持英文** |
+| `src/ralph.mjs:1622` `extractAcceptanceActiveText` | 按行过滤 `/\bSUPERSEDED\b/i` | 改为 `/(?:\bSUPERSEDED\b\|已取代)/i`，新旧并存 |
+| `src/ralph.mjs:2560` `analyzeRework` | `/SUPERSEDED\|failed_must\|over_claimed/i` | 同上加 `已取代`；`failed_must` / `over_claimed` 是机器标记，**保持英文** |
 | `src/ralph.mjs:1819` | 建议文案 `'Align diff with plan.md ## Current …'` | 换中文段名 |
 
 **`### 当前` 降为三级标题是本次唯一的结构性变化**（原为 `## Current` 二级）。原因：中文化后 `## 计划` / `## 验收` 各自需要内部分层，二级标题无法表达嵌套。
@@ -545,7 +545,7 @@ extract(验收) => ""                        ← 直接返回空串
 | `skills/jj-ralph/references/phases.md:7,:129` | 2 | `## Flagged concerns` 是 ANALYZE gate 判据；:129 是 product-consistency 判据表述 |
 | `skills/jj-ralph/references/post-complete-continue.md:41,:42` | 2 | resume 时写 `## Current` / `## Superseded` 与 `## Tasks` 重命名兜底 |
 | `docs/commands/jj-ralph.md` | — | 用户命令页（与 SKILL 产品规则对齐） |
-| `tests/jj-ralph-contract.test.mjs` | **8**（另有 **:237**） | 骨架断言与 Current/Landed/Superseded 用例。**:237 的 `assert.equal((plan.match(/^## Tasks$/m)||[]).length, 0)` 中文化后恒真，变成假绿断言，须改为断言中文段名存在** |
+| `tests/jj-ralph-contract.test.mjs` | **8**（另有 **:237**） | 骨架断言与 Current/Landed/Superseded 用例。**:237 的 `assert.equal((plan.match(/^## Tasks$/m)\|\|[]).length, 0)` 中文化后恒真，变成假绿断言，须改为断言中文段名存在** |
 
 **skill 指令正文仍是英文 SSOT**——上表改的是这些文档中**引用的产物章节名**，不是指令语言本身。二者边界：产物内容中文，运行时协议英文。
 

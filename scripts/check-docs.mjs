@@ -23,7 +23,17 @@ const orphans = currentDocs.filter((doc) => !linked.has(doc));
 if (missingSources.length) failCheck(`侧栏指向不存在的文件：\n  ${missingSources.join('\n  ')}`);
 if (orphans.length) failCheck(`文档未进入侧栏（docs/.vitepress/sidebar.mjs）：\n  ${orphans.join('\n  ')}`);
 
-// 2. 构建到临时目录（dead link 在这里暴露）
+// 2. 表格结构 lint（GFM）。扫哪些文件由 manifest 的 documentation_policy 决定，
+//    不在这里另立一套范围。放在构建之前：结构缺陷应该立刻失败，而不是等一个
+//    几分钟的 build 之后再失败。
+const { main: lintDocTables, EXIT: TABLE_LINT } = await import(
+  pathToFileURL(path.join(ROOT, 'scripts/lint-doc-tables.mjs')).href
+);
+if (lintDocTables([], { cwd: ROOT, manifest }) !== TABLE_LINT.clean) {
+  failCheck('文档表格结构缺陷（见上方 doc-tables 输出）');
+}
+
+// 3. 构建到临时目录（dead link 在这里暴露）
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
 const build = spawnSync(
   process.execPath,
@@ -32,7 +42,7 @@ const build = spawnSync(
 );
 if (build.status !== 0) failCheck(`vitepress build 退出码 ${build.status}`);
 
-// 3. 产物断言
+// 4. 产物断言
 for (const file of ['index.html', 'commands/jj-ralph.html', 'changelog.html', 'sitemap.xml', 'design-docs/index.html']) mustExist(file);
 if (!read('changelog.html').includes('Changelog')) failCheck('changelog.html 未包含 CHANGELOG 内容');
 for (const [from, to] of Object.entries(redirects)) {

@@ -42,7 +42,7 @@
 | reviews | `.state/reviews/REV-*.json`；`artifact_refs.latest_review_ref` 仍用 `reviews/REV-n.json`，读取侧拼 `.state/` |
 | 1.0 读端回退 | P2a/P2b **保留**（migrate 输入与 archive 快照还要读英文标题）。**P2c migrate 收尾后移除**主动路径的 `Current`/`Tasks` 回退 |
 | dispatch | 协议零改动；只同步 `tests/jj-dispatch-contract.test.mjs` 三处 fixture 字符串 |
-| CAP/HOF/SNAP | 剥离正则 `/^(?:RALPH|task)-/`；存量 CAP id 不改号，仅新 run 用新形态 |
+| CAP/HOF/SNAP | 剥离正则 `/^(?:RALPH\|task)-/`；存量 CAP id 不改号，仅新 run 用新形态 |
 | 命名 | `namingConfig`：`run_id_pattern: task-{slug}`、`task_dir_pattern: tasks/{task_key}`、`layout.active_run` 改 tasks 路径。`buildRalphRunId` / `assertStrictRalphRunId` 改为 taskId 语义，保留旧导出名作别名以免门面裂 |
 
 ## 执行清单

@@ -579,7 +579,7 @@ git -C notes-beta status --porcelain                              # 空
 | L2-S4 stale-base | `master` | G6：behind≥2、可 ff、CREATE 不得从过期 tip |
 | L2-S4 purpose-mismatch | `feat/beta-0731-dev` | 错 train；工作区无 title-persist 业务 diff |
 | L2-S1 / S2 实施 | `dev` | Pinia 形状在此线上 |
-| 其余 dispatch | `dev` 或 `master`（manifest 钉死，禁止「或」） |
+| 其余 dispatch | `dev` 或 `master`（manifest 钉死，禁止「或」） | — |
 
 `control/` README 第一句：**Do not cwd here for git writes.**
 
