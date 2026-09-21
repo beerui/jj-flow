@@ -82,10 +82,6 @@ test('the team root is the main checkout, and the fallback is named', () => {
   for (const doc of [skill, layout]) {
     assert.match(doc, /\.workflow\/\.team\//, 'the root is the project-internal .team directory');
     assert.match(doc, /main checkout/i, 'the root is the main checkout, not the current one');
-    assert.match(doc, /git rev-parse --git-common-dir/, 'the main checkout is resolved by an existing git command');
-    assert.match(doc, /path\.resolve\(cwd, common, '\.\.'\)/, 'resolve, never dirname(common)');
-    // The repo-local root is only for repos that may use it; the ones that may
-    // not must be named, with the gate that decides it.
     assert.match(doc, /forbidden_paths/, 'the fallback trigger is the manifest field, not a prose exception');
     assert.match(doc, /HNS-STATE-001/, 'the fallback is enforced by the repo\'s own gate');
     assert.match(doc, /~\/\.jj-flow\/team\//, 'the fallback root is stated');
@@ -105,6 +101,70 @@ test('the team root is the main checkout, and the fallback is named', () => {
   assert.match(mustNot, /\.plans/);
   // No state may be written outside the one root.
   assert.match(mustNot, /outside .*\.workflow\/\.team\//i);
+});
+
+test('the main-checkout rule has one copy, and SKILL.md points at it', () => {
+  // The rule used to be restated in SKILL.md next to a sentence declaring it had
+  // "exactly one copy" in the spec. The guard was file-level — any occurrence in
+  // the file counted — so corrupting the spec's operational line still left the
+  // spec's own explanatory line satisfying it. R-3b called that "the assertion is
+  // a phrase match"; the deeper cause is that the doc carried two copies of a rule
+  // it declared single-source, which makes any phrase match satisfiable by the
+  // wrong line.
+  //
+  // What this test guards is structural: the spec states the rule once, and
+  // SKILL.md carries a pointer instead of a restatement.
+  //
+  // What it deliberately does NOT guard: that the formula is *correct*. There is
+  // no implementation of this rule anywhere in the product — no code resolves the
+  // team root — so no assertion can mechanically judge right from wrong. The
+  // formula is also restated in four places outside this skill (design-docs twice,
+  // the command page, the CHANGELOG), and nothing here sees those. A claim of
+  // correctness would be the same false green this rewrite exists to remove.
+  const skill = read('skills/jj-team/SKILL.md');
+  const layout = read('skills/jj-team/specs/state-layout.md');
+
+  // The spec states it once. Counting is the only thing that can catch a broken
+  // operational line: "any occurrence counts" is exactly what let M1 survive.
+  const formula = layout.match(/path\.resolve\(cwd, common, '\.\.'\)/g) || [];
+  assert.equal(formula.length, 1, 'state-layout.md must state the resolution formula once, found ' + formula.length);
+  // ...and the wrong function must not be present to satisfy anything. Without
+  // this negative, replacing `resolve` with `dirname` at the operational line
+  // drops the count to zero and nothing distinguishes that from a deletion.
+  assert.equal(
+    (layout.match(/path\.dirname\(common\)/g) || []).length,
+    0,
+    'the wrong function must not appear in the spec — the operational line is the only copy'
+  );
+  // The two existing commands stay named in the spec, so a reader is not sent to
+  // a pointer that no longer holds the command.
+  assert.match(layout, /git rev-parse --git-common-dir/, 'the spec names the command that resolves the root');
+
+  // SKILL.md declares the rule single-source, then points at where it lives.
+  assert.match(skill, /exactly one copy/i, 'SKILL.md must declare the spec the single source');
+  assert.match(
+    skill,
+    /\[specs\/state-layout\.md\]\(specs\/state-layout\.md\)/,
+    'SKILL.md must point at the spec rather than restate the rule'
+  );
+  // ...and carries neither half of the rule itself. Two negatives, because the
+  // command and the formula can be reintroduced independently: a restatement that
+  // keeps the command but drops the formula is still a second copy of the decision.
+  assert.doesNotMatch(
+    skill,
+    /git rev-parse --git-common-dir/,
+    'the main-checkout command belongs to the spec only — SKILL.md is the second copy'
+  );
+  assert.doesNotMatch(
+    skill,
+    /path\.resolve\(cwd, common, '\.\.'\)/,
+    'the resolution formula belongs to the spec only — SKILL.md is the second copy'
+  );
+  assert.doesNotMatch(
+    skill,
+    /path\.dirname\(common\)/,
+    'the wrong function must not be introduced by a restatement either'
+  );
 });
 
 test('no repo-root CLAUDE.md is introduced', () => {
@@ -206,14 +266,47 @@ test('the sizing formula excludes lanes owned by team-lead', () => {
   assert.match(measure, /excluded from it exactly like a blocked one/);
   // The consequence stays pinned: the count must not buy an idle seat.
   assert.match(measure, /never spawn an idle implementer/i);
-  // The field table records it inside the same excluded{} set as the other three,
-  // so a recovering session sees the same four keys.
+  // `optional_only` is a fifth exclusion with its own reason to report. The live
+  // ledger already carried the key while the spec had four, so a reader comparing
+  // them saw a bucket the spec could not explain. It is pinned here as a
+  // measurement step (same numbered voice as the others) and in the field table,
+  // and the two must agree — a key in one and not the other is the drift.
+  assert.match(measure, /^\d+\. \*\*Owner-is-team-lead\*\*/m, 'precondition: the step numbering was located');
+  assert.match(
+    measure,
+    /Optional-only.*deliberately not done/i,
+    'optional_only must be defined as a measurement step, and as "deliberately not done"'
+  );
+  assert.match(
+    measure,
+    /not fully orthogonal/i,
+    'the two buckets overlap in practice; the spec must say so rather than imply they do not'
+  );
+  // The field table records the same five keys, so a recovering session sees one set.
   const layout = read('skills/jj-team/specs/state-layout.md');
   assert.match(
     layout,
-    /excluded\{substantively_complete, blocked_on_decision, blocked_on_live_host, owner_is_team_lead\}/,
-    'parallelism.excluded must list all four exclusions'
+    /excluded\{substantively_complete, optional_only, blocked_on_decision, blocked_on_live_host, owner_is_team_lead\}/,
+    'parallelism.excluded must list all five exclusions'
   );
+  // `measured` is only meaningful with the lanes behind it. The ledger's lanes[]
+  // elements carry lane_id / description / unblocked / owner / files[]; the spec
+  // must say so, or a recovering session cannot tell what a lane entry is.
+  assert.match(
+    layout,
+    /lanes\[\{lane_id, description, unblocked, owner, files\[\]\}\]/,
+    'the spec must state the lanes[] element shape'
+  );
+  assert.match(layout, /measured` is the number of `unblocked` lanes/, 'measured must be defined off the lanes');
+  // ...and tasks[].status is an enum, not free text. The live ledger had written
+  // two different words for what reads as the same terminal state, which is what
+  // an undefined enum costs.
+  assert.match(
+    layout,
+    /`status` is `in_progress \\| landed \\| done`/,
+    'tasks[].status must be an enumerated set'
+  );
+  assert.match(layout, /`closed_at` is required for `landed` and `done`/, 'the terminal states require closed_at');
   // The manual states the rule where a teammate reads it.
   assert.match(read('skills/jj-team/references/team-manual.md'), /owner_is_team_lead/);
   // The design doc closed the item instead of deleting it — the closed reason is
@@ -283,6 +376,7 @@ test('the staleness exit contract is stated as four codes wherever it is enumera
     ['skills/jj-team/SKILL.md', /`0` fresh \/ `1` stale \/ `2` unverifiable \/ `3` usage/],
     ['skills/jj-team/specs/state-layout.md', /\| `3` \| usage/],
     ['skills/jj-team/specs/state-layout.md', /Exit `3` is separate from `2`/],
+    ['skills/jj-team/references/team-manual.md', /exit `0` = fresh.*`1` = regenerate first.*`2` = cannot verify.*`3` = the command itself was mistyped/],
     ['docs/commands/jj-team.md', /`3` = 命令本身打错了/],
     ['docs/design-docs/jj-team.md', /0 \/ 1 \/ 2 \/ 3 退出码回答/],
     ['docs/design-docs/jj-team.md', /以退出码 0 \/ 1 \/ 2 \/ 3 回答/]
@@ -290,10 +384,17 @@ test('the staleness exit contract is stated as four codes wherever it is enumera
   for (const [rel, pattern] of enumerated) {
     assert.match(read(rel), pattern, rel + ' must state the fourth exit code at ' + pattern);
   }
-  // Three further lines name a single code and stay true as written — SKILL.md's
-  // `check` row, its error-handling row, and team-manual.md's Recover row. They
-  // are deliberately NOT claimed here: an assertion that covered them would be
-  // a guarantee this test does not have.
+  // Two further lines name a subset and stay true as written: SKILL.md's `check`
+  // row and its error-handling row each name `1` and `3` only. Neither claims to
+  // be an enumeration and each is internally consistent, so neither is pinned
+  // here — an assertion that covered them would be a guarantee this test does not
+  // have.
+  //
+  // team-manual.md's Recover row used to be counted in that "not claimed" set. It
+  // enumerates all four codes and it is the **resume** call site, so a missing code
+  // there is not a wording gap — resume would hand out a wrong verdict. That is
+  // the difference this list actually turns on, and it is why the entry above was
+  // added: not "it mentions codes" but "a reader acts on the missing one".
 });
 
 test('the resolution table cannot fall through to a silent second provisioning', () => {
@@ -376,6 +477,69 @@ test('message delivery constraint is stated', () => {
   assert.match(skill, /Files are real-time; messages are not|Files carry continuous state/);
 });
 
+test('the roles reference carries the working method, once', () => {
+  // F-5: the skill source had no working method at all, so every team re-derived
+  // it by hand in the onboarding prompts. The five rules below are the gap.
+  // F-25-T8-1/T8-3 are the other half: the method is stated **once**. The
+  // implementer's "surface discipline" bullet used to restate Doc-Code Sync in
+  // full; it is now a pointer, because a second copy of a rule is what drifts.
+  const roles = read('skills/jj-team/references/roles.md');
+  const method = roles.split('## Working method')[1].split('\n## ')[0];
+  assert.ok(method, 'precondition: the working-method section was located');
+  for (const [label, re] of [
+    ['vertical slicing', /Vertical slicing/],
+    ['TDD', /TDD/],
+    ['the mock boundary', /Mock boundary/],
+    ['doc-code sync', /Doc-Code Sync/],
+    ['the anti-illusion protocol', /Anti-illusion protocol/]
+  ]) {
+    assert.match(method, re, 'the working method must state ' + label);
+  }
+  // The behaviour-over-implementation rule is the load-bearing half of TDD; a
+  // method section that says "TDD" without it is the version that breaks on
+  // every refactor.
+  assert.match(method, /behaviour, not implementation/i);
+  assert.match(method, /mock the thing under test/i, 'the forbidden mock must be named, not implied');
+  assert.match(method, /did not write the test/i, 'the anti-illusion protocol must cover an unrun test');
+  // ...and the method must not have a second copy in the implementer section.
+  const implementer = roles.split('## implementer')[1].split('\n## ')[0];
+  assert.match(
+    implementer,
+    /Surface discipline.*Doc-Code Sync/s,
+    'the implementer must point at Doc-Code Sync rather than restate it'
+  );
+  assert.doesNotMatch(
+    implementer,
+    /drift waiting to be found/,
+    'that sentence belongs to the method section only — a second copy is the drift this lane closes'
+  );
+  // Methodology only: the roster above is unchanged, and custodian stays opt-in.
+  assert.match(roles, /custodian \(opt-in\)/);
+  assert.match(roles, /duplicate infrastructure/);
+});
+
+test('peer delivery is described as the host allows, never as a promise', () => {
+  // F-6: the manual told an implementer to message the reviewer "directly, not
+  // through team-lead". On a host whose ListAgents returns agent ids only, no
+  // name resolves — so the instruction failed at the first attempt and the
+  // teammate had no way to tell a host limitation from its own mistake.
+  const manual = read('skills/jj-team/references/team-manual.md');
+  const comms = manual.split('## Communication')[1].split('\n## ')[0];
+  assert.ok(comms, 'precondition: the Communication section was located');
+  assert.doesNotMatch(
+    comms,
+    /not through team-lead/,
+    'direct peer messaging must not be promised where names do not resolve'
+  );
+  assert.match(comms, /agent id/i, 'the relay path must name the handle a host actually hands back');
+  assert.match(comms, /host fact/i, 'the reason must be stated — it is a host fact, not a protocol choice');
+  // The onboarding-prompt rule: never write the promise the host cannot keep.
+  assert.match(comms, /never.*promise|Do not write an onboarding prompt/i);
+  // The status-check table must not promise a board the host may not have.
+  const checks = manual.split('## Status checks')[1];
+  assert.match(checks, /only where `task_board: true`/i, 'TaskList must be gated on the capability');
+});
+
 test('docs page is registered in the sidebar and the design index', () => {
   assert.ok(exists('docs/commands/jj-team.md'));
   assert.ok(exists('docs/design-docs/jj-team.md'));
@@ -414,15 +578,34 @@ test('team-session.json reuses the sibling enums and is the Phase 0 read target'
   assert.match(layout, /team-session\.json/);
   // status is a deliberate superset of the sibling's three values
   assert.match(layout, /active[^\n]*paused[^\n]*completed[^\n]*abandoned/);
-  // host_mode is the sibling's enum verbatim
-  assert.match(layout, /full[^\n]*codex-degraded[^\n]*generic-degraded/);
+  // host_mode is gone. One enum could not say "teammates but no task board", and
+  // this repo's host is exactly that, so the honest record is two independent
+  // bits. A fourth enum value was the rejected fix: it moves the shortage to the
+  // next host instead of removing it, which is why the rejection is recorded.
+  assert.doesNotMatch(layout, /^\| `host_mode` \|/m, 'host_mode must not remain a field of its own');
+  assert.match(layout, /replaces the sibling's `host_mode`/, 'the replacement must be declared, not silent');
+  assert.match(layout, /\{teammates, task_board\}/, 'the two capability bits must be named');
+  // ...and this repo's host must be recorded by the combination that forced the
+  // change. Without this the spec names two bits but never says which host has
+  // which, and a recovering session cannot tell whether the split was needed.
+  assert.match(
+    layout,
+    /teammates: true` \+ `task_board: false/,
+    'the spec must record this repo\'s host as teammates-without-a-board — that combination is why the enum had to go'
+  );
+  assert.match(
+    layout,
+    /fourth enum value was the rejected fix/i,
+    'the rejected alternative must be recorded, or the next host adds a fifth value'
+  );
+  // The sibling keeps its enum — this skill deviates from it, the sibling does not.
   const sibling = read('skills/jj-team-coordinate/SKILL.md');
   assert.match(
     sibling,
     /full \| codex-degraded \| generic-degraded/,
     'the sibling enum this skill claims to reuse'
   );
-  for (const field of ['team_id', 'host', 'parallelism', 'review_rubric', 'last_seen_at']) {
+  for (const field of ['team_id', 'host', 'parallelism', 'review_rubric', 'last_seen_at', 'capabilities']) {
     assert.ok(layout.includes('`' + field + '`'), 'the field table must document ' + field);
   }
   // No auto-close: the only automatic signal is wall clock.
@@ -433,11 +616,21 @@ test('host detection probes capability, not brand', () => {
   const skill = read('skills/jj-team/SKILL.md');
   assert.match(skill, /once per session/i);
   assert.match(skill, /capability, not brand/i);
-  assert.match(skill, /when Team\/Task APIs exist/);
+  // The result is two independent booleans, not one mode. Asserting the old
+  // "Team/Task APIs exist" wording would have kept a probe that cannot see this
+  // repo's host, which has one capability and not the other.
+  assert.match(skill, /two independent booleans/i, 'the probe records two independent booleans');
+  assert.match(skill, /`teammates: true` \+ `task_board: false`|teammates: true.*task_board: false/i,
+    'this repo\'s host must be recordable as teammates-but-no-board');
+  assert.match(skill, /teammates: false/);
+  assert.match(skill, /task_board: true/);
+  // The retired enum is named as retired, with the reason it could not survive.
+  assert.match(skill, /retired three-value `host_mode`/i, 'the retired enum must be named as retired');
   assert.match(skill, /codex-degraded/);
   assert.match(skill, /generic-degraded/);
-  // A degraded host still runs the team — it is not a dead end.
+  // A host without teammates still runs the team — it is not a dead end.
   assert.match(skill, /still provisions and still runs the team/i);
+  assert.match(skill, /what is lost is concurrency, not the team/i);
 });
 
 test('Phase 0 binds a session and never fabricates an id', () => {
@@ -476,6 +669,37 @@ test('Phase 0 binds a session and never fabricates an id', () => {
   const skill = read('skills/jj-team/SKILL.md');
   assert.match(skill, /one copy/i);
   assert.doesNotMatch(skill, /^R1  live/m, 'the R-table must live in exactly one file');
+  // ...and the Lifecycle diagram is not a fourth copy either. It used to spell
+  // `resolve + bind (R1-R6)` inline — one line standing in for six rows. O1
+  // rewrites that line into an explicit "provision a second team", which is the
+  // one outcome R6's totality clause exists to prevent, and which no phrase
+  // check on the *table* can see. So the guard is on the line itself: it must
+  // point at the spec, name the resume outcome, and offer no provisioning branch.
+  //
+  // Why forbidding `provision` on that one line is not over-tight: R6's own row
+  // does provision (nothing found), so the line is not allowed to enumerate the
+  // table — it points. Any outcome a one-line summary *does* name is a claim
+  // about the branches, and the only claim a reader acts on is "re-invoking never
+  // quietly gives me a second team".
+  const lifecycle = skill.slice(
+    skill.indexOf('## Lifecycle'),
+    skill.indexOf('## Commands')
+  );
+  assert.ok(lifecycle.length > 0, 'precondition: the Lifecycle section was located');
+  const phase0 = lifecycle.split('\n').find((l) => l.includes('Phase 0'));
+  assert.ok(phase0, 'precondition: the Phase 0 line was located');
+  assert.match(phase0, /specs\/state-layout\.md/, 'the Phase 0 line points at the spec; it does not restate the table');
+  assert.match(phase0, /resume/, 'the Phase 0 line still names the resume outcome');
+  assert.doesNotMatch(
+    phase0,
+    /provision/i,
+    'the Phase 0 line must not offer provisioning as a branch — R6 makes the table total'
+  );
+  assert.doesNotMatch(
+    phase0,
+    /fall[- ]?through/i,
+    'an unmatched state asks; nothing falls through'
+  );
   // ...and the design doc is not a third copy either. It restated the whole
   // table once, which is how it ended up naming SKILL.md as a holder of it.
   //
@@ -516,14 +740,94 @@ test('the new-session path is described as asking, not as a silent resume', () =
   assert.doesNotMatch(skill, /see R1 below/, 'that pointer dangles — the table is not below');
 });
 
+test('staleness is two conditions, and the undecidable one offers nothing', () => {
+  // The rule used to be one sentence: "> 14d and no live teammates → print one
+  // line and offer close". Both halves were undefined — what bumps last_seen_at,
+  // and how anyone counts live teammates. On a host with no teammate roster the
+  // second half is not measurable at all, so the sentence was a promise no host
+  // could keep. Both halves are now defined together, and the unmeasifiable one
+  // has its own verdict.
+  const layout = read('skills/jj-team/specs/state-layout.md');
+  const stale = layout.split('## Staleness and closing')[1].split('\n## ')[0];
+  assert.ok(stale, 'precondition: the staleness section was located');
+  // Condition 1: the clock, and what it actually measures.
+  assert.match(stale, /now - last_seen_at > 14d/, 'the wall-clock window is stated');
+  assert.match(
+    stale,
+    /last \*invoked\*, not when anyone last \*worked\*/i,
+    'last_seen_at must say what it measures — a working team reads stale without a re-invocation'
+  );
+  // Condition 2: liveness, and the case where it cannot be measured.
+  assert.match(stale, /no live teammates/i, 'the liveness condition is stated');
+  const undecidable = stale.split('\n').filter((l) => /undecidable/i.test(l));
+  assert.ok(undecidable.length > 0, 'precondition: a line naming the undecidable case was located');
+  // The verdict must ride on the line that names the case, not appear somewhere
+  // else in the section: a bare /undecidable/ match is satisfied by the line that
+  // merely introduces the word while the rule it should carry is deleted.
+  assert.ok(
+    undecidable.some((l) => /report only/i.test(l)),
+    'the undecidable case must carry the report-only verdict on its own line'
+  );
+  // ...and the case must be *established*, not merely handled if it ever arises.
+  // This repo is the one that hits it, so the spec has to name it with the
+  // capability that makes it so — otherwise "when condition 2 is undecidable"
+  // is a conditional with nothing showing it ever applies here.
+  assert.ok(
+    undecidable.some((l) => /ListAgents/.test(l)),
+    'the spec must name this host as the undecidable case, with the capability that makes it so'
+  );
+  assert.ok(
+    undecidable.some((l) => /cannot address them by name/i.test(l)),
+    'the reason must be stated — a bare "some hosts" leaves this repo guessing whether the rule applies to it'
+  );
+  assert.ok(
+    undecidable.every((l) => !/offer `close`/.test(l)),
+    'no line naming the undecidable case may offer close'
+  );
+  // ...and the degraded branch must say it offers nothing rather than trailing
+  // off into a promise.
+  const reportOnly = undecidable.find((l) => /report only/i.test(l));
+  assert.match(reportOnly, /offer nothing/, 'the degraded branch must say it offers nothing');
+  assert.match(
+    reportOnly,
+    /must not produce a `close` offer/i,
+    'an unverifiable condition must not produce a close offer'
+  );
+  // The error-handling row must carry the same two branches. A row that offers
+  // close unconditionally re-creates the promise one layer up.
+  const skill = read('skills/jj-team/SKILL.md');
+  const row = skill.split('\n').find((l) => l.startsWith('| Team stale'));
+  assert.ok(row, 'precondition: the Team stale row was located');
+  assert.match(row, /undecidable/i, 'the row must name the undecidable case');
+  assert.match(row, /offer nothing/i, 'the row must say the undecidable case offers nothing');
+  assert.match(row, /specs\/state-layout\.md/, 'the row points at the full rule instead of restating it');
+});
+
+test('rebuild rebuilds the same team and is not a second live team', () => {
+  // "Stand up a fresh roster" read as either a same-team rebirth or a second
+  // live team. R5 already decides the second one — it is an AskUserQuestion, not
+  // a command — so the row has to say which of the two `rebuild` is, or a reader
+  // provisions a duplicate team through a command that was never meant to.
+  const skill = read('skills/jj-team/SKILL.md');
+  const row = skill.split('\n').find((l) => l.startsWith('| `rebuild`'));
+  assert.ok(row, 'precondition: the rebuild row was located');
+  assert.match(row, /same.*team/i, 'rebuild is a same-team rebirth');
+  assert.match(row, /keep the `team_id`/, 'rebuild keeps the identity and the ledger');
+  assert.match(row, /not.*second live team/i, 'rebuild is explicitly not a second live team');
+  assert.match(row, /R5/, 'the second-team case is routed to R5, not to this command');
+});
+
 test('a provisioned team makes bare turns into tasks', () => {
   const skill = read('skills/jj-team/SKILL.md');
   assert.match(skill, /Session contract/);
   assert.match(skill, /not team work/i);
   assert.match(skill, /new lane/i);
   assert.match(skill, /existing lane/i);
-  // The banner is a fixed, greppable string.
-  assert.match(skill, /团队已就位：TEAM-<project_key>-<date> ｜后续直接给任务（无需 \/jj-team）/);
+  // The banner is a fixed, greppable string. The date slot is spelled the same
+  // way `team_id` spells it — a reader who copies the banner must not end up with
+  // a directory name the Phase 0 glob would never match.
+  assert.match(skill, /团队已就位：TEAM-<project_key>-<YYYYMMDD> ｜后续直接给任务（无需 \/jj-team）/);
+  assert.doesNotMatch(skill, /TEAM-<project_key>-<date>/, 'the shorter <date> spelling must not survive beside it');
   // Recovering the roster must not re-derive it from the (compacted) transcript.
   assert.match(skill, /Do not re-derive the roster from the transcript/i);
 });

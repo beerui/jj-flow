@@ -23,7 +23,7 @@ fallback (not a git repo, or jj is not on a git backend): git rev-parse --show-t
 
 Two commands that already exist — **no new CLI**.
 
-**`path.resolve(cwd, common, '..')`, never `path.dirname(common)`.** From the main checkout the command prints the *relative* `.git`, so `dirname` yields `.` — which resolves back to the main checkout here by luck, and points somewhere else under a different shell, a different `--git-dir` spelling, or a path containing `..`. `resolve` is correct for both the relative and the absolute output, at no cost.
+**Use `resolve` on the common dir, never `dirname`.** From the main checkout the command prints the *relative* `.git`, so `dirname` yields `.` — which resolves back to the main checkout here by luck, and points somewhere else under a different shell, a different `--git-dir` spelling, or a path containing `..`. `resolve` is correct for both the relative and the absolute output, at no cost. The command line above is the rule; this paragraph is only the reason, and it deliberately does not repeat it — a restatement here is what used to feed a file-level assertion while the line above was wrong.
 
 This is one rule, not a second directory: every team of a project has exactly one root, whichever checkout it was invoked from.
 
@@ -85,11 +85,11 @@ Reuses the sibling shape at `skills/jj-team-coordinate/SKILL.md:241-273` where i
 | `task_description` | reused | The invoking request; `(none — provisioned as ledger)` for a bare provision. |
 | `status` | reused + 1 | `active \| paused \| completed \| abandoned`. |
 | `skill_id` | reused | `"jj-team"`. |
-| `host_mode` | reused | `full \| codex-degraded \| generic-degraded` — same enum, same paths as the sibling. |
+| `capabilities` | new, **replaces the sibling's `host_mode`** | `{teammates, task_board}` — two independent booleans, not one mode. `teammates` is whether the host can spawn teammates that persist across turns; `task_board` is whether it has a shared task list (`TaskList`). A host can have one without the other, and that is precisely what one enum cannot say: this repo's host has `teammates: true` + `task_board: false`, so neither `full` (which requires the Team/Task APIs) nor `generic-degraded` (which describes a host running the roster serially) is true of it. **A fourth enum value was the rejected fix** — it would only move the shortage to the next host. |
 | `host` | new | `{host_id, session_id, session_id_source, bound_at, previous_session_ids[]}`. |
-| `parallelism` | new | `{measured, measured_at, lanes[], excluded{substantively_complete, blocked_on_decision, blocked_on_live_host, owner_is_team_lead}}`. Drives the roster and proves the number was actually taken. |
+| `parallelism` | new | `{measured, measured_at, lanes[{lane_id, description, unblocked, owner, files[]}], excluded{substantively_complete, optional_only, blocked_on_decision, blocked_on_live_host, owner_is_team_lead}}`. `lanes[]` is the evidence `measured` is read off — one element per lane, `unblocked` a boolean, `owner` the lane's owner or `null`, `files[]` the collision group that decides whether two lanes can run at once. `measured` is the number of `unblocked` lanes, and it must equal that count: a number without the lanes behind it is not a measurement. `excluded` counts by reason. Drives the roster and proves the number was actually taken. |
 | `roles` | reused container | The sibling's entries are `name/prefix/responsibility_type/inner_loop/role_spec`; this skill uses only `name` / `role` / `model` / `lane`. Container name kept, fields trimmed. |
-| `tasks` | new (≙ sibling `pipeline`) | `[{task_id, description, status, created_at, closed_at}]`. The sibling's `pipeline` is a dependency DAG; this is a ledger. **Do not treat them as the same thing.** |
+| `tasks` | new (≙ sibling `pipeline`) | `[{task_id, description, status, created_at, closed_at}]`. `status` is `in_progress \| landed \| done`: `landed` means the change is committed, `done` means finished with nothing to commit (a review, a measurement, a decision). `closed_at` is required for `landed` and `done` — the sibling's `pipeline` is a dependency DAG, this is a ledger. **Do not treat them as the same thing.** |
 | `why_team` | reused + 1 | The sibling enum (`parallel-modules \| multi-angle-analysis \| role-isolation \| capability-split \| resume-team`, per `skills/jj-team-coordinate/roles/coordinator/role.md:186`) plus `persistent-ledger`, which is for a team provisioned as a ledger rather than for concurrency — that is, whenever no implementer was spawned (`implementers == 0`). A team at 1 lane whose lane is genuinely assignable is `parallel-modules`, not `persistent-ledger`. |
 | `completion_action` | reused | `"interactive"`. |
 | `created_at` / `updated_at` / `last_seen_at` | reused + new | `last_seen_at` is what makes staleness detectable at all. |
@@ -124,7 +124,7 @@ R2  live AND session_id_source == "unknown" AND host.session_id is null
 R3  live AND the team's host.session_id is known AND it is not mine
       -> AskUserQuestion, never silent:
          [ adopt — rebind host.session_id, push the old id into previous_session_ids ]
-         [ start alongside — directory TEAM-<project_key>-<date>-2, both stay live ]
+         [ start alongside — directory TEAM-<project_key>-<YYYYMMDD>-2, both stay live ]
          [ close (archive) then provision fresh ]
     The condition is deliberately not "both ids known". When my own id is
     unreadable it is null, which is certainly not the team's, so R3 fires and
@@ -158,7 +158,16 @@ Step 3 — always bump last_seen_at / updated_at
 
 ## Staleness and closing
 
-`last_seen_at` is bumped on every Phase 0 touch. When a live team has `now - last_seen_at > 14d` and no live teammates, Phase 0 prints **one line** and offers `close`. It does not close it.
+Staleness is **two conditions**, and only the first is always decidable. Defining one without the other is what left a promise here that no host could keep.
+
+**Condition 1 — the clock.** `now - last_seen_at > 14d`. `last_seen_at` is bumped on every Phase 0 touch and nowhere else, so it records when this skill was last *invoked*, not when anyone last *worked*. That is deliberate and it has a cost, stated rather than hidden: a team whose teammates keep working for three weeks without a re-invocation reads as stale on this clock. The clock is the signal to **ask**, which is why condition 2 exists at all — a working team must not be closed for not being re-invoked.
+
+**Condition 2 — no live teammates.** Decidable only where the host can address a teammate by the name recorded in `roles[]`.
+
+- A host with `teammates: false` has no teammates, so the condition holds **by definition** — not by measurement. This is the one case where the rule is safe without any probe.
+- A host that has teammates but cannot address them by name — this one: `Agent` + `SendMessage` exist and teammates persist across turns, but `ListAgents` returns agent ids only, so no name in `roles[]` can be matched to a live process — makes the condition **undecidable**. It must not be guessed either way.
+
+When condition 2 is undecidable, Phase 0 **degrades to report only**: print the staleness line, say in the same breath that liveness could not be determined on this host, and offer nothing. An unverifiable condition must not produce a `close` offer — that would be the same shape of lie as a fabricated session id, one layer down.
 
 **No team is ever auto-closed.** The only automatic signal available without a hook is wall clock, and wall clock is exactly the signal that would destroy the only record of a half-finished task. `pause` and `close` are always explicit acts; `close` writes `close_reason` and moves the file set into `<team root>/archive/<team_id>/`.
 

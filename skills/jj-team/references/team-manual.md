@@ -80,9 +80,12 @@ Direct message, no task folder, no review:
 
 | Operation | Command |
 | --- | --- |
-| Assign to one teammate | `SendMessage(to: "<name>", message: "...")` |
+| Assign to one teammate | `SendMessage(to: "<name>", message: "...")` — **only where the host can address a teammate by name** |
+| Relay through team-lead | Hand the recipient's **agent id** plus the message to team-lead and let it forward. This is the working path on a host whose `ListAgents` returns agent ids only, where no name resolves |
 | Broadcast (use sparingly — still delivered one idle-turn at a time) | `SendMessage(to: "*", message: "...")` |
-| Request review | Implementer messages reviewer directly, not through team-lead |
+| Request review | Implementer messages reviewer directly where names resolve; otherwise hand it to team-lead to forward |
+
+**A name that does not resolve is a host fact, not a shortcut.** Do not write an onboarding prompt that promises a teammate it can reach a peer directly unless this host actually addresses by name — the promise fails silently at the first attempt, and the teammate has no way to tell a host limitation from its own mistake. Say instead that peer traffic goes through team-lead, and why.
 
 **Files carry continuous state; messages carry intent at turn boundaries.** To learn current status, read `progress.md` / `findings.md` — never send "how's it going?".
 
@@ -90,7 +93,7 @@ Direct message, no task folder, no review:
 
 | Want | How |
 | --- | --- |
-| Global view | `TaskList` |
+| Global view | `TaskList` — **only where `task_board: true`**; without one, the state files are the board |
 | Fast scan | Read each teammate's `progress.md` |
 | Deep dive | Read their `findings.md` index → then the specific task folder |
 | Direction | Read the team's `task_plan.md` |

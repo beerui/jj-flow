@@ -177,7 +177,7 @@ skill 必须说明「一轮没有调用 `/jj-team` 的对话」该怎么处理�
 Phase 5 结束时打一条**固定、可 grep** 的横幅：
 
 ```
-团队已就位：TEAM-<project_key>-<date> ｜后续直接给任务（无需 /jj-team）
+团队已就位：TEAM-<project_key>-<YYYYMMDD> ｜后续直接给任务（无需 /jj-team）
 ```
 
 固定措辞是为了日后能在 transcript 里找回来。

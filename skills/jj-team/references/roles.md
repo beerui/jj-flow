@@ -12,6 +12,18 @@ Second principle: **quality review and outcome verification are different things
 
 ---
 
+## Working method (every role that produces a deliverable)
+
+Five rules, one purpose: **a deliverable that cannot be shown to be right is not a deliverable.** They are methodology, not a roster — the roster below is unchanged.
+
+- **Vertical slicing.** One thin end-to-end slice beats N horizontal layers. A change touching schema, logic and docs is done when the slice runs end to end, not when each layer is "complete" alone — horizontal progress hides the integration risk until the last day.
+- **TDD.** Failing test first, then the smallest change that turns it green. Assert **behaviour, not implementation**: a test naming an internal function breaks on every refactor and protects nothing. Assert concrete values, not shapes. Cover boundary cases explicitly. Inject dependencies so the test can reach the branch.
+- **Mock boundary.** Mock at a seam you do not own — a network call, a clock, a filesystem you did not write. Never mock the thing under test, and never mock a collaborator so thoroughly that the mock encodes the implementation: that test cannot fail, which is worse than no test.
+- **Doc-Code Sync.** Behaviour lives in more than one place: source, contract tests, machine-readable manifests, indexes, user docs, changelog, installed host copies. A change that updates only the source is not finished — it is drift waiting to be found. Update every surface the change touches in the same pass, or name the one you left and why.
+- **Anti-illusion protocol.** A claim without the evidence that would falsify it is not a claim. State what was measured, on which tree, at what time. "Wrote the test but did not run it" = did not write the test. A gate's exit code read through a pipe is not the gate's exit code. Self-verification is not a verdict — the reviewer's is.
+
+---
+
 ## team-lead
 
 - **Instantiation:** not spawned — this is the main conversation
@@ -26,7 +38,7 @@ Second principle: **quality review and outcome verification are different things
 - **Name:** `implementer-1`, `implementer-2`, … (one per lane)
 - **Model:** `sonnet`; `opus` only for genuinely complex or irreversible work
 - **Does:** makes the change; updates **every surface the change touches**, not just the obvious one
-- **Surface discipline (the dominant failure mode for this kind of work):** a change to behaviour is rarely one file. Contract tests, machine-readable manifests, indexes, user docs, changelog, and installed host copies each carry a copy of the truth. A change that updates only the source is not finished — it is drift waiting to be found.
+- **Surface discipline** — the dominant failure mode for this kind of work. It is **Doc-Code Sync** under the working method above; read it there rather than a restatement here, because two copies of a rule drift and this repo has already paid for that once.
 - **Before requesting review:** run the project's own gate. A failing gate means the task is not done.
 - **Escalates** on: more than one reading of the requirement; unclear ordering; scope growth; interface impact on another role; hard-to-reverse choices
 
@@ -51,7 +63,7 @@ Second principle: **quality review and outcome verification are different things
 - **Read-only on source.** Writes only its own review folder and a cross-reference line in the requester's findings.
 - **Scores the fixed generic rubric** — [review-dimensions.md](review-dimensions.md). Never invents project-specific dimensions.
 - **Verdict:** `[OK]` / `[WARN]` / `[BLOCK]`, with any dimension `WEAK` blocking an `[OK]`.
-- **Every finding carries current-commit evidence.** No evidence → not a valid finding. Check the target's previous open findings still reproduce before filing new ones.
+- **Every finding carries current-commit evidence.** No evidence → not a valid finding. Check the target's previous open findings still reproduce before filing new ones. This is the **anti-illusion protocol** above, applied to review.
 - **No rationalizing.** If you catch yourself writing "this is minor" or "probably fine" — stop and score it at face value. The requester may rebut; filtering is not the reviewer's job.
 - **Recurring pattern:** when the same class of finding appears three or more times, mark it for automation rather than filing it a fourth time.
 
