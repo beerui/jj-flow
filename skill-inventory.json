@@ -82,7 +82,7 @@
       "claude_command": "jj-team.md",
       "user_invocable": true,
       "platforms": ["codex", "qoder", "grok", "claude"],
-      "note": "Team-mode umbrella entry (CCteam-creator protocol). Measures real parallelism before sizing a roster; then stands up a persistent team or routes to a sibling engine. State under the main checkout's .workflow/.team/TEAM-<project_key>-<date>/; a repo that declares .workflow/ forbidden (harness-manifest.json record_system.forbidden_paths, enforced by check-harness.mjs HNS-STATE-001) falls back to ~/.jj-flow/team/. Does not advance ralph/dispatch checkpoints; does not write a repo-root CLAUDE.md; generic review rubric RD-1..RD-4. Design: docs/design-docs/jj-team.md"
+      "note": "Team-mode umbrella entry (CCteam-creator protocol). Measures real parallelism before sizing a roster; then stands up a persistent team or routes to a sibling engine. State under the main checkout's .workflow/.team/TEAM-<project_key>-<date>/; a repo that declares .workflow/ forbidden (harness-manifest.json record_system.forbidden_paths, enforced by check-harness.mjs HNS-STATE-001) falls back to ~/.jj-flow/team/. Does not advance ralph/dispatch checkpoints; does not write a repo-root CLAUDE.md; generic review rubric RD-1..RD-4 (fixed floor; project dimensions PD-<n> only where the Phase 3 environment probe points at a contract signal no floor dimension can see). Design: docs/design-docs/jj-team.md"
     },
     {
       "id": "jj-team-coordinate",

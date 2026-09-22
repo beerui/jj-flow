@@ -97,7 +97,7 @@ Direct message, no task folder, no review:
 | Fast scan | Read each teammate's `progress.md` |
 | Deep dive | Read their `findings.md` index → then the specific task folder |
 | Direction | Read the team's `task_plan.md` |
-| Recover | Read `team-snapshot.md` → check staleness (`scripts/snapshot_stale.mjs --team-dir <team dir>`; exit `0` = fresh, `1` = regenerate first, `2` = cannot verify, `3` = the command itself was mistyped so nothing was checked) → resume or spawn → read each `findings.md` index → rebuild tasks |
+| Recover | Read `team-snapshot.md` → check both blocks (`scripts/snapshot_stale.mjs --team-dir <team dir>`; exit `0` = fresh, `1` = regenerate both blocks first, `2` = cannot verify, `3` = the command itself was mistyped so nothing was checked) → resume or spawn → read each `findings.md` index → rebuild tasks |
 
 Read order: **progress** (where it is) → **findings** (what it hit) → **task_plan** (what the goal is).
 

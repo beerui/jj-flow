@@ -1,6 +1,6 @@
 ---
 name: jj-team
-description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style team (roster + planning files + generic review rubric) whose state lives in the main checkout's .workflow/.team/TEAM-<project_key>-<YYYYMMDD>/, sized by a real parallelism measurement; afterwards a plain user turn is a team task with no prefix. Routes to a sibling engine (coordinate / lifecycle / swarm) when the request is a single round. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team, $jj-team, Team Mode, 团队模式, 起团队."
+description: "Team-mode entry for jj-flow. Provisions a persistent CCteam-style team (roster + planning files + floor+project review rubric) whose state lives in the main checkout's .workflow/.team/TEAM-<project_key>-<YYYYMMDD>/, sized by a real parallelism measurement; afterwards a plain user turn is a team task with no prefix. Routes to a sibling engine (coordinate / lifecycle / swarm) when the request is a single round. Does NOT advance ralph/dispatch checkpoints. Triggers: /jj-team, $jj-team, Team Mode, 团队模式, 起团队."
 ---
 
 # jj-team
@@ -25,10 +25,10 @@ This skill is the **umbrella**. The three sibling engines stay independent and a
 | Keep all team state under `<main checkout>/.workflow/.team/TEAM-<project_key>-<YYYYMMDD>/` | Write team state into the repo outside `.workflow/.team/`, into `.plans/`, or into a linked worktree's own `.workflow/` (that forks the ledger) |
 | Keep the operating manual in this skill's `references/` | Create a repo-root `CLAUDE.md` (AGENTS.md is the product SSOT) |
 | Stay behind `/jj-team` — load only when invoked | Inject anything into `jj-ralph` / `jj-same` / `jj-review` entries |
-| Score review on the generic rubric in [references/review-dimensions.md](references/review-dimensions.md) | Invent repo-specific review dimensions |
+| Score review on the floor rubric in [references/review-dimensions.md](references/review-dimensions.md) plus any project dimensions the Phase 3 probe derived | Invent repo-specific review dimensions, drop or re-weight a floor dimension, or record a project dimension the probe did not derive |
 | Keep reviewer read-only on source | Let reviewer edit project source |
 | Resume an existing live team instead of provisioning a second one | Auto-close a team on a timer, or fabricate a session id you could not read |
-| Check `team-snapshot.md` staleness with `scripts/snapshot_stale.mjs` (exit `0`/`1`/`2`/`3`) | Trust a snapshot stamp by eye, or hand-write an mtime into it |
+| Check `team-snapshot.md` staleness with `scripts/snapshot_stale.mjs` (exit `0`/`1`/`2`/`3`) | Trust a snapshot stamp by eye, or hand-write an mtime or a fingerprint digest into it |
 | Resolve the session binding yourself | Ask the user to paste a session id |
 
 **Identity separation:** `TEAM-*` ≠ `TC-*` ≠ `TLV4-*` ≠ `TAS-*` ≠ `RALPH-*` ≠ `DEL-*`.
@@ -121,7 +121,7 @@ What matters at the call site:
 
 | Mode | When | Where |
 | --- | --- | --- |
-| **ccteam** (this skill) | Persistent team across multiple tasks; planning files + roster + generic review rubric; long-running work | `.workflow/.team/TEAM-*` (main checkout) |
+| **ccteam** (this skill) | Persistent team across multiple tasks; planning files + roster + floor+project review rubric; long-running work | `.workflow/.team/TEAM-*` (main checkout) |
 | coordinate | Session-scoped multi-role pipeline; dynamic role-specs; one task | `/jj-team-coordinate` → `.workflow/.team/TC-*` |
 | lifecycle | Fixed SDLC document chain (spec → design → tasks) | `/jj-team-lifecycle` → `.workflow/.team/TLV4-*` |
 | swarm | Multi-hypothesis adversarial search | `/jj-team-swarm` → `.workflow/.team/TAS-*` |
@@ -165,7 +165,11 @@ Recovery works instead through:
 2. `<team root>/team-snapshot.md` — full onboarding prompts, verbatim
 3. Re-invoking `/jj-team` — hits R1 and reloads [references/team-manual.md](references/team-manual.md) on demand
 
-The snapshot is only trustworthy if it is not stale, and that is **mechanical, not editorial**: `node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped skill file and exits `0` fresh / `1` stale / `2` unverifiable / `3` usage. Run it before trusting the cached prompts — at Phase 0, on `check`, and on `resume`. Exit `2` means "cannot tell" (no snapshot, no parseable stamp, skill root gone); it is not a pass. Exit `3` means the command itself was wrong, so nothing was checked — it is neither of the two verdicts above and must not be read as either. Stamp format and the regeneration procedure: [specs/state-layout.md](specs/state-layout.md).
+The snapshot is only trustworthy if it is not stale, and that is **mechanical, not editorial**: `node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped skill file, re-derives the environment fingerprint, and exits `0` fresh / `1` stale / `2` unverifiable / `3` usage. Run it before trusting the cached prompts — at Phase 0, on `check`, and on `resume`.
+
+**It checks two things, not one.** The staleness stamp covers the skill sources the cached prompts were built from. The environment fingerprint covers the team's *environment*: the models the host can reach, the project stack, the shipped surface, the conventions it already has, and what the ledger declares about capabilities, roster and rubric. That half goes stale more often than the skill does — a host upgrade, a `rebuild` that rewrites `roles[].model`, a manifest change — and it is invisible to a file-mtime comparison, because nothing in the skill tree moved.
+
+Exit `2` means "cannot tell" and is not a pass: no snapshot, no parseable stamp, no fingerprint, a fingerprint that does not match its own contents, or a skill root or project that is gone. Exit `3` means the command itself was wrong, so nothing was checked — it is neither of the two verdicts above and must not be read as either. Stamp and fingerprint formats and the regeneration procedure: [specs/state-layout.md](specs/state-layout.md).
 
 At the end of Phase 5, print this banner verbatim (a stable string, so it can be found in the transcript later):
 
@@ -190,7 +194,8 @@ Multi-instance `researcher` is the one role designed to scale — split by **vol
 
 ## Review rubric
 
-Fixed generic dimensions — see [references/review-dimensions.md](references/review-dimensions.md).
+A **floor** every review scores, plus **project dimensions** the Phase 3 probe derived.
+See [references/review-dimensions.md](references/review-dimensions.md).
 
 | # | Dimension | Weight |
 | --- | --- | --- |
@@ -199,7 +204,19 @@ Fixed generic dimensions — see [references/review-dimensions.md](references/re
 | RD-3 | 性能 (performance) | 中 |
 | RD-4 | API 优雅 (API elegance) | 中 |
 
-Any dimension `WEAK` → verdict cannot be `[OK]`. Calibration anchors live in the reference file; reviewer reads them before each review. The rubric is pinned into `team-session.json` as `review_rubric` so a recovering reviewer reads the right one.
+**The floor is not negotiable and is not extended by opinion.** Those four are the same for every project; they are the part of a review that has to happen whether or not anyone asked for it. A project dimension is added when the probe found a signal a floor dimension cannot see — a live host contract, a migration path, a second consumer of an SDK — and it is recorded with an id, a name and a weight.
+
+`team-session.json` pins the rubric as `review_rubric`:
+
+```json
+{ "floor": ["RD-1", "RD-2", "RD-3", "RD-4"],
+  "project": [{ "id": "PD-1", "name": "SDK 兼容面", "weight": "中" }],
+  "all": ["RD-1", "RD-2", "RD-3", "RD-4", "PD-1"] }
+```
+
+`floor` is never empty, `project` may be `[]`, and `all` is the concatenation the reviewer scores. A bare array is read as a floor with no project dimensions, so a ledger written before this shape still checks.
+
+Any dimension `WEAK` → verdict cannot be `[OK]`. A project dimension carries the same veto as a floor one — the point of adding it is to be able to fail a change on it. Calibration anchors live in the reference file; the reviewer reads them before each review.
 
 ## Message delivery constraint
 
@@ -214,6 +231,35 @@ Any dimension `WEAK` → verdict cannot be `[OK]`. Calibration anchors live in t
 - **Never promise a teammate it can reach a peer directly** when the host cannot address by name. The honest onboarding line is that peer traffic is relayed by team-lead, with the reason stated — a name that does not resolve is a host fact, not a shortcut someone forgot to take.
 - **List agent ids when you need a relay.** The team-lead can only forward what it can address.
 
+## Phase 3 — environment probe (what the roster may say about models)
+
+Phase 1 measured how much work can run in parallel. Phase 3 answers the other half of the roster: **which models exist to be assigned, and which of them this host can actually reach.** A roster that names a model the host cannot dispatch to is not a plan — it is a seat that stays empty, and the team finds out at spawn time, after the ledger has already claimed otherwise.
+
+Probe in this order. Six signals, and each one is allowed to decide exactly one thing:
+
+| Signal | Where it comes from | What it may decide |
+| --- | --- | --- |
+| Host primitives | `capabilities` in the ledger — `teammates`, `task_board` | Whether lanes are concurrent or serial. It never changes which models exist. |
+| Reachable model surface | The model this session runs on, plus the agent-definition files the host reads (`agents/`, `.grok/agents`, `.codex/agents`) | Which models may be named in `roles[].model`. An unreachable surface is reported as unreachable — never silently mapped onto a default. |
+| Project stack | The project's own manifest and its dependency set | What a reviewer must be able to read. Not which model reads it. |
+| Product surface | What the project ships (`package.json` `files[]`, published artifacts) | Which files are in scope for review. Not who reviews them. |
+| Existing conventions | `.plans/`, `.workflow/`, `AGENTS.md`, `CLAUDE.md`, `docs/` | Where team state and findings already live, so the roster does not invent a second home. |
+| Measured parallelism | Phase 1's number | How many seats to fill. It never vetoes provisioning. |
+
+The probe is **model context, not a command**: it runs in this conversation, it writes no new CLI surface, and what it produces is written into the ledger as the `declared` half of the environment fingerprint (see [specs/state-layout.md](specs/state-layout.md)).
+
+**The recommendation format is fixed.** One block, and it must not be paraphrased away:
+
+```text
+environment probe: teammates=<bool> task_board=<bool> / models reachable: <surface> / stack: <stack> / product: <surface>
+lanes: <measured> -> roster: team-lead + <n> implementer(s) + reviewer [+ researcher]
+excluded: <lane or model surface> -- <reason>
+```
+
+The `excluded` line is mandatory, and it is the line that carries the value. A probe that names only what it included cannot be told apart from a probe that never looked: both produce a plausible roster, and only one of them is honest. Every lane the measurement counted as 0 and every model surface that was not reachable gets a line here, with the reason.
+
+Then **ONE confirmation**, and stop. Phase 3 does not size the roster twice, does not ask which roles the user would like, and does not re-open a decision the probe just closed.
+
 ## Lifecycle
 
 ```text
@@ -222,10 +268,10 @@ User invokes /jj-team <request>
               (the table is total: a state no rule matched asks — never a quiet second team)
   -> Phase 1: measure parallelism -> report the number and the blockers
   -> Phase 2: route — ccteam (this skill) or delegate to a sibling engine
-  -> Phase 3: propose the roster the number implies -> ONE confirmation
+  -> Phase 3: probe the environment (six signals, fixed report format) -> propose the roster the number implies -> ONE confirmation
   -> Phase 4: create team-session.json + planning files -> spawn the roster
               (at 0 lanes: team-lead + reviewer only, no implementer directories)
-  -> Phase 5: write team-snapshot.md (staleness stamp emitted by scripts/snapshot_stale.mjs --stamp) -> print the banner -> hand control to team-lead
+  -> Phase 5: write team-snapshot.md (both blocks emitted by scripts/snapshot_stale.mjs --stamp --team-dir <team dir>) -> print the banner -> hand control to team-lead
   -> Bare turns run work directly (see Session contract)
   -> Phase boundary: re-measure parallelism, re-size the roster, run harness checklist
   -> Team complete -> archive the team, update the snapshot
@@ -235,8 +281,8 @@ User invokes /jj-team <request>
 
 | Command | Action |
 | --- | --- |
-| `check` / `status` | Print roster + task state from the state files; run the snapshot staleness check (exit `1` → regenerate before trusting cached prompts; `3` → the command was mistyped, nothing was checked); no advancement |
-| `resume` | Reconcile state files with live agents; report drift, including a stale or unverifiable snapshot stamp |
+| `check` / `status` | Print roster + task state from the state files; run the snapshot staleness check — stamp **and** fingerprint — (exit `1` → regenerate both blocks before trusting cached prompts; `2` → cannot tell, regenerate both blocks and re-run; `3` → the command was mistyped, nothing was checked); no advancement |
+| `resume` | Reconcile state files with live agents; report drift, including a stale or unverifiable snapshot stamp or environment fingerprint |
 | `remeasure` | Re-run the parallelism measurement at a phase boundary |
 | `rebuild` | Rebuild the **same** team's roster at a phase boundary (never mid-development): re-measure, re-spawn, keep the `team_id` and the ledger. It is **not** a second live team — a genuinely concurrent second team for one `project_key` is R5's AskUserQuestion, not this command |
 | `pause` | Set `status: paused`; teammates may be reaped |
@@ -255,7 +301,8 @@ User invokes /jj-team <request>
 | Re-invoked with a live team for this session | Resume, do not init |
 | Team stale (`now - last_seen_at > 14d`) | Print one line and offer `close` **only when live teammates are decidable and there are none**. Where liveness is **undecidable** on this host, print the staleness line and say liveness could not be determined, and offer nothing. Either way, do not close it yourself — the full rule is in [specs/state-layout.md](specs/state-layout.md) |
 | Request fits a sibling engine better | Delegate to it by name and stop |
-| `team-snapshot.md` stale vs this skill | The check exits `1` and names each changed file — regenerate the stamp (`scripts/snapshot_stale.mjs --stamp`), never re-type mtimes by hand; tell the user which source won. Exit `3` is a mistyped command: nothing was checked, so regenerate nothing |
+| `team-snapshot.md` stale vs this skill | The check exits `1` and names each changed file — regenerate both blocks (`scripts/snapshot_stale.mjs --stamp --team-dir <team dir>`), never re-type mtimes or a digest by hand; tell the user which source won. Exit `2` means no verdict was reached — same repair, and say that the outcome was "cannot tell", not "stale". Exit `3` is a mistyped command: nothing was checked, so regenerate nothing |
+| `team-snapshot.md` fingerprint does not re-derive | The check exits `1` and names each drifted signal plus the half it belongs to (`derived` / `declared`). Regenerate both blocks — never edit a value or a digest in place, because the digest is what makes an edit unreadable rather than plausible |
 | Teammate lost after compaction | Resume from `team-snapshot.md` prompts |
 
 ## Host compatibility

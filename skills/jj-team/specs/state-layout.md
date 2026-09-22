@@ -94,7 +94,7 @@ Reuses the sibling shape at `skills/jj-team-coordinate/SKILL.md:241-273` where i
 | `completion_action` | reused | `"interactive"`. |
 | `created_at` / `updated_at` / `last_seen_at` | reused + new | `last_seen_at` is what makes staleness detectable at all. |
 | `close_reason` | new | `user-closed \| superseded \| stale`; written only on close. |
-| `review_rubric` | new | `["RD-1","RD-2","RD-3","RD-4"]` — pins the dimensions so a recovering reviewer reads the right ones. |
+| `review_rubric` | new | `{floor[], project[{id,name,weight}], all[]}` — pins the dimensions so a recovering reviewer reads the right ones. `floor` is the fixed generic four and is never empty; `project` is what the Phase 3 probe derived and may be `[]`; `all` is `floor` then `project`, the list the reviewer scores. A **bare array** is read as a floor with no project dimensions, so a ledger written before this shape still checks. Derivation rules and the probe-signal mapping: [references/review-dimensions.md](../references/review-dimensions.md). |
 
 **Why a fourth `status`.** Reusing the sibling's three values literally would mean recording an abandoned team as `completed` — a claim every downstream consumer (archive decisions, stale notices, `close_reason` conditionals) would then have to be taught to see through. One added value with a written rationale is cheaper and more honest than that conditional in every reader.
 
@@ -177,8 +177,11 @@ Written once every teammate is spawned. Contains:
 
 - Generation time, project, language
 - A staleness stamp: the modification time of each file of the **loaded skill** (`SKILL.md`, plus everything under `references/`, `specs/` and `scripts/`) at snapshot time. Record the host path the skill was actually loaded from, not a repo-relative guess — a business-repo team has no `skills/jj-team/` in its own tree.
+- An environment fingerprint: the team's **environment** at snapshot time — the models the host can reach, the project stack, the shipped surface, the conventions the project already has, and what the ledger declares about capabilities, roster and rubric. This is the half that goes stale without any file under the skill moving.
 - The roster (name, role, model) and the measured lane count
 - Every onboarding prompt, complete
+
+Both blocks are emitted by the same command and replaced together. A snapshot with a stamp and no fingerprint is **not** a valid snapshot — the check fails closed on it, because exit `0` is the one code a caller acts on.
 
 ### The staleness stamp, exactly
 
@@ -197,20 +200,68 @@ specs/state-layout.md	2026-09-20T03:12:44.123Z
 
 The header line is the format version; `skill_root` and `generated_at` are `key: value`; every remaining line is a relative path, a tab, and that file's mtime in ISO-8601. **Never hand-write an mtime** — emit the block with `node scripts/snapshot_stale.mjs --stamp` (run from the loaded skill copy, so the recorded `skill_root` is the host path) and paste it in. A guessed mtime is a ledger lie that stays invisible until it misroutes.
 
-**Checking it is mechanical, not editorial.** `node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped path and exits:
+### The environment fingerprint, exactly
+
+One fenced block, fence label `fingerprint`. Nothing else in the file may use that label.
+
+````text
+```fingerprint
+environment-fingerprint v1
+project: D:/daji-docs/jj-flow
+generated_at: 2026-09-20T04:00:00.000Z
+derived models
+.grok/agents/frontend-dev.md	grok-4.6
+.codex/agents/reviewer.md	(codex not installed)
+derived stack
+name	jj-flow
+dependencies	@anthropic-ai/claude-agent-sdk,...
+derived surface
+files	agents,claude-commands,docs,skills,src
+derived conventions
+.plans	yes
+.workflow	no
+AGENTS.md	yes
+CLAUDE.md	no
+docs	yes
+declared capabilities
+teammates	true
+task_board	false
+declared models
+team-lead	(this conversation)
+implementer-1	sonnet
+reviewer	sonnet
+declared review_rubric
+all	RD-1,RD-2,RD-3,RD-4
+fingerprint: 3f2a…c91  (64 hex chars)
+```
+````
+
+Seven sections, always in this order, always all seven present — a missing section would be indistinguishable from a signal that found nothing. Every line after `project:` / `generated_at:` is `key<TAB>value` under the section named above it, sorted by key so the block is byte-stable between runs. `generated_at` is **excluded from the digest** — it changes on every emission and would make the fingerprint drift against itself.
+
+**The split is the point.** Four sections are `derived`: the script reads them off the filesystem at snapshot time and again at check time, and nobody types them. Three are `declared`: they come from `team-session.json` and are what the Phase 3 probe wrote down. The two halves answer different questions — *has the environment moved?* versus *does the ledger still say what the snapshot claims it said?* — and the report names which one moved, because the repair differs: a derived drift means the world changed under the team, a declared drift means `rebuild` rewrote the roster and the cached prompts are describing a team that no longer exists.
+
+**The declared projection excludes `last_seen_at` and `tasks[]` on purpose.** Both change on every touch — Phase 0 bumps one, every completed task grows the other — so including either would drift the fingerprint on every invocation. A guard that cries wolf every time is a guard that gets switched off.
+
+**Never hand-write a value or the digest.** `fingerprint:` is a sha256 over the canonical text of the other lines. A hand edit is caught by the digest before any signal comparison runs, which is why a tampered block reads as `unverifiable` rather than `stale`: telling that reader to "regenerate" would launder the edit into a fresh stamp, which is the exact lie the digest exists to catch.
+
+### Checking both blocks is mechanical, not editorial
+
+`node scripts/snapshot_stale.mjs --team-dir <team dir>` re-reads every stamped path, re-derives the fingerprint, re-reads the declared half out of the ledger beside the snapshot, and exits:
 
 | Exit | Meaning |
 | --- | --- |
-| `0` | fresh — every stamped file unchanged, and no source file unaccounted for |
-| `1` | stale — a file is newer than its stamp, or a file appeared / disappeared since |
-| `2` | unverifiable — no snapshot, no parseable stamp, or the stamped `skill_root` is gone |
+| `0` | fresh — every stamped file unchanged, no source file unaccounted for, and the environment fingerprint re-derives |
+| `1` | stale — a file is newer than its stamp, a file appeared / disappeared since, **or** a fingerprinted signal drifted (the report names each one and the half it belongs to) |
+| `2` | unverifiable — no snapshot, no parseable stamp, no fingerprint, a fingerprint that does not match its own contents, the stamped `skill_root` is gone, or the fingerprinted project is gone |
 | `3` | usage — the command itself is wrong; nothing was checked |
 
 Exit `2` is a separate code on purpose: "cannot tell" is not "changed", and folding the two together would make a missing stamp read as a pass. A file that appeared since the snapshot counts as stale even though no mtime moved — a pure mtime comparison cannot see it. Exit `3` is separate from `2` for the same kind of reason: a mistyped command is not a snapshot this script failed to read, and `2` sends the reader off to regenerate a stamp they already have.
 
+**A digest mismatch is `unverifiable`, never `stale`.** That ordering is load-bearing and it is the reason the digest is verified before any signal is compared.
+
 Run it at Phase 0, on `check`, and on `resume` — anywhere the snapshot would otherwise be trusted by eye.
 
-**Regenerate when** anything under the skill changed after the snapshot. The check tells you that with an exit code and the name of each offending file; the fix is a new stamp from `--stamp`, then tell the user whether the cached prompts or the current sources won.
+**Regenerate when** anything under the skill changed after the snapshot, or a fingerprinted signal drifted. The check tells you which, with an exit code and the name of each offending file or signal; the fix is a fresh pair of blocks from `--stamp --team-dir <team dir>`, then tell the user whether the cached prompts or the current sources won. **Replace both blocks — never append a new one above the old.** Two blocks of either kind is a file that cannot be checked as written, and a reader that silently takes one of them reports a snapshot that can never converge.
 
 ## Archiving
 

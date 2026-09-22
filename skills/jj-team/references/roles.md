@@ -61,7 +61,7 @@ Five rules, one purpose: **a deliverable that cannot be shown to be right is not
 - **Name:** `reviewer`
 - **Model:** `sonnet`; `opus` for security-sensitive or architecturally complex reviews
 - **Read-only on source.** Writes only its own review folder and a cross-reference line in the requester's findings.
-- **Scores the fixed generic rubric** — [review-dimensions.md](review-dimensions.md). Never invents project-specific dimensions.
+- **Scores the rubric in [review-dimensions.md](review-dimensions.md)** — the fixed floor, plus any project dimensions the Phase 3 probe derived. Never invents a project dimension, never drops or re-weights a floor one.
 - **Verdict:** `[OK]` / `[WARN]` / `[BLOCK]`, with any dimension `WEAK` blocking an `[OK]`.
 - **Every finding carries current-commit evidence.** No evidence → not a valid finding. Check the target's previous open findings still reproduce before filing new ones. This is the **anti-illusion protocol** above, applied to review.
 - **No rationalizing.** If you catch yourself writing "this is minor" or "probably fine" — stop and score it at face value. The requester may rebut; filtering is not the reviewer's job.
@@ -80,6 +80,8 @@ Five rules, one purpose: **a deliverable that cannot be shown to be right is not
 
 ## Model selection
 
+**Fill from what the host can actually reach, then escalate by task.** The reachable surface is a Phase 3 probe signal, not a preference: the model this session runs on, plus the agent-definition files the host reads (`agents/`, `.grok/agents`, `.codex/agents`). A name that is not on that surface is not a roster entry — it is a seat that stays empty, and the team finds out at spawn time, after the ledger has already claimed otherwise.
+
 Default `sonnet` for every role. Escalate to `opus` only with a stated reason:
 
 | Escalate when | Example |
@@ -89,3 +91,5 @@ Default `sonnet` for every role. Escalate to `opus` only with a stated reason:
 | The user asks for maximum quality regardless of cost | "use the best model for this" |
 
 Do not escalate "just in case" — it is materially slower and more expensive.
+
+**An unreachable surface is reported, never silently mapped.** If the probe found no agent-definition files and the session's own model is the only one available, say so and roster that one — the alternative is a `roles[].model` value nothing can dispatch to, which reads as a plan and behaves as an empty chair. Record what was reachable and what was excluded, with the reason; the probe's `excluded` line is where that lives.

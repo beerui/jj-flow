@@ -4,7 +4,7 @@
 >
 > skill + 命令页 + inventory + 设计文档已入库；真机多轮验收未做。
 >
-> 验收证据：`tests/jj-team-contract.test.mjs`（inventory/入口/状态落点/并行度定规模/会话绑定/宿主探测/通用维度/不改 sibling）、`npm run verify`
+> 验收证据：`tests/jj-team-contract.test.mjs`（inventory/入口/状态落点/并行度定规模/会话绑定/宿主探测/审查底线与项目维度/不改 sibling）、`tests/jj-team-snapshot-stale.test.mjs`（stamp + 环境指纹的行为）、`npm run verify`
 >
 > 关联：`ARCHITECTURE.md`（控制面不变量）、`docs/commands/jj-team.md`、`jj-team-coordinate.md`、`jj-team-lifecycle.md`、`jj-team-swarm.md`、`ralph-plans-workspace.md`（`.plans` 角色层不引入的裁定）
 >
@@ -159,6 +159,22 @@ skill 必须说明「一轮没有调用 `/jj-team` 的对话」该怎么处理�
 
 **防腐条款（本设计最容易被侵蚀的地方）**：数字必须仍然决定花名册规模，且花名册里永远不许有闲着的 implementer。守不住这两条，门就退化成装饰。
 
+**花名册的另一半：环境探测。** 并行度回答「几个座」，Phase 3 回答「座上坐谁」。后者不是偏好问题而是可达性问题：宿主摸不到的模型写进 `roles[].model` 不是一个计划，是一把空椅子，而且团队是在 spawn 那一刻才发现——台账已经先声称了它有。六路信号，每路只许决定一件事：宿主能力（`capabilities`）定并发还是串行，**不改哪些模型存在**；可达模型面（本会话模型 + 宿主读的 agent 定义文件 `agents/` / `.grok/agents` / `.codex/agents`）定 `roles[].model` 能写什么；项目栈定 reviewer 得看得懂什么，**不定谁看**；发布面定哪些文件在审查范围内，**不定谁审**；已有约定定状态和 findings 落在哪，**不定什么是好活**；并行度定几个座，不否决预置。
+
+**探测是模型上下文，不是新命令面。** 它在本会话里执行，不新增 CLI，产物写进台账——也就是 §8 环境指纹的 `declared` 那半截，让「探测写了什么」和「快照声称什么」从此是同一份事实。
+
+**报告格式固定，其中 `excluded` 那行是承重墙**：
+
+```text
+environment probe: teammates=<bool> task_board=<bool> / models reachable: <面> / stack: <栈> / product: <面>
+lanes: <测得> -> roster: team-lead + <n> implementer(s) + reviewer [+ researcher]
+excluded: <道或模型面> -- <理由>
+```
+
+只报纳入了什么的花名册，和根本没探就给出的花名册，从产物上分辨不出来——两者都是一个像样的花名册，只有一个是诚实的。所以每一道被计成 0 的道、每一个摸不到的模型面，都必须在这行里带着理由出现。然后**点一次头就停**：Phase 3 不二次定规模、不问用户想要哪些角色、不重开探测刚刚关掉的决策。
+
+**可达面摸不到时如实报，不静默映射。** 探不到任何 agent 定义文件、只有本会话一个模型可用，就照此报并按它排花名册。另一种做法是把 `roles[].model` 写成一个谁都不能派的名字，那读起来像计划、行为上是空椅子。
+
 **可证伪条件**：若连续多个会话里，0/1 道团队从未向生成的队友派过活，则 0 道预置是文书，规则退回「只在 ≥1 道时预置」，或把账本并回 `jj-ralph`。**评估时点在收集到实际使用数据之后，不是现在。**
 
 ## 8. 无 CLAUDE.md 的压缩恢复
@@ -186,9 +202,11 @@ Phase 5 结束时打一条**固定、可 grep** 的横幅：
 
 **风险**：`team-snapshot.md` 的陈旧检测依赖快照头记录**已加载 skill** 各文件的修改时间（业务仓里没有 `skills/jj-team/`，必须记宿主实际加载路径）。已写入 `specs/state-layout.md`，并已机械化：`skills/jj-team/scripts/snapshot_stale.mjs` 复读每个登记路径，按 0 / 1 / 2 / 3 退出码回答「新 / 旧 / 无法验证 / 命令打错」，快照新增或删除了 skill 文件同样算旧（纯 mtime 比对看不见新增文件）；`2` 与 `3` 分开是因为「读不出」不是「改过」、而「命令打错」两者都不是——合成一个码会让缺 stamp 读成通过，或把打错的命令送去重新生成 stamp。mtime 由脚本产出，不许手写。剩下的是仓库门禁摸不到 home 里的快照本身，所以机械化落在 Phase 0 / `check` / `resume` 的调用点与合约测试上，不由 `npm run verify` 代跑。
 
-## 9. 审查维度（通用）
+**第二个块：环境指纹。** skill 树会变，团队所处的环境变得更快，而后者的变化一个 mtime 都看不见——宿主升级了某个 agent 的模型、`rebuild` 重写了 `roles[].model`、项目换了依赖或发布面，skill 目录里没有任何文件动过，而缓存里的人设提示词描述的是一个已经不存在的团队。所以快照头有两个块：`staleness-stamp v1` 看 skill 树，`environment-fingerprint v1` 看环境。指纹分两半，四节 `derived`（模型面 / 栈 / 发布面 / 约定）由脚本从盘上现算，三节 `declared`（能力 / 花名册 / 维度）来自 `team-session.json`；digest 是 sha256，覆盖除 `generated_at` 以外的全部规范文本，**先验 digest 再比信号**——对不上说明块被改过，那是「无法验证」，不能报成「旧」，否则一句「重新生成」就把这次改写洗成一次干净的新鲜盖章。`declared` 投影**故意不含** `last_seen_at` 与 `tasks[]`：两者每次被碰到都变，纳入指纹会让它每执行一次就漂一次，而每次执行都触发的守卫等于没有守卫。退出码表仍是 0/1/2/3，`1` 现在也多一种成因（指纹漂移，报出信号名与它属于哪半截），`2` 多三种（没有 fingerprint、digest 对不上、项目路径已不在）；没有 fingerprint 的快照一律 fail-closed，因为 `0` 是调用方唯一会照着行动的码。
 
-固定四项，不按项目另发明：
+## 9. 审查维度（底线 + 项目）
+
+底线固定四项，不按项目另发明、不删、不改权重：
 
 | # | 维度 | 权重 |
 | --- | --- | --- |
@@ -200,6 +218,8 @@ Phase 5 结束时打一条**固定、可 grep** 的横幅：
 任何一项 `WEAK` → 判决不能是 `[OK]`。安全 / 正确性 / 错误处理等标准检查叠加在维度之上，属于底线而非维度。维度同时钉进 `team-session.json` 的 `review_rubric`，让恢复后的 reviewer 读到正确的锚点。
 
 **设计取舍**：项目专属维度看起来更锋利，但会在每个项目里各自发明一套词汇，锚点失去可比性，分数跨审查不再有意义。四项通用维度足够抽象到处处可用，又足够具体到能争论。
+
+**取舍的边界，以及为什么开一个口子。** 上面这条取舍是对的，但它原来的执行方式是「不许发明」，于是当一个项目的契约真的长在底线看不见的地方——SDK 的第二个消费者、带日期的迁移、把「两道并行」变成「一道串行」的宿主能力——reviewer 手里没有任何可打分的东西，那条契约就退回到「凭眼睛看」。改法是分层：底线仍是那四项、仍不可谈判；项目维度（`PD-<n>`）**只能由 Phase 3 探测指到才加**，记 id / 名字 / 权重和自己的 STRONG/ADEQUATE/WEAK 锚点，与底线维度同样一票否决。六路信号各自能许可什么、以及「已有约定」这一路什么都许可不了，见 `skills/jj-team/references/review-dimensions.md` 的映射表。多数项目探完发现底线没漏东西，`project: []` 就是正常结果——这不是没找，是找了之后确实没有。`team-session.json` 记成 `{floor[], project[], all[]}`，`floor` 永不为空，`all` 是 `floor` 后接 `project`；裸数组仍读作「只有底线、没有项目维度」，所以改形状之前的旧台账照样能过检。
 
 ## 10. 宿主探测与降级
 
@@ -230,6 +250,7 @@ custodian 的主要价值是把反复出现的人工审查转成自动化检查�
 - [x] 快照陈旧检测已机械化（2026-09-20）：`skills/jj-team/scripts/snapshot_stale.mjs` 以退出码 0 / 1 / 2 / 3 回答「新 / 旧 / 无法验证 / 命令打错」，`specs/state-layout.md` 固定 stamp 格式；调用点接进 Phase 0 / `check` / `resume`，行为由 `tests/jj-team-snapshot-stale.test.mjs` 覆盖。§8 风险段同步改写。**F-14 记账**：第 4 个码（用法错误）落地时，文档里枚举退出码的地方只改了代码、没改文档——原方案的靶子清单扫的是 4 个候选文件得 9 处，全量扫 17 个文件后多出设计文档这 2 处同样枚举全量的行。根因与原方案自己记下的是同一条：按词扫必然漏。
 - [ ] 降级宿主（串行花名册）未实测
 - [ ] **并发降级会话不可区分**（已知限制，非未处理 bug）：同一项目两个会话在读不到会话 id 的宿主上都会走「静默恢复唯一未绑定团队」这条路，resume 同一个团队 —— 文件里没有任何字段能区分它们，那条「唯一未绑定」的条件**不构成约束**。代价是两会话可能交错写 `progress.md`；不代价是不丢数据（`team-session.json` 整体重写、`progress.md` 只追加）。要真正约束需要引入会话级标记，属新设计。
+- [x] **环境指纹 + Phase 3 探测 + 审查维度分层**（2026-09-22）：`snapshot_stale.mjs` 在 `staleness-stamp v1` 之外多发一个 `environment-fingerprint v1` 块，四节 `derived` 由脚本现算、三节 `declared` 来自台账，digest 先于信号比对；`review_rubric` 改成 `{floor, project, all}`，裸数组仍读作只有底线；`SKILL.md` 新增 Phase 3 六路信号探测与固定报告格式。**F-35 记账**：`--stamp` 原来禁止和 `--team-dir` 同用（理由写的是「它什么都不检查，所以没有目标可指」），但指纹的 `declared` 半截只能从台账读，于是同一条命令必须同时拿到 skill root 和 team dir。收紧的是禁令本身而不是新增旗标：只禁 `--snapshot`，放行 `--team-dir`。`--stamp` 不带 `--team-dir` 时仍只发 stamp 块并在 stderr 说明，老调用方式不变红。**F-33 记账**：`declared` 投影故意不含 `last_seen_at` 和 `tasks[]`——两者每次被碰到都变，纳入指纹会让它每执行一次就漂一次。
 - [ ] 0 道预置的可证伪条件（§7）未到评估时点
 - [x] **并行度公式已排除 owner 是 team-lead 的道（2026-09-20，排除项名 `owner-is-team-lead`）**：在飞改动归 team-lead 本人时不计入可派道数，与「卡在决策上」同级记进 `parallelism.excluded`；公式本身不变，改的是「道数」的定义。SKILL 测量表、`specs/state-layout.md` 字段表、`references/team-manual.md` 与合约测试同步。2026-09-18 那次 `implementers = 0` 即此例。
 - [x] **团队账本落点改为项目级 `.workflow/.team/`（2026-09-20）**：从 home 搬到**主 checkout** 的 `.workflow/.team/TEAM-<project_key>-<date>/`，目录名一律用 `team_id`、不再有 `<project_key>/` 中间层，`archive/` 随 `.team/` 根下沉。买到三件事：发现根与三个 sibling 统一；**错键从安静的串项目变成响亮的失败**（glob 空 → 预置新团队）；账本随仓走。worktree 正确性由「主 checkout 而非当前 checkout」这条规则保住（`git rev-parse --git-common-dir` + `path.resolve(cwd, common, '..')`；`dirname` 在主 checkout 上返回 `.`，是运气不是规则）。声明禁 `.workflow/` 的仓兜底到 `~/.jj-flow/team/`，兜底由仓自己的门禁（`HNS-STATE-001`）机械执行；本产品仓是唯一需要兜底的那个，`D:\2025\seo-daji-web` 没有该 manifest 所以落项目内。`$JJ_FLOW_HOME` 作用域随之收窄为只搬兜底根。**顺带修掉两处同址缺陷**：解析表的 fall-through 洞（团队绑着别人的 id 而本宿主读不到 id 时没有任何规则命中 → 静默第二次预置；改为放宽该条前提 + 给整张表一条显式终局「无命中不预置，问」），以及 `project_key` 的三种推导表述（改为点名 `resolveProjectKeyFromCwd` 是唯一实现，并如实记下 jj-team 路径上没有它的调用方）。

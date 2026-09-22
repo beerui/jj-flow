@@ -376,7 +376,7 @@ test('the staleness exit contract is stated as four codes wherever it is enumera
     ['skills/jj-team/SKILL.md', /`0` fresh \/ `1` stale \/ `2` unverifiable \/ `3` usage/],
     ['skills/jj-team/specs/state-layout.md', /\| `3` \| usage/],
     ['skills/jj-team/specs/state-layout.md', /Exit `3` is separate from `2`/],
-    ['skills/jj-team/references/team-manual.md', /exit `0` = fresh.*`1` = regenerate first.*`2` = cannot verify.*`3` = the command itself was mistyped/],
+    ['skills/jj-team/references/team-manual.md', /exit `0` = fresh.*`1` = regenerate both blocks first.*`2` = cannot verify.*`3` = the command itself was mistyped/],
     ['docs/commands/jj-team.md', /`3` = 命令本身打错了/],
     ['docs/design-docs/jj-team.md', /0 \/ 1 \/ 2 \/ 3 退出码回答/],
     ['docs/design-docs/jj-team.md', /以退出码 0 \/ 1 \/ 2 \/ 3 回答/]
@@ -417,7 +417,16 @@ test('the resolution table cannot fall through to a silent second provisioning',
   assert.match(table, /print the state that matched and ask/i);
 });
 
-test('review rubric is the fixed generic four, not project-invented', () => {
+test('review rubric is a fixed floor, and a project dimension must come from the probe', () => {
+  // The old rule was "four generic dimensions, do not invent project-specific ones".
+  // It was right about the drift and wrong about the fix: a project whose contract
+  // lives somewhere no floor dimension can see — a second SDK consumer, a dated
+  // migration, a host that forces serial lanes — has nothing to score that with, and
+  // "do not invent one" then means "review it by eye".
+  //
+  // The split is what keeps the original guarantee: the floor is still fixed, still
+  // the same four everywhere, still not re-weightable. What is new is that a project
+  // dimension exists at all, and it exists only when a probe signal points at it.
   const skill = read('skills/jj-team/SKILL.md');
   for (const id of ['RD-1', 'RD-2', 'RD-3', 'RD-4']) {
     assert.ok(skill.includes(id), 'SKILL.md must list ' + id);
@@ -427,15 +436,48 @@ test('review rubric is the fixed generic four, not project-invented', () => {
   assert.match(skill, /性能/);
   assert.match(skill, /API 优雅/);
 
+  // The floor is not negotiable, and the ledger shape carries that: `floor` never
+  // empty, `project` may be empty, `all` is the concatenation the reviewer scores.
+  assert.match(skill, /floor.*never empty|`floor` is never empty/i);
+  assert.match(skill, /`project` may be `\[\]`|project.*may be.*\[\]/i);
+  assert.match(skill, /review_rubric/);
+
   const dims = read('skills/jj-team/references/review-dimensions.md');
-  assert.match(dims, /do \*\*not\*\* invent project-specific ones/);
   for (const id of ['RD-1', 'RD-2', 'RD-3', 'RD-4']) {
     assert.ok(dims.includes(id), 'review-dimensions.md must define ' + id);
   }
-  // Every dimension carries both anchors
-  assert.equal((dims.match(/\*\*STRONG\*\*/g) || []).length, 4);
-  assert.equal((dims.match(/\*\*WEAK\*\*/g) || []).length, 4);
+  // The floor definitions are the region before the project-dimension section, so
+  // the anchor count is measured on the floor rather than on the whole file — a
+  // project dimension carries anchors too, and counting those would let a floor
+  // dimension lose its anchors while the total still matched. The heading is matched
+  // with its `##` prefix on purpose: the same phrase appears in the header link, and
+  // splitting there would cut the floor down to nothing.
+  const floor = dims.split('\n## 项目维度怎么来')[0];
+  assert.ok(floor.includes('RD-1') && floor.includes('RD-4'), 'precondition: the floor region holds all four dimensions');
+  assert.equal((floor.match(/\*\*STRONG\*\*/g) || []).length, 4, 'every floor dimension needs a STRONG anchor');
+  assert.equal((floor.match(/\*\*WEAK\*\*/g) || []).length, 4, 'every floor dimension needs a WEAK anchor');
+  // Both halves of the prohibition, not just the one that used to be written down.
+  // "Do not invent" alone is what pushed a real contract signal into "review it by
+  // eye"; "do not drop, do not re-weight" is what stops the new escape hatch from
+  // becoming a way to quietly retire a floor dimension.
+  assert.match(floor, /do \*\*not\*\* invent project-specific ones/i);
+  assert.match(floor, /do not drop one, do not re-weight one/i);
   assert.match(dims, /Any `WEAK` → the verdict cannot be `\[OK\]`|Any `WEAK`/);
+
+  // A project dimension may not be invented: it must trace back to a probe signal,
+  // and the mapping table is where that trace is written down.
+  assert.match(dims, /项目维度怎么来/, 'the file must carry the probe-signal mapping section');
+  const mapping = dims.split('\n## 项目维度怎么来')[1].split('\n## ')[0];
+  assert.ok(mapping, 'precondition: the mapping section was located');
+  for (const signal of ['Host primitives', 'Reachable model surface', 'Project stack', 'Product surface', 'Existing conventions', 'Measured parallelism']) {
+    assert.ok(mapping.includes(signal), 'the mapping table must cover the ' + signal + ' probe signal');
+  }
+  // The one signal that must license nothing is named as such, because it is the one
+  // a reader would most plausibly stretch into a dimension.
+  assert.match(mapping, /\*\*nothing\.\*\*|may \*\*not\*\* license/i);
+  // ...and a project dimension is not a free pass: it scores and it vetoes.
+  assert.match(mapping, /same veto as a floor dimension|carries the same veto/i);
+  assert.match(mapping, /re-derived, never accumulated/i);
 });
 
 test('checkpoint non-authority and exclusive-assignment separation', () => {
