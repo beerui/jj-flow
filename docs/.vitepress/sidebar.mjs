@@ -68,7 +68,8 @@ export const sidebar = [
       { text: 'CLI 参考', link: '/commands/cli' },
       { text: '部署', link: '/deployment' },
       { text: '实验场 sibling 仓', link: '/jj-lab-siblings' },
-      { text: '更新日志', link: '/changelog' }
+      { text: '更新日志', link: '/changelog' },
+      { text: '更新日志归档', link: '/changelog-archive' }
     ]
   },
   {

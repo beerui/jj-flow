@@ -56,7 +56,7 @@
   docs/.vitepress/config.mjs      VitePress 配置（.mjs，全仓无 TS）
   docs/.vitepress/sidebar.mjs     侧栏纯数据模块；不 import vitepress；校验脚本可 import
   docs/.vitepress/redirects.mjs   旧 URL → 新 URL 映射表
-  docs/changelog.md               <!--@include: ../CHANGELOG.md-->（根 CHANGELOG 仍归 release-please）
+  docs/changelog.md               由 scripts/sync-changelog-pages.mjs 从根 CHANGELOG.md 投影（根仍归 release-please）
   scripts/check-docs.mjs          docs:check：侧栏覆盖 + 临时目录构建 + 产物断言
 删除
   scripts/build-docs.mjs
@@ -123,7 +123,7 @@ VitePress 本地搜索（minisearch）默认按空白/标点分词，中文整�
 
 ### 4.6 更新日志
 
-`docs/changelog.md` 只有一行 `<!--@include: ../CHANGELOG.md-->`。VitePress 的 include 相对当前文件解析，可越出 `srcDir`；被包含内容里的相对链接会按 `docs/changelog.md` 的位置解析，所以 CHANGELOG 里的链接一律写绝对 URL（现有唯一一条 `docs/design-docs/ralph-plans-workspace.md` 改为 GitHub blob 地址；规则写进维护说明）。侧栏「维护者 → 更新日志」指向它。
+根 `CHANGELOG.md` 仍是 release-please 的唯一来源，站点两页（`docs/changelog.md`、`docs/changelog-archive.md`）由 `scripts/sync-changelog-pages.mjs` 从它的两个区域投影而来，正文逐字拷贝、签入仓库；漂移由 `scripts/check-changelog-split.mjs` 机械守着。**不用 VitePress 的 include 指令**：那条路在本仓稳定把默认 4 GB 堆跑满（exit 134），而且 `findRegion` 找不到闭合行时会静默包含整个文件，加上 Windows 的 NTFS 大小写不敏感，代码块里一行示例指令就能把整份更新日志包进另一页。切成两页也不是美观问题——单页 markdown 在打包阶段的耗内存随面积陡增（约 s^3.6），4 GB 堆在 ~98 KB 处耗尽，本仓的更新日志页切分前已经 99,037 字节。CHANGELOG 里的相对链接会按 `docs/changelog.md` 的位置解析，所以一律写绝对 URL（现有唯一一条 `docs/design-docs/ralph-plans-workspace.md` 改为 GitHub blob 地址；规则写进维护说明）。侧栏「维护者 → 更新日志 / 更新日志归档」指向这两页。
 
 ## 5. 内容迁移（技术）
 

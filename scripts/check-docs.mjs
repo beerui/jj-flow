@@ -45,6 +45,21 @@ if (docScanSurface([], { cwd: ROOT, manifest }) !== SURFACE.clean) {
   failCheck('两条文档 lint 的扫描面差集里有未解释文件（见上方 doc-scan-surface 输出）');
 }
 
+// 2c. 更新日志的来源与两页投影。`CHANGELOG.md` 是 release-please 的唯一来源，站点经
+//     `docs/changelog.md` 与 `docs/changelog-archive.md` 两页发布它，两页由
+//     `scripts/sync-changelog-pages.mjs` 投影并签入仓库。切分不是美观问题：单页
+//     markdown 在 VitePress 打包阶段的耗内存随面积陡增，默认堆在 ~98 KB 处耗尽，
+//     本仓的更新日志页切分前已经 99,037 字节，`docs:check` 在 main 上因此一直是红的。
+//     放在构建之前，理由同第 2 步：区域标记写坏、忘了重新投影、或哪一页又写了一行
+//     include 指令，都该在这里红一行，而不是等一个几分钟的 build 之后以一段 native
+//     栈的形式炸开。
+const { main: checkChangelogSplit, EXIT: SPLIT } = await import(
+  pathToFileURL(path.join(ROOT, 'scripts/check-changelog-split.mjs')).href
+);
+if (checkChangelogSplit([], { cwd: ROOT }) !== SPLIT.clean) {
+  failCheck('更新日志的两页切分有问题（见上方 check-changelog-split 输出）');
+}
+
 // 3. 构建到临时目录（dead link 在这里暴露）
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
 const build = spawnSync(

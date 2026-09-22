@@ -13,7 +13,7 @@
 
 新增顶层页面：放文件 + 在 `docs/.vitepress/sidebar.mjs` 对应分组加一行；`design-docs/`、`exec-plans/`、`adr/` 下的文件自动进侧栏（标题取首个 `#`）。忘了加侧栏，`docs:check` 与 `harness:gc` 都会报。构建即校验：内链指向不存在的页面会让 `docs:check` 失败。
 
-两条写作限制：正文不要出现双花括号（VitePress 会当 Vue 插值，行内代码也不豁免，只有围栏代码块安全）；`CHANGELOG.md` 会被 `docs/changelog.md` 包含进站点，里面的链接只能写绝对 URL。
+两条写作限制：正文不要出现双花括号（VitePress 会当 Vue 插值，行内代码也不豁免，只有围栏代码块安全）；`CHANGELOG.md` 会经 `docs/changelog.md` 与 `docs/changelog-archive.md` 两页发布进站点，里面的链接只能写绝对 URL。改完 `CHANGELOG.md`（或挪了两页的切分点）要跑 `node scripts/sync-changelog-pages.mjs` 重新投影，`docs:check` 会查这两页是否还等于来源；站点页面里一行 include 指令都不许有。
 
 本地写文档：`npm run docs:dev`（热更新；WSL 下自动改为轮询）。发布前 `npm run docs:preview` 看构建产物——站点带 `/jj-flow/` 前缀，不能直接双击 `site/index.html`。
 

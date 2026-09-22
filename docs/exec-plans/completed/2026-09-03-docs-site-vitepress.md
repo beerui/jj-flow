@@ -339,11 +339,7 @@ function redirectHtml(target, canonical) {
 }
 ```
 
-- [x] **A1.7 `docs/changelog.md`**
-
-```md
-<!--@include: ../CHANGELOG.md-->
-```
+- [x] **A1.7 `docs/changelog.md`**：当时给这一页写了一行 VitePress include 指令，把根 `CHANGELOG.md` 整个包进站点。该做法现已废弃——include 会把默认堆跑满，且大小写不敏感的文件系统上会意外自引用；改由 `scripts/sync-changelog-pages.mjs` 投影，见设计文档 §4.6。
 
 - [x] **A1.8 CHANGELOG 唯一相对链接改绝对**：`CHANGELOG.md` 第 17 行附近 `(docs/design-docs/ralph-plans-workspace.md)` → `(https://github.com/beerui/jj-flow/blob/main/docs/design-docs/ralph-plans-workspace.md)`。
 
