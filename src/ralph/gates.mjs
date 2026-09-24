@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import { digest, gitStatus, snapshotGit } from '../gitSnapshot.mjs';
+import { digest, gitStatus, isWorkflowStatePath, snapshotGit } from '../gitSnapshot.mjs';
 import { countFindingHeadings, extractReusableRulesFromFindings } from '../memoryHotLayer.mjs';
 import {
   ACCEPT_LAYER_STATUSES,
@@ -327,9 +327,16 @@ export function extractLedgerPathRefs(text) {
   return unique(found);
 }
 
+/**
+ * Paths that are neither project work nor part of a diff a gate should score.
+ *
+ * `.workflow/` is delegated to `isWorkflowStatePath` rather than restated here:
+ * every engine asks the same question about the same directory, and one copy per
+ * engine is how one of them ends up a version behind.
+ */
 export function isWorkflowNoisePath(value) {
   const normalized = String(value || '').replace(/\\/g, '/');
-  return normalized.startsWith('.workflow/') || normalized.includes('/.workflow/') || normalized.startsWith('.git/');
+  return normalized.startsWith('.git/') || isWorkflowStatePath(normalized);
 }
 
 function pathMatchKeys(value) {

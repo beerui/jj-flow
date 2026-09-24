@@ -42,6 +42,7 @@ On failure, stop and **try to return to `work_branch`**.
 - Commit only, no push/merge: do not use this skill
 - **Do not** skip steps 4–6 because of “fear of merge” when both sides are already clear (except **unhandleable** / unclear → ask, or user explicitly forbids)
 - This skill does **not** write the control plane, ralph `run.json`, or dispatch manifests. Ralph closeout is `finalize` first; this skill is Git only. Scheduling closeout uses `$jj-dispatch`
+- **`.workflow/` is not dirty work.** It is the state root every engine of this product writes to — the jj-team ledger, the ralph task loop, the coordinate / lifecycle / swarm siblings — so it is dirty by definition while any of them is running. `preview` moves it out of the `unselected dirty paths` blocker and reports it as `workflow_state_paths[]` instead, and `execute`'s clean-tree check ignores it too. It stays listed on purpose: the reader sees what was set aside. **Do not relocate, commit or delete the team ledger to make a closeout pass** — that used to be the workaround, and it broke the one record of in-flight work
 
 ## Integration resolution priority
 

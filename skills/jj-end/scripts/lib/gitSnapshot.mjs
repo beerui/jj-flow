@@ -31,6 +31,25 @@ export function normalizeGitPath(value, { literal = false } = {}) {
   return normalized;
 }
 
+/**
+ * Paths that hold this product's own bookkeeping rather than project work.
+ *
+ * `.workflow/` is the state root of every engine in this product — the ralph
+ * task loop, the dispatch manifests, and the coordinate / lifecycle / swarm
+ * siblings all write there — and a repo may additionally declare it a forbidden
+ * path in `harness-manifest.json`. It is therefore never part of the change a
+ * closeout is closing. Treating it as unselected dirty work is what used to force
+ * a manual relocation of the team ledger before every `jj-end`.
+ *
+ * The whole prefix, not a list of engine directories: the set of things that
+ * write here grows with the product, and a second definition that lags one engine
+ * behind is the drift this predicate exists to prevent.
+ */
+export function isWorkflowStatePath(value) {
+  const normalized = String(value || '').replace(/\\/g, '/');
+  return normalized.startsWith('.workflow/') || normalized.includes('/.workflow/');
+}
+
 export function gitStatus(cwd) {
   const fields = git(['-c', 'core.fsmonitor=false', 'status', '--porcelain=v1', '-z', '--untracked-files=all'], cwd).split('\0');
   const entries = [];

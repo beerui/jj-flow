@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { assertSnapshot, digest, git, gitStatus, normalizeGitPath, resolveCommit, snapshotGit } from './gitSnapshot.mjs';
+import { assertSnapshot, digest, git, gitStatus, isWorkflowStatePath, normalizeGitPath, resolveCommit, snapshotGit } from './gitSnapshot.mjs';
 
 const SCHEMA = 'jj-flow/end-preview/1';
 const redact = text => String(text).replace(/(https?:\/\/)[^/\s@]+@/gi, '$1[redacted]@');
@@ -87,7 +87,14 @@ export function previewEnd({ cwd = process.cwd(), work_branch = null, integratio
   if (pending.length) blockers.push('unfinished Git operation: ' + pending.join(', '));
   if (snapshot.contents.some(item => item.kind === 'directory')) blockers.push('dirty submodules/directories require separate closeout');
   const other = snapshot.paths.filter(file => !selected.includes(file));
-  if (other.length) blockers.push('unselected dirty paths must be handled before batch closeout: ' + other.join(', '));
+  // This product's own bookkeeping is dirty by definition while a team is running,
+  // and it is not part of the change being closed. It used to land in `other` and
+  // block the batch, which forced a manual relocation of the team ledger before
+  // every closeout. It is now reported on its own instead of blocking — still
+  // listed, so a reader can see what was set aside, never silently dropped.
+  const workflowState = other.filter(isWorkflowStatePath);
+  const blocking = other.filter(file => !isWorkflowStatePath(file));
+  if (blocking.length) blockers.push('unselected dirty paths must be handled before batch closeout: ' + blocking.join(', '));
   const unchanged = selected.filter(file => !snapshot.paths.includes(file));
   if (unchanged.length) blockers.push('selected paths are not dirty: ' + unchanged.join(', '));
   if (selected.length && !/^(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\([^\r\n)]+\))?!?: [^\r\n]*\p{Script=Han}/u.test(message || '')) {
@@ -103,7 +110,7 @@ export function previewEnd({ cwd = process.cwd(), work_branch = null, integratio
     schema_version: SCHEMA, created_at: new Date().toISOString(), inputs,
     root: snapshot.root, work_branch: work, integration: target, remote: remoteFacts,
     snapshot, refs: work && target ? refsFor(work, target.branch, remote, snapshot.root) : {},
-    task_paths: selected, other_paths: other, blockers,
+    task_paths: selected, other_paths: other, workflow_state_paths: workflowState, blockers,
     actions: ['fetch', 'resolve', ...(selected.length ? ['commit'] : []), 'sync-work', 'push-work',
       ...(work === target?.branch ? [] : ['sync-integration', 'merge-work', 'push-integration']), 'return']
   };
@@ -115,8 +122,14 @@ function isAncestor(ancestor, descendant, cwd) {
   catch (error) { if (error.exitCode === 1) return false; throw error; }
 }
 
+/**
+ * Nothing outside this product's own bookkeeping may be left behind. `.workflow/`
+ * is excluded for the same reason `previewEnd` stops counting it as a blocker: a
+ * running team writes there continuously, and refusing to proceed over it would
+ * make closeout impossible rather than safe.
+ */
 function assertClean(cwd) {
-  const entries = gitStatus(cwd);
+  const entries = gitStatus(cwd).filter(entry => !isWorkflowStatePath(entry.path));
   if (entries.length) throw new Error('working tree/index changed during end: ' + entries.map(entry => entry.path).join(', '));
   if (operations(cwd).length) throw new Error('unfinished Git operation during end');
 }

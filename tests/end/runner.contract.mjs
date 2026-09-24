@@ -72,6 +72,46 @@ test('preview is read-only; unrelated staged/unstaged files are explicitly block
   assert.equal(remoteRef(f, 'work').status, 128);
 });
 
+test('a dirty .workflow/ ledger is reported, not blocked — and does not stop the closeout', t => {
+  // The team ledger lives at <main checkout>/.workflow/.team/TEAM-*/ and is written
+  // for as long as a team is running, so it is dirty by definition during closeout.
+  // It used to land in `other_paths` and block the batch, which forced a manual
+  // relocation of the ledger before every jj-end — three previews and a rejected
+  // commit in the 2026-09-22 Grok session, for bookkeeping that was never part of
+  // the change being landed.
+  const f = gitFixture(t, { remote: true });
+  f.write('README.md', 'task\n');
+  f.write('.workflow/.team/TEAM-demo-20260922/team-session.json', '{"status":"active"}\n');
+  f.write('.workflow/.team/TEAM-demo-20260922/progress.md', 'team-lead 改了字体栈\n');
+  const plan = preview(f);
+  assert.deepEqual(plan.blockers, []);
+  assert.deepEqual(plan.workflow_state_paths, [
+    '.workflow/.team/TEAM-demo-20260922/progress.md',
+    '.workflow/.team/TEAM-demo-20260922/team-session.json'
+  ]);
+  // Still listed, never silently dropped: the preview says what it set aside.
+  assert.ok(plan.snapshot.paths.includes('.workflow/.team/TEAM-demo-20260922/team-session.json'));
+  const result = run(f, plan);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.current_branch, 'work');
+  assert.equal(fs.readFileSync(path.join(f.cwd, '.workflow/.team/TEAM-demo-20260922/progress.md'), 'utf8'), 'team-lead 改了字体栈\n');
+  assert.equal(runGit(f.bare, ['cat-file', '-e', 'main:.workflow/.team/TEAM-demo-20260922/progress.md'], { allowFailure: true }).status, 128);
+});
+
+test('unrelated dirty work still blocks when .workflow/ is dirty alongside it', t => {
+  // The exclusion is narrow by intent: a running team must not be able to launder
+  // a genuinely unrelated dirty file past the blocker.
+  const f = gitFixture(t, { remote: true });
+  f.write('README.md', 'task\n');
+  f.write('unrelated.txt', 'unrelated\n');
+  f.write('.workflow/.team/TEAM-demo-20260922/progress.md', 'team-lead 改了字体栈\n');
+  const plan = preview(f);
+  assert.match(plan.blockers.join('; '), /unselected dirty paths.*unrelated\.txt/);
+  assert.doesNotMatch(plan.blockers.join('; '), /\.workflow/);
+  assert.equal(run(f, plan).status, 'blocked');
+  assert.equal(fs.readFileSync(path.join(f.cwd, 'unrelated.txt'), 'utf8'), 'unrelated\n');
+});
+
 test('stale previews reject worktree, index, untracked, HEAD, branch, integration and remote changes before fetch', async t => {
   const mutations = {
     worktree: f => f.write('README.md', 'edited again\n'),
