@@ -28,6 +28,26 @@
 2. 运行与变更相关的合约测试（如 `tests/jj-dispatch-contract.test.mjs`、`tests/jj-ralph-contract.test.mjs`）；
 3. 在 commit 或 PR 描述中注明受影响的合约测试结果。
 
+### `npm run verify` 会重 seed 靶场，在飞状态会被毁掉
+
+`verify` 的最后一步是 `lab:check`，它对 `jj-lab-loop` / `jj-lab-family` 执行
+`lab.mjs oracle`，而 `runMechanical()` 在**每次**运行的开头无条件调用
+`seedLoopGym({ root })`——先删掉 `_materialized/`，再从 seed 重新复制。
+
+后果，按严重程度：
+
+- **靶场里的团队状态、ralph run、任何未提交改动一律消失。** `.workflow/` 整个被替换，
+  已落盘的 `team-session.json`、`tasks[]`、各 `findings.md` 都不在 git 里，无法恢复。
+- **重 seed 之后 `tests/notes.test.mjs` 可能被换成 L1-S5 的 `trap-empty` 一行文件**
+  （`export {};`）。此时 `node --test` 显示「0 个失败」而不是报错——一次干净的假绿。
+- 因此「在靶场实测 jj-team-coordinate 流程」与「改完 `src/` 运行 `npm run verify`」这两条单独都正确的
+  规则会互相摧毁：遵守上面第 1 条，就会毁掉正在量的靶场。
+
+**次序**：靶场还有在飞状态时，先运行 `lab:check` 以外的验证步骤（`npm test`、
+相关合约测试），或先 `git stash` / 记录靶场状态再运行完整 `verify`；要保留实测结果，
+**在开始之前**就把团队状态抄出 `_materialized/`，不要指望它还在。改完 `src/` 后
+`verify` 仍是必须的——只是要知道它顺手重置了靶场，并在报告里说明靶场是重 seed 之后的状态。
+
 ## 任务规范
 1. Break down sessions into separate clear, actionable tasks. Don't try to "draw the owl" in one mega session.
 <!-- 将课程内容分解成一个个清晰、可执行的任务。不要试图在一次大型课程中“画出猫头鹰”。 -->

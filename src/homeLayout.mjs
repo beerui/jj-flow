@@ -123,7 +123,6 @@ export function ensureJjFlowHome({
       '| `.workflow/dispatch/` | Multi-project dispatch state |',
       '| `.workflow/tasks/` | Task index |',
       '| `memory/` | Per-project hot memory (`<project_key>.md`) |',
-      '| `team/` | Fallback team state for repos that forbid `.workflow/` (`/jj-team`, `TEAM-<project_key>-<date>/`) |',
       '',
       'Do not put business source code here.',
       'Join the map and bootstrap knowledge via `$jj-init` after the user agrees.',

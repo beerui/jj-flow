@@ -38,6 +38,7 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-feat',
     'jj-fix',
     'jj-knowhow',
+    'jj-team',
     'jj-validate',
     'skill-en-zh-rewrite'
   ]),
@@ -49,6 +50,7 @@ const RETIRED_ASSETS = Object.freeze({
     'jj-feat.md',
     'jj-fix.md',
     'jj-knowhow.md',
+    'jj-team.md',
     'jj-validate.md'
   ])
 });

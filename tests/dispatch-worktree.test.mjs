@@ -48,7 +48,7 @@ test('Mode W creates exclusive worktree on a named branch tip', () => {
     assert.equal(fs.existsSync(worktree), false);
     assert.equal(fs.existsSync(evidenceFile), true);
   } finally {
-    fs.rmSync(temp, { recursive: true, force: true });
+    rmTemp(temp);
   }
 });
 
@@ -64,7 +64,7 @@ test('Mode W refuses to bind the main repo path as exclusive worktree', () => {
     assert.equal(created.ok, false);
     assert.match(created.reason, /differ from repo path/);
   } finally {
-    fs.rmSync(temp, { recursive: true, force: true });
+    rmTemp(temp);
   }
 });
 
@@ -81,7 +81,7 @@ test('inspectWorktreeLanding fail-closes on detached HEAD', () => {
     assert.equal(landing.detached, true);
     assert.match(landing.reason, /detached/);
   } finally {
-    fs.rmSync(temp, { recursive: true, force: true });
+    rmTemp(temp);
   }
 });
 
@@ -119,6 +119,14 @@ function git(cwd, args) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe']
   }).trim();
+}
+
+function rmTemp(temp) {
+  try {
+    fs.rmSync(temp, { recursive: true, force: true, maxRetries: 8, retryDelay: 25 });
+  } catch {
+    // Windows EBUSY on git worktrees is leftover temp, not a product failure.
+  }
 }
 
 function workspacePathsDiffer(left, right) {

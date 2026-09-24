@@ -24,7 +24,6 @@
 
 | 入口 | 适用场景 |
 |------|----------|
-| [team](commands/jj-team.md) | 常驻团队入口：先量有多少活能并行来定规模，调一次即起；之后同会话直接说任务 |
 | [team-coordinate](commands/jj-team-coordinate.md) | 按当前问题动态拆多角色 |
 | [team-lifecycle](commands/jj-team-lifecycle.md) | 固定角色走规格→计划→实现→测审流水线 |
 | [team-swarm](commands/jj-team-swarm.md) | 多假设、对抗评分、方案收敛 |

@@ -27,6 +27,7 @@
 
 | 计划 | 结果 |
 | --- | --- |
+| [移除伞形 skill `jj-team`，保留三个 sibling](completed/2026-09-23-remove-jj-team-umbrella.md) | 伞形删除、三 sibling 零耦合一行未改；`src/teamSession.mjs` 与同步脚本随之删除；`Unreleased` 18 条 jj-team 条目清出、`~/.jj-flow/team/` 兜底行删除；补上计划遗漏的 `RETIRED_ASSETS`（否则升级用户机器上留着一个描述已不存在实现的 skill）。`verify` 退出 0，534/534 |
 | [工作流执行优化](completed/2026-09-09-workflow-execution-fastpath.md) | Ralph 精简上下文与审查快照、review 文件输入、portable end runner；全量 453/453、Loop/Family PASS，五宿主全局与项目安装核对完成 |
 | [Ralph 对话协议精简](completed/2026-09-07-ralph-skill-slim.md) | 22 项完成；77 行入口、静默推断、自动 CAP、交付折叠、9 模块合约拆分与五宿主安装。Ralph 76/76；全量 422/422 |
 | [Ralph 自动结案](completed/2026-09-04-ralph-auto-closeout.md) | 主路径 PR #30；后续补录设计文档（非修订 10）、`locate` next、`~/.agents` 分发与 retired 清理、`jj ralph remediate`。合约 56/56；全量 381/381 |

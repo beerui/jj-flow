@@ -43,7 +43,6 @@ export const sidebar = [
       { text: 'end · 收工合分支', link: '/commands/jj-end' },
       { text: 'jj · 帮你选路', link: '/commands/jj' },
       { text: 'evaluated · 复盘（可选）', link: '/commands/jj-evaluated' },
-      { text: 'team · 团队模式（可选）', link: '/commands/jj-team' },
       { text: 'coordinate · 多角色（可选）', link: '/commands/jj-team-coordinate' },
       { text: 'lifecycle · SDLC（可选）', link: '/commands/jj-team-lifecycle' },
       { text: 'swarm · 搜索（可选）', link: '/commands/jj-team-swarm' }

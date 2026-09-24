@@ -1,6 +1,6 @@
 ---
 name: jj
-description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-init, jj-same, jj-ralph, jj-review, jj-end, jj-dispatch (when supported), optional jj-team (persistent team, measures parallelism first), optional jj-team-coordinate / jj-team-lifecycle / jj-team-swarm (explicit multi-role, fixed SDLC, or ACO search only; never default delivery path; do not advance checkpoints), or experimental jj-evaluated."
+description: "Compatibility entry for jj-flow. Routes $jj / /jj to jj-init, jj-same, jj-ralph, jj-review, jj-end, jj-dispatch (when supported), optional jj-team-coordinate / jj-team-lifecycle / jj-team-swarm (explicit multi-role, fixed SDLC, or ACO search only; never default delivery path; do not advance checkpoints), or experimental jj-evaluated."
 ---
 
 # jj
@@ -34,11 +34,10 @@ Before choosing a target skill, probe when available (read if present, skip if m
 5. Task read-only review / write REV-*.json (includes latest soft-archived run) → $jj-review (Claude: /jj-review)
 6. Task git closeout: commit → push work → merge integration                 → $jj-end   (Claude: /jj-end; does **not** kill ralph)
 7. Offline episode evaluation (experimental)                                       → $jj-evaluated (no Claude command)
-8. Persistent team across multiple tasks / team mode / 起团队 / parallel lanes       → $jj-team (Claude: /jj-team)
-9. Explicit multi-role team pipeline / “Team Coordinate” / dynamic role-specs      → $jj-team-coordinate (Claude: /jj-team-coordinate)
-10. Explicit fixed SDLC / team-lifecycle-v4 / spec-only|impl-only|full-lifecycle    → $jj-team-lifecycle (Claude: /jj-team-lifecycle)
-11. Explicit ACO / adversarial swarm / multi-hypothesis search / 蚁群                → $jj-team-swarm (Claude: /jj-team-swarm)
-12. Unclear                                                                        → clarify intent first (do not default to same)
+8. Explicit multi-role team pipeline / “Team Coordinate” / dynamic role-specs      → $jj-team-coordinate (Claude: /jj-team-coordinate)
+9. Explicit fixed SDLC / team-lifecycle-v4 / spec-only|impl-only|full-lifecycle    → $jj-team-lifecycle (Claude: /jj-team-lifecycle)
+10. Explicit ACO / adversarial swarm / multi-hypothesis search / 蚁群                → $jj-team-swarm (Claude: /jj-team-swarm)
+11. Unclear                                                                        → clarify intent first (do not default to same)
 ```
 
 Decision hints:
@@ -49,7 +48,6 @@ Decision hints:
 - **Search / ACO / adversarial multi-hypothesis** → `jj-team-swarm` (TAS-*); not for tiny edits; not a substitute for coordinate implement pipelines
 - `jj-dispatch`: install on **Codex / Qoder / Grok / Claude**; Claude slash is `/jj-dispatch` (Mode S, `host_id=claude-code`; do not write “Codex only”)
 - `jj-evaluated`: experimental; **do not** invent a `/jj-evaluated` Claude command
-- **Persistent team / team mode / 起团队 / parallel lanes** → `jj-team` (`TEAM-*` state under the main checkout's `.workflow/.team/`; a repo that declares `.workflow/` forbidden falls back to `~/.jj-flow/team/`); it **measures real parallelism first** and **sizes the roster** from that number — invoking it always provisions, so the count never becomes a refusal. After it provisions, a bare turn in the same session is a team task with no prefix. When a single-round engine fits better it routes onward to the three below
 
 ## Execution contract
 

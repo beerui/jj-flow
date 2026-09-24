@@ -27,7 +27,7 @@
 
 **快速判断：** 一个仓用 **ralph**；要搬家用 **same**；多个仓统一批准用 **dispatch**；只收工用 **end**。
 
-可选（**不算**验收通过）：[team](commands/jj-team.md) 常驻团队、[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘。
+可选（**不算**验收通过）：[team-coordinate](commands/jj-team-coordinate.md) 多角色、[team-lifecycle](commands/jj-team-lifecycle.md) 固定 SDLC、[team-swarm](commands/jj-team-swarm.md) 多方案搜索、[evaluated](commands/jj-evaluated.md) 离线复盘。
 
 ## 对话入口
 
