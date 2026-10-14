@@ -1,0 +1,71 @@
+docs/commands/jj-init.md
+  s_70eb68e9c511b4::t_c7b072fbe0e854 1,3,5-8,10,12-18,20-22,24,26-28,30,32-37,39-41,44-45,47-52,54,56-57,59-62,65,67,70-79,82,84-89,91-96,98,100-105,107,110-112,115,117-120
+docs/commands/jj-ralph.md
+  s_028652c089af1b::t_d516c4d5239b3f 1,3,5-8,10,12-15,17,19-24,26,28-30,32,34,36-42,44,46-48,51,54-62,64-65,67-68,70,73,75,78-88,91,93,95,98-99,101-102,104-105,107,115,117,119-121,123-125,127,130-131,133-134,136-138,140-172
+docs/commands/jj-same.md
+  s_028652c089af1b::t_ecdce96be78539 1,3,5,7-10,12,14-16,18,20-24,26,28-30,32,34,36-46,49,52-56,58-60,62,65-76,79,82,86-87,90-91,93,97,100,102-106,108,110,112-119,121,123-127
+docs/commands/jj.md
+  s_70eb68e9c511b4::t_25d689c5d8000d 1,3,5,7-10,12,14-15,17,19,21-29,31,33,36-44,47,50-58,61,64-69,72,74,76,78-80
+docs/pitfalls.md
+  s_70eb68e9c511b4::t_0a56d9007df9da 1,3,5-11,13,15,17-22,24,26-28,30-34,36,38,40-42,44,46,48-52,54,56-60,62,64-66,68-71,73,75-77,79,81-83,85,87,89-95,97,99-104,106,108,110-112,114-117,119,121,123-125,127-129
+docs/commands/cli.md
+  s_9c870910781b15::t_0cc993be126298 1,3-6,8,10,12-20,22,24,27,29-30,34-49,60,62,64,67-68,70-74,76-78,80-82,84,119,122-130,132,134,141-142,144,147-148,150,157,167,170-178,181,183-186
+docs/glossary.md
+  s_52dd2521657f3c::t_8e2c6c84a9745e 1-57
+docs/installation.md
+  s_9c870910781b15::t_2ce3bfed161544 1,3,5,7-17,23,25-31,33,35,38,40-44,46-47,51-58,60-66,69-83,86-88,90,92-97,100,103-105,107,109-115,117,119,121-122
+docs/maintenance.md
+  s_52dd2521657f3c::t_5b81aa4b8370d1 1,3,5,7,9-14,16,18-22,24,26-31,33,35-41,43,55-60,62,64-69,71,73-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.33",
+  "base_commit_sha": "4bf2a074669e2de1dcbe2df39c07e843173adf3f",
+  "prompts": {},
+  "sessions": {
+    "s_028652c089af1b": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0ade6-fe3d-7bd2-a075-1305c24604a1",
+        "model": "grok-4.5"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_52dd2521657f3c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4bbdd55d-63c1-4cc9-9f12-8dfa4884a06a",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_70eb68e9c511b4": {
+      "agent_id": {
+        "tool": "grok",
+        "id": "01a0a9b5-6c3b-7492-8194-24d17631290f",
+        "model": "grok-4.6"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    },
+    "s_9c870910781b15": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e29dda0e-f368-43d8-b3f3-cddf595c185b",
+        "model": "unknown"
+      },
+      "human_author": "刘勇杰 <motou2017@163.com>",
+      "custom_attributes": {
+        "internal_commit_event_allowlist": "codeup.aliyun.com,codeup-*,rd-*"
+      }
+    }
+  }
+}
