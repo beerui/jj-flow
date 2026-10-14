@@ -25,50 +25,50 @@ export const sidebar = [
   {
     text: '开始',
     items: [
-      { text: '首页', link: '/' },
-      { text: '安装', link: '/installation' },
-      { text: '第一次使用', link: '/usage' },
-      { text: '常见踩坑', link: '/pitfalls' }
+      { text: '首页与全景导览', link: '/' },
+      { text: '1 分钟安装与配置', link: '/installation' },
+      { text: '第一次使用（完整实战）', link: '/usage' },
+      { text: '常见避坑与自检清单', link: '/pitfalls' }
     ]
   },
   {
     text: '工作流',
     items: [
-      { text: '命令总览', link: '/commands' },
-      { text: 'init · 接入地图', link: '/commands/jj-init' },
-      { text: 'ralph · 任务闭环', link: '/commands/jj-ralph' },
-      { text: 'same · 同源迁移', link: '/commands/jj-same' },
-      { text: 'dispatch · 多仓调度', link: '/commands/jj-dispatch' },
-      { text: 'review · 审查落盘', link: '/commands/jj-review' },
-      { text: 'end · 收工合分支', link: '/commands/jj-end' },
-      { text: 'jj · 帮你选路', link: '/commands/jj' },
-      { text: 'evaluated · 复盘（可选）', link: '/commands/jj-evaluated' },
-      { text: 'coordinate · 多角色（可选）', link: '/commands/jj-team-coordinate' },
-      { text: 'lifecycle · SDLC（可选）', link: '/commands/jj-team-lifecycle' },
-      { text: 'swarm · 搜索（可选）', link: '/commands/jj-team-swarm' }
+      { text: '命令总览与选型指南', link: '/commands' },
+      { text: 'ralph · 单仓任务闭环', link: '/commands/jj-ralph' },
+      { text: 'same · 跨仓同源迁移', link: '/commands/jj-same' },
+      { text: 'dispatch · 多仓统筹调度', link: '/commands/jj-dispatch' },
+      { text: 'review · 只读代码审查', link: '/commands/jj-review' },
+      { text: 'end · Git 提交与合并', link: '/commands/jj-end' },
+      { text: 'init · 项目地图接入', link: '/commands/jj-init' },
+      { text: 'jj · 智能意图分流', link: '/commands/jj' },
+      { text: 'coordinate · 动态多角色（可选）', link: '/commands/jj-team-coordinate' },
+      { text: 'lifecycle · 标准 SDLC（可选）', link: '/commands/jj-team-lifecycle' },
+      { text: 'swarm · 多方案搜索（可选）', link: '/commands/jj-team-swarm' },
+      { text: 'evaluated · 交付复盘（可选）', link: '/commands/jj-evaluated' }
     ]
   },
   {
     text: '概念',
     items: [
-      { text: '术语表', link: '/glossary' },
-      { text: '证据怎么算数', link: '/concepts-evidence' },
-      { text: '目录怎么放', link: '/concepts-paths' },
-      { text: '宿主与 Mode S', link: '/concepts-hosts' },
-      { text: '知识与记忆', link: '/concepts-knowledge' }
+      { text: '核心术语对照表', link: '/glossary' },
+      { text: '证据门禁：什么算做完', link: '/concepts-evidence' },
+      { text: '目录结构与文件布局', link: '/concepts-paths' },
+      { text: '宿主平台与工作模式', link: '/concepts-hosts' },
+      { text: '知识库与记忆热层', link: '/concepts-knowledge' }
     ]
   },
   {
     text: '维护者',
     items: [
-      { text: '架构', link: '/architecture' },
-      { text: '写作规范', link: '/writing-guide' },
-      { text: '维护说明', link: '/maintenance' },
-      { text: 'CLI 参考', link: '/commands/cli' },
-      { text: '部署', link: '/deployment' },
-      { text: '实验场 sibling 仓', link: '/jj-lab-siblings' },
-      { text: '更新日志', link: '/changelog' },
-      { text: '更新日志归档', link: '/changelog-archive' }
+      { text: '系统架构总览', link: '/architecture' },
+      { text: 'CLI 命令行参考', link: '/commands/cli' },
+      { text: '仓库与文档维护', link: '/maintenance' },
+      { text: '文档写作规范', link: '/writing-guide' },
+      { text: '站点部署（GitHub Pages）', link: '/deployment' },
+      { text: '实验场 Sibling 仓库规范', link: '/jj-lab-siblings' },
+      { text: '更新日志（近期）', link: '/changelog' },
+      { text: '更新日志（历史归档）', link: '/changelog-archive' }
     ]
   },
   {

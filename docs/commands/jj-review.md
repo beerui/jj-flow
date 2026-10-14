@@ -1,93 +1,127 @@
-# review — 把只读审查结果记下来
+# review — 独立只读代码审查与结论落盘
 
-对当前改动做一次**只读**审查：按客服派单写 `ASSIGNMENT-REVIEW` 并 spawn 审查员，**不**调用工具自带的 `/review`。有 ralph 任务就把 `findings.md` 和 `REV-*.json` 双写进任务目录；没有任务也审当前工作区 / HEAD，只回结论、不另建任务。它只记录问题，不改业务代码。
+`review` 用于对当前仓库的代码改动发起一次**独立、只读的代码审查**。它会根据改动范围生成审查派单（`ASSIGNMENT-REVIEW`），调用专门的只读审查子代理（`jj-reviewer`）从类型安全、空值处理、接口契约和回归风险等维度检查代码，**绝不直接修改你的业务代码**。
 
-## 写法
+* 如果当前有活跃的 `ralph` 任务，审查结果会同时写入该任务的 `findings.md` 与 `.state/reviews/REV-*.json`，作为验收门禁的正式凭据。
+* 如果当前没有 `ralph` 任务，它也能直接审查当前工作区或最新 `HEAD` 提交，直接在对话里向你汇报结论（不会为了审查去硬建一个空任务）。
 
-| 工具 | 写法 |
-|------|------|
-| Codex | `$jj-review …` |
-| Claude / Grok / Qoder | `/jj-review …` |
+| 宿主工具 | 调用写法 |
+| :--- | :--- |
+| **Codex** | `$jj-review …` |
+| **Claude Code / Grok / Qoder** | `/jj-review …` |
 
-## 适用与边界
+## 一、适用场景与边界
 
-**用得当：**
+**什么时候用 `review`：**
+* `ralph` 任务改完代码后，想做一次正式的只读代码审查并留存记录。
+* 平时自己手写了一段代码或刚完成一次 commit，还没建 `ralph` 任务，想让只读审查员帮忙挑挑毛病。
+* 你已经在外部工具做完了代码审查，想把现成的审查结论归一化保存到当前 `ralph` 任务账本里。
 
-- ralph 任务做到一半，需要正式审查记录（大功能默认要审）
-- 没有 ralph 任务，也要审当前工作区 / 最新 commit
-- 你手上已有宿主审查结果，想归一化保存
-- 任务刚归档但仍可继续修改，想补一轮审查
+**什么时候别用 `review`：**
 
-**别用在：** 不要为了审查去新建 ralph 任务"占个位置"。修复问题回 [ralph](jj-ralph.md) 说「按审查改」；多项目的 `VERIFIED` 由 [dispatch](jj-dispatch.md) 负责，不要把 review 当调度门。
+| 你想做的事 | 应该去哪个入口 | 原因说明 |
+| :--- | :--- | :--- |
+| 让 Agent 把审查发现的缺陷改掉 | [ralph · 单仓任务闭环](jj-ralph.md) | `review` 严格只读；要修复问题请对 `ralph` 说 `「按审查改」` |
+| 把多个项目的整体调度标为 `VERIFIED` | [dispatch · 多仓统筹调度](jj-dispatch.md) | 跨项目调度状态由 `dispatch` 汇总管理 |
 
-## 开始前
+## 二、开始前准备
 
-1. 先看 `.workflow/ralph/index.md` 里正在做的那条；不确定就说"审查最新任务"。没有任务也可以审工作区 / HEAD
-2. 说清要审查的提交、路径或"刚才的改动"；没有可绑定的范围时会停下询问
-3. 已有审查文件或结论时，直接给路径或贴内容，Agent 会标明来源是你提供的，不冒充宿主审查
+1. **无需记任务编号**：当你在对话里说 `$jj-review` 时，Agent 会优先读取 `.workflow/ralph/index.md` 里的**活跃**任务；如果没有活跃任务，则自动审查当前工作区或最新提交。
+2. **可指定审查范围（可选）**：你可以说“审一下刚才的改动”、“审一下最新 commit”，或者点名具体文件路径。
+3. **可贴入外部审查结果（可选）**：如果你手头已有审查意见文本或文件路径，直接贴在对话里，Agent 会如实标记为你提供的来源并记录归档。
 
-## 第一次这样用
+## 三、标准执行流程与结论等级
 
-**你说：**
+发送 `$jj-review` 后，Agent 会按以下流程执行并给出明确结论：
+
+1. **确定绑定任务与范围**：检查 `.workflow/ralph/index.md` 是否有进行中的任务，锁定本轮修改的具体文件清单（若本轮只有纯文案或样式调整，会自动提示跳过审查）。
+2. **派发只读审查员**：编写 `ASSIGNMENT-REVIEW` 派单，调用只读子代理 `jj-reviewer`（若同一任务此前已审过，后续复审只看相对上一轮的增量改动 `delta`，不重复全仓扫描）。
+3. **输出三档结论并落盘**：
+
+| 对话可见结论 | 对应门禁状态 | 含义与后续动作 |
+| :--- | :--- | :--- |
+| **`[OK]`** | `PASS` | **审查通过**：未发现实质性缺陷，可直接进入用户验收或归档。 |
+| **`[WARN]`** | `PASS`（附带提醒） | **基本通过但有低风险建议**：不阻断进入用户验收，你可以视情况决定是否顺手微调。 |
+| **`[BLOCK]`** | `NEEDS_CHANGES` / `BLOCKED` | **存在必须修复的缺陷**：不能当作验收通过！Agent 会列出具体文件、行号与修改意见，等待你说 `「按审查改」`。 |
+
+## 四、完整端到端实战示例
+
+### 示例 1：审查发现缺陷（`[BLOCK]`）→ 修复后增量复审（`[OK]`）
 
 ```text
+你：
+$jj-review 审一下刚才的密码过期提醒改动
+
+Agent（第 1 轮审查 · 发现阻塞项）：
+[BLOCK] 登录成功回调未处理 `res.data` 为空时的解构异常，存在空指针报错风险。
+
+1. src/views/login/LoginForm.vue:42 未对 `res?.data?.password_expired` 做可选链判空
+   修改意见：改为 `Boolean(res?.data?.password_expired)`，并补充空响应单元测试。
+
+审查记录已写入 `.workflow/ralph/task-login-reminder/.state/reviews/REV-1.json`。
+如需修复，请直接回复「按审查改」。
+
+你：
+$jj-ralph 按审查改
+
+Agent（派发修复后自动增量复审）：
+已在原任务 `task-login-reminder` 上完成修复并针对增量改动复审：
+[OK] 已补充 `res?.data` 可选链判空与空响应单测，原阻塞项已消除。
+```
+
+### 示例 2：无活跃任务时，单独审查当前工作区改动
+
+```text
+你：
+$jj-review 审一下当前工作区的改动
+
+Agent：
+当前无活跃 ralph 任务，已对工作区修改的 2 个文件进行独立只读审查（不新建任务目录）：
+[OK] `src/utils/format.ts` 与 `tests/format.spec.ts` 边界处理完整，无回归风险。
+```
+
+## 五、常用说法速查
+
+```text
+# 审查当前正在做的任务或刚才的改动
 $jj-review 审一下刚才的改动
-```
-
-**Agent 会做：**
-
-派遣宣告、占位、续接的规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
-
-1. 找到当前（或最近）的 ralph 任务。主对话是 team-lead，不在本对话内进行审查，**也不执行** `review-record` / `context --review`
-2. 写 `ASSIGNMENT-REVIEW`（来自 team-lead / 范围只读 / 检查维度 / 产出格式 / 短句回报），派遣宣告、占位、续接按上述协议，spawn **一个** `jj-reviewer`（缺失则 `general-purpose`；`description` 以 `[reviewer]` 开头，禁止 `[reviewer] local changes`；审查执行人的推理力度固定为 `high`，不用最高档）
-3. 同一任务已有 `REV-*` / findings 时，再审只看相对上一份的改动（delta），派遣宣告、占位、续接按上述协议
-4. 绑定任务时把 `findings.md` 和 `REV-n.json` 当文档写进任务目录；本轮只有文案 / 样式会跳过审查
-
-审查员只读派单列出的文件；通过测试不会自动变成审查通过。
-
-**你会看到：** 通过时——
-
-```text
-[OK] <一句总结：审了什么、结论为何通过>
-```
-
-有问题时——
-
-```text
-1. src/login.js:42 未处理过期分支
-   修改意见：补上过期分支
-```
-
-人读结论是 `[OK]` / `[WARN]` / `[BLOCK]`，先回复结论；门禁映射为 `PASS` / `NEEDS_CHANGES` / `BLOCKED`。`[WARN]` 可以进入用户验收；`[BLOCK]` 就不能当作通过，等你说「按审查改」。
-
-**怎样算做完：** 任务里有可追溯的 `findings.md` + `REV-n.json`、结论和来源；`[BLOCK]`（`NEEDS_CHANGES`）或 `BLOCKED` 状态不能当作通过。
-
-## 常用说法
-
-```text
-$jj-review 审一下当前 commit 的登录提醒改动
-$jj-review 把刚才宿主审查结论记到最新任务
 $jj-review 审一下最新任务的改动
+
+# 指定审查最新一次 Git 提交
+$jj-review 审一下当前 commit 的登录提醒改动
+
+# 把已有的外部审查意见记录到当前任务中
+$jj-review 把刚才宿主审查结论记到最新任务
 ```
 
-## 做完之后
+## 六、做完之后怎么衔接？
 
-| 结果或目的 | 下一步 |
-|------------|--------|
-| 需要修改 | 回 [ralph](jj-ralph.md) 说「按审查改」 |
-| 审查通过但还没收工 | 继续核对验收项，再按需用 `$jj-end` |
-| 审查范围不对 | 说明正确的提交或路径，重新记录一条审查 |
-| 想审多个项目的整体结果 | 用 [dispatch](jj-dispatch.md) |
+| 审查结果 | 下一步怎么做 |
+| :--- | :--- |
+| 出现 **`[BLOCK]`** 需要修改代码 | 直接对 [ralph](jj-ralph.md) 说 `「按审查改」`（会在原任务上继续修复，不会新建碎片任务） |
+| 拿到 **`[OK]`** 或 **`[WARN]`** | 完成本地验收归档后，调用 [`$jj-end`](jj-end.md) 提交并合并代码 |
+| 发现审查的文件范围不对 | 直接指出正确的 commit 哈希或文件路径，让它重新审查一次 |
 
-## 记录在哪
+## 七、文件记录在哪里？
 
-```text
-.workflow/ralph/<任务目录>/.state/reviews/REV-n.json
-.workflow/ralph/<任务目录>/.state/run.json
-```
+* **有活跃 `ralph` 任务时**：
+  ```text
+  .workflow/ralph/<任务目录>/
+  ├── findings.md                  # 人类可读的审查发现与修复记录
+  └── .state/
+      ├── run.json                 # 更新任务的审查门禁状态
+      └── reviews/REV-1.json       # 结构化审查报告（含范围、结论与问题列表）
+  ```
+* **无活跃 `ralph` 任务时**：仅在对话中直接返回审查结论，不在仓库里创建多余的任务目录。
 
-没有任务：只回审查结论，不另建 run、不落盘。
+::: details 内部机制与协议约束（供维护者与高级用户查阅）
+* 主对话作为 `team-lead`，不会在主会话里自己充当审查员，也不调用宿主自带的 `/review` 扫描全仓无关脏文件，而是编写精确限定 `task_paths` 的 `ASSIGNMENT-REVIEW` 并调用 `jj-reviewer` 子代理（推理力度固定为 `high`）。
+* 派遣宣告、占位与 `resume_from` 增量续接规则见 `skills/jj/references/assignment-spawn.md`，本页不再重复。
+:::
 
-## 相关
+## 相关阅读
 
-[ralph](jj-ralph.md)、[dispatch](jj-dispatch.md)、[证据怎么算数](../concepts-evidence.md)、[第一次使用](../usage.md)
+* [ralph · 单仓任务闭环](jj-ralph.md)
+* [dispatch · 多仓统筹调度](jj-dispatch.md)
+* [证据门禁：什么算做完](../concepts-evidence.md)
+* [第一次使用（完整实战）](../usage.md)

@@ -1,85 +1,82 @@
-# team-swarm — 用多假设搜索选方案
+# team-swarm — 多假设探索与对抗评分选方案
 
-**可选入口：** 只帮你搜索和比较方案，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。针对架构路径或实现策略生成多个候选，经过探索、评分、收敛后给出一份推荐方案。
+当你面对一个**没有标准答案的复杂架构或重构问题**（例如：三种缓存失效策略选哪个？老项目鉴权改造走哪条路径成本最低？），`team-swarm` 会帮你生成多个候选方案，通过“多路径探索 → 多维度对抗评分 → 信息素收敛（ACO）”循环，最终为你输出一份带正反方依据的推荐方案 `best-solution.md`。
 
-## 写法
+::: info 可选辅助引擎边界
+`team-swarm` 是**方案搜索与比选工具**，单独跑完**不代表**业务代码已交付或验收通过。选定方案后，请将 `best-solution.md` 交给 [ralph](jj-ralph.md) 或 [dispatch](jj-dispatch.md) 完成正式实施与验收。
+:::
 
-| 工具 | 写法 |
-|------|------|
-| Codex / Grok / Qoder | `$jj-team-swarm …` |
-| Claude | `/jj-team-swarm …` |
+| 宿主工具 | 调用写法 |
+| :--- | :--- |
+| **Codex / Grok / Qoder** | `$jj-team-swarm …` |
+| **Claude Code** | `/jj-team-swarm …` |
 
-## 适用与边界
+## 一、适用场景与前置要求
 
-**用得当：**
+**什么时候用 `team-swarm`：**
+* 技术方案存在多条可行路径，需要对比优劣、迁移成本和潜在风险。
+* 希望不仅看到推荐结论，还能看到针对每个候选方案的反方挑刺与量化评分。
 
-- 架构路径或方案不确定，需要多轮比较
-- 希望候选之间有明确的评分和反方意见
-- 你明确说"蚁群"、"ACO"、"对抗搜索"或"多假设搜索"
+**环境前置要求：**
+* 本机建议已安装 **Python 3.10 及以上版本**（仅使用标准库运行内置的 `aco.py` 搜索控制器；若本机无 Python，会自动报告并降级，绝不伪造评分）。
 
-**别用在：** 小改动用 [ralph](jj-ralph.md)；普通多角色实现用 [coordinate](jj-team-coordinate.md)；固定规格链用 [lifecycle](jj-team-lifecycle.md)。
+## 二、标准执行流程（4 步搜索收敛）
 
-## 开始前
+1. **定义搜索空间与评分标准**：确认你要解决的目标问题、候选方向以及你最看重的评价维度（如：一致性、改造成本、回滚难度）；若目标不清会先向你提问。
+2. **多候选探索（Explore）**：生成最多 3 个并行探索分支（保守默认配置，避免无意义的算力浪费），分别输出各自的架构设计与实现草案。
+3. **客观评分与更新（Score & Update）**：对照评分标准对各候选方案打分并指出短板；若所有候选方案均不可行或无法收敛，会如实停下向你汇报。
+4. **综合输出最佳方案（Converge）**：将胜出方案的设计细节、取舍理由、已知局限整理写入 `.workflow/.team/TAS-…/artifacts/best-solution.md`。
 
-1. 说清搜索目标、候选空间和你关心的评分标准；不清楚时会先问
-2. 确认本机有 Python 3.10 或更高版本（标准库即可）；缺少时会报告并降级，不伪造评分
-3. 搜索成本可能较高；嵌在主流程时，开始重型搜索前会给一行提示
-
-## 第一次这样用
-
-**你说：**
+## 三、完整实战示例
 
 ```text
-$jj-team-swarm 比较三种缓存失效方案并收敛推荐
+你：
+$jj-team-swarm 比较三种多端登录态同步与失效方案，重点评估安全性与跨仓改造成本
+
+Agent：
+已初始化多方案搜索会话 `.workflow/.team/TAS-auth-sync-20261013/`：
+- 评分维度：安全性 (40%)、跨仓改造成本 (35%)、回滚复杂度 (25%)
+- 候选路径：
+  1. 路径 A：短周期 Access Token + Refresh Token 轮换
+  2. 路径 B：网关层集中式 Session 黑名单广播
+  3. 路径 C：前端轮询状态接口校验
+
+正在执行第 1–2 轮探索与评分收敛……
+- 路径 A 综合得分 0.86（跨仓仅需改请求拦截器，回滚简单）
+- 路径 B 综合得分 0.74（需改动网关基础设施）
+- 路径 C 综合得分 0.51（高并发下轮询开销过大，已淘汰）
+
+已收敛并生成推荐方案：`.workflow/.team/TAS-auth-sync-20261013/artifacts/best-solution.md`
+下一步：你可以在 `$jj-ralph` 中直接引用该方案开始实施。
 ```
 
-**Agent 会做：**
-
-1. 先保存搜索目标和评分设置
-2. 初始化搜索控制器，循环执行探索、评分、更新和收敛；候选全部失败或长期不收敛时会停下来说明
-3. 收敛后综合出 `best-solution.md`，列出推荐、依据和限制
-
-**你会看到：**
+## 四、常用说法速查
 
 ```text
-搜索目标：缓存失效方案
-当前轮次：探索 → 评分 → 收敛
-推荐方案：.workflow/.team/TAS-…/artifacts/best-solution.md
-下一步：归档 / 保留继续 / 再搜索一轮
-```
+# 探索架构改造路径
+$jj-team-swarm 搜索老项目登录模块解耦的架构路径
 
-**怎样算做完：** 推荐方案和搜索过程产物可查；要把方案实现并验收，仍回到 ralph 或 dispatch。
+# 指定候选数量与评估重点
+$jj-team-swarm 比较三种缓存失效方案，重点看数据一致性和迁移成本
 
-## 常用说法
-
-```text
-$jj-team-swarm 搜索登录改造的架构路径
-$jj-team-swarm 比较三种缓存方案，重点看一致性和迁移成本
+# 继续上一轮未完成的搜索
 $jj-team-swarm resume
 ```
 
-## 做完之后
-
-| 你想做什么 | 下一步 |
-|------------|--------|
-| 采用推荐方案实现 | 在 [ralph](jj-ralph.md) 里引用 `best-solution.md` |
-| 继续下一轮搜索 | 说 `resume` 或调整目标后再运行 |
-| 只保存结果 | 选择归档，不把它当作验收凭证 |
-
-## 边界细则
-
-宿主能力不同：有 Workflow 能力的优先用 Workflow；其余走 agent 降级路径，Python ACO 控制器仍负责搜索状态。直接调用没有强制长提示；嵌在 ralph、review 或 dispatch 中只在重型工作前提示一次。
-
-## 记录在哪
+## 五、文件记录在哪里？
 
 ```text
 .workflow/.team/TAS-<简述>-<日期>/
-  swarm-config.json
-  workflows/
-  scores/
-  artifacts/best-solution.md
+├── swarm-config.json          # 本次搜索的候选规模、轮次上限与评分权重配置
+├── workflows/                 # 各候选路径的探索草案
+├── scores/                    # 每轮客观评分明细
+└── artifacts/
+    └── best-solution.md       # 【核心产出】最终收敛出的推荐方案与取舍依据
 ```
 
-## 相关
+## 相关阅读
 
-[coordinate](jj-team-coordinate.md)、[lifecycle](jj-team-lifecycle.md)、[ralph](jj-ralph.md)、[命令总览](../commands.md)
+* [team-coordinate · 动态多角色协同](jj-team-coordinate.md)
+* [team-lifecycle · 标准 SDLC 流水线](jj-team-lifecycle.md)
+* [ralph · 单仓任务闭环](jj-ralph.md)
+* [命令总览与选型指南](../commands.md)

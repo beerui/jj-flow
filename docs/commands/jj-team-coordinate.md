@@ -1,85 +1,78 @@
-# team-coordinate — 这一轮动态拆多角色
+# team-coordinate — 动态拆分多角色协同分析与实现
 
-**可选入口：** 只帮你安排这一轮如何分析或实现，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。根据当前问题临时生成角色（例如分析、实现、检查），按角色协作完成一轮多模块工作。角色和产物都属于本次会话，不会变成交付任务身份。
+`team-coordinate` 是 `jj-flow` 提供的**可选多角色协作引擎**。当你的需求横跨多个业务模块、或者希望同时从“架构、安全、实现、测试”等多个维度并行推进时，它会根据当前问题动态生成协作角色与依赖图，并在 `.workflow/.team/TC-…/` 下汇总各角色的分析与代码产物。
 
-## 写法
+::: info 可选辅助引擎边界
+`team-coordinate` 仅负责**“本轮会话如何拆解角色与协同执行”**，它单独跑完**不代表**业务交付已验收通过。正式的任务验收与归档仍以 [ralph](jj-ralph.md) 或 [dispatch](jj-dispatch.md) 的记录为准（你可以将 `TC-…/` 下的产物路径作为证据引用进 `ralph`）。
+:::
 
-| 工具 | 写法 |
-|------|------|
-| Codex / Grok / Qoder | `$jj-team-coordinate …` |
-| Claude | `/jj-team-coordinate …` |
+| 宿主工具 | 调用写法 |
+| :--- | :--- |
+| **Codex / Grok / Qoder** | `$jj-team-coordinate …` |
+| **Claude Code** | `/jj-team-coordinate …` |
 
-## 适用与边界
+## 一、适用场景与选型对比
 
-**用得当：**
+| 你的需求场景 | 推荐使用的入口 |
+| :--- | :--- |
+| 一个需求横跨多个模块（如支付回调 + 订单状态机 + 对账），希望按模块或视角动态拆角色并行处理 | **使用 `team-coordinate`（本页）** |
+| 常规单点需求或修 Bug，不需要拆多个角色 | 去 [ralph · 单仓任务闭环](jj-ralph.md) |
+| 希望按固定的“写 PRD 规格 → 计划 → 实现 → 测试 → 审查”标准化流水线走 | 去 [team-lifecycle · 标准 SDLC](jj-team-lifecycle.md) |
+| 架构方案尚未确定，希望生成多个候选方案并经过对抗评分选出最佳方案 | 去 [team-swarm · 多方案搜索](jj-team-swarm.md) |
 
-- 一个需求横跨多个模块，适合让不同角色各看一块
-- 想从安全、性能、兼容等角度同时分析
-- 你明确要求"多角色"或动态拆分
+## 二、标准执行流程（4 步动态协同）
 
-**别用在：** 小改动直接用 [ralph](jj-ralph.md)；要迁仓用 [same](jj-same.md)；要固定规格流水线用 [lifecycle](jj-team-lifecycle.md)；要多假设搜索用 [swarm](jj-team-swarm.md)。
+1. **评估复杂度与生成角色拓扑**：分析你的问题是否确实需要多角色协作（若只是简单单点问题，会直接建议改用 `ralph`，不盲目创建复杂会话）；确认需要后，生成本轮专属角色（如 `security-analyst`、`order-implementer`、`qa-verifier`）及先后依赖关系。
+2. **派发各角色执行**：按宿主平台能力派发子代理（支持多子代理的宿主并行推进，其余环境自动平滑降级为文件消息总线串行执行，产物契约完全一致）。
+3. **汇总产物与异常拦截**：收集各角色输出的分析报告、代码修改与验证结果；若某一角色执行失败，会如实报告原因，绝不拿残缺结果冒充全部完成。
+4. **收尾与引用**：输出本轮协作摘要与 `.workflow/.team/TC-…/` 产物路径，供你在 `ralph` 验收或后续开发中引用。
 
-## 开始前
-
-1. 在要处理的业务仓库对话里使用，并说清目标和范围
-2. 只在确实需要多角色时使用；单点改动会增加沟通成本
-3. 知道宿主能力不同：有的会并行，有的会降级为串行，但都会保留同一套产物契约
-
-## 第一次这样用
-
-**你说：**
+## 三、完整实战示例
 
 ```text
-$jj-team-coordinate 支付回调与订单状态分角色并行分析并实现
+你：
+$jj-team-coordinate 支付回调验签与订单状态流转分角色并行分析并实现
+
+Agent：
+已创建动态协作会话 `.workflow/.team/TC-payment-callback-20261013/`：
+- 角色 1 [security-analyst]：审查回调签名校验与重放攻击防护（只读分析）
+- 角色 2 [order-implementer]：实现幂等订单状态机更新（依赖角色 1 结论）
+- 角色 3 [qa-verifier]：编写并发回调与签名失败单元测试（依赖角色 2 完成）
+
+正在派发各角色执行……
+- [security-analyst] 已输出验签边界清单：`artifacts/security-notes.md`
+- [order-implementer] 已更新 `src/services/orderCallback.ts`
+- [qa-verifier] 已新增并通过 5 项幂等与验签测试：`artifacts/test-report.md`
+
+team 会话完成：产物位于 `.workflow/.team/TC-payment-callback-20261013/`
+下一步：1. 归档会话；2. 保留继续（说 `resume`）；3. 将产物路径引用至 `$jj-ralph` 完成正式验收。
 ```
 
-**Agent 会做：**
-
-1. 先分析任务，生成本轮角色和依赖关系
-2. 创建会话记录，再按宿主能力派发角色（可并行，也可能串行降级）
-3. 汇总各角色的实现、分析和验证产物，遇到失败会说明原因，不把缺失结果当作完成
-4. 结束时给出摘要和产物路径；如果它嵌在 ralph / review / dispatch 里，只提供可引用证据，不改父流程门禁
-
-**你会看到：**
+## 四、常用说法速查
 
 ```text
-已生成 3 个角色：分析、实现、检查
-team 会话完成：产物见 .workflow/.team/TC-…/
-下一步：归档会话 / 保留继续 / 导出结果（请选择）
-```
+# 从多个角度并行分析一个高风险改动的影响面
+$jj-team-coordinate 从安全、性能、向后兼容三个角度分析登录鉴权改造的影响面
 
-**怎样算做完：** 你拿到本轮的角色产物和摘要；业务交付是否通过，还要回到 ralph 或 dispatch 完成各自验收。
+# 按模块拆分角色协同实现与测试
+$jj-team-coordinate 把支付模块拆成分析、实现、测试三个角色协同完成
 
-## 常用说法
-
-```text
-$jj-team-coordinate 多角度分析登录改动的影响面
-$jj-team-coordinate 把支付模块拆成分析、实现、测试三个角色
+# 恢复刚才中断的多角色会话
 $jj-team-coordinate resume
 ```
 
-## 做完之后
-
-| 你想做什么 | 下一步 |
-|------------|--------|
-| 把产物作为实现证据 | 在 [ralph](jj-ralph.md) 的验收记录里引用路径 |
-| 继续本轮会话 | 说 `resume` /「继续」 |
-| 正式验收当前仓 | 回到 [ralph](jj-ralph.md) |
-| 多项目分别验收 | 使用 [dispatch](jj-dispatch.md) |
-
-## 边界细则
-
-直接调用时没有强制的长提示；嵌在 ralph、review 或 dispatch 中，开始派角色前只会有一行透明提示。宿主没有相应多会话能力时会使用文件消息总线或可用代理降级，不会因为缺少某个 API 就伪造完成。
-
-## 记录在哪
+## 五、文件记录在哪里？
 
 ```text
 .workflow/.team/TC-<简述>-<日期>/
-  team-session.json
-  role-specs/
-  artifacts/
+├── team-session.json    # 本次多角色会话状态与角色依赖图
+├── role-specs/          # 动态生成的各角色职责定义
+└── artifacts/           # 各角色产出的分析文档、代码摘要与验证记录
 ```
 
-## 相关
+## 相关阅读
 
-[ralph](jj-ralph.md)、[lifecycle](jj-team-lifecycle.md)、[swarm](jj-team-swarm.md)、[命令总览](../commands.md)
+* [ralph · 单仓任务闭环](jj-ralph.md)
+* [team-lifecycle · 标准 SDLC 流水线](jj-team-lifecycle.md)
+* [team-swarm · 多方案搜索](jj-team-swarm.md)
+* [命令总览与选型指南](../commands.md)

@@ -17,7 +17,7 @@ const srcExclude = (manifest.documentation_policy?.excluded_paths || []).map((p)
 export default defineConfig({
   lang: 'zh-CN',
   title: 'jj-flow',
-  description: '用对话做项目族编排工作流',
+  description: '面向多仓库项目族的对话式研发编排工作流——让改功能、跨仓迁移、多仓调度与 Git 收工可核对、可续接',
   base: '/jj-flow/',
   srcExclude,
   outDir: '../site',
@@ -25,31 +25,75 @@ export default defineConfig({
   // WSL 上编辑 /mnt/* 的仓库时 inotify 不可用，热更新改轮询
   vite: { server: { watch: { usePolling: Boolean(process.env.WSL_DISTRO_NAME) } } },
   themeConfig: {
+    siteTitle: 'jj-flow 文档',
     nav: [
-      { text: '安装', link: '/installation' },
-      { text: '第一次使用', link: '/usage' },
-      { text: '更新日志', link: '/changelog' }
+      {
+        text: '快速上手',
+        items: [
+          { text: '首页与全景导览', link: '/' },
+          { text: '1 分钟安装与配置', link: '/installation' },
+          { text: '第一次使用（完整实战）', link: '/usage' },
+          { text: '常见避坑与自检清单', link: '/pitfalls' }
+        ]
+      },
+      {
+        text: '核心工作流',
+        items: [
+          { text: '命令总览与选型指南', link: '/commands' },
+          { text: 'ralph · 单仓任务闭环', link: '/commands/jj-ralph' },
+          { text: 'same · 跨仓同源迁移', link: '/commands/jj-same' },
+          { text: 'dispatch · 多仓统筹调度', link: '/commands/jj-dispatch' },
+          { text: 'review · 只读代码审查', link: '/commands/jj-review' },
+          { text: 'end · Git 提交与合并', link: '/commands/jj-end' },
+          { text: 'init · 项目地图接入', link: '/commands/jj-init' },
+          { text: 'jj · 智能意图分流', link: '/commands/jj' }
+        ]
+      },
+      {
+        text: '核心概念',
+        items: [
+          { text: '核心术语对照表', link: '/glossary' },
+          { text: '证据门禁：什么算做完', link: '/concepts-evidence' },
+          { text: '目录结构与文件布局', link: '/concepts-paths' },
+          { text: '宿主平台与工作模式', link: '/concepts-hosts' },
+          { text: '知识库与记忆热层', link: '/concepts-knowledge' }
+        ]
+      },
+      {
+        text: '维护与参考',
+        items: [
+          { text: '系统架构总览', link: '/architecture' },
+          { text: 'CLI 命令行参考', link: '/commands/cli' },
+          { text: '仓库与文档维护', link: '/maintenance' },
+          { text: '文档写作规范', link: '/writing-guide' },
+          { text: '更新日志', link: '/changelog' }
+        ]
+      }
     ],
     socialLinks: [{ icon: 'github', link: GITHUB_URL }],
     sidebar,
     outline: { level: [2, 3], label: '本页目录' },
     editLink: { pattern: `${GITHUB_URL}/edit/main/docs/:path`, text: '在 GitHub 上编辑此页' },
     docFooter: { prev: '上一页', next: '下一页' },
-    sidebarMenuLabel: '目录',
+    footer: {
+      message: '基于 MIT 协议发布 · 以持久文件与 Git 证据驱动的多项目研发工作流',
+      copyright: 'Copyright © 2026 jj-flow contributors'
+    },
+    sidebarMenuLabel: '文档目录',
     returnToTopLabel: '回到顶部',
-    darkModeSwitchLabel: '外观',
-    lightModeSwitchTitle: '切换到浅色',
-    darkModeSwitchTitle: '切换到深色',
+    darkModeSwitchLabel: '外观主题',
+    lightModeSwitchTitle: '切换到浅色模式',
+    darkModeSwitchTitle: '切换到深色模式',
     search: {
       provider: 'local',
       options: {
         translations: {
-          button: { buttonText: '搜索', buttonAriaLabel: '搜索' },
+          button: { buttonText: '搜索文档', buttonAriaLabel: '搜索文档' },
           modal: {
             displayDetails: '显示详情',
-            resetButtonTitle: '清空',
+            resetButtonTitle: '清空查询',
             backButtonTitle: '关闭',
-            noResultsText: '没有找到',
+            noResultsText: '未找到相关内容',
             footer: {
               selectText: '打开',
               selectKeyAriaLabel: '回车',

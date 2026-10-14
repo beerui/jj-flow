@@ -1,57 +1,51 @@
-# evaluated — 用真实交付记录做离线复盘
+# evaluated — 基于真实交付记录的离线复盘
 
-**可选入口：** 只帮你评估和改进工作流，单独跑完不算验收通过；验收仍看 [ralph](jj-ralph.md) / [dispatch](jj-dispatch.md) 的记录。把真实项目的对话导出、Git、交接、验证和任务工件整理成可回放的 episode，分析耗时、返工和流程问题，再由**人**决定是否改进 skill。
+`evaluated` 是面向工作流调优的**实验性离线复盘工具**。它把真实项目交付过程中产生的对话导出记录、Git 提交历史、交接快照与审查产物整理成可回放的样本（`episode`），帮你量化分析“哪一步耗时最长、为什么发生了返工、哪条规则值得沉淀进技能协议”。
 
-## 写法
+::: info 可选复盘工具边界
+`evaluated` 只做**事后离线诊断与改进建议**，不会推进任何业务需求的 `ralph` 或 `dispatch` 验收状态；且任何针对 `skills/` 的改进候选都必须经过**人工审核批准**后才会合入，绝不会自动修改生产技能（禁止 auto-promote）。
+:::
 
-| 工具 | 写法 |
-|------|------|
-| Codex | `$jj-evaluated …` |
-| Claude / Grok / Qoder | `/jj-evaluated …` |
+| 宿主工具 | 调用写法 |
+| :--- | :--- |
+| **Codex** | `$jj-evaluated …` |
+| **Grok / Qoder** | `/jj-evaluated …` |
 
-## 适用与边界
+## 一、适用场景与前置要求
 
-**用得当：**
+**什么时候用 `evaluated`：**
+* 刚跑完一次复杂的跨仓迁移（如项目A → 项目B），想复盘为什么中间发生了返工或等待耗时过长。
+* 修改了某个技能协议后，想用历史真实样本跑一次回归校验（regression），确认没有破坏既有行为。
 
-- 复盘项目A → 项目B 的迁移成本、返工或交接复用
-- 比较策略，找出可泛化的流程改进
-- 把 episode 验证、拆分、回归结果留档
+**开始前准备：**
+1. **准备真实交付证据**：需要真实的会话导出 JSON/JSONL（`episode`）以及对应的 Git 提交或 `.workflow/` 任务产物；缺少证据或时间戳质量字段（`clock_quality`）时校验会直接报错，绝不靠估算编造数据。
+2. **确认隐私边界**：离线评估全在本机完成；未经你明确授权，不会将原始业务对话上传至任何外部服务。
 
-**别用在：** 只是想做当前需求用 [ralph](jj-ralph.md)；想推进多项目交付用 [dispatch](jj-dispatch.md)。它是实验性离线评估，不是实时调度器。
+## 二、标准执行流程（4 步科学复盘）
 
-## 开始前
+1. **校验样本完整性（Validate）**：运行内置校验器检查 `episode.json` 的事件结构、时间戳来源（`timestamp_provenance`）与时钟质量（`clock_quality`）。
+2. **计算基线与防泄漏切分（Baseline & Split）**：统计耗时、工具调用轮数与返工次数，并严格校验样本集切分（`optimization` 优化集、`holdout` 留出验证集、`regression` 回归集三者互不重叠）。
+3. **提出改进候选并验证（Candidate & Regression）**：针对复盘发现的具体瓶颈提出有界改进方案，在回归用例集上执行确定性校验。
+4. **生成报告等待人工拍板（Report）**：在 `.workflow/evaluated/<episode-id>/report.md` 输出完整基线表与回归结果，由维护者决定是否采纳。
 
-1. 准备真实的对话导出或 JSON/JSONL episode，以及可核对的 Git / 任务工件；证据不足时不会自行编造
-2. 明确评估哪些项目、角色和时间范围；不同项目仍保持项目A / 项目B / 项目C 的角色区分
-3. 先确认隐私边界；未经明确授权，不把原始对话发到外部服务
-
-## 第一次这样用
-
-**你说：**
+## 三、完整实战示例
 
 ```text
+你：
 $jj-evaluated 对最近一次 项目A→项目B handoff 做时长与复用诊断
+
+Agent：
+1. 样本校验：已校验 `EP-20261013-login-handoff.episode.json`（共 38 个事件，clock_quality=verified）
+2. 基线统计：
+   - 总耗时：4m 12s（其中目标仓重复全仓 grep 耗时 1m 45s）
+   - 返工轮数：1 轮（因未先读源仓 handoff 范围导致遗漏单测）
+3. 改进候选：在目标仓调研派单中显式列出源仓精确文件路径，禁止无边界全仓扫描（通过 15 项历史回归测试）
+4. 复盘报告已生成：`.workflow/evaluated/EP-20261013-login-handoff/report.md`（Promotion status: PENDING_HUMAN_REVIEW）
 ```
 
-**Agent 会做：**
+## 四、常用说法与维护脚本速查
 
-1. 确定范围和证据来源，先校验 episode 格式
-2. 计算带来源和质量说明的基线，再做不泄漏 holdout 的拆分检查
-3. 针对一个明确问题提出一个有界候选，先做轻量回放、再按需做更重的回归
-4. 把结果和风险写入报告，等你明确决定"推广"或"归档"；没有人工批准不会改生产 skill
-
-**你会看到：**
-
-```text
-episode：已校验
-基线：时长 / 等待 / 返工（均带来源说明）
-候选：1 个，等待人工复核
-报告：.workflow/evaluated/…/report.md
-```
-
-**怎样算做完：** 报告包含证据、拆分、回放、回归和人工决定；绿色分数本身不能自动推广候选。
-
-## 常用说法
+在对话中调用：
 
 ```text
 $jj-evaluated validate episode.json
@@ -59,26 +53,28 @@ $jj-evaluated 对项目A、项目B 最近一轮交付做返工诊断
 $jj-evaluated 离线评估：禁止自动 promote，只出 report
 ```
 
-## 做完之后
+维护者也可在终端直接调用内置确定性校验脚本：
 
-| 你想做什么 | 下一步 |
-|------------|--------|
-| 认可改进候选 | 明确批准后，按报告把它写入版本化 skill / 规格 |
-| 暂不推广 | 归档报告，保留回归资料 |
-| 缺数据 | 按报告的补采样建议行动，不要估算 |
-| 继续做业务改动 | 回到 [ralph](jj-ralph.md) 或 [same](jj-same.md) |
+```bash
+# 校验单个 episode 样本格式
+node skills/jj-evaluated/scripts/evaluated_ops.mjs validate --episode path/to/episode.json --json
 
-## 边界细则
+# 校验 optimization / holdout / regression 样本集切分无重叠
+node skills/jj-evaluated/scripts/evaluated_ops.mjs check-split --manifest path/to/split.json --json
 
-最小 runner 在 `skills/jj-evaluated/scripts/`：`episode-validate.mjs` 校验格式；`evaluated_ops.mjs` 提供 `validate`、`init-report`、`check-split` 和确定性回归。评估报告**不是**控制面的事实来源，不能推进任何交付 checkpoint。
+# 运行全量历史回归断言
+npm run evaluated:check
+```
 
-## 记录在哪
+## 五、文件记录在哪里？
 
 ```text
 .workflow/evaluated/<episode-id>/
-  report.md
+└── report.md    # 包含基线数据表（Baseline table）、候选方案与人工推广状态（Promotion status）
 ```
 
-## 相关
+## 相关阅读
 
-[命令总览](../commands.md)、[Harness 设计](../design-docs/harness-engineering.md)、[第一次使用](../usage.md)
+* [命令总览与选型指南](../commands.md)
+* [Agent Harness 工程设计](../design-docs/harness-engineering.md)
+* [evaluated 设计文档](../design-docs/jj-evaluated.md)
